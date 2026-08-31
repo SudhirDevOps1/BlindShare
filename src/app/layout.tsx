@@ -9,8 +9,9 @@ export const metadata: Metadata = {
   description: "Share documents with client-side zero-knowledge encryption, page-by-page dwell tracking, dynamic watermarks, and ₹0 free tier efficiency.",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/brand/logo.svg",
-    apple: "/brand/logo.svg",
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/brand/icon.png",
   },
   robots: {
     index: true,
@@ -34,7 +35,7 @@ export default function RootLayout({
   const prismUrl = process.env.NEXT_PUBLIC_PRISM_ANALYTICS_URL || "";
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         {/* Optional PrismAnalytics Tracking Script */}
         {prismId && prismUrl ? (

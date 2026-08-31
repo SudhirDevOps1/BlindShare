@@ -34,20 +34,17 @@ export function BrandHeader() {
   const { lang, setLang, t, appName } = useI18n();
   const isDashboardRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
 
-  const [user, setUser] = useState<UserProfile | null>(() => {
-    if (typeof window !== "undefined") {
-      try {
-        const cached = sessionStorage.getItem("blindshare_user");
-        if (cached) return JSON.parse(cached);
-      } catch {}
-    }
-    return null;
-  });
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [twoFactorModalOpen, setTwoFactorModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem("blindshare_user");
+      if (cached) setUser(JSON.parse(cached));
+    } catch {}
+
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((data) => {

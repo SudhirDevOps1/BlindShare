@@ -58,6 +58,11 @@ export function TwoFactorModal({ isOpen, onClose }: TwoFactorModalProps) {
   useEffect(() => {
     if (isOpen) {
       fetchStatus();
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") onClose();
+      };
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
     }
   }, [isOpen]);
 
@@ -160,17 +165,22 @@ export function TwoFactorModal({ isOpen, onClose }: TwoFactorModalProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
-      <div className="relative w-full max-w-lg rounded-2xl border border-slate-800 bg-slate-900/95 p-6 shadow-2xl space-y-5 text-white">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-fadeIn"
+    >
+      <div className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900/95 p-5 sm:p-6 shadow-2xl space-y-4 text-white my-auto">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 shrink-0">
               <Smartphone className="h-5 w-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold">Two-Factor Authentication (2FA)</h2>
-              <p className="text-xs text-slate-400">RFC 6238 TOTP Authenticator Security</p>
+              <h2 className="text-sm sm:text-base font-bold">Two-Factor Authentication (2FA)</h2>
+              <p className="text-[11px] text-slate-400">RFC 6238 TOTP Authenticator Security</p>
             </div>
           </div>
           <button
@@ -189,16 +199,16 @@ export function TwoFactorModal({ isOpen, onClose }: TwoFactorModalProps) {
         )}
 
         {loading ? (
-          <div className="py-12 text-center text-slate-400 space-y-2">
+          <div className="py-10 text-center text-slate-400 space-y-2">
             <Loader2 className="h-6 w-6 animate-spin mx-auto text-amber-400" />
             <p className="text-xs">Loading 2FA status...</p>
           </div>
         ) : step === "status" ? (
           <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+            <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/60 p-3.5 sm:p-4">
               <div className="flex items-center gap-3">
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-xl border ${
+                  className={`flex h-10 w-10 items-center justify-center rounded-xl border shrink-0 ${
                     isEnabled
                       ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400"
                       : "bg-slate-800 border-slate-700 text-slate-400"
@@ -219,7 +229,7 @@ export function TwoFactorModal({ isOpen, onClose }: TwoFactorModalProps) {
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
+            <div className="flex justify-end gap-3 pt-1">
               <button
                 type="button"
                 onClick={onClose}
@@ -252,25 +262,25 @@ export function TwoFactorModal({ isOpen, onClose }: TwoFactorModalProps) {
             </div>
           </div>
         ) : step === "setup" ? (
-          <form onSubmit={handleVerifyEnable} className="space-y-4">
+          <form onSubmit={handleVerifyEnable} className="space-y-3.5">
             <p className="text-xs text-slate-300">
               1. Scan this QR code using <strong>Google Authenticator</strong>, <strong>Authy</strong>, or <strong>1Password</strong>:
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 rounded-xl border border-slate-800 bg-slate-950/80 p-4">
+            <div className="flex flex-col sm:flex-row items-center gap-3.5 rounded-xl border border-slate-800 bg-slate-950/80 p-3.5">
               {qrCodeUrl && (
-                <div className="bg-white p-2 rounded-lg shrink-0 shadow-lg">
-                  <img src={qrCodeUrl} alt="2FA QR Code" className="h-32 w-32" />
+                <div className="bg-white p-1.5 rounded-lg shrink-0 shadow-lg">
+                  <img src={qrCodeUrl} alt="2FA QR Code" className="h-28 w-28 sm:h-32 sm:w-32" />
                 </div>
               )}
-              <div className="space-y-2 text-xs text-slate-400 flex-1">
-                <div>Cannot scan? Enter this secret key manually:</div>
-                <div className="flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 font-mono text-xs text-amber-300 select-all">
+              <div className="space-y-1.5 text-xs text-slate-400 flex-1 w-full">
+                <div>Cannot scan? Enter secret key manually:</div>
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 font-mono text-xs text-amber-300 select-all">
                   <span className="truncate">{secret}</span>
                   <button
                     type="button"
                     onClick={() => copyToClipboard(secret, "secret")}
-                    className="p-1 hover:text-white"
+                    className="p-1 hover:text-white shrink-0"
                     title="Copy Secret"
                   >
                     {copiedSecret ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
