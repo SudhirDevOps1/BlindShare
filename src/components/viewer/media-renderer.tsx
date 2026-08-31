@@ -40,7 +40,9 @@ import {
   Moon,
   Play,
   Pause,
+  Presentation,
 } from "lucide-react";
+import { PresenterModeView } from "@/components/viewer/presenter-mode-view";
 
 interface MediaRendererProps {
   slug: string;
@@ -450,6 +452,7 @@ export function MediaRenderer({
   const [tablePage, setTablePage] = useState(1);
   const [tablePageSize, setTablePageSize] = useState(25);
   const [fullscreen, setFullscreen] = useState(false);
+  const [presenterMode, setPresenterMode] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
 
   const totalDwellRef = useRef(0);
@@ -471,7 +474,9 @@ export function MediaRenderer({
           docKey = fragmentToDocKey(window.location.hash);
         }
         if (!docKey) {
-          const stored = sessionStorage.getItem(`blindshare_key_${docData.id}`);
+          const stored =
+            sessionStorage.getItem(`blindshare_key_${docData.id}`) ||
+            sessionStorage.getItem(`blindshare_key_${slug}`);
           if (stored) docKey = hexToBuffer(stored);
         }
         if (!docKey && docData.encryptionMode === "e2ee-fragment") {
@@ -776,6 +781,16 @@ export function MediaRenderer({
             </div>
           )}
 
+          {/* Presenter / Pitch Deck Slideshow Mode */}
+          <button
+            onClick={() => setPresenterMode(true)}
+            className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 shadow-sm"
+            title="Start Fullscreen Presenter Mode"
+          >
+            <Presentation className="h-3.5 w-3.5 text-amber-400" />
+            <span className="hidden md:inline">Presenter Mode</span>
+          </button>
+
           {/* Fullscreen Toggle */}
           <button
             onClick={() => setFullscreen(!fullscreen)}
@@ -1050,6 +1065,50 @@ export function MediaRenderer({
           </div>
         )}
       </div>
+
+      {/* Presenter Mode Modal for Images, Markdown, Code, HTML, and SVGs */}
+      {presenterMode && (
+        <PresenterModeView
+          currentPage={1}
+          totalPages={1}
+          onPageChange={() => {}}
+          onClose={() => setPresenterMode(false)}
+          brandLogoUrl={linkData.brandLogoUrl}
+          brandAccentColor={linkData.brandAccentColor}
+          watermarkText={linkData.watermarkEnabled ? (linkData.watermarkText || viewerIdentity || "CONFIDENTIAL") : null}
+        >
+          <div className="flex items-center justify-center p-4 max-h-[85vh] max-w-[90vw] overflow-auto">
+            {format.kind === "image" || format.kind === "svg" ? (
+              <img
+                src={objectUrl || ""}
+                alt={docData.originalFilename}
+                className="max-h-[82vh] max-w-[88vw] object-contain rounded-lg shadow-2xl"
+              />
+            ) : format.kind === "markdown" ? (
+              <div
+                className="prose prose-invert max-w-4xl text-sm leading-relaxed p-6 bg-slate-950 rounded-xl"
+                dangerouslySetInnerHTML={{ __html: renderMarkdownRich(textContent) }}
+              />
+            ) : format.kind === "code" || format.kind === "text" ? (
+              <pre className="p-6 rounded-xl bg-slate-950 text-xs font-mono max-w-4xl overflow-auto text-slate-200">
+                <code dangerouslySetInnerHTML={{ __html: highlightCode(textContent, docData.originalFilename.split(".").pop()) }} />
+              </pre>
+            ) : format.kind === "html" ? (
+              <iframe
+                srcDoc={textContent}
+                sandbox="allow-same-origin"
+                className="w-[85vw] h-[80vh] rounded-lg bg-white"
+                title="HTML Presentation"
+              />
+            ) : (
+              <div className="text-center p-8">
+                <FileText className="h-12 w-12 text-amber-400 mx-auto mb-2" />
+                <h3 className="text-white font-bold text-base">{docData.originalFilename}</h3>
+              </div>
+            )}
+          </div>
+        </PresenterModeView>
+      )}
     </div>
   );
 }

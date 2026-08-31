@@ -371,9 +371,24 @@ export function PdfRenderer({
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        const viewport = page.getViewport({ scale: zoom, rotation });
+        const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2.5);
+        const unscaledViewport = page.getViewport({ scale: 1, rotation });
+
+        let targetScale = zoom;
+        if (presenterMode && typeof window !== "undefined") {
+          // Fit slide proportionally inside presentation screen canvas
+          const maxW = window.innerWidth * 0.88;
+          const maxH = window.innerHeight * 0.78;
+          const scaleW = maxW / unscaledViewport.width;
+          const scaleH = maxH / unscaledViewport.height;
+          targetScale = Math.min(scaleW, scaleH);
+        }
+
+        const viewport = page.getViewport({ scale: targetScale * dpr, rotation });
         canvas.width = viewport.width;
         canvas.height = viewport.height;
+        canvas.style.width = `${Math.round(viewport.width / dpr)}px`;
+        canvas.style.height = `${Math.round(viewport.height / dpr)}px`;
 
         const renderContext = {
           canvasContext: ctx,
@@ -403,7 +418,7 @@ export function PdfRenderer({
         renderTaskRef.current.cancel();
       }
     };
-  }, [pdfDoc, currentPage, zoom, rotation, drawWatermark]);
+  }, [pdfDoc, currentPage, zoom, rotation, drawWatermark, presenterMode]);
 
   // Handle Download (Only if allowDownload is enabled)
   const handleDownload = () => {
@@ -548,33 +563,34 @@ export function PdfRenderer({
             <span className="hidden md:inline">Presenter Mode</span>
           </button>
 
-          {/* Download button (Honest: enabled only if owner allowed) */}
-          {linkData.allowDownload ? (
+          {/* Allow Download Button */}
+          {linkData.allowDownload && (
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-amber-400"
+              className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10 transition"
+              title="Download Decrypted PDF"
             >
               <Download className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">{t.viewer.download}</span>
+              <span className="hidden sm:inline">Download</span>
             </button>
-          ) : (
-            <div
-              className="hidden lg:flex items-center gap-1 text-[11px] text-slate-500 bg-slate-900/50 px-2 py-1 rounded border border-slate-800/50"
-              title={t.viewer.downloadDisabled}
-            >
-              <Lock className="h-3 w-3" />
-              <span>Download Restricted</span>
-            </div>
           )}
+
+          {/* Language Switcher */}
+          <button
+            onClick={() => setLang(lang === "en" ? "hi" : "en")}
+            className="rounded-lg bg-slate-900 px-2 py-1.5 text-[11px] font-bold text-amber-400 hover:bg-slate-800 border border-slate-800"
+          >
+            {lang === "en" ? "हिंदी" : "EN"}
+          </button>
         </div>
       </div>
 
-      {/* Resume Reading Prompt Toast */}
+      {/* Resume Reading Notice Prompt */}
       {resumePrompt && (
-        <div className="mx-auto mt-3 max-w-md px-4">
-          <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200 backdrop-blur-md shadow-lg shadow-amber-500/5">
+        <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-xs text-amber-300">
+          <div className="mx-auto max-w-4xl flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-amber-400" />
+              <Clock className="h-4 w-4 text-amber-400 shrink-0" />
               <span>
                 {t.viewer.resumeHint
                   .replace("{pages}", String(resumePrompt.page))
@@ -615,8 +631,8 @@ export function PdfRenderer({
         </div>
       )}
 
-      {/* Fullscreen Presenter Mode Modal */}
-      {presenterMode && (
+      {/* Canvas View: Switches between Fullscreen Presenter Mode and Standard Document View */}
+      {presenterMode ? (
         <PresenterModeView
           currentPage={currentPage}
           totalPages={totalPages}
@@ -626,25 +642,32 @@ export function PdfRenderer({
           brandAccentColor={linkData.brandAccentColor}
           watermarkText={linkData.watermarkEnabled ? (linkData.watermarkText || viewerIdentity || "CONFIDENTIAL") : null}
         >
-          <canvas ref={canvasRef} className="block max-h-[85vh] max-w-[90vw] object-contain" />
+          <div className="relative flex items-center justify-center">
+            <canvas ref={canvasRef} className="block max-h-[85vh] max-w-[90vw] object-contain shadow-2xl rounded-md" />
+            {linkData.watermarkEnabled && (
+              <canvas
+                ref={watermarkCanvasRef}
+                className="pointer-events-none absolute inset-0 block h-full w-full"
+              />
+            )}
+          </div>
         </PresenterModeView>
-      )}
+      ) : (
+        <div className={`flex-1 flex items-center justify-center p-4 sm:p-8 overflow-auto ${antiLeakActive ? "blur-xl" : ""}`}>
+          <div className="relative shadow-2xl rounded-lg overflow-hidden border border-slate-800 bg-slate-900">
+            {/* Main PDF Page Render Canvas */}
+            <canvas ref={canvasRef} className="block max-w-full h-auto" />
 
-      {/* Canvas View Area */}
-      <div className={`flex-1 flex items-center justify-center p-4 sm:p-8 overflow-auto ${antiLeakActive ? "blur-xl" : ""}`}>
-        <div className="relative shadow-2xl rounded-lg overflow-hidden border border-slate-800 bg-slate-900">
-          {/* Main PDF Page Render Canvas */}
-          <canvas ref={canvasRef} className="block max-w-full h-auto" />
-
-          {/* Dynamic Live Watermark Overlay Canvas */}
-          {linkData.watermarkEnabled && (
-            <canvas
-              ref={watermarkCanvasRef}
-              className="pointer-events-none absolute inset-0 block h-full w-full"
-            />
-          )}
+            {/* Dynamic Live Watermark Overlay Canvas */}
+            {linkData.watermarkEnabled && (
+              <canvas
+                ref={watermarkCanvasRef}
+                className="pointer-events-none absolute inset-0 block h-full w-full"
+              />
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Bottom Floating Footer / Watermark Deterrent Disclaimer */}
       <div className="border-t border-slate-900 bg-slate-950 px-4 py-2 text-center text-[11px] text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
