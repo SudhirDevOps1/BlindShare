@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   ShieldCheck,
   Smartphone,
@@ -20,6 +21,7 @@ interface TwoFactorModalProps {
 }
 
 export function TwoFactorModal({ isOpen, onClose }: TwoFactorModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [isEnabled, setIsEnabled] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [step, setStep] = useState<"status" | "setup" | "backup" | "disable">("status");
@@ -54,6 +56,10 @@ export function TwoFactorModal({ isOpen, onClose }: TwoFactorModalProps) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -162,16 +168,16 @@ export function TwoFactorModal({ isOpen, onClose }: TwoFactorModalProps) {
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null;
 
-  return (
+  return createPortal(
     <div
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-fadeIn"
+      className="fixed inset-0 z-[99999] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-fadeIn"
     >
-      <div className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900/95 p-5 sm:p-6 shadow-2xl space-y-4 text-white my-auto">
+      <div className="relative w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900/95 p-5 sm:p-6 shadow-2xl space-y-4 text-white my-auto">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <div className="flex items-center gap-2.5">
@@ -408,6 +414,7 @@ export function TwoFactorModal({ isOpen, onClose }: TwoFactorModalProps) {
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
