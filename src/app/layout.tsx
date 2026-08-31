@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
-import { PrismTracker } from "@/components/analytics/prism-tracker";
 
 const appName = process.env.PUBLIC_APP_NAME || "BlindShare";
 
@@ -31,11 +30,55 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const prismId = process.env.NEXT_PUBLIC_PRISM_ANALYTICS_ID || "";
+  const prismUrl = process.env.NEXT_PUBLIC_PRISM_ANALYTICS_URL || "";
+
   return (
     <html lang="en" className="dark">
+      <head>
+        {/* Optional PrismAnalytics Tracking (Matches secure-private-chat-app-prd) */}
+        {prismId && prismUrl ? (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `(function(){
+try {
+  var id='${prismId}', url='${prismUrl}';
+  var sid=sessionStorage.getItem('pa_sid')||(typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).substring(2));
+  sessionStorage.setItem('pa_sid',sid);
+  function t(e,d){
+    try {
+      var q=new URLSearchParams(location.search);
+      var payload=JSON.stringify({
+        site_id:id,
+        pathname:location.pathname,
+        referrer:document.referrer||'',
+        screen_size:screen.width+'x'+screen.height,
+        session_id:sid,
+        event_name:e||'pageview',
+        event_data:d,
+        utm_source:q.get('utm_source'),
+        utm_medium:q.get('utm_medium'),
+        utm_campaign:q.get('utm_campaign')
+      });
+      if(navigator.sendBeacon){
+        navigator.sendBeacon(url,payload);
+      } else {
+        fetch(url,{method:'POST',body:payload,headers:{'Content-Type':'application/json'},keepalive:true,mode:'no-cors'}).catch(function(){});
+      }
+    } catch(err){}
+  }
+  window.prism=t;
+  t();
+  var p=location.pathname;
+  setInterval(function(){if(p!=location.pathname){p=location.pathname;t();}},500);
+} catch(e){}
+})();`,
+            }}
+          />
+        ) : null}
+      </head>
       <body className="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-200">
         <I18nProvider>
-          <PrismTracker />
           {children}
         </I18nProvider>
       </body>
