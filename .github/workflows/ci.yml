@@ -2,37 +2,56 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main, staging]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+          cache-dependency-path: 'package-lock.json'
+      
       - run: npm ci
+      
       - name: Typecheck
         run: npm run typecheck
+        
       - name: Lint
         run: npm run lint
+        
       - name: Build
         run: npm run build
         env:
           DATABASE_URL: postgres://user:pass@localhost:5432/db
-      - name: Zero-knowledge self-check (no server-side doc decrypt)
+          
+      - name: Zero-knowledge self-check
         run: node scripts/selfcheck-e2ee.mjs
-      - name: Dependency audit (fail on high/critical)
+        
+      - name: Dependency audit
         run: npm audit --omit=dev --audit-level=high || true
-      - name: Secret scan (gitleaks)
+        
+      - name: Secret scan
         uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
 
-  mobile-build:
-    # Phase-4 stub — real Capacitor build lands with apps/mobile/
+  actionlint:
     runs-on: ubuntu-latest
-    if: false
+    timeout-minutes: 5
     steps:
-      - run: echo "Capacitor Android build placeholder (keystore from GH Secrets b64 only)"
+      - uses: actions/checkout@v4
+      - name: Run actionlint
+        run: bash <(curl -s https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash) && ./actionlint -color
