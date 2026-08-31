@@ -11,25 +11,39 @@ export function PrismTracker() {
   useEffect(() => {
     if (!siteId || !trackUrl || typeof window === "undefined") return;
 
-    // Zero-telemetry safe beacon
     try {
-      fetch(trackUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          site_id: siteId,
-          path: pathname,
-          referrer: document.referrer || "direct",
-          title: document.title,
-          screen: `${window.innerWidth}x${window.innerHeight}`,
-        }),
-        mode: "no-cors",
-        keepalive: true,
-      }).catch(() => {
-        // Silently ignore telemetry failure
+      let sid = sessionStorage.getItem("pa_sid");
+      if (!sid) {
+        sid = typeof crypto.randomUUID === "function" ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+        sessionStorage.setItem("pa_sid", sid);
+      }
+
+      const q = new URLSearchParams(window.location.search);
+      const payload = JSON.stringify({
+        site_id: siteId,
+        pathname: pathname || window.location.pathname,
+        referrer: document.referrer || "",
+        screen_size: `${window.screen?.width || window.innerWidth}x${window.screen?.height || window.innerHeight}`,
+        session_id: sid,
+        event_name: "pageview",
+        utm_source: q.get("utm_source") || undefined,
+        utm_medium: q.get("utm_medium") || undefined,
+        utm_campaign: q.get("utm_campaign") || undefined,
       });
+
+      if (navigator.sendBeacon) {
+        navigator.sendBeacon(trackUrl, payload);
+      } else {
+        fetch(trackUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+          mode: "no-cors",
+        }).catch(() => {});
+      }
     } catch {
-      // Ignore
+      // Zero-telemetry silent resilience
     }
   }, [pathname, siteId, trackUrl]);
 

@@ -14,33 +14,39 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
   const [honeypot, setHoneypot] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const endpoint =
-    process.env.NEXT_PUBLIC_CONTACT_FORM_ACTION ||
-    "";
+  const endpoint = process.env.NEXT_PUBLIC_CONTACT_FORM_ACTION || "";
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (honeypot) return; // Silent discard for bots
+    if (honeypot) return;
 
     setLoading(true);
-    setError(null);
 
     try {
       if (endpoint) {
+        const fd = new FormData();
+        fd.append("email", email.trim());
+        fd.append("message", message.trim());
+        fd.append("website", honeypot);
+
         await fetch(endpoint, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, message, website: honeypot }),
+          body: fd,
           mode: "no-cors",
+        }).catch(() => {
+          return fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email.trim(), message: message.trim(), website: honeypot }),
+            mode: "no-cors",
+          });
         });
       }
       setSubmitted(true);
     } catch {
-      // Even if network blocks, show confirmation to user
       setSubmitted(true);
     } finally {
       setLoading(false);
@@ -90,13 +96,6 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 <p className="text-[11px] text-slate-400">Direct response from our core operators</p>
               </div>
             </div>
-
-            {error && (
-              <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-950/30 p-3 text-xs text-red-300">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{error}</span>
-              </div>
-            )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>

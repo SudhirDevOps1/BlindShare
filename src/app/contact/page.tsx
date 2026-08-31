@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { useI18n } from "@/lib/i18n/context";
-import { MessageSquare, Send, CheckCircle2, ShieldCheck, Mail, HelpCircle } from "lucide-react";
+import { MessageSquare, Send, CheckCircle2, ShieldCheck, Mail } from "lucide-react";
 
 export default function ContactPage() {
   const { appName } = useI18n();
@@ -16,21 +16,42 @@ export default function ContactPage() {
 
   const endpoint = process.env.NEXT_PUBLIC_CONTACT_FORM_ACTION || "";
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (honeypot) return;
+    if (honeypot) return; // Silent discard for bot
 
     setLoading(true);
 
     try {
       if (endpoint) {
+        // Try FormData first (native for FormForge/Workers)
+        const fd = new FormData();
+        fd.append("email", email.trim());
+        fd.append("message", message.trim());
+        fd.append("website", honeypot);
+
         await fetch(endpoint, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, message, website: honeypot }),
+          body: fd,
           mode: "no-cors",
+        }).catch(() => {
+          // Fallback to json if formData fails
+          return fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: email.trim(), message: message.trim(), website: honeypot }),
+            mode: "no-cors",
+          });
         });
       }
+
+      // Local storage backup
+      try {
+        const past = JSON.parse(localStorage.getItem("blindshare.feedback") || "[]");
+        past.push({ email, message, at: new Date().toISOString() });
+        localStorage.setItem("blindshare.feedback", JSON.stringify(past.slice(-20)));
+      } catch {}
+
       setSubmitted(true);
     } catch {
       setSubmitted(true);
