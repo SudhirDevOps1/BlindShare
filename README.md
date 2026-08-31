@@ -19,7 +19,7 @@
     <img src="https://img.shields.io/github/v/release/SudhirDevOps1/BlindShare?style=flat-square&label=release&color=22c55e" alt="Release" />
   </a>
   <a href="./LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License" />
+    <img src="https://img.shields.io/badge/license-AGPL--3.0-purple?style=flat-square" alt="License" />
   </a>
   <a href="https://github.com/SudhirDevOps1/BlindShare/actions">
     <img src="https://img.shields.io/github/actions/workflow/status/SudhirDevOps1/BlindShare/ci.yml?branch=main&style=flat-square&label=CI" alt="CI" />
@@ -477,7 +477,18 @@ git push origin feat/your-feature
 
 ## 📜 License
 
-[MIT](./LICENSE) — free to use, self-host, fork, and modify.
+[GNU Affero General Public License v3.0](./LICENSE) (AGPL-3.0)
+
+Copyright (C) 2026 BlindShare contributors
+
+This means:
+- ✅ **Free to use, self-host, and modify**
+- ✅ If you distribute or run a modified version publicly, you **must open-source your changes** under the same license
+- ✅ Commercial use is allowed, but **network use (SaaS) requires source disclosure**
+- ❌ You **cannot** take this code, modify it, and offer it as a closed-source product or service
+
+> Full license text: [https://www.gnu.org/licenses/agpl-3.0.txt](https://www.gnu.org/licenses/agpl-3.0.txt)
+
 
 ---
 
