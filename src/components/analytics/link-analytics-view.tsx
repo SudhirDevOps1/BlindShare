@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { formatDuration } from "@/lib/analytics";
 import {
@@ -27,6 +27,10 @@ import {
   ChevronUp,
   Sliders,
   Check,
+  Search,
+  Filter,
+  TrendingDown,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -43,6 +47,8 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
   const [revoking, setRevoking] = useState(false);
+  const [intentFilter, setIntentFilter] = useState<"all" | "high" | "medium" | "low">("all");
+  const [sessionSearch, setSessionSearch] = useState("");
 
   const fetchAnalytics = useCallback(async (isSilent = false) => {
     try {
@@ -96,12 +102,48 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
     }
   };
 
+  const { link, document: docInfo, metrics, pageStats, sessions, deviceBreakdown, countryBreakdown } = data || {};
+  const maxDwell = Math.max(...(pageStats?.map((p: any) => p.dwellSeconds) || [1]), 1);
+  const totalPages = docInfo?.pageCount || 1;
+
+  // Filtered sessions
+  const filteredSessions = useMemo(() => {
+    if (!sessions) return [];
+    return sessions.filter((s: any) => {
+      const matchesIntent = intentFilter === "all" || s.intent === intentFilter;
+      const matchesSearch =
+        !sessionSearch.trim() ||
+        (s.viewerEmail && s.viewerEmail.toLowerCase().includes(sessionSearch.toLowerCase())) ||
+        (s.country && s.country.toLowerCase().includes(sessionSearch.toLowerCase())) ||
+        (s.uaDevice && s.uaDevice.toLowerCase().includes(sessionSearch.toLowerCase()));
+      return matchesIntent && matchesSearch;
+    });
+  }, [sessions, intentFilter, sessionSearch]);
+
+  // Funnel calculation
+  const funnelStats = useMemo(() => {
+    if (!sessions || sessions.length === 0) return { started: 0, midpoint: 0, completed: 0 };
+    const total = sessions.length;
+    const midpointPage = Math.max(1, Math.ceil(totalPages / 2));
+    const started = total;
+    const midpoint = sessions.filter((s: any) => s.maxPageReached >= midpointPage).length;
+    const completed = sessions.filter((s: any) => s.maxPageReached >= totalPages).length;
+    return {
+      started: 100,
+      midpoint: Math.round((midpoint / total) * 100),
+      completed: Math.round((completed / total) * 100),
+      rawStarted: started,
+      rawMidpoint: midpoint,
+      rawCompleted: completed,
+    };
+  }, [sessions, totalPages]);
+
   if (loading && !data) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center p-8">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
-          <p className="text-xs text-slate-400">Loading Document Tracking Data...</p>
+          <p className="text-xs text-slate-400">Loading Document Tracking Intelligence...</p>
         </div>
       </div>
     );
@@ -124,10 +166,6 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
       </div>
     );
   }
-
-  const { link, document: docInfo, metrics, pageStats, sessions, deviceBreakdown, countryBreakdown } = data;
-  const maxDwell = Math.max(...pageStats.map((p: any) => p.dwellSeconds), 1);
-  const totalPages = docInfo?.pageCount || 1;
 
   const totalDev = (deviceBreakdown?.desktop || 0) + (deviceBreakdown?.mobile || 0) + (deviceBreakdown?.tablet || 0) || 1;
   const desktopPct = Math.round(((deviceBreakdown?.desktop || 0) / totalDev) * 100);
@@ -152,7 +190,7 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
               href="/dashboard/analytics"
               className="text-xs text-slate-400 hover:text-amber-400 transition"
             >
-              All Analytics
+              All Analytics Hub
             </Link>
           </div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
@@ -164,7 +202,7 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
             ) : metrics.activeNow > 0 ? (
               <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 animate-pulse">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-                {metrics.activeNow} Active Now
+                {metrics.activeNow} Reading Right Now
               </span>
             ) : (
               <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-400 border border-emerald-500/20">
@@ -173,7 +211,7 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
             )}
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">
-            Slug: <code className="text-amber-400 font-mono">/v/{link.slug}</code> • Document:{" "}
+            Slug: <code className="text-amber-400 font-mono">/v/{link.slug}</code> • Target:{" "}
             <span className="text-slate-200 font-medium">{docInfo?.title || "Document"}</span> ({totalPages} pages)
           </p>
         </div>
@@ -269,6 +307,56 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
         </div>
       </div>
 
+      {/* Reader Funnel Drop-off Analysis (DocSend Enterprise Style) */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <TrendingDown className="h-4 w-4 text-amber-400" />
+              <span>Reader Retention Funnel & Drop-Off</span>
+            </h3>
+            <p className="text-xs text-slate-400">
+              Conversion rate of readers progressing from Page 1 to Document Finish
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-400">Step 1: Opened Document</span>
+              <span className="font-mono text-white font-bold">{funnelStats.started}%</span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+              <div className="h-full bg-blue-500" style={{ width: `${funnelStats.started}%` }} />
+            </div>
+            <div className="text-[10px] text-slate-500">{funnelStats.rawStarted} total view sessions</div>
+          </div>
+
+          <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-400">Step 2: Reached Mid-Point</span>
+              <span className="font-mono text-amber-400 font-bold">{funnelStats.midpoint}%</span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+              <div className="h-full bg-amber-500" style={{ width: `${funnelStats.midpoint}%` }} />
+            </div>
+            <div className="text-[10px] text-slate-500">{funnelStats.rawMidpoint} read to page {Math.max(1, Math.ceil(totalPages / 2))}</div>
+          </div>
+
+          <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-400">Step 3: Completed Last Page</span>
+              <span className="font-mono text-emerald-400 font-bold">{funnelStats.completed}%</span>
+            </div>
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+              <div className="h-full bg-emerald-500" style={{ width: `${funnelStats.completed}%` }} />
+            </div>
+            <div className="text-[10px] text-slate-500">{funnelStats.rawCompleted} finished all {totalPages} pages</div>
+          </div>
+        </div>
+      </div>
+
       {/* Per-Page Reading Dwell Time Chart (Papermark Heatmap Style) */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
         <div className="flex items-center justify-between">
@@ -283,11 +371,11 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
           </div>
         </div>
 
-        {pageStats.length === 0 ? (
+        {pageStats?.length === 0 ? (
           <div className="py-8 text-center text-xs text-slate-500">No page views recorded yet.</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pt-2">
-            {pageStats.map((p: any) => {
+            {pageStats?.map((p: any) => {
               const percentage = Math.round((p.dwellSeconds / maxDwell) * 100);
               return (
                 <div
@@ -378,22 +466,63 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
         </div>
       </div>
 
-      {/* Viewer Session Logs Table (Interactive with Page Breakdown) */}
+      {/* Viewer Session Logs Table (Interactive with Intent Filter & Page Breakdown) */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Users className="h-4 w-4 text-amber-400" />
-              <span>Viewer Sessions & Lead Scoring</span>
+              <span>Viewer Sessions & Lead Intelligence</span>
             </h3>
             <p className="text-xs text-slate-400">
               Click any session to view that reader's specific per-page dwell time
             </p>
           </div>
+
+          {/* Search and Intent Filter Tabs */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2 h-3.5 w-3.5 text-slate-500" />
+              <input
+                type="text"
+                value={sessionSearch}
+                onChange={(e) => setSessionSearch(e.target.value)}
+                placeholder="Search email, country..."
+                className="rounded-lg border border-slate-800 bg-slate-950 pl-8 pr-2.5 py-1 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-500"
+              />
+            </div>
+
+            <div className="flex rounded-lg border border-slate-800 bg-slate-950 p-0.5 text-[11px]">
+              <button
+                onClick={() => setIntentFilter("all")}
+                className={`px-2.5 py-1 rounded-md transition ${intentFilter === "all" ? "bg-slate-800 text-white font-bold" : "text-slate-400"}`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setIntentFilter("high")}
+                className={`px-2.5 py-1 rounded-md transition ${intentFilter === "high" ? "bg-red-500/20 text-red-300 font-bold border border-red-500/30" : "text-slate-400"}`}
+              >
+                🔥 High
+              </button>
+              <button
+                onClick={() => setIntentFilter("medium")}
+                className={`px-2.5 py-1 rounded-md transition ${intentFilter === "medium" ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30" : "text-slate-400"}`}
+              >
+                ⚡ Engaged
+              </button>
+              <button
+                onClick={() => setIntentFilter("low")}
+                className={`px-2.5 py-1 rounded-md transition ${intentFilter === "low" ? "bg-slate-800 text-slate-300 font-bold" : "text-slate-400"}`}
+              >
+                ❄️ Skimmed
+              </button>
+            </div>
+          </div>
         </div>
 
-        {sessions.length === 0 ? (
-          <div className="py-8 text-center text-xs text-slate-500">No viewer sessions recorded yet.</div>
+        {filteredSessions.length === 0 ? (
+          <div className="py-12 text-center text-xs text-slate-500">No viewer sessions match your filter.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -410,7 +539,7 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {sessions.map((s: any) => {
+                {filteredSessions.map((s: any) => {
                   const isExpanded = expandedSessionId === s.id;
                   const DeviceIcon =
                     s.uaDevice === "mobile" ? Smartphone : s.uaDevice === "tablet" ? Tablet : Monitor;
@@ -451,17 +580,17 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
 
                         <td className="py-3">
                           {s.intent === "high" ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2.5 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30">
                               <Flame className="h-3 w-3 text-red-400" />
                               High Intent
                             </span>
                           ) : s.intent === "medium" ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/30">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2.5 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/30">
                               <Zap className="h-3 w-3 text-amber-400" />
                               Engaged
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400 border border-slate-700">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 px-2.5 py-0.5 text-[10px] text-slate-400 border border-slate-700">
                               <Snowflake className="h-3 w-3 text-slate-500" />
                               Skimmed
                             </span>

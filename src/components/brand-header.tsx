@@ -30,7 +30,17 @@ export function BrandHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { lang, setLang, t, appName } = useI18n();
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const isDashboardRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
+
+  const [user, setUser] = useState<UserProfile | null>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = sessionStorage.getItem("blindshare_user");
+        if (cached) return JSON.parse(cached);
+      } catch {}
+    }
+    return null;
+  });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -40,6 +50,14 @@ export function BrandHeader() {
       .then((data) => {
         if (data.user) {
           setUser(data.user);
+          try {
+            sessionStorage.setItem("blindshare_user", JSON.stringify(data.user));
+          } catch {}
+        } else {
+          setUser(null);
+          try {
+            sessionStorage.removeItem("blindshare_user");
+          } catch {}
         }
       })
       .catch(() => {})
@@ -48,19 +66,24 @@ export function BrandHeader() {
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    try {
+      sessionStorage.removeItem("blindshare_user");
+    } catch {}
     setUser(null);
     router.push("/");
     router.refresh();
   };
 
-  const navLinks = user
+  const showDashboardNav = Boolean(user || isDashboardRoute);
+
+  const navLinks = showDashboardNav
     ? [
         { href: "/dashboard", label: t.nav.dashboard, icon: FileText },
         { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
         { href: "/dashboard/docs", label: t.nav.documents, icon: FileText },
         { href: "/dashboard/links", label: t.nav.links, icon: LinkIcon },
         { href: "/dashboard/datarooms", label: t.nav.datarooms, icon: FolderLock },
-        ...(user.role === "super_admin" || user.role === "admin"
+        ...(user?.role === "super_admin" || user?.role === "admin"
           ? [{ href: "/admin", label: t.nav.admin, icon: ShieldAlert, badge: "Admin" }]
           : []),
       ]
@@ -74,7 +97,7 @@ export function BrandHeader() {
     <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         {/* Brand Logo & Name */}
-        <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-3 group">
+        <Link href={showDashboardNav ? "/dashboard" : "/"} className="flex items-center gap-3 group">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
             <Lock className="h-5 w-5 text-slate-950" />
           </div>
@@ -138,14 +161,14 @@ export function BrandHeader() {
             </button>
           </div>
 
-          {user ? (
+          {showDashboardNav ? (
             <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-800">
               <Link
                 href="/dashboard/settings"
                 className="flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs text-slate-300 border border-slate-800 hover:border-slate-700"
               >
                 <User className="h-3.5 w-3.5 text-amber-400" />
-                <span className="max-w-[120px] truncate">{user.name}</span>
+                <span className="max-w-[120px] truncate">{user?.name || "Account"}</span>
               </Link>
               <button
                 onClick={handleLogout}
@@ -193,9 +216,9 @@ export function BrandHeader() {
               </Link>
             );
           })}
-          {user ? (
+          {showDashboardNav ? (
             <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
-              <span className="text-xs text-slate-400">{user.email}</span>
+              <span className="text-xs text-slate-400">{user?.email || "Signed In"}</span>
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-1.5 text-xs text-red-400 hover:underline"

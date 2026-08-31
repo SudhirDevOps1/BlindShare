@@ -106,9 +106,42 @@ export default function DocsPage() {
 
         {/* Docs Table */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-          {loading ? (
-            <div className="flex min-h-[30vh] items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+          {loading && docs.length === 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-slate-800 text-slate-400 font-semibold">
+                  <tr>
+                    <th className="pb-3 pl-2">Title</th>
+                    <th className="pb-3">Pages</th>
+                    <th className="pb-3">Size</th>
+                    <th className="pb-3">Version</th>
+                    <th className="pb-3">Security Mode</th>
+                    <th className="pb-3">Uploaded</th>
+                    <th className="pb-3 pr-2 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {[1, 2, 3].map((i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td className="py-4 pl-2">
+                        <div className="flex items-center gap-2.5">
+                          <div className="h-8 w-8 rounded-lg bg-slate-800" />
+                          <div className="space-y-1.5">
+                            <div className="h-3.5 w-44 bg-slate-800 rounded" />
+                            <div className="h-2.5 w-28 bg-slate-800/60 rounded" />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-4"><div className="h-3.5 w-8 bg-slate-800 rounded" /></td>
+                      <td className="py-4"><div className="h-3.5 w-12 bg-slate-800 rounded" /></td>
+                      <td className="py-4"><div className="h-3.5 w-10 bg-slate-800 rounded" /></td>
+                      <td className="py-4"><div className="h-3.5 w-20 bg-slate-800 rounded" /></td>
+                      <td className="py-4"><div className="h-3.5 w-20 bg-slate-800 rounded" /></td>
+                      <td className="py-4 text-right pr-2"><div className="h-6 w-20 bg-slate-800 rounded ml-auto" /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : docs.length === 0 ? (
             <div className="py-12 text-center space-y-3">
@@ -121,7 +154,7 @@ export default function DocsPage() {
               </p>
               <button
                 onClick={() => setShowUploadModal(true)}
-                className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950"
+                className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400"
               >
                 Upload PDF
               </button>

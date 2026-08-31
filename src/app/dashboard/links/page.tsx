@@ -16,6 +16,7 @@ import {
   Lock,
   Mail,
   Shield,
+  Download,
   Trash2,
   Plus,
   Ban,
@@ -116,9 +117,39 @@ export default function LinksPage() {
 
         {/* Links Table */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-          {loading ? (
-            <div className="flex min-h-[30vh] items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+          {loading && links.length === 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-slate-800 text-slate-400 font-semibold">
+                  <tr>
+                    <th className="pb-3 pl-2">Nickname / Recipient</th>
+                    <th className="pb-3">Target Document</th>
+                    <th className="pb-3">Gates & Security</th>
+                    <th className="pb-3">Views</th>
+                    <th className="pb-3">Status</th>
+                    <th className="pb-3">Created</th>
+                    <th className="pb-3 pr-2 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60">
+                  {[1, 2, 3].map((i) => (
+                    <tr key={i} className="animate-pulse">
+                      <td className="py-4 pl-2">
+                        <div className="space-y-1.5">
+                          <div className="h-3.5 w-36 bg-slate-800 rounded" />
+                          <div className="h-2.5 w-24 bg-slate-800/60 rounded" />
+                        </div>
+                      </td>
+                      <td className="py-4"><div className="h-3.5 w-28 bg-slate-800 rounded" /></td>
+                      <td className="py-4"><div className="h-3.5 w-16 bg-slate-800 rounded" /></td>
+                      <td className="py-4"><div className="h-3.5 w-8 bg-slate-800 rounded" /></td>
+                      <td className="py-4"><div className="h-3.5 w-14 bg-slate-800 rounded" /></td>
+                      <td className="py-4"><div className="h-3.5 w-16 bg-slate-800 rounded" /></td>
+                      <td className="py-4 text-right pr-2"><div className="h-6 w-24 bg-slate-800 rounded ml-auto" /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           ) : links.length === 0 ? (
             <div className="py-12 text-center space-y-3">
@@ -131,7 +162,7 @@ export default function LinksPage() {
               </p>
               <button
                 onClick={() => setActiveModal(true)}
-                className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950"
+                className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400"
               >
                 Create Link
               </button>
@@ -166,6 +197,14 @@ export default function LinksPage() {
 
                       <td className="py-3.5">
                         <div className="flex items-center gap-1.5 flex-wrap">
+                          {link.allowDownload && (
+                            <span
+                              title="Download Permitted"
+                              className="rounded bg-purple-500/20 p-1 text-purple-400 border border-purple-500/30"
+                            >
+                              <Download className="h-3 w-3" />
+                            </span>
+                          )}
                           {link.hasPassword && (
                             <span
                               title="Password Protected"

@@ -134,9 +134,18 @@ export default function DataroomsPage() {
         )}
 
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-          {loading ? (
-            <div className="flex min-h-[25vh] items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+          {loading && datarooms.length === 0 ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse space-y-3 rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                  <div className="h-9 w-9 rounded-lg bg-slate-800" />
+                  <div className="space-y-1.5">
+                    <div className="h-4 w-36 bg-slate-800 rounded" />
+                    <div className="h-3 w-48 bg-slate-800/60 rounded" />
+                  </div>
+                  <div className="h-8 w-full rounded-xl bg-slate-800/80" />
+                </div>
+              ))}
             </div>
           ) : datarooms.length === 0 ? (
             <div className="space-y-3 py-12 text-center">

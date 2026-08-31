@@ -310,6 +310,23 @@ export function CreateLinkModal({
                   )}
                 </div>
 
+                {/* Allow Decrypted Download Toggle */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <Download className="h-4 w-4 text-amber-400 shrink-0" />
+                    <div>
+                      <div className="text-xs font-medium text-white">{t.linkStudio.allowDownload || "Allow Document Download"}</div>
+                      <div className="text-[10px] text-slate-400">Permits viewers to save the decrypted original file to their local machine</div>
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={allowDownload}
+                    onChange={(e) => setAllowDownload(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                  />
+                </div>
+
                 {/* NDA Clickwrap */}
                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-2">
                   <div className="flex items-center justify-between">
