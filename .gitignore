@@ -32,3 +32,5 @@ local.secrets.json
 Thumbs.db
 *.log
 .idea/
+*.tsbuildinfo
+
