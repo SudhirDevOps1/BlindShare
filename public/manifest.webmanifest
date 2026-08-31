@@ -1,0 +1,17 @@
+{
+  "name": "BlindShare",
+  "short_name": "Cipher",
+  "description": "Zero-Knowledge Secure Document Sharing & View Analytics",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#f59e0b",
+  "icons": [
+    {
+      "src": "/brand/logo.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,425 @@
+"use client";
+
+import React, { useState } from "react";
+import { useI18n } from "@/lib/i18n/context";
+import {
+  wrapKeyWithPassword,
+  hexToBuffer,
+  docKeyToFragment,
+} from "@/lib/crypto-core";
+import {
+  X,
+  Lock,
+  Mail,
+  Shield,
+  FileCheck,
+  Download,
+  Calendar,
+  Eye,
+  Copy,
+  Check,
+  QrCode,
+  ExternalLink,
+  Sparkles,
+} from "lucide-react";
+import QRCodeLib from "qrcode";
+
+interface CreateLinkModalProps {
+  docId?: string;
+  dataroomId?: string;
+  docTitle?: string;
+  onClose: () => void;
+  onCreated?: (link: any) => void;
+}
+
+export function CreateLinkModal({
+  docId,
+  dataroomId,
+  docTitle,
+  onClose,
+  onCreated,
+}: CreateLinkModalProps) {
+  const { t, appName } = useI18n();
+
+  const [name, setName] = useState("");
+  const [slug, setSlug] = useState("");
+  const [enablePassword, setEnablePassword] = useState(false);
+  const [password, setPassword] = useState("");
+  const [requiresEmail, setRequiresEmail] = useState(false);
+  const [allowedDomains, setAllowedDomains] = useState("");
+  const [watermarkEnabled, setWatermarkEnabled] = useState(true);
+  const [watermarkText, setWatermarkText] = useState("");
+  const [allowDownload, setAllowDownload] = useState(false);
+  const [requiresNda, setRequiresNda] = useState(false);
+  const [ndaText, setNdaText] = useState("");
+  const [maxViews, setMaxViews] = useState("");
+  const [expiresAt, setExpiresAt] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [createdUrl, setCreatedUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [showQr, setShowQr] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name.trim()) {
+      setError("Please enter a link nickname or recipient.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      let wrappedKeyHex = null;
+      let passwordSaltHex = null;
+
+      // If document is E2EE and password gate is enabled, wrap key client-side
+      if (enablePassword && password.trim() && docId) {
+        const storedHex = sessionStorage.getItem(`blindshare_key_${docId}`);
+        if (storedHex) {
+          const docKey = hexToBuffer(storedHex);
+          const wrapped = await wrapKeyWithPassword(docKey, password.trim());
+          wrappedKeyHex = wrapped.wrappedKeyHex;
+          passwordSaltHex = wrapped.saltHex;
+        }
+      }
+
+      const res = await fetch("/api/links", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          docId: docId || undefined,
+          dataroomId: dataroomId || undefined,
+          name: name.trim(),
+          slug: slug.trim() || undefined,
+          password: enablePassword ? password.trim() : undefined,
+          passwordSaltHex,
+          wrappedKeyHex,
+          requiresEmail,
+          allowedDomains: allowedDomains.trim() || undefined,
+          watermarkEnabled,
+          watermarkText: watermarkText.trim() || undefined,
+          allowDownload,
+          requiresNda,
+          ndaText: ndaText.trim() || undefined,
+          maxViews: maxViews ? parseInt(maxViews, 10) : undefined,
+          expiresAt: expiresAt || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create link");
+      }
+
+      // Build full URL including #k=... fragment if available
+      const baseUrl = window.location.origin;
+      let fullUrl = `${baseUrl}/v/${data.slug}`;
+
+      if (docId) {
+        const storedHex = sessionStorage.getItem(`blindshare_key_${docId}`);
+        if (storedHex) {
+          const docKey = hexToBuffer(storedHex);
+          const fragment = docKeyToFragment(docKey);
+          fullUrl = `${fullUrl}#k=${fragment}`;
+        }
+      }
+
+      setCreatedUrl(fullUrl);
+
+      // Generate QR Code
+      const qrUrl = await QRCodeLib.toDataURL(fullUrl, { width: 240, margin: 2 });
+      setQrDataUrl(qrUrl);
+
+      if (onCreated) {
+        onCreated(data);
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to generate secure link");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (!createdUrl) return;
+    navigator.clipboard.writeText(createdUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 3000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
+      <div className="relative max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
+        <button
+          onClick={onClose}
+          className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"
+        >
+          <X className="h-5 w-5" />
+        </button>
+
+        {!createdUrl ? (
+          <div>
+            <div className="mb-6">
+              <h3 className="text-lg font-bold text-white mb-1">{t.linkStudio.createTitle}</h3>
+              <p className="text-xs text-slate-400">
+                {docTitle ? `Target: ${docTitle}` : "Generate a Zero-Knowledge share link"}
+              </p>
+            </div>
+
+            {error && (
+              <div className="mb-4 rounded-xl border border-red-500/30 bg-red-950/30 p-3 text-xs text-red-300">
+                {error}
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">
+                  {t.linkStudio.linkName} *
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder={t.linkStudio.linkNamePlaceholder}
+                  required
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">
+                  {t.linkStudio.customSlug}
+                </label>
+                <div className="flex items-center rounded-xl border border-slate-700 bg-slate-950 px-3 text-sm text-slate-400">
+                  <span>/v/</span>
+                  <input
+                    type="text"
+                    value={slug}
+                    onChange={(e) => setSlug(e.target.value)}
+                    placeholder="custom-link-code"
+                    className="w-full bg-transparent px-1 py-2 text-white placeholder-slate-600 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Security & Gates Accordion Section */}
+              <div className="space-y-3 pt-2 border-t border-slate-800">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-amber-400">
+                  {t.linkStudio.securityOptions}
+                </h4>
+
+                {/* Password Gate */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Lock className="h-4 w-4 text-amber-400" />
+                      <div>
+                        <div className="text-xs font-medium text-white">{t.linkStudio.passwordGate}</div>
+                        <div className="text-[10px] text-slate-400">{t.linkStudio.passwordGateDesc}</div>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={enablePassword}
+                      onChange={(e) => setEnablePassword(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                    />
+                  </div>
+                  {enablePassword && (
+                    <input
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter link password..."
+                      required={enablePassword}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white"
+                    />
+                  )}
+                </div>
+
+                {/* Email Capture Gate */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-amber-400" />
+                      <div>
+                        <div className="text-xs font-medium text-white">{t.linkStudio.emailCapture}</div>
+                        <div className="text-[10px] text-slate-400">{t.linkStudio.emailCaptureDesc}</div>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={requiresEmail}
+                      onChange={(e) => setRequiresEmail(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                    />
+                  </div>
+                  {requiresEmail && (
+                    <input
+                      type="text"
+                      value={allowedDomains}
+                      onChange={(e) => setAllowedDomains(e.target.value)}
+                      placeholder={t.linkStudio.domainAllowlistPlaceholder}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white"
+                    />
+                  )}
+                </div>
+
+                {/* Watermark Overlay */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-amber-400" />
+                      <div>
+                        <div className="text-xs font-medium text-white">{t.linkStudio.watermark}</div>
+                        <div className="text-[10px] text-slate-400">{t.linkStudio.watermarkDesc}</div>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={watermarkEnabled}
+                      onChange={(e) => setWatermarkEnabled(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                    />
+                  </div>
+                  {watermarkEnabled && (
+                    <input
+                      type="text"
+                      value={watermarkText}
+                      onChange={(e) => setWatermarkText(e.target.value)}
+                      placeholder="Custom label e.g., INTERNAL USE ONLY"
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white"
+                    />
+                  )}
+                </div>
+
+                {/* NDA Clickwrap */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileCheck className="h-4 w-4 text-amber-400" />
+                      <div>
+                        <div className="text-xs font-medium text-white">{t.linkStudio.ndaClickwrap}</div>
+                        <div className="text-[10px] text-slate-400">{t.linkStudio.ndaClickwrapDesc}</div>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={requiresNda}
+                      onChange={(e) => setRequiresNda(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Limits: Expiry & Max Views */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                      {t.linkStudio.expiryDate}
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={expiresAt}
+                      onChange={(e) => setExpiresAt(e.target.value)}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-slate-300 mb-1">
+                      {t.linkStudio.maxViews}
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={maxViews}
+                      onChange={(e) => setMaxViews(e.target.value)}
+                      placeholder={t.linkStudio.maxViewsPlaceholder}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full rounded-xl bg-amber-500 py-3 text-sm font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 transition-colors shadow-lg shadow-amber-500/20"
+              >
+                {loading ? "Generating Link..." : t.linkStudio.createBtn}
+              </button>
+            </form>
+          </div>
+        ) : (
+          /* Link Generated Result Screen */
+          <div className="text-center py-4 space-y-6">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400">
+              <Check className="h-7 w-7" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold text-white mb-1">Secure Link Ready!</h3>
+              <p className="text-xs text-slate-400">
+                DocKey embedded in URL fragment <code className="text-amber-400 font-mono">#k=...</code>
+              </p>
+            </div>
+
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 text-left">
+              <div className="font-mono text-xs text-amber-300 break-all select-all mb-3 bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                {createdUrl}
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={copyToClipboard}
+                  className="flex-1 flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400"
+                >
+                  {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  <span>{copied ? "Copied!" : t.linkStudio.copyLink}</span>
+                </button>
+
+                <button
+                  onClick={() => setShowQr(!showQr)}
+                  className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800"
+                >
+                  <QrCode className="h-4 w-4 text-amber-400" />
+                  <span>{t.linkStudio.qrCode}</span>
+                </button>
+
+                <a
+                  href={createdUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                  <span>{t.linkStudio.viewLink}</span>
+                </a>
+              </div>
+            </div>
+
+            {/* QR Code Modal Display */}
+            {showQr && qrDataUrl && (
+              <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 inline-block">
+                <img src={qrDataUrl} alt="Link QR Code" className="mx-auto rounded-lg" />
+                <p className="text-[11px] text-slate-400 mt-2">Scan with mobile camera</p>
+              </div>
+            )}
+
+            <button
+              onClick={onClose}
+              className="text-xs text-slate-400 hover:text-white underline"
+            >
+              Done & Close
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

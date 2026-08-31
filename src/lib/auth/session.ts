@@ -1,0 +1,185 @@
+import { cookies } from "next/headers";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
+import crypto from "crypto";
+import { hashPassword } from "./password";
+import { logger } from "@/lib/logger";
+import { genId } from "@/lib/ids";
+
+/**
+ * `__Host-` prefix is a strict browser-enforced guarantee: the cookie must be
+ * Secure, Path=/, and carry no Domain attribute — it cannot be set or read by
+ * subdomains and cannot be forced onto the browser over plain HTTP. Used only
+ * in production where HTTPS is guaranteed; local dev keeps the plain name so
+ * `http://localhost` still works.
+ */
+function sessionCookieName(): string {
+  return process.env.NODE_ENV === "production" ? "__Host-blindshare_session" : "blindshare_session";
+}
+
+/**
+ * Auto-seeded placeholder owner. Its presence does NOT count as "this deployment
+ * has been claimed" — the first real sign-up still becomes Super Admin without
+ * needing an invite code.
+ */
+export const GENESIS_PLACEHOLDER_EMAIL = "admin@blindshare.local";
+
+const SESSION_SECRET =
+  process.env.SESSION_SECRET || "default_blindshare_dev_secret_64_bytes_long_random_key_placeholder";
+
+const SESSION_MAX_AGE_SECONDS = Number(process.env.SESSION_MAX_AGE_DAYS || "30") * 24 * 60 * 60;
+
+export interface SessionUser {
+  id: string;
+  email: string;
+  name: string;
+  role: "super_admin" | "admin" | "owner";
+  isBlocked: boolean;
+}
+
+interface SessionTokenPayload {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  sv: number; // sessionVersion at issue-time — must match the DB row exactly
+  exp: number;
+}
+
+function signToken(payload: SessionTokenPayload): string {
+  const data = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const signature = crypto.createHmac("sha256", SESSION_SECRET).update(data).digest("base64url");
+  return `${data}.${signature}`;
+}
+
+function verifyToken(token: string): SessionTokenPayload | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 2) return null;
+    const [data, signature] = parts;
+    const expected = crypto.createHmac("sha256", SESSION_SECRET).update(data).digest("base64url");
+    const sigBuf = Buffer.from(signature);
+    const expBuf = Buffer.from(expected);
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+      return null;
+    }
+    return JSON.parse(Buffer.from(data, "base64url").toString("utf-8"));
+  } catch {
+    return null;
+  }
+}
+
+export async function createSessionCookie(user: SessionUser, sessionVersion = 1) {
+  const token = signToken({
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    sv: sessionVersion,
+    exp: Date.now() + SESSION_MAX_AGE_SECONDS * 1000,
+  });
+
+  const cookieStore = await cookies();
+  cookieStore.set(sessionCookieName(), token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: SESSION_MAX_AGE_SECONDS,
+  });
+}
+
+export async function clearSessionCookie() {
+  const cookieStore = await cookies();
+  cookieStore.delete(sessionCookieName());
+  // Also clear the non-prefixed name in case env flipped between dev/prod.
+  cookieStore.delete("blindshare_session");
+}
+
+export async function getSession(): Promise<SessionUser | null> {
+  try {
+    const cookieStore = await cookies();
+    const token = cookieStore.get(sessionCookieName())?.value;
+    if (!token) return null;
+
+    const payload = verifyToken(token);
+    if (!payload || !payload.id || (payload.exp && payload.exp < Date.now())) {
+      return null;
+    }
+
+    const [user] = await db
+      .select({
+        id: users.id,
+        email: users.email,
+        name: users.name,
+        role: users.role,
+        isBlocked: users.isBlocked,
+        sessionVersion: users.sessionVersion,
+      })
+      .from(users)
+      .where(eq(users.id, payload.id))
+      .limit(1);
+
+    if (!user || user.isBlocked) {
+      return null;
+    }
+
+    // Any "log out all devices" action bumps sessionVersion in the DB — a token
+    // signed against an older version is rejected even though its HMAC is valid.
+    if ((user.sessionVersion ?? 1) !== payload.sv) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role as "super_admin" | "admin" | "owner",
+      isBlocked: user.isBlocked,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Invalidate every existing session for this user ("log out of all devices"). */
+export async function bumpSessionVersion(userId: string): Promise<void> {
+  await db
+    .update(users)
+    .set({ sessionVersion: sql`${users.sessionVersion} + 1`, updatedAt: new Date() })
+    .where(eq(users.id, userId));
+}
+
+export async function getUserSessionVersion(userId: string): Promise<number> {
+  const [row] = await db.select({ sessionVersion: users.sessionVersion }).from(users).where(eq(users.id, userId)).limit(1);
+  return row?.sessionVersion ?? 1;
+}
+
+/**
+ * Bootstrap default Genesis Super Admin if database has 0 users
+ */
+export async function ensureGenesisAdmin() {
+  try {
+    const allUsers = await db.select({ id: users.id }).from(users).limit(1);
+    if (allUsers.length === 0) {
+      const adminId = genId("usr_superadmin");
+      const defaultPassword = "AdminPassword2026!";
+      const passHash = await hashPassword(defaultPassword);
+
+      await db.insert(users).values({
+        id: adminId,
+        email: GENESIS_PLACEHOLDER_EMAIL,
+        name: "Genesis Super Admin",
+        passwordHash: passHash,
+        role: "super_admin",
+        isBlocked: false,
+        sessionVersion: 1,
+      });
+
+      logger.info("auth.genesis_bootstrap_created", { email: GENESIS_PLACEHOLDER_EMAIL });
+    }
+  } catch (err: any) {
+    logger.error("auth.genesis_bootstrap_failed", { message: err?.message });
+  }
+}
