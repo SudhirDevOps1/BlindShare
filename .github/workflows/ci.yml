@@ -35,6 +35,7 @@ jobs:
         run: npm run build
         env:
           DATABASE_URL: postgres://user:pass@localhost:5432/db
+          SESSION_SECRET: dummy_session_secret_for_build_time_validation_123
           
       - name: Zero-knowledge self-check
         run: node scripts/selfcheck-e2ee.mjs
