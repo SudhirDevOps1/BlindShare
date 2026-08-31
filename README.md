@@ -2,10 +2,7 @@
 
 <br />
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="public/brand/logo.svg">
-  <img alt="BlindShare" src="public/brand/logo.svg" height="80">
-</picture>
+<img alt="BlindShare" src="public/brand/icon.png" width="120" height="120" style="border-radius: 24px;" />
 
 <h1>BlindShare</h1>
 
@@ -24,11 +21,21 @@
   <a href="https://github.com/SudhirDevOps1/BlindShare/actions">
     <img src="https://img.shields.io/github/actions/workflow/status/SudhirDevOps1/BlindShare/ci.yml?branch=main&style=flat-square&label=CI" alt="CI" />
   </a>
+  <a href="https://github.com/SudhirDevOps1/BlindShare/issues">
+    <img src="https://img.shields.io/github/issues/SudhirDevOps1/BlindShare?style=flat-square&color=orange" alt="Open Issues" />
+  </a>
+  <a href="https://github.com/SudhirDevOps1/BlindShare/pulls">
+    <img src="https://img.shields.io/github/issues-pr/SudhirDevOps1/BlindShare?style=flat-square&color=blueviolet" alt="Pull Requests" />
+  </a>
+</p>
+
+<p>
   <a href="https://nextjs.org">
     <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=nextdotjs" alt="Next.js" />
   </a>
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript" alt="TypeScript" />
   <img src="https://img.shields.io/badge/encryption-AES--GCM--256-red?style=flat-square&logo=gnuprivacyguard&logoColor=white" alt="AES-GCM-256" />
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome" />
   <img src="https://img.shields.io/badge/cost-\$0%2Fmonth-orange?style=flat-square" alt="Free" />
 </p>
 
@@ -38,6 +45,7 @@
   <a href="#-quick-deploy">Deploy</a> •
   <a href="#-how-it-works">How It Works</a> •
   <a href="#-local-development">Local Dev</a> •
+  <a href="./CONTRIBUTING.md">Contributing</a> •
   <a href="#-roadmap">Roadmap</a>
 </p>
 
@@ -463,15 +471,57 @@ We take security seriously. See [SECURITY.md](./SECURITY.md) for responsible dis
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please read the [contributing guide](./docs/RUNBOOK.md) first.
+We love contributions! BlindShare is built **by the community, for the community.**
+
+Please read **[CONTRIBUTING.md](./CONTRIBUTING.md)** for the full guide covering:
+- 🐛 How to report bugs
+- 💡 How to suggest features
+- 🔀 Pull request workflow
+- ✍️ Commit message conventions
+- 🧹 Coding standards
+
+**Quick start for contributors:**
 
 ```bash
-# Fork the repo, then:
-git checkout -b feat/your-feature
-git commit -m "feat: describe your change"
-git push origin feat/your-feature
-# Open a Pull Request
+# 1. Fork this repo on GitHub, then clone your fork
+git clone https://github.com/<your-username>/BlindShare.git
+cd BlindShare && npm install && cp .env.example .env
+
+# 2. Create a branch
+git checkout -b feat/your-amazing-feature
+
+# 3. Make changes, then verify
+npm run typecheck && npm run lint && npm run build
+
+# 4. Commit with Conventional Commits
+git commit -m "feat(links): add geo-based access gates"
+
+# 5. Push and open a PR
+git push origin feat/your-amazing-feature
 ```
+
+> 💬 **Have a question before contributing?** Open a [Discussion](https://github.com/SudhirDevOps1/BlindShare/discussions) — we're happy to help!
+
+---
+
+## 👥 Community
+
+| Resource | Link |
+|----------|------|
+| 🐛 Bug Reports | [GitHub Issues](https://github.com/SudhirDevOps1/BlindShare/issues) |
+| 💡 Feature Requests | [GitHub Discussions](https://github.com/SudhirDevOps1/BlindShare/discussions) |
+| 📋 Changelog | [CHANGELOG.md](./CHANGELOG.md) |
+| 🔒 Security Policy | [SECURITY.md](./SECURITY.md) |
+| 🤝 Code of Conduct | [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) |
+| 📖 Operations Runbook | [docs/RUNBOOK.md](./docs/RUNBOOK.md) |
+
+---
+
+## 🔒 Security Policy
+
+We take security seriously. See [SECURITY.md](./SECURITY.md) for our responsible disclosure policy.
+
+> ⚠️ **Please do NOT report security vulnerabilities in public GitHub issues.** Contact maintainers privately so issues can be patched before disclosure.
 
 ---
 
@@ -479,13 +529,10 @@ git push origin feat/your-feature
 
 [MIT License](./LICENSE) — Copyright (c) 2026 BlindShare contributors
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies — subject to the MIT License terms.
-
 - ✅ **Free to use** — personal, commercial, or enterprise
 - ✅ **Free to self-host** — no licensing fees ever
 - ✅ **Free to modify** — fork and build your own version
 - ✅ **Free to distribute** — open or closed source
-
 
 ---
 
@@ -493,17 +540,27 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 
 <br/>
 
-**Built with ❤️ · Zero-knowledge by design · Free forever**
+<img alt="BlindShare" src="public/brand/icon.png" width="48" height="48" style="border-radius:10px;" />
+
+<br/>
+
+**Built with ❤️ · Zero-knowledge by design · Free forever on open infrastructure**
+
+<br/>
+
+[![Star on GitHub](https://img.shields.io/github/stars/SudhirDevOps1/BlindShare?style=social)](https://github.com/SudhirDevOps1/BlindShare)
 
 <br/>
 
 [⭐ Star on GitHub](https://github.com/SudhirDevOps1/BlindShare) &nbsp;·&nbsp;
 [🐛 Report a Bug](https://github.com/SudhirDevOps1/BlindShare/issues/new) &nbsp;·&nbsp;
 [💡 Request a Feature](https://github.com/SudhirDevOps1/BlindShare/discussions) &nbsp;·&nbsp;
-[📋 Changelog](./CHANGELOG.md)
+[📋 Changelog](./CHANGELOG.md) &nbsp;·&nbsp;
+[🤝 Contribute](./CONTRIBUTING.md)
 
 <br/>
 
 <sub>BlindShare is not affiliated with DocSend or Papermark. All trademarks belong to their respective owners.</sub>
 
 </div>
+
