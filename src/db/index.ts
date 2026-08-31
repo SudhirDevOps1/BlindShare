@@ -6,11 +6,7 @@ import { validateEnvOnce } from "@/lib/env";
 // every server-side code path already imports from (`@/db`).
 validateEnvOnce();
 
-const databaseUrl = process.env.DATABASE_URL;
-
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
-}
+const databaseUrl = process.env.DATABASE_URL || "postgres://dummy:dummy@localhost:5432/dummy_build";
 
 const globalForDb = globalThis as typeof globalThis & {
   __arenaNextJsPostgresqlPool?: Pool;

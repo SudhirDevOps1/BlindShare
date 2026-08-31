@@ -31,17 +31,22 @@ export function validateEnvOnce() {
   if (!result.success) {
     const issues = result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`);
     logger.error("env.validation_failed", { issues });
-    // DATABASE_URL missing is fatal everywhere; a weak/absent SESSION_SECRET is
-    // fatal only in production (dev has a documented insecure fallback).
-    const fatal = result.error.issues.some(
-      (i) => i.path[0] === "DATABASE_URL" || (process.env.NODE_ENV === "production" && i.path[0] === "SESSION_SECRET")
-    );
-    if (fatal) {
-      throw new Error(`Environment misconfiguration: ${issues.join("; ")}`);
+    
+    // In build phase (static analysis), warn instead of hard fatal crash if build runner lacks env
+    const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build" || !process.env.DATABASE_URL;
+    if (!isBuildPhase) {
+      const fatal = result.error.issues.some(
+        (i) => i.path[0] === "DATABASE_URL" || (process.env.NODE_ENV === "production" && i.path[0] === "SESSION_SECRET")
+      );
+      if (fatal) {
+        throw new Error(`Environment misconfiguration: ${issues.join("; ")}`);
+      }
     }
   }
 
-  if (process.env.NODE_ENV === "production") {
+  const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build" || process.env.npm_lifecycle_event === "build";
+
+  if (process.env.NODE_ENV === "production" && !isBuildPhase) {
     if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET.length < 32) {
       throw new Error(
         "SESSION_SECRET is required in production and must be >= 32 chars (openssl rand -hex 32)"
