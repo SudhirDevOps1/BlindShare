@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
+import { PrismTracker } from "@/components/analytics/prism-tracker";
 
 const appName = process.env.PUBLIC_APP_NAME || "BlindShare";
 
@@ -34,6 +35,7 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-200">
         <I18nProvider>
+          <PrismTracker />
           {children}
         </I18nProvider>
       </body>

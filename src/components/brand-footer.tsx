@@ -46,6 +46,18 @@ export function BrandFooter() {
                   <span>/healthz Deep Check</span>
                 </a>
               </li>
+              {process.env.NEXT_PUBLIC_CONTACT_FORM_ACTION && (
+                <li>
+                  <a
+                    href={process.env.NEXT_PUBLIC_CONTACT_FORM_ACTION}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="hover:text-amber-400 text-amber-400/80 transition-colors flex items-center gap-1"
+                  >
+                    <span>💬 Contact & Feedback</span>
+                  </a>
+                </li>
+              )}
             </ul>
           </div>
 
