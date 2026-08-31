@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { CreateLinkModal } from "@/components/link-studio/create-link-modal";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { useI18n } from "@/lib/i18n/context";
 import {
   Link as LinkIcon,
@@ -35,6 +36,10 @@ export default function LinksPage() {
   const [activeModal, setActiveModal] = useState(false);
   const [qrModal, setQrModal] = useState<{ url: string; name: string } | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+
+  // In-App Link Delete Confirmation Dialog State
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchLinks = async () => {
     try {
@@ -91,10 +96,23 @@ export default function LinksPage() {
     if (res.ok) fetchLinks();
   };
 
-  const handleDeleteLink = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this share link?")) return;
-    const res = await fetch(`/api/links/${id}`, { method: "DELETE" });
-    if (res.ok) fetchLinks();
+  const promptDeleteLink = (id: string, name: string) => {
+    setDeleteTarget({ id, name });
+  };
+
+  const handleConfirmDeleteLink = async () => {
+    if (!deleteTarget) return;
+    try {
+      setDeleting(true);
+      const res = await fetch(`/api/links/${deleteTarget.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setLinks((prev) => prev.filter((l) => l.id !== deleteTarget.id));
+        setDeleteTarget(null);
+      }
+    } catch {
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -299,8 +317,8 @@ export default function LinksPage() {
                         </button>
 
                         <button
-                          onClick={() => handleDeleteLink(link.id)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-950/40"
+                          onClick={() => promptDeleteLink(link.id, link.name)}
+                          className="rounded-lg p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-950/40 transition"
                           title="Delete Link"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -343,6 +361,21 @@ export default function LinksPage() {
           </div>
         </div>
       )}
+
+      {/* In-App Link Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        title="Delete Share Link?"
+        message={`Are you sure you want to permanently delete the share link "${deleteTarget?.name || ""}"? Anyone holding this link will instantly lose access.`}
+        confirmLabel="Yes, Delete Link"
+        cancelLabel="Keep Link"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleConfirmDeleteLink}
+        onCancel={() => {
+          if (!deleting) setDeleteTarget(null);
+        }}
+      />
 
       <BrandFooter />
     </div>

@@ -4,8 +4,9 @@ import React, { useEffect, useState } from "react";
 import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { CreateLinkModal } from "@/components/link-studio/create-link-modal";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { useI18n } from "@/lib/i18n/context";
-import { FolderLock, Plus, Trash2, Share2, FileText } from "lucide-react";
+import { FolderLock, Plus, Trash2, Share2, FileText, Loader2 } from "lucide-react";
 
 export default function DataroomsPage() {
   const { t } = useI18n();
@@ -13,19 +14,31 @@ export default function DataroomsPage() {
   const [datarooms, setDatarooms] = useState<any[]>([]);
   const [docs, setDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
   const [linkModalRoom, setLinkModalRoom] = useState<any | null>(null);
 
+  // In-app Delete Confirmation Dialog State
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [targetDataroom, setTargetDataroom] = useState<{ id: string; name: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   const load = async () => {
-    setLoading(true);
-    const [drRes, docRes] = await Promise.all([fetch("/api/datarooms"), fetch("/api/docs")]);
-    const drJson = await drRes.json();
-    const docJson = await docRes.json();
-    if (drJson.datarooms) setDatarooms(drJson.datarooms);
-    if (docJson.documents) setDocs(docJson.documents);
+    try {
+      setLoading(true);
+      const [drRes, docRes] = await Promise.all([fetch("/api/datarooms"), fetch("/api/docs")]);
+      if (drRes.status === 401 || docRes.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
+      const drJson = await drRes.json();
+      const docJson = await docRes.json();
+      if (drJson.datarooms) setDatarooms(drJson.datarooms);
+      if (docJson.documents) setDocs(docJson.documents);
+    } catch {}
     setLoading(false);
   };
 
@@ -35,24 +48,47 @@ export default function DataroomsPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch("/api/datarooms", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, description, docIds: selectedDocs }),
-    });
-    if (res.ok) {
-      setName("");
-      setDescription("");
-      setSelectedDocs([]);
-      setShowCreate(false);
-      load();
+    if (submitting || !name.trim()) return;
+
+    try {
+      setSubmitting(true);
+      const res = await fetch("/api/datarooms", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), description: description.trim(), docIds: selectedDocs }),
+      });
+      if (res.ok) {
+        setName("");
+        setDescription("");
+        setSelectedDocs([]);
+        setShowCreate(false);
+        await load();
+      }
+    } catch {
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this dataroom? Documents themselves are not deleted.")) return;
-    const res = await fetch(`/api/datarooms/${id}`, { method: "DELETE" });
-    if (res.ok) load();
+  const promptDelete = (id: string, roomName: string) => {
+    setTargetDataroom({ id, name: roomName });
+    setDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!targetDataroom) return;
+    try {
+      setDeleting(true);
+      const res = await fetch(`/api/datarooms/${targetDataroom.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setDatarooms((prev) => prev.filter((d) => d.id !== targetDataroom.id));
+        setDeleteModalOpen(false);
+        setTargetDataroom(null);
+      }
+    } catch {
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -86,14 +122,16 @@ export default function DataroomsPage() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                disabled={submitting}
                 placeholder="Dataroom name e.g. Series-A Due Diligence"
-                className="rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                className="rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none disabled:opacity-50"
               />
               <input
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
+                disabled={submitting}
                 placeholder="Intro blurb shown to viewers (optional)"
-                className="rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                className="rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none disabled:opacity-50"
               />
             </div>
 
@@ -103,17 +141,18 @@ export default function DataroomsPage() {
                 {docs.map((d) => (
                   <label
                     key={d.id}
-                    className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300"
+                    className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs text-slate-300 hover:border-slate-700"
                   >
                     <input
                       type="checkbox"
                       checked={selectedDocs.includes(d.id)}
+                      disabled={submitting}
                       onChange={(e) =>
                         setSelectedDocs((prev) =>
                           e.target.checked ? [...prev, d.id] : prev.filter((x) => x !== d.id)
                         )
                       }
-                      className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500"
+                      className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
                     />
                     <span className="truncate">{d.title}</span>
                   </label>
@@ -124,12 +163,25 @@ export default function DataroomsPage() {
               </div>
             </div>
 
-            <button
-              type="submit"
-              className="rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400"
-            >
-              Create Dataroom
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="submit"
+                disabled={submitting || !name.trim()}
+                className="flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 transition shadow-md shadow-amber-500/10"
+              >
+                {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                <span>{submitting ? "Creating Dataroom..." : "Create Dataroom"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowCreate(false)}
+                disabled={submitting}
+                className="rounded-xl border border-slate-800 px-4 py-2.5 text-xs text-slate-400 hover:text-white"
+              >
+                Cancel
+              </button>
+            </div>
           </form>
         )}
 
@@ -156,18 +208,25 @@ export default function DataroomsPage() {
               <p className="mx-auto max-w-sm text-xs text-slate-400">
                 Group your pitch deck, financials and cap table into one gated collection.
               </p>
+              <button
+                onClick={() => setShowCreate(true)}
+                className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400"
+              >
+                Create Dataroom
+              </button>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {datarooms.map((dr) => (
-                <div key={dr.id} className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950 p-4">
+                <div key={dr.id} className="space-y-3 rounded-2xl border border-slate-800 bg-slate-950 p-4 hover:border-slate-700 transition">
                   <div className="flex items-start justify-between">
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400">
                       <FolderLock className="h-4 w-4" />
                     </div>
                     <button
-                      onClick={() => handleDelete(dr.id)}
-                      className="rounded-lg p-1.5 text-slate-500 hover:bg-red-950/40 hover:text-red-400"
+                      onClick={() => promptDelete(dr.id, dr.name)}
+                      className="rounded-lg p-1.5 text-slate-500 hover:bg-red-950/40 hover:text-red-400 transition"
+                      title="Delete Dataroom"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -180,7 +239,7 @@ export default function DataroomsPage() {
                   </div>
                   <button
                     onClick={() => setLinkModalRoom(dr)}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/20 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/30"
+                    className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/20 px-3 py-2 text-xs font-semibold text-amber-300 hover:bg-amber-500/30 transition shadow-sm"
                   >
                     <Share2 className="h-3.5 w-3.5" />
                     <span>Create Dataroom Link</span>
@@ -192,16 +251,38 @@ export default function DataroomsPage() {
         </div>
       </main>
 
+      <BrandFooter />
+
+      {/* Dataroom Share Link Modal */}
       {linkModalRoom && (
         <CreateLinkModal
           dataroomId={linkModalRoom.id}
           docTitle={linkModalRoom.name}
           onClose={() => setLinkModalRoom(null)}
-          onCreated={() => load()}
+          onCreated={() => {
+            setLinkModalRoom(null);
+            load();
+          }}
         />
       )}
 
-      <BrandFooter />
+      {/* In-App Delete Confirmation Modal (Replaces browser confirm popup) */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        title="Delete Dataroom?"
+        message={`Are you sure you want to remove the dataroom "${targetDataroom?.name || ""}"? Documents inside will remain safe in your library.`}
+        confirmLabel="Yes, Delete Dataroom"
+        cancelLabel="Keep Dataroom"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          if (!deleting) {
+            setDeleteModalOpen(false);
+            setTargetDataroom(null);
+          }
+        }}
+      />
     </div>
   );
 }

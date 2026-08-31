@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { useI18n } from "@/lib/i18n/context";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import {
   ShieldAlert,
   Users,
@@ -41,6 +42,10 @@ export function AdminPanelView() {
   const [invitesList, setInvitesList] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>({ maintenance_mode: "false", broadcast_banner: "" });
+
+  // In-App User Delete Confirmation Dialog State
+  const [deleteUserTarget, setDeleteUserTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deletingUser, setDeletingUser] = useState(false);
 
   // Diagnostics & Environment State
   const [diagnosticsData, setDiagnosticsData] = useState<any>(null);
@@ -140,14 +145,23 @@ export function AdminPanelView() {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm("Are you sure? This will delete the user and crypto-shred all their uploaded documents.")) {
-      return;
-    }
-    const res = await fetch(`/api/admin/users?userId=${userId}`, { method: "DELETE" });
-    if (res.ok) {
-      setActionMessage("User permanently deleted.");
-      fetchUsers();
+  const promptDeleteUser = (id: string, name: string) => {
+    setDeleteUserTarget({ id, name });
+  };
+
+  const handleConfirmDeleteUser = async () => {
+    if (!deleteUserTarget) return;
+    try {
+      setDeletingUser(true);
+      const res = await fetch(`/api/admin/users?userId=${deleteUserTarget.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setActionMessage("User permanently deleted.");
+        setUsersList((prev) => prev.filter((u) => u.id !== deleteUserTarget.id));
+        setDeleteUserTarget(null);
+      }
+    } catch {
+    } finally {
+      setDeletingUser(false);
     }
   };
 
@@ -624,8 +638,8 @@ export function AdminPanelView() {
                         {u.isBlocked ? "Unblock" : "Block"}
                       </button>
                       <button
-                        onClick={() => handleDeleteUser(u.id)}
-                        className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-red-400"
+                        onClick={() => promptDeleteUser(u.id, u.name)}
+                        className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-red-400 transition"
                         title="Delete User"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -683,8 +697,7 @@ export function AdminPanelView() {
                   onChange={(e) => setCustomInviteCode(e.target.value)}
                   placeholder="e.g. VIP-FOUNDER-2026"
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white"
-                >
-                </input>
+                />
               </div>
 
               <button
@@ -831,6 +844,21 @@ export function AdminPanelView() {
           </button>
         </div>
       )}
+
+      {/* In-App User Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deleteUserTarget)}
+        title="Delete User Account?"
+        message={`Are you sure you want to permanently delete "${deleteUserTarget?.name || ""}"? All documents uploaded by this user will be crypto-shredded.`}
+        confirmLabel="Yes, Delete User"
+        cancelLabel="Keep User"
+        variant="danger"
+        loading={deletingUser}
+        onConfirm={handleConfirmDeleteUser}
+        onCancel={() => {
+          if (!deletingUser) setDeleteUserTarget(null);
+        }}
+      />
     </div>
   );
 }

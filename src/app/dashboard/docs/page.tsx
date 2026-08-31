@@ -5,6 +5,7 @@ import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { DocUploader } from "@/components/upload/doc-uploader";
 import { CreateLinkModal } from "@/components/link-studio/create-link-modal";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
 import { useI18n } from "@/lib/i18n/context";
 import {
   FileText,
@@ -30,6 +31,10 @@ export default function DocsPage() {
   const [versionDoc, setVersionDoc] = useState<any | null>(null);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
 
+  // In-app Delete Confirmation Dialog State
+  const [deleteDocTarget, setDeleteDocTarget] = useState<{ id: string; title: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   const fetchDocs = async () => {
     try {
       setLoading(true);
@@ -48,13 +53,22 @@ export default function DocsPage() {
     fetchDocs();
   }, []);
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Are you sure you want to crypto-shred and permanently delete "${title}"?`)) {
-      return;
-    }
-    const res = await fetch(`/api/docs/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      fetchDocs();
+  const promptDelete = (id: string, title: string) => {
+    setDeleteDocTarget({ id, title });
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteDocTarget) return;
+    try {
+      setDeleting(true);
+      const res = await fetch(`/api/docs/${deleteDocTarget.id}`, { method: "DELETE" });
+      if (res.ok) {
+        setDocs((prev) => prev.filter((d) => d.id !== deleteDocTarget.id));
+        setDeleteDocTarget(null);
+      }
+    } catch {
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -230,8 +244,8 @@ export default function DocsPage() {
                           Create Link
                         </button>
                         <button
-                          onClick={() => handleDelete(doc.id, doc.title)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-950/40"
+                          onClick={() => promptDelete(doc.id, doc.title)}
+                          className="rounded-lg p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-950/40 transition"
                           title="Crypto-shred document"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -296,6 +310,21 @@ export default function DocsPage() {
           </div>
         </div>
       )}
+
+      {/* In-App Document Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deleteDocTarget)}
+        title="Crypto-Shred Document?"
+        message={`Are you sure you want to permanently delete and crypto-shred "${deleteDocTarget?.title || ""}"? All active share links pointing to this document will be instantly destroyed.`}
+        confirmLabel="Yes, Crypto-Shred"
+        cancelLabel="Keep Document"
+        variant="danger"
+        loading={deleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => {
+          if (!deleting) setDeleteDocTarget(null);
+        }}
+      />
 
       <BrandFooter />
     </div>
