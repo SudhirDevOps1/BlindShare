@@ -1,6 +1,7 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import { validateEnvOnce } from "@/lib/env";
+import { ensureDatabaseSchema } from "./auto-migrate";
 
 // Strict, fail-fast environment validation runs once per process, right where
 // every server-side code path already imports from (`@/db`).
@@ -22,4 +23,10 @@ if (process.env.NODE_ENV !== "production") {
   globalForDb.__arenaNextJsPostgresqlPool = pool;
 }
 
+// Auto-create database tables on Neon on first access if not present
+if (process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("dummy_build")) {
+  ensureDatabaseSchema(pool).catch(() => {});
+}
+
 export const db = drizzle(pool);
+
