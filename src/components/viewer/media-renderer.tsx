@@ -444,7 +444,6 @@ export function MediaRenderer({
           {/* IMAGE / SVG */}
           {(format.kind === "image" || format.kind === "svg") && objectUrl && (
             <div className="flex justify-center overflow-auto rounded-2xl border border-slate-800 bg-slate-900 p-4">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={objectUrl}
                 alt={docData.title}
