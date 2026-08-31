@@ -18,22 +18,30 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract Changelog Entry
-        id: changelog
-        run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          echo "Extracting release notes for version $VERSION"
-          if [ -f CHANGELOG.md ]; then
-            # Extract content under the matching version header until the next version header
-            awk -v ver="$VERSION" '
-              $0 ~ "^## \\[" ver "\\]" { flag=1; next }
-              flag && /^## \\[/ { exit }
-              flag { print }
-            ' CHANGELOG.md > RELEASE_NOTES.md
-          fi
-          if [ ! -s RELEASE_NOTES.md ]; then
-            echo "Release $GITHUB_REF_NAME" > RELEASE_NOTES.md
-          fi
+      - name: Extract Release Notes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const tag = context.ref.replace('refs/tags/', '');
+            const version = tag.replace(/^v/, '');
+            let notes = `### BlindShare ${tag}\n\nAutomated production release.`;
+            
+            try {
+              if (fs.existsSync('CHANGELOG.md')) {
+                const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
+                const sections = changelog.split(/\n(?=##\s+\[)/);
+                const match = sections.find(s => s.includes(`## [${version}]`));
+                if (match) {
+                  notes = match.trim();
+                }
+              }
+            } catch (err) {
+              console.warn('Failed to parse CHANGELOG.md:', err);
+            }
+
+            fs.writeFileSync('RELEASE_NOTES.md', notes);
+            console.log('Generated Release Notes:\n', notes);
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
