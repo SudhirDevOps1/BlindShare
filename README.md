@@ -45,7 +45,7 @@
   <a href="#-quick-deploy">Deploy</a> •
   <a href="#-how-it-works">How It Works</a> •
   <a href="#-local-development">Local Dev</a> •
-  <a href="./CONTRIBUTING.md">Contributing</a> •
+  <a href="./docs/CONTRIBUTING.md">Contributing</a> •
   <a href="#-roadmap">Roadmap</a>
 </p>
 
@@ -473,7 +473,7 @@ We take security seriously. See [SECURITY.md](./SECURITY.md) for responsible dis
 
 We love contributions! BlindShare is built **by the community, for the community.**
 
-Please read **[CONTRIBUTING.md](./CONTRIBUTING.md)** for the full guide covering:
+Please read **[CONTRIBUTING.md](./docs/CONTRIBUTING.md)** for the full guide covering:
 - 🐛 How to report bugs
 - 💡 How to suggest features
 - 🔀 Pull request workflow
@@ -510,9 +510,9 @@ git push origin feat/your-amazing-feature
 |----------|------|
 | 🐛 Bug Reports | [GitHub Issues](https://github.com/SudhirDevOps1/BlindShare/issues) |
 | 💡 Feature Requests | [GitHub Discussions](https://github.com/SudhirDevOps1/BlindShare/discussions) |
-| 📋 Changelog | [CHANGELOG.md](./CHANGELOG.md) |
+| 📋 Changelog | [CHANGELOG.md](./docs/CHANGELOG.md) |
 | 🔒 Security Policy | [SECURITY.md](./SECURITY.md) |
-| 🤝 Code of Conduct | [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md) |
+| 🤝 Code of Conduct | [CODE_OF_CONDUCT.md](./docs/CODE_OF_CONDUCT.md) |
 | 📖 Operations Runbook | [docs/RUNBOOK.md](./docs/RUNBOOK.md) |
 
 ---
@@ -555,8 +555,8 @@ We take security seriously. See [SECURITY.md](./SECURITY.md) for our responsible
 [⭐ Star on GitHub](https://github.com/SudhirDevOps1/BlindShare) &nbsp;·&nbsp;
 [🐛 Report a Bug](https://github.com/SudhirDevOps1/BlindShare/issues/new) &nbsp;·&nbsp;
 [💡 Request a Feature](https://github.com/SudhirDevOps1/BlindShare/discussions) &nbsp;·&nbsp;
-[📋 Changelog](./CHANGELOG.md) &nbsp;·&nbsp;
-[🤝 Contribute](./CONTRIBUTING.md)
+[📋 Changelog](./docs/CHANGELOG.md) &nbsp;·&nbsp;
+[🤝 Contribute](./docs/CONTRIBUTING.md)
 
 <br/>
 

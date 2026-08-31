@@ -202,7 +202,7 @@ src/lib/          → camelCase utility files
 
 **Please do NOT report security vulnerabilities in public GitHub issues.**
 
-See [SECURITY.md](./SECURITY.md) for responsible disclosure instructions.
+See [SECURITY.md](../SECURITY.md) for responsible disclosure instructions.
 
 Security issues should be reported privately so they can be patched before public disclosure.
 
