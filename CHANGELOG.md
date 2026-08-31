@@ -21,27 +21,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - Storage adapters (B2 / R2 / local), PWA shell, HI+EN i18n, GDPR-lite export & delete
 - Security headers middleware, rate limiting, robots noindex for share links, docs pack
 
-## [1.1.0] - 2026-08-29
-### Changed
-- **Rebranded** from SherPapermark to **BlindShare** (env-only rebrand tokens updated;
-  zero functional changes — `PUBLIC_APP_NAME` still overrides everything).
-- First-run experience: `/api/auth/bootstrap` detects an "unclaimed" deployment so the
-  first real sign-up never needs an invite code; the seeded placeholder account no longer
-  counts as an owner.
-- Invite-code matching is now trim + case-insensitive with typo tolerance, and every
-  registration failure returns a precise, actionable reason instead of one generic message.
+## [1.1.0] - 2026-08-31
 ### Added
-- Strict Zod validation on every API route request body.
-- Centralized 128-bit id/slug generation (`src/lib/ids.ts`).
-- Password policy (length + complexity) enforced client- and server-side with a live
-  strength meter.
-- Owner-login brute-force lockout, independent of the existing link password-gate lockout.
-- Session versioning + "Log out of all devices".
-- `__Host-` prefixed session cookie in production.
-- Structured, PII-redacting logger; fail-fast environment validation.
-- No-store cache headers on all authenticated routes; extra security headers
-  (Cross-Origin-Opener-Policy, X-Permitted-Cross-Domain-Policies, X-DNS-Prefetch-Control).
-- `/.well-known/security.txt`, `/security` policy page, `/api/version`, `not-found.tsx`,
-  `error.tsx`.
-- Local dev runner (`scripts/dev.sh`) and terminal live-link generator
-  (`scripts/quicklink.mjs`, `scripts/make-demo-pdf.mjs`).
+- **Auto-Database Migrator:** Automatic first-run PostgreSQL schema table initialization (`src/db/auto-migrate.ts`) ensuring all 12 tables exist without manual SQL execution.
+- **Account & Security Settings (`/dashboard/settings`):**
+  - Live Profile / Display Name and Login Email (Username) modification.
+  - Password Change with complexity strength meter and automatic cross-device session termination.
+  - Granular Access Delegation: Custom Invite Code Generator with `Owner (Member)`, `Admin`, and `Super Admin` roles.
+  - Single-click "Sign Out All Devices" global session invalidation.
+- **FormForge Feedback Integration (`/contact`):** Built-in contact form with honeypot bot trap, FormData/JSON failover, and localStorage persistence.
+- **PrismAnalytics Engine:** Zero-cookie client tracking via pure `navigator.sendBeacon` and relaxed CSP header whitelist.
+- **Database Factory Reset Suite (`scripts/reset-db.sql`):** Safe 1-click Neon database purge and rebuild script.
+- **Strict Zod Body Validation:** Centralized request schemas across every REST API route.
+
+### Changed
+- Rebranded to **BlindShare** with zero plain-text file storage.
+- Removed seeded demo credentials banner from `/login` for airtight production security.
+- Hardened Content Security Policy (`connect-src`) to allow authorized Cloudflare Workers and S3 endpoints.
+
