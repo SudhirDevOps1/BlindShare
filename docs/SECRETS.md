@@ -11,6 +11,7 @@
 | `ADMIN_BOOTSTRAP_INVITE` | platform secret store | after first admin is created |
 | `HEALTH_TOKEN` | platform secret store | 180 days |
 | `RESEND_API_KEY`, `ABLY_API_KEY`, `BOT_WEBHOOK_URL` | optional | on compromise |
+| `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | optional | on compromise (edge rate limiting) |
 | Android keystore (Phase-4) | GitHub Secrets, base64 | never in repo |
 
 Rules: `.env` is never committed · secrets never appear in logs, chat or the database ·

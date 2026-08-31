@@ -23,19 +23,34 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 
 ## [1.1.0] - 2026-08-31
 ### Added
-- **Auto-Database Migrator:** Automatic first-run PostgreSQL schema table initialization (`src/db/auto-migrate.ts`) ensuring all 12 tables exist without manual SQL execution.
+- **Two-Factor Authentication (2FA / TOTP RFC 6238):**
+  - Standard authenticator app support (Google Authenticator, Microsoft Authenticator, Authy, 1Password).
+  - 1-click QR code scanning + manual secret key entry in `TwoFactorModal`.
+  - 8 single-use cryptographically random SHA-256 hashed emergency recovery backup codes.
+  - 2FA challenge login gate with temporary signed pre-auth tokens.
+- **Webhook SSRF (Server-Side Request Forgery) Defense Engine:**
+  - Automatic URL and IP validation blocking RFC 1918 private subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), loopback (`127.0.0.1`, `::1`), and cloud metadata (`169.254.169.254`, `metadata.google.internal`).
+- **Distributed Upstash Redis Rate Limiting:**
+  - HTTP REST edge rate limiting pipeline across multi-region edge nodes with zero-downtime sliding-window in-memory fallback.
+- **Resilient Self-Hosted `pdf.js` Engine:**
+  - Local vendor script loading `/vendor/pdfjs/pdf.min.js` with automatic CDN failover.
+- **300+ DPI Retina Crisp Vector Rendering:**
+  - Minimum 2x canvas super-sampling with `imageSmoothingQuality = "high"` and smart container auto-fitting.
+- **Pitch Presentation Slideshow Mode:**
+  - Fullscreen presenter view for PDFs, images, markdown, code, and SVGs with interactive red laser pointer, keyboard navigation (`Space`, `Arrows`, `L`), and dynamic watermark synchronization.
+- **Admin Environment & Diagnostics Center:**
+  - Live Neon Postgres ping latency meter (ms), B2 storage status, AES-GCM-256 WebCrypto tests, and 13+ masked environment keys.
+- **In-App Dark-Glass `<ConfirmModal />` Component:**
+  - Modern dark-blur confirmation dialogs replacing all native browser `window.confirm()` popups.
+- **Multi-Click / Double-Submission Lock:**
+  - Button state locking preventing duplicate dataroom, document, and link creation.
+- **Auto-Database Migrator:**
+  - Self-healing database schema table and column initialization (`src/db/auto-migrate.ts`).
 - **Account & Security Settings (`/dashboard/settings`):**
-  - Live Profile / Display Name and Login Email (Username) modification.
-  - Password Change with complexity strength meter and automatic cross-device session termination.
-  - Granular Access Delegation: Custom Invite Code Generator with `Owner (Member)`, `Admin`, and `Super Admin` roles.
-  - Single-click "Sign Out All Devices" global session invalidation.
-- **FormForge Feedback Integration (`/contact`):** Built-in contact form with honeypot bot trap, FormData/JSON failover, and localStorage persistence.
-- **PrismAnalytics Engine:** Zero-cookie client tracking via pure `navigator.sendBeacon` and relaxed CSP header whitelist.
-- **Database Factory Reset Suite (`scripts/reset-db.sql`):** Safe 1-click Neon database purge and rebuild script.
-- **Strict Zod Body Validation:** Centralized request schemas across every REST API route.
+  - Profile name and email editing, password changes with strength meter, invite generator, and "Sign Out All Devices" global session invalidation.
 
 ### Changed
-- Rebranded to **BlindShare** with zero plain-text file storage.
-- Removed seeded demo credentials banner from `/login` for airtight production security.
-- Hardened Content Security Policy (`connect-src`) to allow authorized Cloudflare Workers and S3 endpoints.
+- Upgraded PDF.js rendering pipeline to eliminate duplicate canvas ref conflicts.
+- Hardened Content Security Policy (`connect-src`, `worker-src`) to allow local blob workers and distributed rate limiters.
+- Fixed favicon 404 and eliminated React SSR hydration mismatch (#418).
 

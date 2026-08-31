@@ -41,3 +41,13 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
   keys are hashed to an 8-char fingerprint before any log line is emitted.
 - **Fail-fast env validation** (`src/lib/env.ts`): production boots refuse a missing/weak
   `SESSION_SECRET` or missing `DATABASE_URL`.
+- **Two-Factor Authentication (2FA / TOTP RFC 6238)** (`src/lib/auth/totp.ts`): Authenticator
+  app support (Google Authenticator, Authy, 1Password) with 1-click QR code setup, time drift tolerance,
+  and 8 single-use SHA-256 hashed recovery backup codes.
+- **SSRF Defense Engine** (`src/lib/security/ssrf-validator.ts`): Outbound webhook destination validation
+  that actively blocks loopback interfaces, private RFC-1918 subnets (`10.x`, `172.16.x`, `192.168.x`),
+  multicast, and cloud metadata IP addresses (`169.254.169.254`, `metadata.google.internal`).
+- **Distributed Edge Rate Limiting** (`src/lib/security/distributed-rate-limiter.ts`): Multi-node rate
+  limiting via Upstash Redis REST HTTP API with zero-crash in-memory sliding window fallback.
+- **Resilient Self-Hosted PDF.js**: Local vendor script loading with CDN failover to guarantee 100%
+  viewer uptime without single-point supply-chain dependencies.

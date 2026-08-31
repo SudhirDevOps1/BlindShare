@@ -4,10 +4,10 @@ Every format is **decrypted first in the browser**; the server never parses cont
 
 | Format | Client renderer | Analytics | Honest note |
 |---|---|---|---|
-| PDF | pdf.js, page-wise canvas | per-page dwell | primary format |
-| JPG/PNG/WebP/GIF/AVIF/ICO/BMP | `<img>`/canvas + zoom | scroll dwell | EXIF stripped client-side pre-encrypt |
-| SVG | sanitizer → `<img>` | scroll dwell | `<script>`, `on*` handlers and `javascript:` stripped |
-| Markdown | escape-first subset renderer | reading time | no raw HTML passthrough |
+| PDF | pdf.js 300+ DPI super-sampling, page-wise canvas + Presenter Mode | per-page dwell | primary format with laser pointer |
+| JPG/PNG/WebP/GIF/AVIF/ICO/BMP | `<img>`/canvas + high-res zoom + Presenter Mode | scroll dwell | EXIF stripped client-side pre-encrypt |
+| SVG | sanitizer → `<img>` + Presenter Mode | scroll dwell | `<script>`, `on*` handlers and `javascript:` stripped |
+| Markdown | escape-first subset renderer + Presenter Mode | reading time | no raw HTML passthrough |
 | TXT/LOG/JSON | monospace `<pre>` | reading time | — |
 | CSV/TSV | paginated table (≤5 000 rows) | table-page dwell | long cells truncated at 80 chars |
 | DOCX/PPTX/XLSX/ODP | bundle-view | session only | **no fidelity claims** — export to PDF for pitch-grade analytics |

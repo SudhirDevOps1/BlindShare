@@ -126,28 +126,34 @@ BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your 
 <summary><strong>🔒 Security & Encryption</strong></summary>
 <br/>
 
+- **Two-Factor Authentication (2FA / TOTP RFC 6238)** — Google Authenticator, Authy, 1Password QR code scan + 8 emergency backup codes
 - **AES-GCM-256** client-side encryption with CSPRNG per-document keys
 - **`#k=` URL fragment** key delivery — cryptographically guaranteed to never reach the server
+- **SSRF Defense Engine** — private RFC 1918 subnets, loopback interfaces, and cloud metadata (`169.254.169.254`) filtering
+- **Distributed Edge Rate Limiting** — Upstash Redis REST support with seamless zero-crash in-memory sliding window fallback
 - **PBKDF2 (250,000 iterations)** link password wrapping
 - **`__Host-` prefixed** session cookies in production (CSRF-resistant)
 - **Brute-force lockout** on login and link password gates
-- **Strict Content Security Policy** on every HTTP response
-- **Cross-Origin-Opener-Policy** isolation headers
+- **Strict Content Security Policy (CSP)** & Cross-Origin-Opener-Policy isolation
 - **PII-redacting structured logger** — no email/IP in logs
 - **Gitleaks** secret scanning on every CI run
 
 </details>
 
 <details open>
-<summary><strong>📄 Document Management</strong></summary>
+<summary><strong>📄 Document Management & Viewer</strong></summary>
 <br/>
 
-- Upload **any file type**: PDF, Images, SVG, Markdown, CSV, Audio, Video, ZIP bundles
-- Page-by-page **pdf.js renderer** with live dynamic watermark overlay
+- Upload **any file type**: PDF, Images (PNG, JPG, WebP, GIF, AVIF, BMP), SVG, Markdown, CSV/Spreadsheet, Audio, Video, ZIP bundles
+- **300+ DPI Retina Crisp Super-Sampling** — ultra-sharp vector rendering on 1080p/2K/4K/Retina displays
+- **Fullscreen Pitch Presentation Mode** — slideshow presenter view with interactive red laser pointer, keyboard navigation (`Space`, `Arrows`, `L`), and watermark sync
+- **Resilient Self-Hosted PDF.js Engine** with high-availability CDN fallback (zero single points of failure)
+- **Smart Viewport Auto-Fitting** for seamless mobile and desktop reading
 - **Resume hint** — viewer is shown where they left off
 - **Revoke-mid-session watchdog** — pull access from an active viewer instantly
 - Multiple **Datarooms** (virtual deal rooms) per user
 - **Document versioning** and revision history
+- **Double-submission lock** — prevents duplicate uploads or datarooms
 
 </details>
 
@@ -159,10 +165,12 @@ BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your 
 - **Email gate** — require specific email(s) before access
 - **Domain allowlist** — restrict viewing to `@yourcompany.com`
 - **NDA clickwrap** — custom terms the viewer must accept
+- **Digital Signatures** — in-app touch/mouse canvas signature signing
 - **Expiry dates** and **max-view limits** per link
 - **Download toggle** — prevent viewers from saving files
 - **Dynamic watermarks** with viewer's email / IP / timestamp
 - **QR code generation** for every share link
+- **In-app confirmation modals** replacing native browser popups
 
 </details>
 
@@ -178,11 +186,12 @@ BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your 
 
 </details>
 
-<details>
-<summary><strong>⚙️ Admin Panel</strong></summary>
+<details open>
+<summary><strong>⚙️ Admin Panel & Diagnostics</strong></summary>
 <br/>
 
-- User management: roles, suspension, invite code generation
+- **Environment & Diagnostics Center** — live Neon Postgres ping latency meter (ms), B2 storage status, WebCrypto cipher tests, and 13+ masked environment keys
+- User management: roles, suspension, invite code generation, and 2FA status
 - **Blind audit log** — event trail with zero PII
 - Storage usage gauge + free-tier budget ledger
 - Maintenance mode and broadcast banner

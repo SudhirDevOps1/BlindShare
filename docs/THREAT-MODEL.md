@@ -14,5 +14,7 @@
 | XSS via uploaded content | SVG sanitised (scripts/handlers/`javascript:` stripped), Markdown escape-first, strict CSP | Novel renderer bugs |
 | Screenshotting / re-photography | Watermark overlay deterrent; Phase-4 Android FLAG_SECURE | **Not preventable** — no DRM claims |
 | Geo/time gates bypass | CF country header, view windows | Coarse; VPN bypass possible |
-| Honeypot / decoy docs (Phase-3, opt-in) | Owner-configured, audit-logged, disclosed in privacy docs | Ethics: must be disclosed, never used to entrap |
-| Rate-limit evasion on multi-instance edge | In-memory limiter is first line; durable limiter = KV/DO on CF target | Per-instance counters only |
+| Rate-limit evasion on multi-instance edge | Distributed Upstash Redis REST edge limiter with in-memory fallback | Redis unconfigured reverts to per-instance |
+| Webhook Server-Side Request Forgery (SSRF) | Outbound URL/IP filter actively blocks RFC-1918 private subnets, loopback, and cloud metadata (`169.254.169.254`) | Attacker probes external public domains |
+| Account credential stuffing / password theft | Two-Factor Authentication (2FA / TOTP RFC 6238) with Google Authenticator + 8 recovery codes | User losing both authenticator device and backup codes |
+| CDN tampering / Supply-chain outage | Self-hosted local `pdf.js` vendor bundle with automatic CDN fallback | Browser caching stale scripts |

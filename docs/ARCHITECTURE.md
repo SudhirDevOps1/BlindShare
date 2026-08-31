@@ -36,3 +36,8 @@ Viewer buffers per-page dwell in memory → flush every `VIEW_HEARTBEAT_SEC` (10
 array → `POST /api/v/<slug>/session` writes one aggregate row update + N page_event rows.
 On `BACKEND_TARGET=cf` the buffer moves to KV/DO and flushes hourly (`ANALYTICS_FLUSH_MIN`)
 to respect the D1 100K writes/day budget.
+
+## Security & Defense Layer
+- **Two-Factor Authentication (2FA / TOTP RFC 6238)**: User-level TOTP engine (`src/lib/auth/totp.ts`) with HMAC-SHA1 30-second windows and 8 single-use hashed recovery backup codes.
+- **SSRF Defense Engine**: Pre-flight outbound request validation (`src/lib/security/ssrf-validator.ts`) blocking RFC-1918 private subnets, loopback, and cloud metadata.
+- **Distributed Edge Rate Limiting**: Upstash Redis REST pipeline (`src/lib/security/distributed-rate-limiter.ts`) synchronized across edge nodes with zero-crash in-memory sliding window fallback.
