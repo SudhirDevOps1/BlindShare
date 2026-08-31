@@ -55,7 +55,8 @@ export function BrandHeader() {
 
   const navLinks = user
     ? [
-        { href: "/dashboard", label: t.nav.dashboard, icon: BarChart3 },
+        { href: "/dashboard", label: t.nav.dashboard, icon: FileText },
+        { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
         { href: "/dashboard/docs", label: t.nav.documents, icon: FileText },
         { href: "/dashboard/links", label: t.nav.links, icon: LinkIcon },
         { href: "/dashboard/datarooms", label: t.nav.datarooms, icon: FolderLock },

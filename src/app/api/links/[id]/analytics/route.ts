@@ -64,33 +64,77 @@ export async function GET(
       .where(eq(viewSessions.linkId, id))
       .orderBy(desc(viewSessions.startedAt));
 
-    // Fetch per-page dwell events
-    const events = await db
+    // Fetch all page events for this link
+    const allPageEvents = await db
       .select({
+        id: pageEvents.id,
+        sessionId: pageEvents.sessionId,
         pageNumber: pageEvents.pageNumber,
-        totalDwell: sql<number>`sum(${pageEvents.dwellSeconds})`,
-        eventCount: sql<number>`count(${pageEvents.id})`,
+        dwellSeconds: pageEvents.dwellSeconds,
       })
       .from(pageEvents)
-      .where(eq(pageEvents.linkId, id))
-      .groupBy(pageEvents.pageNumber)
-      .orderBy(pageEvents.pageNumber);
+      .where(eq(pageEvents.linkId, id));
 
-    // Calculate per-page stats array (1..totalPages)
+    // Aggregate per-page dwell events across all sessions
     const pageStatsMap = new Map<number, { pageNumber: number; dwellSeconds: number; viewCount: number }>();
     for (let i = 1; i <= totalPages; i++) {
       pageStatsMap.set(i, { pageNumber: i, dwellSeconds: 0, viewCount: 0 });
     }
 
-    for (const ev of events) {
-      pageStatsMap.set(ev.pageNumber, {
-        pageNumber: ev.pageNumber,
-        dwellSeconds: Number(ev.totalDwell) || 0,
-        viewCount: Number(ev.eventCount) || 0,
-      });
+    for (const ev of allPageEvents) {
+      const cur = pageStatsMap.get(ev.pageNumber) || { pageNumber: ev.pageNumber, dwellSeconds: 0, viewCount: 0 };
+      cur.dwellSeconds += ev.dwellSeconds || 0;
+      cur.viewCount += 1;
+      pageStatsMap.set(ev.pageNumber, cur);
     }
 
     const pageStats = Array.from(pageStatsMap.values());
+
+    // Per-session page dwell map
+    const sessionPagesMap = new Map<string, Record<number, number>>();
+    for (const ev of allPageEvents) {
+      if (!sessionPagesMap.has(ev.sessionId)) {
+        sessionPagesMap.set(ev.sessionId, {});
+      }
+      const map = sessionPagesMap.get(ev.sessionId)!;
+      map[ev.pageNumber] = (map[ev.pageNumber] || 0) + (ev.dwellSeconds || 0);
+    }
+
+    // Active live readers (heartbeat within 60s)
+    const now = new Date().getTime();
+    const activeCutoff = new Date(now - 60 * 1000);
+    let activeNow = 0;
+
+    const deviceCounts: Record<string, number> = { desktop: 0, mobile: 0, tablet: 0 };
+    const countryCounts: Record<string, number> = {};
+
+    const enrichedSessions = sessions.map((s) => {
+      const isLive = new Date(s.lastHeartbeatAt) > activeCutoff;
+      if (isLive) activeNow++;
+
+      const dev = (s.uaDevice || "desktop").toLowerCase();
+      deviceCounts[dev] = (deviceCounts[dev] || 0) + 1;
+
+      const cty = s.country || "Unknown";
+      countryCounts[cty] = (countryCounts[cty] || 0) + 1;
+
+      const completionRate = Math.min(100, Math.round((s.maxPageReached / totalPages) * 100));
+      let intent: "high" | "medium" | "low" = "low";
+      if (completionRate >= 75 || s.totalDwellSeconds >= 120) {
+        intent = "high";
+      } else if (completionRate >= 30 || s.totalDwellSeconds >= 30) {
+        intent = "medium";
+      }
+
+      return {
+        ...s,
+        formattedDwell: formatDuration(s.totalDwellSeconds),
+        completionRate,
+        intent,
+        isLive,
+        pageBreakdown: sessionPagesMap.get(s.id) || {},
+      };
+    });
 
     // Aggregate summary metrics
     const totalSessions = sessions.length;
@@ -99,6 +143,12 @@ export async function GET(
     const avgDwellSeconds = totalSessions > 0 ? Math.round(totalDwellAll / totalSessions) : 0;
     const avgMaxPage = totalSessions > 0 ? sessions.reduce((acc, s) => acc + s.maxPageReached, 0) / totalSessions : 0;
     const avgCompletionPercent = Math.min(100, Math.round((avgMaxPage / totalPages) * 100));
+
+    // Top countries
+    const countryBreakdown = Object.entries(countryCounts)
+      .map(([country, count]) => ({ country, count, percentage: Math.round((count / Math.max(1, totalSessions)) * 100) }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
 
     // If CSV export requested
     if (format === "csv") {
@@ -114,11 +164,12 @@ export async function GET(
         "Max Page Read",
         "Total Doc Pages",
         "Completion %",
+        "Intent Score",
         "Started At",
         "Last Heartbeat At",
       ];
 
-      const rows: (string | number)[][] = sessions.map((s) => [
+      const rows: (string | number)[][] = enrichedSessions.map((s) => [
         s.id,
         s.viewerEmail || "Anonymous",
         s.country || "Unknown",
@@ -129,7 +180,8 @@ export async function GET(
         formatDuration(s.totalDwellSeconds),
         s.maxPageReached,
         totalPages,
-        Math.min(100, Math.round((s.maxPageReached / totalPages) * 100)) + "%",
+        s.completionRate + "%",
+        s.intent.toUpperCase(),
         s.startedAt.toISOString(),
         s.lastHeartbeatAt.toISOString(),
       ]);
@@ -153,9 +205,12 @@ export async function GET(
         avgDwellSeconds,
         avgCompletionPercent,
         totalDwellSeconds: totalDwellAll,
+        activeNow,
       },
       pageStats,
-      sessions,
+      sessions: enrichedSessions,
+      deviceBreakdown: deviceCounts,
+      countryBreakdown,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to fetch analytics" }, { status: 500 });

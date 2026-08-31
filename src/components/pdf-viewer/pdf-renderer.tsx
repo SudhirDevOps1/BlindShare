@@ -235,34 +235,56 @@ export function PdfRenderer({
       totalDwellRef.current += 1;
     }, 1000);
 
-    // Heartbeat batch flusher (every 10 seconds)
-    const heartbeatTimer = setInterval(() => {
+    const flushDwellEvents = () => {
       const events = Object.entries(pageDwellMap.current).map(([pg, dwell]) => ({
         pageNumber: parseInt(pg, 10),
         dwellSeconds: dwell,
       }));
 
       if (events.length > 0 && sessionId) {
-        // Reset dwell map for next batch
         pageDwellMap.current = {};
+        const payload = JSON.stringify({
+          sessionId,
+          events,
+          maxPageReached: maxPageReachedRef.current,
+          completedPages: maxPageReachedRef.current,
+          totalDwellSeconds: totalDwellRef.current,
+        });
 
-        fetch(`/api/v/${slug}/session`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId,
-            events,
-            maxPageReached: maxPageReachedRef.current,
-            completedPages: maxPageReachedRef.current,
-            totalDwellSeconds: totalDwellRef.current,
-          }),
-        }).catch(() => {});
+        if (navigator.sendBeacon) {
+          const blob = new Blob([payload], { type: "application/json" });
+          navigator.sendBeacon(`/api/v/${slug}/session`, blob);
+        } else {
+          fetch(`/api/v/${slug}/session`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: payload,
+            keepalive: true,
+          }).catch(() => {});
+        }
       }
+    };
+
+    // Heartbeat batch flusher (every 10 seconds)
+    const heartbeatTimer = setInterval(() => {
+      flushDwellEvents();
     }, 10000);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        flushDwellEvents();
+      }
+    };
+
+    window.addEventListener("pagehide", flushDwellEvents);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       clearInterval(secondTimer);
       clearInterval(heartbeatTimer);
+      window.removeEventListener("pagehide", flushDwellEvents);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      flushDwellEvents();
     };
   }, [currentPage, slug, sessionId]);
 

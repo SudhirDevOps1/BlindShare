@@ -291,24 +291,48 @@ export function MediaRenderer({
       totalDwellRef.current += 1;
     }, 1000);
 
-    const beat = setInterval(() => {
+    const flushMediaDwell = () => {
       if (!sessionId) return;
-      fetch(`/api/v/${slug}/session`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId,
-          events: [{ pageNumber: tablePage, dwellSeconds: 10 }],
-          maxPageReached: tablePage,
-          completedPages: tablePage,
-          totalDwellSeconds: totalDwellRef.current,
-        }),
-      }).catch(() => {});
+      const payload = JSON.stringify({
+        sessionId,
+        events: [{ pageNumber: tablePage, dwellSeconds: 10 }],
+        maxPageReached: tablePage,
+        completedPages: tablePage,
+        totalDwellSeconds: totalDwellRef.current,
+      });
+
+      if (navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: "application/json" });
+        navigator.sendBeacon(`/api/v/${slug}/session`, blob);
+      } else {
+        fetch(`/api/v/${slug}/session`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    };
+
+    const beat = setInterval(() => {
+      flushMediaDwell();
     }, 10000);
+
+    const handleVis = () => {
+      if (document.visibilityState === "hidden") {
+        flushMediaDwell();
+      }
+    };
+
+    window.addEventListener("pagehide", flushMediaDwell);
+    document.addEventListener("visibilitychange", handleVis);
 
     return () => {
       clearInterval(tick);
       clearInterval(beat);
+      window.removeEventListener("pagehide", flushMediaDwell);
+      document.removeEventListener("visibilitychange", handleVis);
+      flushMediaDwell();
     };
   }, [loading, error, sessionId, slug, tablePage]);
 

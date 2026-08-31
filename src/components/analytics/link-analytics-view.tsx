@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { formatDuration } from "@/lib/analytics";
 import {
@@ -19,6 +19,14 @@ import {
   RefreshCw,
   ExternalLink,
   Ban,
+  Radio,
+  Flame,
+  Zap,
+  Snowflake,
+  ChevronDown,
+  ChevronUp,
+  Sliders,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -27,15 +35,18 @@ interface LinkAnalyticsViewProps {
 }
 
 export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
-  const { t, appName } = useI18n();
+  const { t } = useI18n();
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
+  const [revoking, setRevoking] = useState(false);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async (isSilent = false) => {
     try {
-      setLoading(true);
+      if (!isSilent) setLoading(true);
       setError(null);
       const res = await fetch(`/api/links/${linkId}/analytics`);
       const json = await res.json();
@@ -46,18 +57,52 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
     } catch (err: any) {
       setError(err.message || "Failed to load analytics");
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
-  };
+  }, [linkId]);
 
   useEffect(() => {
     fetchAnalytics();
-  }, [linkId]);
+  }, [fetchAnalytics]);
 
-  if (loading) {
+  // Live Auto-Refresh every 10 seconds
+  useEffect(() => {
+    if (!autoRefresh) return;
+    const timer = setInterval(() => {
+      fetchAnalytics(true);
+    }, 10000);
+    return () => clearInterval(timer);
+  }, [autoRefresh, fetchAnalytics]);
+
+  const handleToggleRevoke = async () => {
+    if (!data?.link) return;
+    try {
+      setRevoking(true);
+      const newRevokedState = !data.link.isRevoked;
+      const res = await fetch(`/api/links/${linkId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isRevoked: newRevokedState }),
+      });
+      if (res.ok) {
+        setData((prev: any) => ({
+          ...prev,
+          link: { ...prev.link, isRevoked: newRevokedState },
+        }));
+      }
+    } catch {
+    } finally {
+      setRevoking(false);
+    }
+  };
+
+  if (loading && !data) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center p-8">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
+          <p className="text-xs text-slate-400">Loading Document Tracking Data...</p>
+        </div>
       </div>
     );
   }
@@ -70,7 +115,7 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
           <h3 className="text-base font-bold text-white mb-2">Error Loading Analytics</h3>
           <p className="text-xs text-slate-300 mb-4">{error}</p>
           <button
-            onClick={fetchAnalytics}
+            onClick={() => fetchAnalytics(false)}
             className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950"
           >
             Retry
@@ -80,8 +125,14 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
     );
   }
 
-  const { link, document: docInfo, metrics, pageStats, sessions } = data;
+  const { link, document: docInfo, metrics, pageStats, sessions, deviceBreakdown, countryBreakdown } = data;
   const maxDwell = Math.max(...pageStats.map((p: any) => p.dwellSeconds), 1);
+  const totalPages = docInfo?.pageCount || 1;
+
+  const totalDev = (deviceBreakdown?.desktop || 0) + (deviceBreakdown?.mobile || 0) + (deviceBreakdown?.tablet || 0) || 1;
+  const desktopPct = Math.round(((deviceBreakdown?.desktop || 0) / totalDev) * 100);
+  const mobilePct = Math.round(((deviceBreakdown?.mobile || 0) / totalDev) * 100);
+  const tabletPct = Math.round(((deviceBreakdown?.tablet || 0) / totalDev) * 100);
 
   return (
     <div className="space-y-6">
@@ -91,30 +142,74 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
           <div className="flex items-center gap-2 mb-1">
             <Link
               href="/dashboard/links"
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-400"
+              className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-400 transition"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Back to Links</span>
             </Link>
+            <span className="text-slate-600">•</span>
+            <Link
+              href="/dashboard/analytics"
+              className="text-xs text-slate-400 hover:text-amber-400 transition"
+            >
+              All Analytics
+            </Link>
           </div>
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <span>{link.name}</span>
-            {link.isRevoked && (
+            {link.isRevoked ? (
               <span className="rounded-full bg-red-500/20 px-2.5 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30">
-                Revoked
+                Link Revoked (Kill Switch Active)
+              </span>
+            ) : metrics.activeNow > 0 ? (
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 animate-pulse">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                {metrics.activeNow} Active Now
+              </span>
+            ) : (
+              <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-400 border border-emerald-500/20">
+                Active
               </span>
             )}
           </h2>
-          <p className="text-xs text-slate-400">
-            Slug: <code className="text-amber-400 font-mono">/v/{link.slug}</code> • Target:{" "}
-            {docInfo?.title || "Document"}
+          <p className="text-xs text-slate-400 mt-0.5">
+            Slug: <code className="text-amber-400 font-mono">/v/{link.slug}</code> • Document:{" "}
+            <span className="text-slate-200 font-medium">{docInfo?.title || "Document"}</span> ({totalPages} pages)
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Live Auto-Refresh Toggle */}
           <button
-            onClick={fetchAnalytics}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800"
+            onClick={() => setAutoRefresh(!autoRefresh)}
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition ${
+              autoRefresh
+                ? "border-emerald-500/40 bg-emerald-950/30 text-emerald-300"
+                : "border-slate-800 bg-slate-900 text-slate-400 hover:text-slate-200"
+            }`}
+          >
+            <span className={`h-2 w-2 rounded-full ${autoRefresh ? "bg-emerald-400" : "bg-slate-600"}`} />
+            <span>{autoRefresh ? "Live (10s)" : "Auto Off"}</span>
+          </button>
+
+          {/* Kill switch / revoke toggle */}
+          <button
+            onClick={handleToggleRevoke}
+            disabled={revoking}
+            className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition ${
+              link.isRevoked
+                ? "border-emerald-500/30 bg-emerald-950/30 text-emerald-300 hover:bg-emerald-900/40"
+                : "border-red-500/30 bg-red-950/30 text-red-300 hover:bg-red-900/40"
+            }`}
+            title={link.isRevoked ? "Un-revoke this link" : "Instantly revoke access for all viewers"}
+          >
+            <Ban className="h-3.5 w-3.5" />
+            <span>{link.isRevoked ? "Restore Access" : "Kill Link (Revoke)"}</span>
+          </button>
+
+          <button
+            onClick={() => fetchAnalytics(false)}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 transition"
           >
             <RefreshCw className="h-3.5 w-3.5" />
             <span>Refresh</span>
@@ -123,10 +218,10 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
           <a
             href={`/api/links/${linkId}/analytics?format=csv`}
             download
-            className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10"
+            className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-3.5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition shadow-md shadow-amber-500/10"
           >
             <Download className="h-3.5 w-3.5" />
-            <span>{t.analytics.exportCsv}</span>
+            <span>Export CSV</span>
           </a>
         </div>
       </div>
@@ -135,16 +230,16 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium">{t.analytics.totalViews}</span>
+            <span className="text-xs font-medium">Total Reading Sessions</span>
             <BarChart3 className="h-4 w-4 text-amber-400" />
           </div>
           <div className="text-2xl font-bold text-white">{metrics.totalSessions}</div>
-          <div className="text-[10px] text-slate-500 mt-1">Recorded reading sessions</div>
+          <div className="text-[10px] text-slate-500 mt-1">Recorded viewer visits</div>
         </div>
 
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium">{t.analytics.uniqueViewers}</span>
+            <span className="text-xs font-medium">Unique Viewers</span>
             <Users className="h-4 w-4 text-blue-400" />
           </div>
           <div className="text-2xl font-bold text-white">{metrics.uniqueViewers}</div>
@@ -153,7 +248,7 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
 
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium">Avg. Reading Time</span>
+            <span className="text-xs font-medium">Avg. Dwell Time</span>
             <Clock className="h-4 w-4 text-emerald-400" />
           </div>
           <div className="text-2xl font-bold text-white">
@@ -166,19 +261,22 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
 
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
           <div className="flex items-center justify-between text-slate-400 mb-2">
-            <span className="text-xs font-medium">{t.analytics.avgCompletion}</span>
+            <span className="text-xs font-medium">Avg. Completion</span>
             <CheckCircle className="h-4 w-4 text-purple-400" />
           </div>
           <div className="text-2xl font-bold text-white">{metrics.avgCompletionPercent}%</div>
-          <div className="text-[10px] text-slate-500 mt-1">Through {docInfo?.pageCount || 1} pages</div>
+          <div className="text-[10px] text-slate-500 mt-1">Across {totalPages} pages</div>
         </div>
       </div>
 
-      {/* Per-Page Reading Dwell Time Chart */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-        <div className="flex items-center justify-between mb-4">
+      {/* Per-Page Reading Dwell Time Chart (Papermark Heatmap Style) */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-white">{t.analytics.dwellTimeByPage}</h3>
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <BarChart3 className="h-4 w-4 text-amber-400" />
+              <span>Page-by-Page Dwell Heatmap</span>
+            </h3>
             <p className="text-xs text-slate-400">
               Granular time spent reading each page across all viewers
             </p>
@@ -188,51 +286,108 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
         {pageStats.length === 0 ? (
           <div className="py-8 text-center text-xs text-slate-500">No page views recorded yet.</div>
         ) : (
-          <div className="space-y-3 pt-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {pageStats.map((p: any) => {
-                const percentage = Math.round((p.dwellSeconds / maxDwell) * 100);
-                return (
-                  <div
-                    key={p.pageNumber}
-                    className="rounded-xl border border-slate-800 bg-slate-950 p-3 space-y-2"
-                  >
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-slate-200">
-                        {t.analytics.pageNumber.replace("{num}", String(p.pageNumber))}
-                      </span>
-                      <span className="font-mono text-amber-400 font-bold">
-                        {formatDuration(p.dwellSeconds)}
-                      </span>
-                    </div>
-
-                    {/* Progress Bar */}
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-                      <div
-                        className="h-full bg-gradient-to-r from-amber-500 to-amber-400"
-                        style={{ width: `${Math.max(percentage, 3)}%` }}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between text-[10px] text-slate-500">
-                      <span>{p.viewCount} view events</span>
-                      <span>{percentage}% of peak</span>
-                    </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 pt-2">
+            {pageStats.map((p: any) => {
+              const percentage = Math.round((p.dwellSeconds / maxDwell) * 100);
+              return (
+                <div
+                  key={p.pageNumber}
+                  className="rounded-xl border border-slate-800 bg-slate-950 p-3 space-y-2 hover:border-slate-700 transition"
+                >
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-200">
+                      Page {p.pageNumber}
+                    </span>
+                    <span className="font-mono text-amber-400 font-bold">
+                      {formatDuration(p.dwellSeconds)}
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+
+                  {/* Progress Bar */}
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                    <div
+                      className="h-full bg-gradient-to-r from-amber-500 to-amber-400"
+                      style={{ width: `${Math.max(percentage, 4)}%` }}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] text-slate-500">
+                    <span>{p.viewCount} reads</span>
+                    <span>{percentage}% of peak</span>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Viewer Session Logs Table (Minimal-PII) */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-        <div className="flex items-center justify-between mb-4">
+      {/* 2-Column Middle Row: Devices & Countries */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Device breakdown */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-3">
+          <h4 className="text-xs font-bold text-white flex items-center gap-2">
+            <Monitor className="h-4 w-4 text-blue-400" />
+            <span>Viewer Devices</span>
+          </h4>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-slate-300">Desktop</span>
+              <span className="font-mono text-slate-400">{desktopPct}%</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+              <div className="h-full bg-blue-500" style={{ width: `${desktopPct}%` }} />
+            </div>
+
+            <div className="flex items-center justify-between text-xs pt-1">
+              <span className="text-slate-300">Mobile</span>
+              <span className="font-mono text-slate-400">{mobilePct}%</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+              <div className="h-full bg-emerald-500" style={{ width: `${mobilePct}%` }} />
+            </div>
+
+            <div className="flex items-center justify-between text-xs pt-1">
+              <span className="text-slate-300">Tablet</span>
+              <span className="font-mono text-slate-400">{tabletPct}%</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+              <div className="h-full bg-purple-500" style={{ width: `${tabletPct}%` }} />
+            </div>
+          </div>
+        </div>
+
+        {/* Top Locations */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-3">
+          <h4 className="text-xs font-bold text-white flex items-center gap-2">
+            <Globe className="h-4 w-4 text-emerald-400" />
+            <span>Top Reader Locations</span>
+          </h4>
+          {countryBreakdown?.length === 0 ? (
+            <div className="text-xs text-slate-500 py-2">No location data yet</div>
+          ) : (
+            <div className="space-y-2">
+              {countryBreakdown?.map((c: any) => (
+                <div key={c.country} className="flex items-center justify-between text-xs">
+                  <span className="text-slate-300 truncate">{c.country}</span>
+                  <span className="font-mono text-slate-400">{c.count} views ({c.percentage}%)</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Viewer Session Logs Table (Interactive with Page Breakdown) */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-white">{t.analytics.viewerLogs}</h3>
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <Users className="h-4 w-4 text-amber-400" />
+              <span>Viewer Sessions & Lead Scoring</span>
+            </h3>
             <p className="text-xs text-slate-400">
-              Zero-knowledge minimal PII telemetry (IPs are salted-hashed daily)
+              Click any session to view that reader's specific per-page dwell time
             </p>
           </div>
         </div>
@@ -244,53 +399,131 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
             <table className="w-full text-left text-xs">
               <thead className="border-b border-slate-800 text-slate-400 font-semibold">
                 <tr>
-                  <th className="pb-3 pl-2">{t.analytics.viewerCol}</th>
-                  <th className="pb-3">{t.analytics.durationCol}</th>
-                  <th className="pb-3">{t.analytics.pagesCol}</th>
-                  <th className="pb-3">{t.analytics.deviceCol}</th>
-                  <th className="pb-3">{t.analytics.countryCol}</th>
-                  <th className="pb-3 pr-2">{t.analytics.dateCol}</th>
+                  <th className="pb-3 pl-2">Status</th>
+                  <th className="pb-3">Viewer</th>
+                  <th className="pb-3">Reading Dwell</th>
+                  <th className="pb-3">Pages Read</th>
+                  <th className="pb-3">Intent Score</th>
+                  <th className="pb-3">Device / Geo</th>
+                  <th className="pb-3">Date</th>
+                  <th className="pb-3 pr-2 text-right">Details</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
                 {sessions.map((s: any) => {
+                  const isExpanded = expandedSessionId === s.id;
                   const DeviceIcon =
                     s.uaDevice === "mobile" ? Smartphone : s.uaDevice === "tablet" ? Tablet : Monitor;
                   return (
-                    <tr key={s.id} className="hover:bg-slate-800/30">
-                      <td className="py-3 pl-2 font-medium text-white">
-                        {s.viewerEmail ? (
-                          <span className="text-amber-400">{s.viewerEmail}</span>
-                        ) : (
-                          <span className="text-slate-400">Anonymous</span>
-                        )}
-                      </td>
-                      <td className="py-3 font-mono text-slate-300">
-                        {formatDuration(s.totalDwellSeconds)}
-                      </td>
-                      <td className="py-3">
-                        <span className="rounded bg-slate-800 px-2 py-0.5 font-mono text-slate-300">
-                          {s.maxPageReached} / {docInfo?.pageCount || 1}
-                        </span>
-                      </td>
-                      <td className="py-3 text-slate-300">
-                        <div className="flex items-center gap-1.5">
-                          <DeviceIcon className="h-3.5 w-3.5 text-slate-400" />
-                          <span>
-                            {s.uaOs} • {s.uaBrowser}
+                    <React.Fragment key={s.id}>
+                      <tr
+                        onClick={() => setExpandedSessionId(isExpanded ? null : s.id)}
+                        className="hover:bg-slate-800/30 transition cursor-pointer"
+                      >
+                        <td className="py-3 pl-2">
+                          {s.isLive ? (
+                            <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400">
+                              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                              Live
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-slate-500">Ended</span>
+                          )}
+                        </td>
+
+                        <td className="py-3 font-medium text-white">
+                          {s.viewerEmail ? (
+                            <span className="text-amber-400 font-semibold">{s.viewerEmail}</span>
+                          ) : (
+                            <span className="text-slate-400">Anonymous</span>
+                          )}
+                        </td>
+
+                        <td className="py-3 font-mono text-slate-300">
+                          {s.formattedDwell}
+                        </td>
+
+                        <td className="py-3">
+                          <span className="rounded bg-slate-800 px-2 py-0.5 font-mono text-slate-300">
+                            {s.maxPageReached} / {totalPages} ({s.completionRate}%)
                           </span>
-                        </div>
-                      </td>
-                      <td className="py-3 text-slate-300">
-                        <div className="flex items-center gap-1">
-                          <Globe className="h-3 w-3 text-slate-400" />
-                          <span>{s.country}</span>
-                        </div>
-                      </td>
-                      <td className="py-3 pr-2 text-slate-400 font-mono text-[11px]">
-                        {new Date(s.startedAt).toLocaleString()}
-                      </td>
-                    </tr>
+                        </td>
+
+                        <td className="py-3">
+                          {s.intent === "high" ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30">
+                              <Flame className="h-3 w-3 text-red-400" />
+                              High Intent
+                            </span>
+                          ) : s.intent === "medium" ? (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/30">
+                              <Zap className="h-3 w-3 text-amber-400" />
+                              Engaged
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400 border border-slate-700">
+                              <Snowflake className="h-3 w-3 text-slate-500" />
+                              Skimmed
+                            </span>
+                          )}
+                        </td>
+
+                        <td className="py-3 text-slate-300">
+                          <div className="flex items-center gap-1.5">
+                            <DeviceIcon className="h-3.5 w-3.5 text-slate-400" />
+                            <span>
+                              {s.uaOs} • {s.country}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td className="py-3 text-slate-400 font-mono text-[11px]">
+                          {new Date(s.startedAt).toLocaleString()}
+                        </td>
+
+                        <td className="py-3 pr-2 text-right">
+                          <button className="text-slate-400 hover:text-white p-1">
+                            {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </button>
+                        </td>
+                      </tr>
+
+                      {/* Expanded Page-by-Page breakdown for this specific reader */}
+                      {isExpanded && (
+                        <tr className="bg-slate-950/80">
+                          <td colSpan={8} className="p-4 border-y border-slate-800/80">
+                            <div className="space-y-2">
+                              <div className="text-xs font-bold text-slate-300 flex items-center justify-between">
+                                <span>Reader Dwell Per Page Breakdown ({s.viewerEmail || "Anonymous"})</span>
+                                <span className="text-[11px] text-slate-500 font-normal">
+                                  Session ID: {s.id.substring(0, 16)}...
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2 pt-1">
+                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => {
+                                  const pageDwell = s.pageBreakdown?.[pg] || 0;
+                                  return (
+                                    <div
+                                      key={pg}
+                                      className={`rounded-lg border p-2 text-center text-xs ${
+                                        pageDwell > 0
+                                          ? "border-amber-500/30 bg-amber-950/20 text-amber-200"
+                                          : "border-slate-800 bg-slate-900 text-slate-500"
+                                      }`}
+                                    >
+                                      <div className="text-[10px] text-slate-400">Page {pg}</div>
+                                      <div className="font-mono font-bold mt-0.5">
+                                        {formatDuration(pageDwell)}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })}
               </tbody>
