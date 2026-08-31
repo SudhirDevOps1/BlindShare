@@ -36,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
-        {/* Optional PrismAnalytics Tracking (Matches secure-private-chat-app-prd) */}
+        {/* Optional PrismAnalytics Tracking Script */}
         {prismId && prismUrl ? (
           <script
             dangerouslySetInnerHTML={{
@@ -48,22 +48,19 @@ try {
   function t(e,d){
     try {
       var q=new URLSearchParams(location.search);
-      var payload=JSON.stringify({
-        site_id:id,
-        pathname:location.pathname,
-        referrer:document.referrer||'',
-        screen_size:screen.width+'x'+screen.height,
-        session_id:sid,
-        event_name:e||'pageview',
-        event_data:d,
-        utm_source:q.get('utm_source'),
-        utm_medium:q.get('utm_medium'),
-        utm_campaign:q.get('utm_campaign')
-      });
       if(navigator.sendBeacon){
-        navigator.sendBeacon(url,payload);
-      } else {
-        fetch(url,{method:'POST',body:payload,headers:{'Content-Type':'application/json'},keepalive:true,mode:'no-cors'}).catch(function(){});
+        navigator.sendBeacon(url,JSON.stringify({
+          site_id:id,
+          pathname:location.pathname,
+          referrer:document.referrer||'',
+          screen_size:screen.width+'x'+screen.height,
+          session_id:sid,
+          event_name:e||'pageview',
+          event_data:d,
+          utm_source:q.get('utm_source'),
+          utm_medium:q.get('utm_medium'),
+          utm_campaign:q.get('utm_campaign')
+        }));
       }
     } catch(err){}
   }
