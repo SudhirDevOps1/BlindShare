@@ -1,3 +1,5 @@
+import { isSafeWebhookUrl } from "@/lib/security/ssrf-validator";
+
 /**
  * Webhook notification dispatcher.
  * Supports Discord webhooks, Slack incoming webhooks, and generic REST endpoints.
@@ -17,7 +19,14 @@ export interface WebhookEventPayload {
 }
 
 export async function sendWebhookNotification(webhookUrl: string, payload: WebhookEventPayload): Promise<boolean> {
-  if (!webhookUrl || !webhookUrl.startsWith("http")) return false;
+  if (!webhookUrl) return false;
+
+  // SSRF Protection: verify destination is public and safe before making request
+  const check = isSafeWebhookUrl(webhookUrl);
+  if (!check.safe) {
+    console.warn(`[WebhookNotifier] Blocked unsafe webhook target (${check.reason}):`, webhookUrl);
+    return false;
+  }
 
   try {
     const isDiscord = webhookUrl.includes("discord.com/api/webhooks") || webhookUrl.includes("discordapp.com/api/webhooks");

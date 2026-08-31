@@ -20,6 +20,13 @@ export default function LoginPage() {
   const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 2FA Challenge state
+  const [require2fa, setRequire2fa] = useState(false);
+  const [tempToken, setTempToken] = useState("");
+  const [twoFactorCode, setTwoFactorCode] = useState("");
+  const [useBackupCode, setUseBackupCode] = useState(false);
+
   const [bootstrap, setBootstrap] = useState<{
     mode: "setup" | "normal";
     inviteRequired: boolean;
@@ -43,6 +50,44 @@ export default function LoginPage() {
     setEmail(bootstrap.placeholderEmail);
     setPassword(bootstrap.placeholderPassword || "");
     setError(null);
+  };
+
+  const handle2faSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    if (!twoFactorCode) {
+      setError(useBackupCode ? "Please enter an 8-character backup code" : "Please enter the 6-digit authenticator code");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/2fa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tempToken,
+          code: twoFactorCode.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        if (data.expired) {
+          setRequire2fa(false);
+          setTempToken("");
+          setTwoFactorCode("");
+        }
+        throw new Error(data.error || "2FA verification failed");
+      }
+
+      router.push("/dashboard");
+      router.refresh();
+    } catch (err: any) {
+      setError(err.message || "An error occurred");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,6 +123,14 @@ export default function LoginPage() {
         throw new Error(data.error || "Authentication failed");
       }
 
+      // Check if 2FA is required for this account
+      if (data.require2fa) {
+        setRequire2fa(true);
+        setTempToken(data.tempToken);
+        setTwoFactorCode("");
+        return;
+      }
+
       router.push("/dashboard");
       router.refresh();
     } catch (err: any) {
@@ -100,24 +153,18 @@ export default function LoginPage() {
 
           <div className="text-center mb-6">
             <h2 className="text-xl font-bold text-white mb-1">
-              {isRegister ? "Create Platform Account" : "Sign In to " + appName}
+              {require2fa
+                ? "Two-Factor Verification"
+                : isRegister
+                ? "Create Platform Account"
+                : "Sign In to " + appName}
             </h2>
             <p className="text-xs text-slate-400">
-              Zero-Knowledge Secure Document Sharing
+              {require2fa
+                ? "Enter the 6-digit code from your authenticator app"
+                : "Zero-Knowledge Secure Document Sharing"}
             </p>
           </div>
-
-          {bootstrap?.mode === "setup" && (
-            <div className="mb-4 space-y-1.5 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-[11px] leading-relaxed text-amber-200">
-              <div className="flex items-center gap-1.5 font-semibold text-amber-300">
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>First-Run Genesis Setup</span>
-              </div>
-              <p className="text-slate-300">
-                Create your custom <strong>Super Admin</strong> account below. The secret bootstrap invite code from your <code className="text-amber-300">.env</code> is ready.
-              </p>
-            </div>
-          )}
 
           {error && (
             <div className="mb-4 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-950/30 p-3 text-xs text-red-300">
@@ -126,7 +173,72 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {require2fa ? (
+            <form onSubmit={handle2faSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="block text-xs font-medium text-slate-300">
+                  {useBackupCode ? "Emergency Backup Recovery Code:" : "6-Digit Authenticator Code:"}
+                </label>
+                <input
+                  type="text"
+                  autoFocus
+                  required
+                  placeholder={useBackupCode ? "a1b2-c3d4" : "000000"}
+                  value={twoFactorCode}
+                  maxLength={useBackupCode ? 16 : 6}
+                  onChange={(e) => setTwoFactorCode(e.target.value)}
+                  className={`w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-center text-amber-400 font-mono focus:border-amber-500 focus:outline-none ${
+                    useBackupCode ? "text-base tracking-widest" : "text-xl tracking-[0.4em]"
+                  }`}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || !twoFactorCode}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 py-2.5 text-sm font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 transition shadow-lg shadow-amber-500/10"
+              >
+                <span>{loading ? "Verifying..." : "Verify & Continue"}</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+
+              <div className="flex items-center justify-between pt-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setUseBackupCode(!useBackupCode)}
+                  className="text-slate-400 hover:text-amber-300 transition"
+                >
+                  {useBackupCode ? "Use Authenticator App" : "Use Backup Code"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRequire2fa(false);
+                    setTempToken("");
+                    setTwoFactorCode("");
+                    setError(null);
+                  }}
+                  className="text-slate-400 hover:text-white transition"
+                >
+                  Back to Sign In
+                </button>
+              </div>
+            </form>
+          ) : (
+            <>
+              {bootstrap?.mode === "setup" && (
+                <div className="mb-4 space-y-1.5 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-[11px] leading-relaxed text-amber-200">
+                  <div className="flex items-center gap-1.5 font-semibold text-amber-300">
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>First-Run Genesis Setup</span>
+                  </div>
+                  <p className="text-slate-300">
+                    Create your custom <strong>Super Admin</strong> account below. The secret bootstrap invite code from your <code className="text-amber-300">.env</code> is ready.
+                  </p>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-4">
             {isRegister && (
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
@@ -241,6 +353,8 @@ export default function LoginPage() {
                 : "Have an invite code? Create Account"}
             </button>
           </div>
+            </>
+          )}
         </div>
       </main>
 

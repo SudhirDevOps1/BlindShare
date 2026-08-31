@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { users, auditLog } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { verifyPassword } from "@/lib/auth/password";
-import { createSessionCookie, ensureGenesisAdmin } from "@/lib/auth/session";
+import { createSessionCookie, ensureGenesisAdmin, sign2faPreAuthToken } from "@/lib/auth/session";
 import { checkLockout, recordFailure, recordSuccess } from "@/lib/auth/lockout";
 import { parseBody } from "@/lib/validation";
 import { loginSchema } from "@/lib/validation/schemas";
@@ -75,6 +75,15 @@ export async function POST(request: Request) {
     }
 
     recordSuccess(email, ip);
+
+    // 2FA Challenge Branch
+    if (user.twoFactorEnabled) {
+      const tempToken = sign2faPreAuthToken(user.id);
+      return NextResponse.json({
+        require2fa: true,
+        tempToken,
+      });
+    }
 
     await createSessionCookie(
       {

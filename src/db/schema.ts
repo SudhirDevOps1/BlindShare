@@ -12,6 +12,9 @@ export const users = pgTable("users", {
   // signed with an older version is rejected even if its HMAC is still valid.
   sessionVersion: integer("session_version").notNull().default(1),
   failedLoginCount: integer("failed_login_count").notNull().default(0),
+  twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
+  twoFactorSecret: text("two_factor_secret"),
+  twoFactorBackupCodes: text("two_factor_backup_codes"),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),

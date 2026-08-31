@@ -17,7 +17,9 @@ import {
   X,
   Lock,
   Sparkles,
+  Smartphone,
 } from "lucide-react";
+import { TwoFactorModal } from "@/components/auth/two-factor-modal";
 
 interface UserProfile {
   id: string;
@@ -42,6 +44,7 @@ export function BrandHeader() {
     return null;
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [twoFactorModalOpen, setTwoFactorModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -163,6 +166,16 @@ export function BrandHeader() {
 
           {showDashboardNav ? (
             <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-800">
+              <button
+                type="button"
+                onClick={() => setTwoFactorModalOpen(true)}
+                className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition shadow-sm"
+                title="Two-Factor Authentication Security"
+              >
+                <Smartphone className="h-3.5 w-3.5 text-amber-400" />
+                <span className="hidden xl:inline">2FA Security</span>
+              </button>
+
               <Link
                 href="/dashboard/settings"
                 className="flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs text-slate-300 border border-slate-800 hover:border-slate-700"
@@ -217,15 +230,29 @@ export function BrandHeader() {
             );
           })}
           {showDashboardNav ? (
-            <div className="pt-2 border-t border-slate-800 flex items-center justify-between">
-              <span className="text-xs text-slate-400">{user?.email || "Signed In"}</span>
+            <div className="pt-2 border-t border-slate-800 space-y-2">
               <button
-                onClick={handleLogout}
-                className="flex items-center gap-1.5 text-xs text-red-400 hover:underline"
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setTwoFactorModalOpen(true);
+                }}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-amber-300 hover:bg-slate-900"
               >
-                <LogOut className="h-3.5 w-3.5" />
-                {t.nav.logout}
+                <Smartphone className="h-4 w-4 text-amber-400" />
+                <span>2FA Security Settings</span>
               </button>
+
+              <div className="flex items-center justify-between pt-1 border-t border-slate-800/60">
+                <span className="text-xs text-slate-400">{user?.email || "Signed In"}</span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-1.5 text-xs text-red-400 hover:underline"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  {t.nav.logout}
+                </button>
+              </div>
             </div>
           ) : (
             <div className="pt-2 border-t border-slate-800">
@@ -240,6 +267,12 @@ export function BrandHeader() {
           )}
         </div>
       )}
+
+      {/* Two-Factor Authentication Modal */}
+      <TwoFactorModal
+        isOpen={twoFactorModalOpen}
+        onClose={() => setTwoFactorModalOpen(false)}
+      />
     </header>
   );
 }

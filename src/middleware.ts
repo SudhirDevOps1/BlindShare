@@ -1,57 +1,28 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { rateLimitDistributed } from "@/lib/security/distributed-rate-limiter";
 
 /**
  * BLINDSHARE edge middleware
- *  - strict security headers (CSP includes worker-src blob: for pdf.js)
+ *  - strict security headers (CSP includes worker-src blob: for local self-hosted pdf.js)
  *  - X-Robots noindex on share/viewer routes (share-links must not be indexed)
- *  - coarse per-IP rate limiting for abuse defence, incl. auth brute-force
+ *  - distributed edge rate limiting for abuse defence (Upstash Redis + memory fallback)
  *  - no-store caching directives on authenticated surfaces
- *
- * Honest note: the counter map is per-instance memory. On multi-instance or edge
- * deployments this is a first line of defence only; the durable limiter belongs in
- * KV/DO (BACKEND_TARGET=cf) and is documented in THREAT-MODEL.md.
  */
-
-type Bucket = { count: number; resetAt: number };
-const buckets = new Map<string, Bucket>();
-
-function rateLimit(key: string, limit: number, windowMs: number): boolean {
-  const now = Date.now();
-  const existing = buckets.get(key);
-
-  if (!existing || existing.resetAt < now) {
-    buckets.set(key, { count: 1, resetAt: now + windowMs });
-    return true;
-  }
-  existing.count += 1;
-  if (existing.count > limit) return false;
-  return true;
-}
-
-// Opportunistic cleanup so the map cannot grow unbounded.
-function sweep() {
-  if (buckets.size < 5000) return;
-  const now = Date.now();
-  for (const [k, v] of buckets) {
-    if (v.resetAt < now) buckets.delete(k);
-  }
-}
 
 const PRESIGN_PER_MIN = Number(process.env.PRESIGN_REQ_PER_MIN_PER_IP || "20");
 const VIEWS_PER_HOUR = Number(process.env.VIEWS_PER_HR_PER_LINK || "120");
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const ip =
     request.headers.get("cf-connecting-ip") ||
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
     "unknown";
 
-  sweep();
-
-  // --- Abuse defence -------------------------------------------------------
+  // --- Abuse defence (Distributed Upstash Redis + Memory Fallback) -----------
   if (pathname.startsWith("/api/docs") && request.method === "POST") {
-    if (!rateLimit(`upload:${ip}`, PRESIGN_PER_MIN, 60_000)) {
+    const check = await rateLimitDistributed(`upload:${ip}`, PRESIGN_PER_MIN, 60_000);
+    if (!check.allowed) {
       return NextResponse.json(
         { error: "Rate limit exceeded for uploads. Please retry shortly." },
         { status: 429, headers: { "Retry-After": "60" } }
@@ -59,10 +30,10 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Coarse edge-level throttle on auth endpoints, independent of the
-  // per-account lockout enforced inside the route handlers themselves.
+  // Edge-level throttle on auth endpoints, independent of per-account lockouts
   if ((pathname === "/api/auth/login" || pathname === "/api/auth/register") && request.method === "POST") {
-    if (!rateLimit(`auth:${ip}`, 30, 60_000)) {
+    const check = await rateLimitDistributed(`auth:${ip}`, 30, 60_000);
+    if (!check.allowed) {
       return NextResponse.json(
         { error: "Too many authentication requests from this network. Please slow down." },
         { status: 429, headers: { "Retry-After": "60" } }
@@ -72,7 +43,8 @@ export function middleware(request: NextRequest) {
 
   if (pathname.startsWith("/api/v/")) {
     const slug = pathname.split("/")[3] || "unknown";
-    if (!rateLimit(`view:${slug}`, VIEWS_PER_HOUR, 3_600_000)) {
+    const check = await rateLimitDistributed(`view:${slug}`, VIEWS_PER_HOUR, 3_600_000);
+    if (!check.allowed) {
       return NextResponse.json(
         { error: "This link has received too many requests this hour." },
         { status: 429, headers: { "Retry-After": "600" } }
@@ -81,7 +53,8 @@ export function middleware(request: NextRequest) {
     if (pathname.endsWith("/verify")) {
       // password-gate lockout pressure valve (5 tries / 15 min per IP+link)
       const tries = Number(process.env.PWD_GATE_LOCKOUT_TRIES || "5");
-      if (!rateLimit(`gate:${ip}:${slug}`, Math.max(tries * 4, 20), 900_000)) {
+      const gateCheck = await rateLimitDistributed(`gate:${ip}:${slug}`, Math.max(tries * 4, 20), 900_000);
+      if (!gateCheck.allowed) {
         return NextResponse.json(
           { error: "Too many access attempts. Try again in 15 minutes." },
           { status: 429, headers: { "Retry-After": "900" } }
@@ -95,7 +68,7 @@ export function middleware(request: NextRequest) {
 
   const csp = [
     "default-src 'self'",
-    // pdf.js is loaded from cdnjs and spawns a blob worker
+    // self-hosted pdf.js with CDN fallback and blob workers
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com",
     "worker-src 'self' blob:",
     "child-src 'self' blob:",

@@ -70,6 +70,40 @@ function verifyToken(token: string): SessionTokenPayload | null {
   }
 }
 
+/** Signs a short-lived (5 min) 2FA pre-authentication challenge token. */
+export function sign2faPreAuthToken(userId: string): string {
+  const payload = {
+    sub: userId,
+    purpose: "2fa_challenge",
+    exp: Date.now() + 5 * 60 * 1000,
+  };
+  const data = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const signature = crypto.createHmac("sha256", SESSION_SECRET).update(data).digest("base64url");
+  return `${data}.${signature}`;
+}
+
+/** Verifies a 2FA pre-authentication challenge token. */
+export function verify2faPreAuthToken(token: string): { userId: string } | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 2) return null;
+    const [data, signature] = parts;
+    const expected = crypto.createHmac("sha256", SESSION_SECRET).update(data).digest("base64url");
+    const sigBuf = Buffer.from(signature);
+    const expBuf = Buffer.from(expected);
+    if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+      return null;
+    }
+    const parsed = JSON.parse(Buffer.from(data, "base64url").toString("utf-8"));
+    if (parsed.purpose !== "2fa_challenge" || (parsed.exp && parsed.exp < Date.now())) {
+      return null;
+    }
+    return { userId: parsed.sub };
+  } catch {
+    return null;
+  }
+}
+
 export async function createSessionCookie(user: SessionUser, sessionVersion = 1) {
   const token = signToken({
     id: user.id,
@@ -161,6 +195,14 @@ export async function getUserSessionVersion(userId: string): Promise<number> {
  */
 export async function ensureGenesisAdmin() {
   try {
+    // Self-healing schema migration for 2FA columns
+    await db.execute(sql`
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS two_factor_secret TEXT,
+      ADD COLUMN IF NOT EXISTS two_factor_backup_codes TEXT;
+    `).catch(() => {});
+
     const realUsers = await db.select({ id: users.id }).from(users).where(ne(users.email, GENESIS_PLACEHOLDER_EMAIL)).limit(1);
     if (realUsers.length > 0) {
       // Purge default placeholder if real owner exists

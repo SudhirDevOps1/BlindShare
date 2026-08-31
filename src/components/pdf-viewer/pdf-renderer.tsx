@@ -187,20 +187,30 @@ export function PdfRenderer({
         if (isCancelled) return;
         decryptedDataRef.current = pdfBytes;
 
-        // 3. Load PDF.js
+        // 3. Load PDF.js (Local Self-Hosted with CDN Fallback)
         setLoadingStep("Rendering document via Mozilla PDF.js...");
 
-        // Dynamically load PDF.js if not on window
         if (!(window as any).pdfjsLib) {
           await new Promise<void>((resolve, reject) => {
             const script = document.createElement("script");
-            script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+            // Try local vendor first, fallback to CDN
+            script.src = "/vendor/pdfjs/pdf.min.js";
             script.onload = () => {
-              (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
-                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+              (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = "/vendor/pdfjs/pdf.worker.min.js";
               resolve();
             };
-            script.onerror = () => reject(new Error("Failed to load PDF.js renderer"));
+            script.onerror = () => {
+              // CDN Fallback
+              const cdnScript = document.createElement("script");
+              cdnScript.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+              cdnScript.onload = () => {
+                (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
+                  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+                resolve();
+              };
+              cdnScript.onerror = () => reject(new Error("Failed to load PDF.js renderer engine"));
+              document.head.appendChild(cdnScript);
+            };
             document.head.appendChild(script);
           });
         }

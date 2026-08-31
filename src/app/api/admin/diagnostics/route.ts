@@ -158,6 +158,26 @@ export async function GET() {
       description: "Master key for server-side tenant metadata envelope encryption fallback.",
       isWorking: true,
     },
+    {
+      key: "UPSTASH_REDIS_REST_URL",
+      category: "Security & Secrets",
+      required: false,
+      isSet: Boolean(process.env.UPSTASH_REDIS_REST_URL),
+      status: Boolean(process.env.UPSTASH_REDIS_REST_URL) ? "healthy" : "warning",
+      maskedValue: maskSecret(process.env.UPSTASH_REDIS_REST_URL),
+      description: "Upstash Redis REST endpoint for distributed edge rate limiting (falls back to memory if unconfigured).",
+      isWorking: true,
+    },
+    {
+      key: "UPSTASH_REDIS_REST_TOKEN",
+      category: "Security & Secrets",
+      required: false,
+      isSet: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN),
+      status: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN) ? "healthy" : "warning",
+      maskedValue: maskSecret(process.env.UPSTASH_REDIS_REST_TOKEN),
+      description: "Upstash Redis REST authentication token for edge rate limit pipeline.",
+      isWorking: true,
+    },
 
     // Email & Alerts
     {
