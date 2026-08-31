@@ -58,6 +58,15 @@ Redeploy the previous release tag; migrations are additive — verify with `npx 
 ```bash
 ./scripts/dev.sh                 # :3000 dev
 ./scripts/dev.sh prod            # build + start
+```
+
+## Database Factory Reset (Neon PostgreSQL)
+To completely wipe all records and restore to fresh Genesis state:
+1. Open Neon Dashboard ➔ **SQL Editor**.
+2. Run `scripts/reset-db.sql`.
+3. Re-open app URL and register fresh Super Admin account.
+
+```bash
 ./scripts/dev.sh check           # typegen + tsc + build + selfcheck
 node scripts/make-demo-pdf.mjs /tmp/demo.pdf
 APP_URL=http://localhost:3000 node scripts/quicklink.mjs /tmp/demo.pdf --name Smoke

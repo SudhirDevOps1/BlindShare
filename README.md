@@ -1,75 +1,127 @@
 # BLINDSHARE 🔐📄
+### Zero-Knowledge Secure Document Sharing Platform (DocSend & Papermark Alternative)
 
-Zero-knowledge, brand-agnostic DocSend/Papermark alternative: secure document sharing with
-per-page view analytics — designed to run entirely inside ₹0 free tiers.
+BlindShare is a high-security, privacy-first document sharing and tracking platform designed for sharing sensitive pitches, financial models, contracts, and confidential files with per-page view analytics — **operating completely within ₹0 / $0 Free Tiers**.
 
-> **Honest note:** watermarks, download-off and present-mode are **deterrents, not DRM**.
-> This project has **not** been externally security-audited.
+---
 
-## Why it is different
-Ordinary DocSend/Papermark store readable file bytes. BlindShare can run in
-`DOCS_ENCRYPTION_MODE=e2ee-fragment` where the **server is a blind courier**:
+## 🌟 Why BlindShare is Different
+
+Ordinary document platforms store decrypted, readable files on their servers. BlindShare operates in `DOCS_ENCRYPTION_MODE=e2ee-fragment` where the **server is a blind courier**:
 
 ```mermaid
 flowchart LR
-  A[Owner browser] -->|1. CSPRNG DocKey 256-bit| A
-  A -->|2. AES-GCM-256 encrypt| B[(Ciphertext)]
-  B -->|3. presigned PUT| C[Private bucket B2/R2]
-  A -->|4. link + #k=fragment| D[Viewer]
-  D -->|5. GET ciphertext| C
-  D -->|6. WebCrypto decrypt in browser| E[pdf.js / media renderer]
-  D -.->|dwell events, minimal PII| F[(App DB)]
-  C -.-x|cannot read| G((Server))
+  A[Owner Browser] -->|1. Generate 256-bit DocKey| A
+  A -->|2. AES-GCM-256 Encrypt Client-Side| B[(Encrypted Ciphertext)]
+  B -->|3. Presigned PUT| C[Private Storage: Backblaze B2 / R2]
+  A -->|4. Share Link + #k=fragment| D[Recipient Viewer]
+  D -->|5. GET Ciphertext Object| C
+  D -->|6. WebCrypto Decrypt in Browser| E[Zero-Leak Document Viewer]
+  D -.->|Page Dwell Events / No PII| F[(Neon Database)]
+  C -.-x|Cannot Decrypt| G((Server / Host))
 ```
 
-The `#k=…` fragment is **never transmitted in an HTTP request** (RFC 3986 / browser behaviour),
-so the server literally cannot decrypt.
+> **The RFC 3986 Guarantee:** The `#k=...` decryption key fragment is **never transmitted in HTTP requests** to the server, Vercel edge functions, or database. The server literally cannot read your files.
 
-## Quickstart
+---
+
+## 🚀 Quick Deployment Guide (Vercel + Neon + Backblaze B2)
+
+### 1. Database Setup (Neon PostgreSQL)
+1. Go to [Neon Console](https://console.neon.tech) and create a free PostgreSQL project.
+2. Copy your pooled connection string:
+   ```env
+   DATABASE_URL=postgres://user:password@ep-sample-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require
+   ```
+3. *Note:* You do **not** need to manually create tables — BlindShare automatically creates and migrates all 12 database tables on first launch!
+
+### 2. Private Storage Setup (Backblaze B2)
+1. Create a free account on [Backblaze B2](https://www.backblaze.com/b2/cloud-storage.html).
+2. Create a **Private Bucket** (e.g. `blindshare-vault`).
+3. Under *Application Keys*, generate a key with read/write access to your bucket.
+
+### 3. Vercel Environment Configuration
+Add the following Environment Variables in your Vercel Project Settings:
+
+| Environment Variable | Description / Example Value |
+|---|---|
+| `DATABASE_URL` | Neon Postgres connection string with `sslmode=require` |
+| `SESSION_SECRET` | 64+ character random hex string for HMAC session cookies |
+| `ADMIN_BOOTSTRAP_INVITE` | Secret genesis onboarding code (e.g. `BLINDSHARE-GENESIS-2026`) |
+| `HEALTH_TOKEN` | Secret token to access `/api/health` diagnostics |
+| `STORE_TARGET` | Set to `b2` |
+| `B2_ENDPOINT` | Your B2 S3 endpoint (e.g. `s3.us-east-005.backblazeb2.com`) |
+| `B2_REGION` | Your B2 region (e.g. `us-east-005`) |
+| `B2_BUCKET` | Your B2 bucket name (e.g. `blindshare-vault`) |
+| `B2_KEY_ID` | Backblaze Application Key ID |
+| `B2_APPLICATION_KEY` | Backblaze Application Key Secret |
+| `NEXT_PUBLIC_PRISM_ANALYTICS_ID` | *(Optional)* Prism Analytics Site ID (`pa_...`) |
+| `NEXT_PUBLIC_PRISM_ANALYTICS_URL` | *(Optional)* Prism Track URL (`https://...workers.dev/api/track`) |
+| `NEXT_PUBLIC_CONTACT_FORM_ACTION` | *(Optional)* FormForge/ApnaForm Submit Endpoint |
+
+---
+
+## 👥 Access Control & User Roles
+
+| Role | Permissions & Capabilities |
+|---|---|
+| 👑 **Super Admin (Genesis Owner)** | • The **first person** who creates an account during deployment setup automatically becomes Super Admin.<br>• Full platform control, database health, audit logs, and master invite creation.<br>• Only 1 main owner per deployment. |
+| 🛡️ **Admin** | • Can upload, encrypt, and share documents.<br>• Can generate invite codes for team members and view system metrics. |
+| 👤 **Member / Standard User** | • Private vault user.<br>• Can upload, manage datarooms, and create secure links.<br>• **Cannot** view other users' documents or access admin settings. |
+| 👁️ **Recipient / Viewer** | • External party opening a share link.<br>• Decrypts in-memory, signs NDAs, agrees to clickwraps, and enters link passwords without creating an account. |
+
+---
+
+## 🛠️ Account & Security Management (`/dashboard/settings`)
+
+- **Change Display Name & Login Email (Username):** Update your profile credentials instantly.
+- **Change Security Password:** Set a new strong password (requires entering current password). All active sessions on other browsers are immediately logged out.
+- **Custom Invite Code Generator:** Super Admin and Admins can mint single-use or multi-use invite codes (`customCode`, `expiryDays`, `role`) with 1-click clipboard copy.
+- **Sign Out All Devices:** Invalidate all active session tokens with a single click.
+
+---
+
+## 💬 Contact Form & Zero-Cookie Analytics
+
+- **FormForge Feedback Page (`/contact`):** Built-in contact form with honeypot bot trap, FormData and JSON failover, and localStorage backup.
+- **PrismAnalytics (`PrismTracker`):** Zero-cookie, privacy-friendly telemetry powered by Cloudflare Workers. Fully compliant with strict Content Security Policy (`connect-src`).
+
+---
+
+## 🧹 Complete Database Factory Reset (Neon PostgreSQL)
+
+If you ever want to wipe all test documents, links, and accounts to start fresh:
+
+1. Open your [Neon Dashboard](https://console.neon.tech) ➔ Click on **SQL Editor**.
+2. Run the SQL script from [`scripts/reset-db.sql`](./scripts/reset-db.sql):
+   ```sql
+   DROP TABLE IF EXISTS page_events, view_sessions, signatures, links, 
+     dataroom_docs, datarooms, doc_versions, documents, push_subscriptions, 
+     audit_log, system_settings, invites, users CASCADE;
+   ```
+3. Re-open your deployed website ➔ Register your fresh **Super Admin** account!
+
+---
+
+## 💻 Local Development
+
 ```bash
-cp .env.example .env      # fill values — never commit .env
+# 1. Clone repository
+git clone https://github.com/SudhirDevOps1/BlindShare.git
+cd BlindShare
+
+# 2. Install dependencies
 npm install
-npx drizzle-kit push      # create tables
+
+# 3. Setup local environment
+cp .env.example .env
+
+# 4. Start development server
 npm run dev
 ```
-First registration uses `ADMIN_BOOTSTRAP_INVITE` and becomes `super_admin`.
 
-## Feature map
-- Client-side AES-GCM-256 encryption + fragment-key links
-- Link studio: password (PBKDF2 250k wrap), e-mail gate, domain allowlist, NDA clickwrap,
-  expiry, max-views, watermark toggle, download toggle, QR
-- Viewer: pdf.js page-wise + image/SVG/Markdown/TXT/CSV/audio/video/bundle renderers
-- Analytics: per-page dwell sparkline, completion %, UA class, coarse country, CSV export
-- Admin panel `/admin`: users, roles, invites, audit log, storage gauge, budget ledger,
-  maintenance mode, broadcast banner, orphan-object sweeps
-- PWA shell, HI + EN UI, GDPR-lite export/delete, `/api/health` deep check
+---
 
-## Fragment-key proof test
-1. Open DevTools → Network, load a share link with `#k=…`.
-2. Inspect the request line of `/v/<slug>` and `/api/v/<slug>/bytes`.
-3. The fragment appears in **no** request URL, `Referer`, or POST body. See `docs/RUNBOOK.md`.
+## 📜 License & Compliance
 
-## Docs pack
-`docs/ARCHITECTURE.md` · `docs/THREAT-MODEL.md` · `docs/SECURITY.md` · `docs/PRIVACY-POLICY.md`
-· `docs/TERMS.md` · `docs/DATA-RETENTION.md` · `docs/INCIDENT-RESPONSE.md` · `docs/RUNBOOK.md`
-· `docs/FORMATS.md` · `docs/SECRETS.md` · `CHANGELOG.md` · `LICENSE`
-
-## Run locally (compile + live)
-```bash
-./scripts/dev.sh            # dev server  → http://localhost:3000
-./scripts/dev.sh prod       # full compile + production start
-./scripts/dev.sh check      # typegen + tsc + build + zero-knowledge self-check
-```
-
-## Print a LIVE share link from the terminal
-```bash
-node scripts/make-demo-pdf.mjs /tmp/demo.pdf          # optional: valid 3-page demo
-node scripts/quicklink.mjs /tmp/demo.pdf --name "Acme VC" --email --views 25
-```
-`quicklink` generates the 256-bit DocKey and AES-GCM-256 encrypts **on your machine**,
-uploads only ciphertext, then prints `/v/<slug>#k=<key>`. Options:
-`--name --slug --password --email --domains --download --no-watermark --watermark --views --expiry --nda`.
-
-Fresh local install signs in as `admin@blindshare.local` / `AdminPassword2026!`
-(bootstrap) or registers with `ADMIN_BOOTSTRAP_INVITE` — override with
-`BLINDSHARE_EMAIL` / `BLINDSHARE_PASSWORD`.
+MIT License. Designed with GDPR-lite privacy controls, client-side cryptographic guarantees, and zero permanent plain-text data storage.
