@@ -67,7 +67,7 @@ try {
   window.prism=t;
   t();
   var p=location.pathname;
-  setInterval(function(){if(p!=location.pathname){p=location.pathname;t();}},500);
+  window.addEventListener('popstate', function(){ if(p!=location.pathname){ p=location.pathname; t(); } });
 } catch(e){}
 })();`,
             }}

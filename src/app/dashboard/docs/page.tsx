@@ -34,6 +34,10 @@ export default function DocsPage() {
     try {
       setLoading(true);
       const res = await fetch("/api/docs");
+      if (res.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
       const json = await res.json();
       if (json.documents) setDocs(json.documents);
     } catch {}
@@ -108,7 +112,7 @@ export default function DocsPage() {
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
           {loading && docs.length === 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full min-w-[650px] text-left text-xs">
                 <thead className="border-b border-slate-800 text-slate-400 font-semibold">
                   <tr>
                     <th className="pb-3 pl-2">Title</th>
@@ -161,7 +165,7 @@ export default function DocsPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full min-w-[650px] text-left text-xs">
                 <thead className="border-b border-slate-800 text-slate-400 font-semibold">
                   <tr>
                     <th className="pb-3 pl-2">Title</th>

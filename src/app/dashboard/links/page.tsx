@@ -40,6 +40,10 @@ export default function LinksPage() {
     try {
       setLoading(true);
       const res = await fetch("/api/links");
+      if (res.status === 401) {
+        window.location.href = "/login";
+        return;
+      }
       const json = await res.json();
       if (json.links) setLinks(json.links);
     } catch {}
@@ -100,9 +104,9 @@ export default function LinksPage() {
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 py-8 sm:px-6 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
           <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Active Share Links</h1>
+            <h1 className="text-2xl font-bold text-white tracking-tight">Share Links</h1>
             <p className="text-xs text-slate-400 mt-1">
-              Secure gated URLs with zero-knowledge keys and reading telemetry.
+              Generate tracked, zero-knowledge links with email capture and dynamic watermarks.
             </p>
           </div>
 
@@ -119,7 +123,7 @@ export default function LinksPage() {
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
           {loading && links.length === 0 ? (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full min-w-[700px] text-left text-xs">
                 <thead className="border-b border-slate-800 text-slate-400 font-semibold">
                   <tr>
                     <th className="pb-3 pl-2">Nickname / Recipient</th>
@@ -169,7 +173,7 @@ export default function LinksPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <table className="w-full min-w-[700px] text-left text-xs">
                 <thead className="border-b border-slate-800 text-slate-400 font-semibold">
                   <tr>
                     <th className="pb-3 pl-2">Nickname / Recipient</th>
