@@ -997,9 +997,11 @@ export function MediaRenderer({
               alt={docData.originalFilename}
               style={{
                 transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                transformOrigin: "center center",
+                imageRendering: "auto",
                 transition: "transform 0.2s ease-out",
               }}
-              className="max-h-[75vh] max-w-full rounded-lg object-contain shadow-2xl"
+              className="max-h-[78vh] max-w-full rounded-lg object-contain shadow-2xl select-none"
             />
           </div>
         )}
@@ -1012,9 +1014,10 @@ export function MediaRenderer({
               alt={docData.originalFilename}
               style={{
                 transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                transformOrigin: "center center",
                 transition: "transform 0.2s ease-out",
               }}
-              className="max-h-[75vh] max-w-full object-contain"
+              className="max-h-[78vh] max-w-full object-contain select-none"
             />
           </div>
         )}

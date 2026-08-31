@@ -371,24 +371,40 @@ export function PdfRenderer({
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
-        const dpr = Math.min(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2.5);
+        // Ultra-High Quality Super-Sampling DPR (minimum 2x for razor-sharp vector text on all screens)
+        const dpr = Math.max(typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1, 2);
         const unscaledViewport = page.getViewport({ scale: 1, rotation });
 
         let targetScale = zoom;
         if (presenterMode && typeof window !== "undefined") {
           // Fit slide proportionally inside presentation screen canvas
-          const maxW = window.innerWidth * 0.88;
-          const maxH = window.innerHeight * 0.78;
+          const maxW = window.innerWidth * 0.90;
+          const maxH = window.innerHeight * 0.82;
           const scaleW = maxW / unscaledViewport.width;
           const scaleH = maxH / unscaledViewport.height;
           targetScale = Math.min(scaleW, scaleH);
+        } else if (typeof window !== "undefined") {
+          // Default optimal reading width (fit to container nicely on desktop & mobile)
+          const containerTargetWidth = Math.min(window.innerWidth * 0.85, 960);
+          const autoFitScale = containerTargetWidth / unscaledViewport.width;
+          targetScale = zoom * Math.max(autoFitScale, 1.25);
         }
 
-        const viewport = page.getViewport({ scale: targetScale * dpr, rotation });
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        canvas.style.width = `${Math.round(viewport.width / dpr)}px`;
-        canvas.style.height = `${Math.round(viewport.height / dpr)}px`;
+        // Render at ultra-high resolution canvas backing store (super-sampled for zero blur)
+        const renderScale = targetScale * dpr;
+        const viewport = page.getViewport({ scale: renderScale, rotation });
+
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+
+        // CSS display dimensions
+        const displayWidth = Math.floor(viewport.width / dpr);
+        const displayHeight = Math.floor(viewport.height / dpr);
+        canvas.style.width = `${displayWidth}px`;
+        canvas.style.height = `${displayHeight}px`;
+
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
 
         const renderContext = {
           canvasContext: ctx,
@@ -401,7 +417,7 @@ export function PdfRenderer({
         await renderTask.promise;
 
         if (!isCancelled) {
-          drawWatermark(viewport.width, viewport.height);
+          drawWatermark(displayWidth, displayHeight);
         }
       } catch (err: any) {
         if (err?.name !== "RenderingCancelledException") {
