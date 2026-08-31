@@ -107,29 +107,15 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* Un-claimed deployment: always give the operator a guaranteed way in. */}
-          {bootstrap?.mode === "setup" && bootstrap.placeholderEmail && (
-            <div className="mb-4 space-y-2 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-[11px] leading-relaxed text-amber-200">
+          {bootstrap?.mode === "setup" && (
+            <div className="mb-4 space-y-1.5 rounded-xl border border-amber-500/30 bg-amber-500/5 p-3 text-[11px] leading-relaxed text-amber-200">
               <div className="flex items-center gap-1.5 font-semibold text-amber-300">
                 <Sparkles className="h-3.5 w-3.5" />
-                <span>First-run setup</span>
+                <span>First-Run Genesis Setup</span>
               </div>
               <p className="text-slate-300">
-                No owner has claimed this deployment yet. Create an account below{" "}
-                <strong className="text-amber-300">without any invite code</strong> — it becomes Super Admin.
+                Create your custom <strong>Super Admin</strong> account below. The secret bootstrap invite code from your <code className="text-amber-300">.env</code> is ready.
               </p>
-              <p className="text-slate-400">
-                Or sign in with the seeded account:{" "}
-                <code className="text-amber-300">{bootstrap.placeholderEmail}</code> /{" "}
-                <code className="text-amber-300">{bootstrap.placeholderPassword}</code>
-              </p>
-              <button
-                type="button"
-                onClick={useSeededAdmin}
-                className="rounded-lg border border-amber-500/40 bg-amber-500/20 px-2.5 py-1 font-semibold text-amber-200 hover:bg-amber-500/30"
-              >
-                Fill seeded credentials
-              </button>
             </div>
           )}
 

@@ -31,17 +31,14 @@ export async function GET() {
     const claimed = realOwners.length > 0;
 
     return NextResponse.json({
-      // "setup"  → nobody has claimed this deployment: first sign-up needs NO invite
-      // "normal" → at least one real owner exists: invite code required
       mode: claimed ? "normal" : "setup",
       inviteRequired: claimed,
-      placeholderAccountExists: placeholder.length > 0,
-      // Shown only while un-claimed, so a fresh operator can always get in.
-      placeholderEmail: claimed ? null : GENESIS_PLACEHOLDER_EMAIL,
-      placeholderPassword: claimed ? null : "AdminPassword2026!",
+      placeholderAccountExists: false,
+      placeholderEmail: null,
+      placeholderPassword: null,
       hint: claimed
-        ? "Ask an administrator for an invite code, or use the ADMIN_BOOTSTRAP_INVITE value from your .env file."
-        : "This deployment has no owner yet — the first account you create becomes Super Admin. No invite code needed.",
+        ? "Ask an administrator for an invite code, or use your ADMIN_BOOTSTRAP_INVITE."
+        : "First-run setup: Create your personal Super Admin account below with your secret invite code.",
     });
   } catch {
     // Fail closed: if we cannot tell, ask for an invite.

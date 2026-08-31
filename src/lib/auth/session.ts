@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { db } from "@/db";
 import { users } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, ne, sql } from "drizzle-orm";
 import crypto from "crypto";
 import { hashPassword } from "./password";
 import { logger } from "@/lib/logger";
@@ -157,29 +157,16 @@ export async function getUserSessionVersion(userId: string): Promise<number> {
 }
 
 /**
- * Bootstrap default Genesis Super Admin if database has 0 users
+ * Clean up any legacy placeholder account if a real user exists
  */
 export async function ensureGenesisAdmin() {
   try {
-    const allUsers = await db.select({ id: users.id }).from(users).limit(1);
-    if (allUsers.length === 0) {
-      const adminId = genId("usr_superadmin");
-      const defaultPassword = "AdminPassword2026!";
-      const passHash = await hashPassword(defaultPassword);
-
-      await db.insert(users).values({
-        id: adminId,
-        email: GENESIS_PLACEHOLDER_EMAIL,
-        name: "Genesis Super Admin",
-        passwordHash: passHash,
-        role: "super_admin",
-        isBlocked: false,
-        sessionVersion: 1,
-      });
-
-      logger.info("auth.genesis_bootstrap_created", { email: GENESIS_PLACEHOLDER_EMAIL });
+    const realUsers = await db.select({ id: users.id }).from(users).where(ne(users.email, GENESIS_PLACEHOLDER_EMAIL)).limit(1);
+    if (realUsers.length > 0) {
+      // Purge default placeholder if real owner exists
+      await db.delete(users).where(eq(users.email, GENESIS_PLACEHOLDER_EMAIL));
     }
   } catch (err: any) {
-    logger.error("auth.genesis_bootstrap_failed", { message: err?.message });
+    logger.warn("auth.cleanup_placeholder_skipped", { message: err?.message });
   }
 }

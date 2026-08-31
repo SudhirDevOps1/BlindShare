@@ -103,7 +103,7 @@ export function middleware(request: NextRequest) {
     "img-src 'self' data: blob:",
     "media-src 'self' blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https://cdnjs.cloudflare.com blob:",
+    "connect-src 'self' https: https://*.workers.dev https://cdnjs.cloudflare.com blob: data:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
