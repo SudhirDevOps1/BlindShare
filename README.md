@@ -463,7 +463,7 @@ BlindShare/
 
 ## 🔒 Security Policy
 
-We take security seriously. See [SECURITY.md](./SECURITY.md) for responsible disclosure instructions.
+We take security seriously. See [SECURITY.md](./docs/SECURITY.md) for responsible disclosure instructions.
 
 **TL;DR** — if you find a vulnerability, please email the maintainer privately before opening a public issue.
 
@@ -511,7 +511,7 @@ git push origin feat/your-amazing-feature
 | 🐛 Bug Reports | [GitHub Issues](https://github.com/SudhirDevOps1/BlindShare/issues) |
 | 💡 Feature Requests | [GitHub Discussions](https://github.com/SudhirDevOps1/BlindShare/discussions) |
 | 📋 Changelog | [CHANGELOG.md](./docs/CHANGELOG.md) |
-| 🔒 Security Policy | [SECURITY.md](./SECURITY.md) |
+| 🔒 Security Policy | [SECURITY.md](./docs/SECURITY.md) |
 | 🤝 Code of Conduct | [CODE_OF_CONDUCT.md](./docs/CODE_OF_CONDUCT.md) |
 | 📖 Operations Runbook | [docs/RUNBOOK.md](./docs/RUNBOOK.md) |
 
@@ -519,7 +519,7 @@ git push origin feat/your-amazing-feature
 
 ## 🔒 Security Policy
 
-We take security seriously. See [SECURITY.md](./SECURITY.md) for our responsible disclosure policy.
+We take security seriously. See [SECURITY.md](./docs/SECURITY.md) for our responsible disclosure policy.
 
 > ⚠️ **Please do NOT report security vulnerabilities in public GitHub issues.** Contact maintainers privately so issues can be patched before disclosure.
 

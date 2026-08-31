@@ -28,8 +28,9 @@ jobs:
             let notes = `### BlindShare ${tag}\n\nAutomated production release.`;
             
             try {
-              if (fs.existsSync('CHANGELOG.md')) {
-                const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
+              const changelogPath = fs.existsSync('docs/CHANGELOG.md') ? 'docs/CHANGELOG.md' : (fs.existsSync('CHANGELOG.md') ? 'CHANGELOG.md' : null);
+              if (changelogPath) {
+                const changelog = fs.readFileSync(changelogPath, 'utf8');
                 const sections = changelog.split(/\n(?=##\s+\[)/);
                 const match = sections.find(s => s.includes(`## [${version}]`));
                 if (match) {
