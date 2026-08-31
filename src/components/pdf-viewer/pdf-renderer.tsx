@@ -91,6 +91,29 @@ export function PdfRenderer({
     return cleanup;
   }, [linkData.antiLeakBlurEnabled]);
 
+  // Keyboard Navigation (Arrow Keys / PageUp / PageDown)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") {
+        e.preventDefault();
+        setCurrentPage((p) => Math.min(totalPages, p + 1));
+      } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+        e.preventDefault();
+        setCurrentPage((p) => Math.max(1, p - 1));
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        setCurrentPage(1);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        setCurrentPage(totalPages);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [totalPages]);
+
   // Resume reading hint
   const [resumePrompt, setResumePrompt] = useState<{ page: number; total: number } | null>(null);
 

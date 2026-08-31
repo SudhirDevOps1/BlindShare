@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { fragmentToDocKey, decryptBytes, hexToBuffer } from "@/lib/crypto-core";
 import {
@@ -17,12 +17,29 @@ import {
   ChevronRight,
   ZoomIn,
   ZoomOut,
+  RotateCw,
   FileText,
   Music4,
   Video,
   Table2,
   ImageIcon,
   Package,
+  Code2,
+  Copy,
+  Check,
+  Search,
+  ArrowUpDown,
+  Maximize2,
+  Minimize2,
+  WrapText,
+  Eye,
+  Sliders,
+  Sparkles,
+  Layers,
+  Sun,
+  Moon,
+  Play,
+  Pause,
 } from "lucide-react";
 
 interface MediaRendererProps {
@@ -50,7 +67,7 @@ interface MediaRendererProps {
   docKeyOverride?: Uint8Array | null;
 }
 
-/** Escape HTML so untrusted decrypted text can never inject markup. */
+/** Escape HTML so untrusted text never executes as raw script */
 function escapeHtml(input: string): string {
   return input
     .replace(/&/g, "&amp;")
@@ -60,35 +77,238 @@ function escapeHtml(input: string): string {
     .replace(/'/g, "&#039;");
 }
 
-/** Minimal, escape-first Markdown subset renderer (no raw HTML passthrough). */
-function renderMarkdown(md: string): string {
-  const safe = escapeHtml(md);
-  const lines = safe.split("\n");
+/** Lightweight fast syntax highlighter for 15+ code languages */
+function highlightCode(code: string, language?: string): string {
+  const lang = (language || "javascript").toLowerCase();
+  const escaped = escapeHtml(code);
+
+  if (lang === "json") {
+    return escaped
+      .replace(/"([^"]+)":/g, '<span class="text-amber-400 font-semibold">"$1":</span>')
+      .replace(/:\s*"([^"]*)"/g, ': <span class="text-emerald-400">"$1"</span>')
+      .replace(/:\s*(\d+\.?\d*)/g, ': <span class="text-purple-400 font-mono">$1</span>')
+      .replace(/:\s*(true|false|null)/g, ': <span class="text-blue-400 font-bold">$1</span>');
+  }
+
+  if (lang === "html" || lang === "xml") {
+    return escaped
+      .replace(/(&lt;\/?[a-zA-Z0-9\-]+)([\s\S]*?)(&gt;)/g, (_m, p1, p2, p3) => {
+        const attrs = p2.replace(/([a-zA-Z\-:]+)=(&quot;[^&]*&quot;|&#039;[^&]*&#039;)/g, '<span class="text-amber-300">$1</span>=<span class="text-emerald-400">$2</span>');
+        return `<span class="text-blue-400 font-semibold">${p1}</span>${attrs}<span class="text-blue-400 font-semibold">${p3}</span>`;
+      })
+      .replace(/(&lt;!--[\s\S]*?--&gt;)/g, '<span class="text-slate-500 italic">$1</span>');
+  }
+
+  // General C-style / Python / Shell syntax regex highlighter
+  let hl = escaped
+    // Comments
+    .replace(/(\/\/[^\n]*|#[^\n]*)/g, '<span class="text-slate-500 italic">$1</span>')
+    .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="text-slate-500 italic">$1</span>')
+    // Strings
+    .replace(/(&quot;[^&]*&quot;|&#039;[^&]*&#039;|`[^`]*`)/g, '<span class="text-emerald-400">$1</span>')
+    // Numbers
+    .replace(/\b(\d+\.?\d*)\b/g, '<span class="text-purple-400 font-mono">$1</span>')
+    // Keywords
+    .replace(
+      /\b(const|let|var|function|return|if|else|for|while|import|export|from|default|class|extends|new|this|async|await|try|catch|throw|finally|typeof|instanceof|interface|type|public|private|protected|readonly|static|def|self|None|True|False|elif|lambda|struct|impl|pub|fn|mut|match|enum|SELECT|FROM|WHERE|INSERT|INTO|UPDATE|DELETE|JOIN|GROUP|ORDER|BY|LIMIT|CREATE|TABLE|DATABASE)\b/g,
+      '<span class="text-amber-400 font-semibold">$1</span>'
+    )
+    // Types & Booleans
+    .replace(
+      /\b(string|number|boolean|any|void|unknown|never|Promise|Array|Record|null|undefined|true|false|int|float|bool|str|list|dict|Option|Result|Vec|i32|i64|u32|u64|usize|f64)\b/g,
+      '<span class="text-blue-400 font-medium">$1</span>'
+    );
+
+  return hl;
+}
+
+/** Render a simple mermaid-like flowchart diagram safely in SVG */
+function renderMermaidSvg(source: string): string {
+  const lines = source.trim().split("\n");
+  const nodes: { id: string; label: string }[] = [];
+  const edges: { from: string; to: string; label?: string }[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("graph") || trimmed.startsWith("flowchart")) continue;
+
+    // Pattern: A[Label] -->|text| B[Label] or A --> B
+    const arrowMatch = trimmed.match(/([A-Za-z0-9_-]+)(?:\[(.*?)\])?\s*-->\|?(.*?)\|?\s*([A-Za-z0-9_-]+)(?:\[(.*?)\])?/);
+    if (arrowMatch) {
+      const fromId = arrowMatch[1];
+      const fromLabel = arrowMatch[2] || fromId;
+      const edgeLabel = arrowMatch[3] ? arrowMatch[3].replace(/\|/g, "").trim() : "";
+      const toId = arrowMatch[4];
+      const toLabel = arrowMatch[5] || toId;
+
+      if (!nodes.some((n) => n.id === fromId)) nodes.push({ id: fromId, label: fromLabel });
+      if (!nodes.some((n) => n.id === toId)) nodes.push({ id: toId, label: toLabel });
+      edges.push({ from: fromId, to: toId, label: edgeLabel });
+    }
+  }
+
+  if (nodes.length === 0) {
+    return `<div class="p-4 bg-slate-900 border border-slate-800 rounded-xl text-xs font-mono text-slate-400"><pre>${escapeHtml(source)}</pre></div>`;
+  }
+
+  const nodeWidth = 140;
+  const nodeHeight = 44;
+  const gapY = 80;
+  const totalHeight = Math.max(nodes.length * gapY + 40, 200);
+  const totalWidth = 500;
+  const startX = totalWidth / 2 - nodeWidth / 2;
+
+  let svgContent = `<svg width="100%" height="${totalHeight}" viewBox="0 0 ${totalWidth} ${totalHeight}" xmlns="http://www.w3.org/2000/svg" class="overflow-visible">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M 0 0 L 10 5 L 0 10 z" fill="#f59e0b" />
+      </marker>
+    </defs>`;
+
+  // Draw Edges
+  edges.forEach((edge) => {
+    const fromIdx = nodes.findIndex((n) => n.id === edge.from);
+    const toIdx = nodes.findIndex((n) => n.id === edge.to);
+    if (fromIdx !== -1 && toIdx !== -1) {
+      const y1 = fromIdx * gapY + 40 + nodeHeight;
+      const y2 = toIdx * gapY + 40;
+      const x = totalWidth / 2;
+      svgContent += `<line x1="${x}" y1="${y1}" x2="${x}" y2="${y2}" stroke="#f59e0b" stroke-width="2" marker-end="url(#arrow)" />`;
+      if (edge.label) {
+        svgContent += `<rect x="${x - 40}" y="${(y1 + y2) / 2 - 10}" width="80" height="20" rx="4" fill="#0f172a" stroke="#334155" />
+          <text x="${x}" y="${(y1 + y2) / 2 + 4}" fill="#94a3b8" font-size="10" font-family="sans-serif" text-anchor="middle">${escapeHtml(edge.label)}</text>`;
+      }
+    }
+  });
+
+  // Draw Nodes
+  nodes.forEach((node, idx) => {
+    const y = idx * gapY + 40;
+    svgContent += `
+      <g transform="translate(${startX}, ${y})">
+        <rect width="${nodeWidth}" height="${nodeHeight}" rx="10" fill="#1e293b" stroke="#f59e0b" stroke-width="1.5" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.3))" />
+        <text x="${nodeWidth / 2}" y="${nodeHeight / 2 + 5}" fill="#ffffff" font-size="12" font-weight="600" font-family="sans-serif" text-anchor="middle">${escapeHtml(node.label)}</text>
+      </g>`;
+  });
+
+  svgContent += `</svg>`;
+  return `<div class="p-6 bg-slate-950 border border-slate-800 rounded-2xl flex items-center justify-center my-4 overflow-x-auto">${svgContent}</div>`;
+}
+
+/** Rich Markdown with Syntax Highlighting, Alerts, Tables, and Mermaid */
+function renderMarkdownRich(md: string): string {
+  const lines = md.split("\n");
   const out: string[] = [];
   let inCode = false;
+  let codeLang = "";
+  let codeBuffer: string[] = [];
   let inList = false;
+  let inTable = false;
+  let tableHeaderParsed = false;
 
-  for (const raw of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
     const line = raw.trimEnd();
 
+    // Code block toggle
     if (line.startsWith("```")) {
       if (inCode) {
-        out.push("</code></pre>");
+        const fullCode = codeBuffer.join("\n");
+        if (codeLang === "mermaid") {
+          out.push(renderMermaidSvg(fullCode));
+        } else {
+          out.push(`<div class="relative my-4 rounded-xl border border-slate-800 bg-slate-950 overflow-hidden font-mono text-xs shadow-lg">
+            <div class="flex items-center justify-between px-4 py-2 border-b border-slate-800 bg-slate-900/80 text-[11px] text-slate-400 font-sans">
+              <span class="font-semibold text-amber-400 uppercase tracking-wider">${escapeHtml(codeLang || "code")}</span>
+            </div>
+            <pre class="p-4 overflow-x-auto leading-relaxed"><code>${highlightCode(fullCode, codeLang)}</code></pre>
+          </div>`);
+        }
         inCode = false;
+        codeBuffer = [];
+        codeLang = "";
       } else {
-        out.push('<pre class="sp-md-pre"><code>');
         inCode = true;
+        codeLang = line.replace("```", "").trim();
+        codeBuffer = [];
       }
       continue;
     }
+
     if (inCode) {
-      out.push(line);
+      codeBuffer.push(raw);
+      continue;
+    }
+
+    // Callout alert quotes [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION]
+    const alertMatch = line.match(/^\s*>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(.*)$/i);
+    if (alertMatch) {
+      const type = alertMatch[1].toUpperCase();
+      const text = alertMatch[2];
+      const colors: Record<string, string> = {
+        NOTE: "border-blue-500/40 bg-blue-950/20 text-blue-300",
+        TIP: "border-emerald-500/40 bg-emerald-950/20 text-emerald-300",
+        IMPORTANT: "border-purple-500/40 bg-purple-950/20 text-purple-300",
+        WARNING: "border-amber-500/40 bg-amber-950/20 text-amber-300",
+        CAUTION: "border-red-500/40 bg-red-950/20 text-red-300",
+      };
+      out.push(`<div class="my-4 rounded-xl border-l-4 p-4 ${colors[type] || colors.NOTE}">
+        <div class="font-bold text-xs uppercase tracking-wider mb-1">${type}</div>
+        <div class="text-xs text-slate-200">${inlineMd(text)}</div>
+      </div>`);
+      continue;
+    }
+
+    // Standard blockquote
+    if (/^\s*>\s?/.test(line)) {
+      out.push(`<blockquote class="border-l-2 border-amber-500/60 pl-4 py-1 my-3 text-slate-300 italic text-sm">${inlineMd(line.replace(/^\s*>\s?/, ""))}</blockquote>`);
+      continue;
+    }
+
+    // Markdown Table
+    if (line.includes("|") && line.trim().startsWith("|") && line.trim().endsWith("|")) {
+      const cells = line.split("|").slice(1, -1).map((c) => c.trim());
+      if (line.includes("---")) {
+        tableHeaderParsed = true;
+        continue;
+      }
+      if (!inTable) {
+        out.push('<div class="overflow-x-auto my-4 rounded-xl border border-slate-800"><table class="w-full text-left text-xs">');
+        out.push('<thead class="border-b border-slate-800 bg-slate-900 text-slate-300 font-semibold"><tr>');
+        cells.forEach((c) => out.push(`<th class="p-3">${inlineMd(c)}</th>`));
+        out.push('</tr></thead><tbody class="divide-y divide-slate-800/60 bg-slate-950">');
+        inTable = true;
+        continue;
+      } else {
+        out.push('<tr class="hover:bg-slate-900/40 transition">');
+        cells.forEach((c) => out.push(`<td class="p-3 text-slate-300">${inlineMd(c)}</td>`));
+        out.push('</tr>');
+        continue;
+      }
+    } else if (inTable) {
+      out.push('</tbody></table></div>');
+      inTable = false;
+      tableHeaderParsed = false;
+    }
+
+    // Unordered & Task Lists
+    const taskMatch = line.match(/^\s*[-*+]\s+\[([ xX])\]\s+(.*)$/);
+    if (taskMatch) {
+      if (!inList) {
+        out.push('<ul class="space-y-1.5 my-3">');
+        inList = true;
+      }
+      const checked = taskMatch[1].toLowerCase() === "x";
+      out.push(`<li class="flex items-center gap-2 text-xs text-slate-200">
+        <input type="checkbox" disabled ${checked ? "checked" : ""} class="h-3.5 w-3.5 rounded border-slate-700 bg-slate-900 text-amber-500 accent-amber-500" />
+        <span>${inlineMd(taskMatch[2])}</span>
+      </li>`);
       continue;
     }
 
     if (/^\s*[-*+]\s+/.test(line)) {
       if (!inList) {
-        out.push('<ul class="sp-md-ul">');
+        out.push('<ul class="list-disc list-inside space-y-1 my-3 text-xs text-slate-200">');
         inList = true;
       }
       out.push(`<li>${inlineMd(line.replace(/^\s*[-*+]\s+/, ""))}</li>`);
@@ -99,15 +319,25 @@ function renderMarkdown(md: string): string {
       inList = false;
     }
 
+    // Headings (H1 to H6)
     const heading = line.match(/^(#{1,6})\s+(.*)$/);
     if (heading) {
       const level = heading[1].length;
-      out.push(`<h${level} class="sp-md-h sp-md-h${level}">${inlineMd(heading[2])}</h${level}>`);
+      const sizeClasses = [
+        "text-2xl font-bold text-white pb-2 border-b border-slate-800 mt-6 mb-3",
+        "text-xl font-bold text-white pb-1.5 border-b border-slate-800/80 mt-5 mb-2.5",
+        "text-lg font-bold text-amber-400 mt-4 mb-2",
+        "text-base font-semibold text-white mt-3 mb-1.5",
+        "text-sm font-semibold text-slate-300 mt-2 mb-1",
+        "text-xs font-semibold text-slate-400 uppercase tracking-wider mt-2 mb-1",
+      ];
+      out.push(`<h${level} class="${sizeClasses[level - 1]}">${inlineMd(heading[2])}</h${level}>`);
       continue;
     }
 
-    if (/^\s*>\s?/.test(line)) {
-      out.push(`<blockquote class="sp-md-quote">${inlineMd(line.replace(/^\s*>\s?/, ""))}</blockquote>`);
+    // Horizontal Rule
+    if (/^(\*\*\*|---|___)$/.test(line.trim())) {
+      out.push('<hr class="my-6 border-slate-800" />');
       continue;
     }
 
@@ -116,22 +346,24 @@ function renderMarkdown(md: string): string {
       continue;
     }
 
-    out.push(`<p class="sp-md-p">${inlineMd(line)}</p>`);
+    out.push(`<p class="my-2 text-xs leading-relaxed text-slate-300">${inlineMd(line)}</p>`);
   }
 
   if (inList) out.push("</ul>");
-  if (inCode) out.push("</code></pre>");
+  if (inTable) out.push("</tbody></table></div>");
+  if (inCode) out.push("</code></pre></div>");
   return out.join("\n");
 }
 
 function inlineMd(text: string): string {
-  return text
-    .replace(/`([^`]+)`/g, '<code class="sp-md-code">$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  return escapeHtml(text)
+    .replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-800 text-amber-300 font-mono text-[11px]">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white">$1</strong>')
+    .replace(/\*([^*]+)\*/g, '<em class="italic text-slate-200">$1</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="text-amber-400 hover:underline inline-flex items-center gap-0.5">$1</a>');
 }
 
-/** Strip <script>, event handlers and javascript: URLs from SVG before rendering. */
+/** Sanitize SVG safely */
 function sanitizeSvg(svg: string): string {
   return svg
     .replace(/<script[\s\S]*?<\/script>/gi, "")
@@ -190,7 +422,7 @@ export function MediaRenderer({
   viewerIdentity,
   docKeyOverride,
 }: MediaRendererProps) {
-  const { t, appName } = useI18n();
+  const { t } = useI18n();
 
   const format: FormatKind = useMemo(
     () => detectFormat(docData.originalFilename),
@@ -203,12 +435,26 @@ export function MediaRenderer({
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [textContent, setTextContent] = useState<string>("");
   const [tableRows, setTableRows] = useState<string[][]>([]);
+  const [decryptedBytes, setDecryptedBytes] = useState<ArrayBuffer | null>(null);
+
+  // Controls & Viewing modes
   const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [imageBgDark, setImageBgDark] = useState(true);
+  const [htmlTab, setHtmlTab] = useState<"preview" | "code">("preview");
+  const [codeCopied, setCodeCopied] = useState(false);
+  const [wordWrap, setWordWrap] = useState(true);
+  const [tableSearch, setTableSearch] = useState("");
+  const [tableSortCol, setTableSortCol] = useState<number | null>(null);
+  const [tableSortAsc, setTableSortAsc] = useState(true);
   const [tablePage, setTablePage] = useState(1);
-  const decryptedRef = useRef<ArrayBuffer | null>(null);
+  const [tablePageSize, setTablePageSize] = useState(25);
+  const [fullscreen, setFullscreen] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
 
   const totalDwellRef = useRef(0);
-  const rowsPerPage = 50;
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -247,46 +493,56 @@ export function MediaRenderer({
           plain = await decryptBytes(cipher, docKey, iv);
         }
         if (cancelled) return;
-        decryptedRef.current = plain;
+        setDecryptedBytes(plain);
 
-        setStep("Rendering…");
-
-        if (format.kind === "image" || format.kind === "audio" || format.kind === "video") {
+        // Format-specific decoding
+        if (
+          format.kind === "text" ||
+          format.kind === "markdown" ||
+          format.kind === "code" ||
+          format.kind === "html"
+        ) {
+          const txt = new TextDecoder("utf-8").decode(plain);
+          setTextContent(txt);
+        } else if (format.kind === "table") {
+          const txt = new TextDecoder("utf-8").decode(plain);
+          const delimiter = docData.originalFilename.toLowerCase().endsWith(".tsv") ? "\t" : ",";
+          const rows = parseDelimited(txt, delimiter);
+          setTableRows(rows);
+        } else if (format.kind === "svg") {
+          const raw = new TextDecoder("utf-8").decode(plain);
+          const clean = sanitizeSvg(raw);
+          const blob = new Blob([clean], { type: "image/svg+xml" });
+          createdUrl = URL.createObjectURL(blob);
+          setObjectUrl(createdUrl);
+        } else {
           const blob = new Blob([plain], { type: format.mime });
           createdUrl = URL.createObjectURL(blob);
           setObjectUrl(createdUrl);
-        } else if (format.kind === "svg") {
-          const svgText = sanitizeSvg(new TextDecoder().decode(plain));
-          const blob = new Blob([svgText], { type: "image/svg+xml" });
-          createdUrl = URL.createObjectURL(blob);
-          setObjectUrl(createdUrl);
-        } else if (format.kind === "markdown" || format.kind === "text") {
-          setTextContent(new TextDecoder().decode(plain));
-        } else if (format.kind === "table") {
-          const decoded = new TextDecoder().decode(plain);
-          const delimiter = docData.originalFilename.toLowerCase().endsWith(".tsv") ? "\t" : ",";
-          setTableRows(parseDelimited(decoded, delimiter));
         }
 
-        if (!cancelled) setLoading(false);
+        setLoading(false);
       } catch (err: any) {
         if (!cancelled) {
-          setError(err.message || "Failed to decrypt document");
+          console.error("Media Decryption Error:", err);
+          setError(err.message || "Failed to decrypt and render document");
           setLoading(false);
         }
       }
     }
 
     run();
+
     return () => {
       cancelled = true;
       if (createdUrl) URL.revokeObjectURL(createdUrl);
     };
-  }, [slug, docData, format, docKeyOverride, t.viewer.noKeyFragment]);
+  }, [docData, docKeyOverride, format, slug, t.viewer.noKeyFragment]);
 
-  // Dwell heartbeat (batched every 10s, minimal-PII)
+  // Zero-Drop Dwell telemetry with sendBeacon
   useEffect(() => {
     if (loading || error) return;
+
     const tick = setInterval(() => {
       totalDwellRef.current += 1;
     }, 1000);
@@ -314,14 +570,10 @@ export function MediaRenderer({
       }
     };
 
-    const beat = setInterval(() => {
-      flushMediaDwell();
-    }, 10000);
+    const beat = setInterval(flushMediaDwell, 10000);
 
     const handleVis = () => {
-      if (document.visibilityState === "hidden") {
-        flushMediaDwell();
-      }
+      if (document.visibilityState === "hidden") flushMediaDwell();
     };
 
     window.addEventListener("pagehide", flushMediaDwell);
@@ -337,8 +589,8 @@ export function MediaRenderer({
   }, [loading, error, sessionId, slug, tablePage]);
 
   const handleDownload = () => {
-    if (!linkData.allowDownload || !decryptedRef.current) return;
-    const blob = new Blob([decryptedRef.current], { type: format.mime });
+    if (!linkData.allowDownload || !decryptedBytes) return;
+    const blob = new Blob([decryptedBytes], { type: format.mime });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -349,9 +601,42 @@ export function MediaRenderer({
     URL.revokeObjectURL(url);
   };
 
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(textContent);
+    setCodeCopied(true);
+    setTimeout(() => setCodeCopied(false), 2000);
+  };
+
   const watermarkLabel = `${linkData.watermarkText ? `[${linkData.watermarkText}] ` : ""}${
     viewerIdentity || "CONFIDENTIAL"
   } • ${new Date().toISOString().substring(0, 16).replace("T", " ")} • ${slug.substring(0, 8)}`;
+
+  // Table filtering & sorting
+  const filteredRows = useMemo(() => {
+    if (tableRows.length <= 1) return tableRows;
+    const header = tableRows[0];
+    let body = tableRows.slice(1);
+
+    if (tableSearch.trim()) {
+      const q = tableSearch.toLowerCase();
+      body = body.filter((row) => row.some((cell) => cell.toLowerCase().includes(q)));
+    }
+
+    if (tableSortCol !== null) {
+      body = [...body].sort((a, b) => {
+        const valA = a[tableSortCol] || "";
+        const valB = b[tableSortCol] || "";
+        const numA = parseFloat(valA);
+        const numB = parseFloat(valB);
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return tableSortAsc ? numA - numB : numB - numA;
+        }
+        return tableSortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      });
+    }
+
+    return [header, ...body];
+  }, [tableRows, tableSearch, tableSortCol, tableSortAsc]);
 
   if (loading) {
     return (
@@ -361,7 +646,7 @@ export function MediaRenderer({
           <Lock className="absolute inset-0 m-auto h-6 w-6 text-amber-400" />
         </div>
         <h3 className="mb-2 text-lg font-semibold text-white">{t.viewer.loadingDoc}</h3>
-        <p className="max-w-md animate-pulse text-sm text-slate-400">{step}</p>
+        <p className="max-w-md animate-pulse text-xs text-slate-400">{step}</p>
       </div>
     );
   }
@@ -372,198 +657,287 @@ export function MediaRenderer({
         <div className="rounded-2xl border border-red-500/30 bg-red-950/20 p-6 text-center">
           <AlertCircle className="mx-auto mb-3 h-8 w-8 text-red-400" />
           <h3 className="mb-2 text-lg font-bold text-white">{t.viewer.notFoundTitle}</h3>
-          <p className="text-sm text-slate-300">{error}</p>
+          <p className="text-xs text-slate-300 mb-4">{error}</p>
         </div>
       </div>
     );
   }
 
-  const FormatIcon =
-    format.kind === "image" || format.kind === "svg"
-      ? ImageIcon
-      : format.kind === "audio"
-      ? Music4
-      : format.kind === "video"
-      ? Video
-      : format.kind === "table"
-      ? Table2
-      : format.kind === "bundle"
-      ? Package
-      : FileText;
-
-  const totalTablePages = Math.max(1, Math.ceil(Math.max(tableRows.length - 1, 0) / rowsPerPage));
-
   return (
-    <div className="flex min-h-screen flex-col bg-slate-950">
-      {/* Toolbar */}
-      <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 bg-slate-950/90 px-4 py-2.5 backdrop-blur-md">
+    <div className={`relative flex flex-col rounded-2xl border border-slate-800 bg-slate-950/90 shadow-2xl overflow-hidden ${fullscreen ? "fixed inset-0 z-50 rounded-none bg-slate-950" : ""}`}>
+      {/* Top Floating Action Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 bg-slate-900/90 px-4 py-2.5 backdrop-blur-md">
         <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/20 text-amber-400">
-            <FormatIcon className="h-4 w-4" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            {format.kind === "image" || format.kind === "svg" ? (
+              <ImageIcon className="h-4 w-4" />
+            ) : format.kind === "markdown" ? (
+              <Sparkles className="h-4 w-4" />
+            ) : format.kind === "code" || format.kind === "html" ? (
+              <Code2 className="h-4 w-4" />
+            ) : format.kind === "table" ? (
+              <Table2 className="h-4 w-4" />
+            ) : format.kind === "audio" ? (
+              <Music4 className="h-4 w-4" />
+            ) : format.kind === "video" ? (
+              <Video className="h-4 w-4" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
           </div>
           <div>
-            <h1 className="max-w-[220px] truncate text-sm font-semibold text-white sm:max-w-md">
-              {docData.title}
-            </h1>
-            <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              <span>
-                {format.label} • AES-GCM decrypted in-browser
-              </span>
+            <div className="text-xs font-bold text-white truncate max-w-[220px] sm:max-w-md">
+              {docData.originalFilename}
+            </div>
+            <div className="text-[10px] text-slate-400 flex items-center gap-1.5">
+              <span>{format.label}</span>
+              <span>•</span>
+              <span className="text-emerald-400">Zero-Knowledge Decrypted</span>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {(format.kind === "image" || format.kind === "svg") && (
-            <div className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 p-0.5">
-              <button onClick={() => setZoom((z) => Math.max(0.4, z - 0.2))} className="rounded p-1.5 text-slate-400 hover:text-white">
-                <ZoomOut className="h-3.5 w-3.5" />
+        {/* Custom Toolbar Tools per Format */}
+        <div className="flex items-center gap-2">
+          {/* Code View Tools */}
+          {(format.kind === "code" || format.kind === "text") && (
+            <>
+              <button
+                onClick={() => setWordWrap(!wordWrap)}
+                className={`p-1.5 rounded-lg border text-xs flex items-center gap-1 transition ${
+                  wordWrap ? "border-amber-500/40 bg-amber-950/30 text-amber-300" : "border-slate-800 text-slate-400"
+                }`}
+                title="Toggle Word Wrap"
+              >
+                <WrapText className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Wrap</span>
               </button>
-              <span className="px-1 text-[11px] font-medium text-slate-300">{Math.round(zoom * 100)}%</span>
-              <button onClick={() => setZoom((z) => Math.min(4, z + 0.2))} className="rounded p-1.5 text-slate-400 hover:text-white">
-                <ZoomIn className="h-3.5 w-3.5" />
+
+              <button
+                onClick={handleCopyCode}
+                className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1.5 text-xs text-slate-300 hover:text-white transition"
+              >
+                {codeCopied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                <span>{codeCopied ? "Copied!" : "Copy"}</span>
+              </button>
+            </>
+          )}
+
+          {/* HTML Dual Mode */}
+          {format.kind === "html" && (
+            <div className="flex rounded-lg border border-slate-800 p-0.5 bg-slate-950 text-xs">
+              <button
+                onClick={() => setHtmlTab("preview")}
+                className={`px-2.5 py-1 rounded-md transition ${htmlTab === "preview" ? "bg-amber-500 text-slate-950 font-bold" : "text-slate-400"}`}
+              >
+                Preview
+              </button>
+              <button
+                onClick={() => setHtmlTab("code")}
+                className={`px-2.5 py-1 rounded-md transition ${htmlTab === "code" ? "bg-amber-500 text-slate-950 font-bold" : "text-slate-400"}`}
+              >
+                Source
               </button>
             </div>
           )}
 
-          {linkData.allowDownload ? (
+          {/* Image & SVG Controls */}
+          {(format.kind === "image" || format.kind === "svg") && (
+            <div className="flex items-center gap-1 bg-slate-950 border border-slate-800 rounded-lg p-0.5">
+              <button
+                onClick={() => setZoom((z) => Math.max(0.25, z - 0.25))}
+                className="p-1 text-slate-400 hover:text-white"
+                title="Zoom Out"
+              >
+                <ZoomOut className="h-3.5 w-3.5" />
+              </button>
+              <span className="px-1 font-mono text-[10px] text-slate-300">{Math.round(zoom * 100)}%</span>
+              <button
+                onClick={() => setZoom((z) => Math.min(4, z + 0.25))}
+                className="p-1 text-slate-400 hover:text-white"
+                title="Zoom In"
+              >
+                <ZoomIn className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setRotation((r) => (r + 90) % 360)}
+                className="p-1 text-slate-400 hover:text-white border-l border-slate-800 pl-1.5"
+                title="Rotate 90°"
+              >
+                <RotateCw className="h-3.5 w-3.5" />
+              </button>
+              <button
+                onClick={() => setImageBgDark(!imageBgDark)}
+                className="p-1 text-slate-400 hover:text-white border-l border-slate-800 pl-1.5"
+                title="Toggle Background Contrast"
+              >
+                {imageBgDark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+              </button>
+            </div>
+          )}
+
+          {/* Fullscreen Toggle */}
+          <button
+            onClick={() => setFullscreen(!fullscreen)}
+            className="p-1.5 rounded-lg border border-slate-800 bg-slate-900 text-slate-400 hover:text-white transition"
+            title="Toggle Fullscreen"
+          >
+            {fullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+          </button>
+
+          {/* Download button if enabled */}
+          {linkData.allowDownload && (
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-amber-400"
+              className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10 transition"
             >
               <Download className="h-3.5 w-3.5" />
-              <span className="hidden md:inline">{t.viewer.download}</span>
+              <span className="hidden sm:inline">Download</span>
             </button>
-          ) : (
-            <div className="hidden items-center gap-1 rounded border border-slate-800/50 bg-slate-900/50 px-2 py-1 text-[11px] text-slate-500 lg:flex">
-              <Lock className="h-3 w-3" />
-              <span>Download Restricted</span>
-            </div>
           )}
         </div>
       </div>
 
-      {/* Content area with watermark overlay */}
-      <div className="relative flex-1 overflow-auto p-4 sm:p-8">
+      {/* Main Content Area */}
+      <div className="relative min-h-[60vh] max-h-[85vh] overflow-auto p-4 sm:p-6 bg-slate-950/60">
+        {/* Dynamic Watermark Overlay */}
         {linkData.watermarkEnabled && (
           <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 z-20 overflow-hidden opacity-[0.16]"
-            style={{
-              backgroundImage: `repeating-linear-gradient(-28deg, transparent 0 120px, rgba(148,163,184,0.08) 120px 121px)`,
-            }}
+            className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center overflow-hidden select-none"
+            aria-hidden="true"
           >
-            <div className="flex h-full w-full flex-wrap content-start gap-x-10 gap-y-14 p-6 -rotate-[28deg]">
-              {Array.from({ length: 60 }).map((_, i) => (
-                <span key={i} className="whitespace-nowrap text-[11px] font-semibold text-slate-300">
-                  {watermarkLabel}
-                </span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-24 opacity-15 rotate-[-25deg] text-center font-mono text-xs font-bold text-slate-300">
+              {Array.from({ length: 12 }).map((_, i) => (
+                <div key={i}>{watermarkLabel}</div>
               ))}
             </div>
           </div>
         )}
 
-        <div className="relative z-10 mx-auto max-w-5xl">
-          {/* IMAGE / SVG */}
-          {(format.kind === "image" || format.kind === "svg") && objectUrl && (
-            <div className="flex justify-center overflow-auto rounded-2xl border border-slate-800 bg-slate-900 p-4">
-              <img
-                src={objectUrl}
-                alt={docData.title}
-                style={{ transform: `scale(${zoom})`, transformOrigin: "top center" }}
-                className="max-w-full rounded-lg transition-transform"
-              />
-            </div>
-          )}
+        {/* 1. Markdown with Mermaid */}
+        {format.kind === "markdown" && (
+          <div className="mx-auto max-w-4xl prose prose-invert prose-slate">
+            <div
+              className="rich-markdown leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: renderMarkdownRich(textContent) }}
+            />
+          </div>
+        )}
 
-          {/* AUDIO */}
-          {format.kind === "audio" && objectUrl && (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6 text-center">
-              <Music4 className="mx-auto mb-4 h-10 w-10 text-amber-400" />
-              <audio controls src={objectUrl} className="w-full">
-                Your browser does not support audio playback.
-              </audio>
-              <p className="mt-3 text-[11px] text-slate-400">
-                Listening telemetry is aggregate-only and never captures audio content.
-              </p>
+        {/* 2. Source Code & Text View */}
+        {(format.kind === "code" || format.kind === "text") && (
+          <div className="mx-auto max-w-5xl rounded-xl border border-slate-800 bg-slate-950 font-mono text-xs shadow-xl overflow-hidden">
+            <div className="overflow-x-auto p-4 leading-relaxed">
+              <pre className={`${wordWrap ? "whitespace-pre-wrap break-words" : "whitespace-pre"}`}>
+                <code dangerouslySetInnerHTML={{ __html: highlightCode(textContent, format.language) }} />
+              </pre>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* VIDEO */}
-          {format.kind === "video" && objectUrl && (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-              <video controls src={objectUrl} className="w-full rounded-lg" controlsList={linkData.allowDownload ? undefined : "nodownload"}>
-                Your browser does not support video playback.
-              </video>
-              <p className="mt-3 text-[11px] text-slate-400">
-                Egress note: video streams count against the separate MAX_VIDEO_MB budget ledger line.
-              </p>
-            </div>
-          )}
-
-          {/* MARKDOWN / TEXT */}
-          {(format.kind === "markdown" || format.kind === "text") && (
-            <article className="rounded-2xl border border-slate-800 bg-slate-900 p-6 sm:p-8">
-              {format.kind === "markdown" ? (
-                <div
-                  className="sp-markdown space-y-3 text-sm leading-relaxed text-slate-200"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(textContent) }}
+        {/* 3. HTML Document (Preview & Code) */}
+        {format.kind === "html" && (
+          <div className="mx-auto max-w-5xl">
+            {htmlTab === "preview" ? (
+              <div className="rounded-xl border border-slate-800 bg-white overflow-hidden shadow-2xl h-[70vh]">
+                <iframe
+                  srcDoc={textContent}
+                  title="HTML Preview"
+                  sandbox="allow-scripts"
+                  className="w-full h-full border-0"
                 />
-              ) : (
-                <pre className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-slate-200">
-                  {textContent}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-slate-800 bg-slate-950 font-mono text-xs p-4 overflow-x-auto shadow-xl">
+                <pre className="whitespace-pre-wrap">
+                  <code dangerouslySetInnerHTML={{ __html: highlightCode(textContent, "html") }} />
                 </pre>
-              )}
-              <div className="mt-6 border-t border-slate-800 pt-3 text-[11px] text-slate-500">
-                Estimated reading time: {Math.max(1, Math.round(textContent.split(/\s+/).length / 200))} min
               </div>
-            </article>
-          )}
+            )}
+          </div>
+        )}
 
-          {/* CSV / TSV TABLE */}
-          {format.kind === "table" && (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-              <div className="mb-3 flex items-center justify-between text-xs text-slate-400">
-                <span>
-                  {Math.max(tableRows.length - 1, 0)} rows • page {tablePage} / {totalTablePages}
-                </span>
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => setTablePage((p) => Math.max(1, p - 1))}
-                    disabled={tablePage <= 1}
-                    className="rounded p-1 text-slate-400 hover:text-white disabled:opacity-30"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => setTablePage((p) => Math.min(totalTablePages, p + 1))}
-                    disabled={tablePage >= totalTablePages}
-                    className="rounded p-1 text-slate-400 hover:text-white disabled:opacity-30"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
+        {/* 4. Interactive Excel / CSV / TSV Grid */}
+        {format.kind === "table" && (
+          <div className="space-y-4">
+            {/* Table Search & Pagination Controls */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900/70 p-3 rounded-xl border border-slate-800">
+              <div className="relative w-full sm:w-72">
+                <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-500" />
+                <input
+                  type="text"
+                  value={tableSearch}
+                  onChange={(e) => {
+                    setTableSearch(e.target.value);
+                    setTablePage(1);
+                  }}
+                  placeholder="Search spreadsheet rows..."
+                  className="w-full rounded-lg border border-slate-800 bg-slate-950 pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                />
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="border-b border-slate-800 font-semibold text-amber-400">
+
+              <div className="flex items-center gap-2 text-xs text-slate-400">
+                <span>Rows per page:</span>
+                <select
+                  value={tablePageSize}
+                  onChange={(e) => {
+                    setTablePageSize(Number(e.target.value));
+                    setTablePage(1);
+                  }}
+                  className="rounded-lg border border-slate-800 bg-slate-950 px-2 py-1 text-xs text-white focus:outline-none"
+                >
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+                <span className="font-mono text-slate-300">
+                  Total: {filteredRows.length > 0 ? filteredRows.length - 1 : 0} rows
+                </span>
+              </div>
+            </div>
+
+            {/* Interactive Data Table */}
+            {filteredRows.length === 0 ? (
+              <div className="py-16 text-center text-xs text-slate-500">No rows match your search.</div>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-slate-800 shadow-xl">
+                <table className="w-full text-left text-xs border-collapse font-mono">
+                  <thead className="border-b border-slate-800 bg-slate-900 text-slate-300 font-semibold sticky top-0 z-10">
                     <tr>
-                      {(tableRows[0] || []).map((h, i) => (
-                        <th key={i} className="whitespace-nowrap px-2 pb-2">
-                          {h.length > 60 ? h.slice(0, 60) + "…" : h}
+                      <th className="p-3 w-12 text-center text-slate-500">#</th>
+                      {filteredRows[0]?.map((col, idx) => (
+                        <th
+                          key={idx}
+                          onClick={() => {
+                            if (tableSortCol === idx) {
+                              setTableSortAsc(!tableSortAsc);
+                            } else {
+                              setTableSortCol(idx);
+                              setTableSortAsc(true);
+                            }
+                          }}
+                          className="p-3 cursor-pointer hover:bg-slate-800 transition select-none"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span className="truncate max-w-[200px]">{col || `Col ${idx + 1}`}</span>
+                            <ArrowUpDown className="h-3 w-3 text-slate-500 shrink-0" />
+                          </div>
                         </th>
                       ))}
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-800/60">
-                    {tableRows
-                      .slice(1 + (tablePage - 1) * rowsPerPage, 1 + tablePage * rowsPerPage)
-                      .map((r, ri) => (
-                        <tr key={ri} className="hover:bg-slate-800/30">
-                          {r.map((c, ci) => (
-                            <td key={ci} className="whitespace-nowrap px-2 py-1.5 text-slate-300">
-                              {c.length > 80 ? c.slice(0, 80) + "…" : c}
+                  <tbody className="divide-y divide-slate-800/60 bg-slate-950">
+                    {filteredRows
+                      .slice(1)
+                      .slice((tablePage - 1) * tablePageSize, tablePage * tablePageSize)
+                      .map((row, rIdx) => (
+                        <tr key={rIdx} className="hover:bg-slate-900/50 transition">
+                          <td className="p-3 text-center text-slate-500 text-[10px]">
+                            {(tablePage - 1) * tablePageSize + rIdx + 1}
+                          </td>
+                          {row.map((cell, cIdx) => (
+                            <td key={cIdx} className="p-3 text-slate-300 truncate max-w-[260px]">
+                              {cell}
                             </td>
                           ))}
                         </tr>
@@ -571,45 +945,110 @@ export function MediaRenderer({
                   </tbody>
                 </table>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* BUNDLE / UNKNOWN */}
-          {(format.kind === "bundle" || format.kind === "unknown" || format.kind === "office") && (
-            <div className="rounded-2xl border border-slate-800 bg-slate-900 p-8 text-center">
-              <Package className="mx-auto mb-4 h-10 w-10 text-amber-400" />
-              <h3 className="mb-2 text-base font-bold text-white">Bundle View</h3>
-              <p className="mx-auto mb-5 max-w-md text-xs leading-relaxed text-slate-400">
-                {formatCapabilityNote(format.kind)}
-              </p>
-              {linkData.allowDownload ? (
+            {/* Pagination Controls */}
+            {filteredRows.length > tablePageSize + 1 && (
+              <div className="flex items-center justify-between pt-2">
                 <button
-                  onClick={handleDownload}
-                  className="rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400"
+                  disabled={tablePage === 1}
+                  onClick={() => setTablePage((p) => Math.max(1, p - 1))}
+                  className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800 disabled:opacity-40"
                 >
-                  Download Decrypted File
+                  <ChevronLeft className="h-3.5 w-3.5" /> Previous
                 </button>
-              ) : (
-                <div className="text-[11px] text-slate-500">
-                  Owner disabled downloads for this link, so no deep preview is available.
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
 
-      <div className="flex flex-col items-center justify-between gap-2 border-t border-slate-900 bg-slate-950 px-4 py-2 text-center text-[11px] text-slate-500 sm:flex-row">
-        <div className="flex items-center gap-2">
-          <Shield className="h-3.5 w-3.5 text-amber-500" />
-          <span>
-            {appName} Protected View • Viewer:{" "}
-            <strong className="text-slate-400">{viewerIdentity || "Anonymous"}</strong>
-          </span>
-        </div>
-        <div className="text-[10px] text-slate-600">
-          Honest note: watermark & download-off are deterrents, not DRM.
-        </div>
+                <span className="text-xs font-mono text-slate-400">
+                  Page {tablePage} of {Math.ceil((filteredRows.length - 1) / tablePageSize)}
+                </span>
+
+                <button
+                  disabled={tablePage >= Math.ceil((filteredRows.length - 1) / tablePageSize)}
+                  onClick={() => setTablePage((p) => p + 1)}
+                  className="flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800 disabled:opacity-40"
+                >
+                  Next <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 5. Images (JPEG, PNG, WebP, GIF, AVIF, BMP) */}
+        {format.kind === "image" && objectUrl && (
+          <div className={`flex min-h-[60vh] items-center justify-center p-6 rounded-xl transition ${imageBgDark ? "bg-slate-950" : "bg-slate-100"}`}>
+            <img
+              src={objectUrl}
+              alt={docData.originalFilename}
+              style={{
+                transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                transition: "transform 0.2s ease-out",
+              }}
+              className="max-h-[75vh] max-w-full rounded-lg object-contain shadow-2xl"
+            />
+          </div>
+        )}
+
+        {/* 6. Sanitized Vector SVG */}
+        {format.kind === "svg" && objectUrl && (
+          <div className={`flex min-h-[60vh] items-center justify-center p-6 rounded-xl transition ${imageBgDark ? "bg-slate-950" : "bg-slate-100"}`}>
+            <img
+              src={objectUrl}
+              alt={docData.originalFilename}
+              style={{
+                transform: `scale(${zoom}) rotate(${rotation}deg)`,
+                transition: "transform 0.2s ease-out",
+              }}
+              className="max-h-[75vh] max-w-full object-contain"
+            />
+          </div>
+        )}
+
+        {/* 7. Audio Player (MP3, WAV, OGG, M4A) */}
+        {format.kind === "audio" && objectUrl && (
+          <div className="mx-auto max-w-lg p-8 rounded-2xl border border-slate-800 bg-slate-900/80 shadow-2xl text-center space-y-6">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
+              <Music4 className="h-10 w-10" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-white">{docData.originalFilename}</h3>
+              <p className="text-xs text-slate-400 mt-1">Decrypted Audio Stream</p>
+            </div>
+            <audio ref={audioRef} controls src={objectUrl} className="w-full" />
+          </div>
+        )}
+
+        {/* 8. Video Player (MP4, WebM) */}
+        {format.kind === "video" && objectUrl && (
+          <div className="mx-auto max-w-4xl rounded-2xl border border-slate-800 bg-black overflow-hidden shadow-2xl">
+            <video
+              ref={videoRef}
+              controls
+              src={objectUrl}
+              className="w-full max-h-[75vh] aspect-video object-contain"
+            />
+          </div>
+        )}
+
+        {/* 9. Office Deck & ZIP Bundle fallback */}
+        {(format.kind === "office" || format.kind === "bundle" || format.kind === "unknown") && (
+          <div className="mx-auto max-w-md p-8 text-center rounded-2xl border border-slate-800 bg-slate-900/60 shadow-xl space-y-4">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+              <Package className="h-8 w-8" />
+            </div>
+            <h3 className="text-base font-bold text-white">{docData.originalFilename}</h3>
+            <p className="text-xs text-slate-300 leading-relaxed">{formatCapabilityNote(format.kind)}</p>
+            {linkData.allowDownload && (
+              <button
+                onClick={handleDownload}
+                className="inline-flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10 transition"
+              >
+                <Download className="h-4 w-4" />
+                <span>Download Decrypted Document</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

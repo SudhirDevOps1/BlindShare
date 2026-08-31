@@ -141,7 +141,7 @@ export default function PrivacyPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {FORMAT_TABLE.map((r) => (
+                {FORMAT_TABLE.map((r: { format: string; renderer: string; analytics: string; note?: string }) => (
                   <tr key={r.format}>
                     <td className="py-2 font-medium text-white">{r.format}</td>
                     <td className="py-2 text-slate-300">{r.renderer}</td>
