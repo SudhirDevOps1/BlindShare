@@ -181,6 +181,11 @@ export async function ensureDatabaseSchema(pool: Pool) {
           value text NOT NULL,
           updated_at timestamp with time zone NOT NULL DEFAULT now()
         );
+
+        -- Self-healing Column Migrations for Existing Databases
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled boolean NOT NULL DEFAULT false;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret text;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_backup_codes text;
       `);
       migrationDone = true;
       logger.info("db.auto_migration_complete");

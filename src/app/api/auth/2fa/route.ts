@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db } from "@/db";
+import { db, pool } from "@/db";
 import { users, auditLog } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { verify2faPreAuthToken, createSessionCookie } from "@/lib/auth/session";
@@ -7,7 +7,18 @@ import { verifyTotpToken, verifyAndConsumeBackupCode } from "@/lib/auth/totp";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
 
+async function ensure2faColumns() {
+  try {
+    await pool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled boolean NOT NULL DEFAULT false;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret text;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_backup_codes text;
+    `);
+  } catch {}
+}
+
 export async function POST(request: Request) {
+  await ensure2faColumns();
   try {
     const body = await request.json().catch(() => ({}));
     const { tempToken, code } = body;

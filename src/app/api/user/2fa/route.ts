@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth/session";
-import { db } from "@/db";
+import { db, pool } from "@/db";
 import { users, auditLog } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import {
@@ -13,7 +13,18 @@ import { verifyPassword } from "@/lib/auth/password";
 import { genId } from "@/lib/ids";
 import QRCode from "qrcode";
 
+async function ensure2faColumns() {
+  try {
+    await pool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled boolean NOT NULL DEFAULT false;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret text;
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_backup_codes text;
+    `);
+  } catch {}
+}
+
 export async function GET() {
+  await ensure2faColumns();
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -33,6 +44,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  await ensure2faColumns();
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
