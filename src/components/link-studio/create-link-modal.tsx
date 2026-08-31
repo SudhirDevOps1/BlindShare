@@ -52,6 +52,12 @@ export function CreateLinkModal({
   const [allowDownload, setAllowDownload] = useState(false);
   const [requiresNda, setRequiresNda] = useState(false);
   const [ndaText, setNdaText] = useState("");
+  const [requiresSignature, setRequiresSignature] = useState(false);
+  const [signaturePrompt, setSignaturePrompt] = useState("");
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [brandLogoUrl, setBrandLogoUrl] = useState("");
+  const [brandAccentColor, setBrandAccentColor] = useState("");
+  const [antiLeakBlurEnabled, setAntiLeakBlurEnabled] = useState(true);
   const [maxViews, setMaxViews] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
 
@@ -105,6 +111,12 @@ export function CreateLinkModal({
           allowDownload,
           requiresNda,
           ndaText: ndaText.trim() || undefined,
+          requiresSignature,
+          signaturePrompt: signaturePrompt.trim() || undefined,
+          webhookUrl: webhookUrl.trim() || undefined,
+          brandLogoUrl: brandLogoUrl.trim() || undefined,
+          brandAccentColor: brandAccentColor.trim() || undefined,
+          antiLeakBlurEnabled,
           maxViews: maxViews ? parseInt(maxViews, 10) : undefined,
           expiresAt: expiresAt || undefined,
         }),
@@ -315,6 +327,99 @@ export function CreateLinkModal({
                       className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
                     />
                   </div>
+                  {requiresNda && (
+                    <textarea
+                      value={ndaText}
+                      onChange={(e) => setNdaText(e.target.value)}
+                      placeholder="Custom NDA Agreement text..."
+                      rows={3}
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white placeholder-slate-500"
+                    />
+                  )}
+                </div>
+
+                {/* Digital E-Signature Gate */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileCheck className="h-4 w-4 text-emerald-400" />
+                      <div>
+                        <div className="text-xs font-medium text-white">Require Digital E-Signature</div>
+                        <div className="text-[10px] text-slate-400">Viewer must legally sign via canvas pad before accessing</div>
+                      </div>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={requiresSignature}
+                      onChange={(e) => setRequiresSignature(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-500"
+                    />
+                  </div>
+                  {requiresSignature && (
+                    <input
+                      type="text"
+                      value={signaturePrompt}
+                      onChange={(e) => setSignaturePrompt(e.target.value)}
+                      placeholder="e.g. Please sign to acknowledge confidential partnership terms."
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white"
+                    />
+                  )}
+                </div>
+
+                {/* Real-time Webhook Alerts */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-2">
+                  <div>
+                    <label className="block text-xs font-medium text-white mb-0.5">Real-time Webhook URL (Slack/Discord)</label>
+                    <p className="text-[10px] text-slate-400 mb-2">Get instant alerts when someone opens or reads this deck</p>
+                    <input
+                      type="url"
+                      value={webhookUrl}
+                      onChange={(e) => setWebhookUrl(e.target.value)}
+                      placeholder="https://discord.com/api/webhooks/... or https://hooks.slack.com/..."
+                      className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white placeholder-slate-600"
+                    />
+                  </div>
+                </div>
+
+                {/* Custom Branding / White-labeling */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-3">
+                  <div className="text-xs font-medium text-white">Custom Branding (White-labeling)</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[10px] text-slate-400 mb-1">Company Logo URL</label>
+                      <input
+                        type="url"
+                        value={brandLogoUrl}
+                        onChange={(e) => setBrandLogoUrl(e.target.value)}
+                        placeholder="https://mycompany.com/logo.png"
+                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-white placeholder-slate-600"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] text-slate-400 mb-1">Accent Hex Color</label>
+                      <input
+                        type="text"
+                        value={brandAccentColor}
+                        onChange={(e) => setBrandAccentColor(e.target.value)}
+                        placeholder="#6366f1"
+                        className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-white placeholder-slate-600 font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Anti-Leak Blur Deterrent */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-medium text-white">Anti-Capture Privacy Blur</div>
+                    <div className="text-[10px] text-slate-400">Blurs document during screenshot attempts or window focus loss</div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={antiLeakBlurEnabled}
+                    onChange={(e) => setAntiLeakBlurEnabled(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                  />
                 </div>
 
                 {/* Limits: Expiry & Max Views */}

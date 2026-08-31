@@ -5,6 +5,7 @@ import { eq, sql } from "drizzle-orm";
 import { verifyPassword } from "@/lib/auth/password";
 import { hashIp, parseUserAgent } from "@/lib/analytics";
 import { sendPushToUser } from "@/lib/push";
+import { sendWebhookNotification } from "@/lib/notifications/webhook-notifier";
 import { parseBody } from "@/lib/validation";
 import { verifyLinkSchema } from "@/lib/validation/schemas";
 import { checkLockout, recordFailure, recordSuccess } from "@/lib/auth/lockout";
@@ -135,6 +136,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
 
     const docTitle = ownerDoc?.title || link.name;
     const viewerDisplay = cleanEmail ? cleanEmail : `Anonymous (${parsedUa.device} in ${country})`;
+
+    if (link.webhookUrl) {
+      sendWebhookNotification(link.webhookUrl, {
+        event: ndaAgreed ? "nda_signed" : "link_opened",
+        linkName: link.name,
+        linkSlug: link.slug,
+        docTitle,
+        viewerEmail: cleanEmail || undefined,
+        viewerCountry: country,
+        viewerDevice: `${parsedUa.os} / ${parsedUa.browser} (${parsedUa.device})`,
+        timestamp: new Date().toISOString(),
+      }).catch((e) => logger.warn("webhook.dispatch_failed", { message: e?.message }));
+    }
 
     sendPushToUser(link.ownerId, {
       title: `New view on "${docTitle}"`,

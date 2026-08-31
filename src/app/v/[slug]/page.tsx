@@ -3,6 +3,7 @@
 import React, { useEffect, useState, use } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { ViewerGates } from "@/components/gates/viewer-gates";
+import { SignaturePadModal } from "@/components/gates/signature-pad-modal";
 import { PdfRenderer } from "@/components/pdf-viewer/pdf-renderer";
 import { MediaRenderer } from "@/components/viewer/media-renderer";
 import { isPdf } from "@/lib/formats";
@@ -23,6 +24,7 @@ export default function ViewerPage({ params }: { params: Promise<{ slug: string 
   const [payload, setPayload] = useState<any>(null);
   const [blocked, setBlocked] = useState<{ kind: "expired" | "revoked" | "notfound"; message: string } | null>(null);
   const [verified, setVerified] = useState<VerifiedState | null>(null);
+  const [hasSigned, setHasSigned] = useState(false);
   const [unwrappedKey, setUnwrappedKey] = useState<Uint8Array | null>(null);
   const [keyError, setKeyError] = useState<string | null>(null);
 
@@ -180,6 +182,20 @@ export default function ViewerPage({ params }: { params: Promise<{ slug: string 
     );
   }
 
+  if (link.requiresSignature && !hasSigned) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+        <SignaturePadModal
+          slug={slug}
+          sessionId={verified.sessionId}
+          signerEmail={verified.viewerIdentity.includes("@") ? verified.viewerIdentity : undefined}
+          promptText={link.signaturePrompt}
+          onSigned={() => setHasSigned(true)}
+        />
+      </div>
+    );
+  }
+
   // Dataroom link: show the document index first.
   if (!doc && dataroom) {
     return (
@@ -238,6 +254,9 @@ export default function ViewerPage({ params }: { params: Promise<{ slug: string 
       allowDownload: link.allowDownload,
       watermarkEnabled: link.watermarkEnabled,
       watermarkText: link.watermarkText,
+      brandLogoUrl: link.brandLogoUrl,
+      brandAccentColor: link.brandAccentColor,
+      antiLeakBlurEnabled: link.antiLeakBlurEnabled,
     },
     sessionId: verified.sessionId,
     viewerIdentity: verified.viewerIdentity,

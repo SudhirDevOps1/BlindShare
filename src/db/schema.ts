@@ -95,11 +95,28 @@ export const links = pgTable("links", {
   watermarkText: text("watermark_text"),
   requiresNda: boolean("requires_nda").notNull().default(false),
   ndaText: text("nda_text"),
+  requiresSignature: boolean("requires_signature").notNull().default(false),
+  signaturePrompt: text("signature_prompt"),
+  webhookUrl: text("webhook_url"),
+  brandLogoUrl: text("brand_logo_url"),
+  brandAccentColor: text("brand_accent_color"),
+  antiLeakBlurEnabled: boolean("anti_leak_blur_enabled").notNull().default(true),
   maxViews: integer("max_views"),
   viewCount: integer("view_count").notNull().default(0),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const signatures = pgTable("signatures", {
+  id: text("id").primaryKey(),
+  linkId: text("link_id").notNull().references(() => links.id, { onDelete: "cascade" }),
+  sessionId: text("session_id").references(() => viewSessions.id, { onDelete: "cascade" }),
+  signerEmail: text("signer_email"),
+  signerName: text("signer_name"),
+  signatureDataUrl: text("signature_data_url").notNull(),
+  signedAt: timestamp("signed_at", { withTimezone: true }).defaultNow().notNull(),
+  ipHash: text("ip_hash"),
 });
 
 export const viewSessions = pgTable("view_sessions", {

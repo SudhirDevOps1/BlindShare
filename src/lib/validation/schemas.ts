@@ -136,6 +136,12 @@ export const createLinkSchema = z
     watermarkText: z.string().trim().max(120).optional(),
     requiresNda: z.boolean().optional(),
     ndaText: z.string().trim().max(5000).optional(),
+    requiresSignature: z.boolean().optional(),
+    signaturePrompt: z.string().trim().max(500).optional(),
+    webhookUrl: z.string().trim().url("Must be a valid URL").max(1000).nullable().optional().or(z.literal("")),
+    brandLogoUrl: z.string().trim().max(1000).nullable().optional().or(z.literal("")),
+    brandAccentColor: z.string().trim().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, "Must be valid hex color").nullable().optional().or(z.literal("")),
+    antiLeakBlurEnabled: z.boolean().optional(),
     maxViews: z.union([z.number().int().positive().max(1_000_000), z.string()]).optional(),
     expiresAt: isoDateSchema,
   })
@@ -155,6 +161,12 @@ export const updateLinkSchema = z.object({
   watermarkText: z.string().trim().max(120).nullable().optional(),
   requiresNda: z.boolean().optional(),
   ndaText: z.string().trim().max(5000).nullable().optional(),
+  requiresSignature: z.boolean().optional(),
+  signaturePrompt: z.string().trim().max(500).nullable().optional(),
+  webhookUrl: z.string().trim().url("Must be a valid URL").max(1000).nullable().optional().or(z.literal("")),
+  brandLogoUrl: z.string().trim().max(1000).nullable().optional().or(z.literal("")),
+  brandAccentColor: z.string().trim().regex(/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, "Must be valid hex color").nullable().optional().or(z.literal("")),
+  antiLeakBlurEnabled: z.boolean().optional(),
   maxViews: z.union([z.number().int().positive().max(1_000_000), z.string(), z.null()]).optional(),
   expiresAt: z.union([isoDateSchema, z.null()]).optional(),
   password: z.string().max(256).nullable().optional(),
@@ -162,11 +174,23 @@ export const updateLinkSchema = z.object({
   wrappedKeyHex: hexStringSchema(512),
 });
 
-// ── Viewer gate verification ────────────────────────────────────────────────
+// ── Viewer gate verification & Signature ───────────────────────────────────
 export const verifyLinkSchema = z.object({
   password: z.string().max(256).optional(),
   email: z.string().trim().max(254).email().optional().or(z.literal("")),
   ndaAgreed: z.boolean().optional(),
+  signatureProvided: z.boolean().optional(),
+});
+
+export const submitSignatureSchema = z.object({
+  sessionId: z.string().trim().min(1).max(80).optional(),
+  signerName: z.string().trim().min(1, "Name is required").max(120),
+  signerEmail: emailSchema.optional(),
+  signatureDataUrl: z
+    .string()
+    .min(10, "Signature data is required")
+    .max(500_000, "Signature payload too large")
+    .refine((v) => v.startsWith("data:image/"), "Signature must be an image data URL"),
 });
 
 export const sessionHeartbeatSchema = z.object({

@@ -33,6 +33,9 @@ interface MediaRendererProps {
     allowDownload: boolean;
     watermarkEnabled: boolean;
     watermarkText: string | null;
+    brandLogoUrl?: string | null;
+    brandAccentColor?: string | null;
+    antiLeakBlurEnabled?: boolean;
   };
   docData: {
     id: string;
