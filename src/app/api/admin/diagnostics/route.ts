@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/rbac";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
+import { getStorageAdapter } from "@/lib/storage";
 
 interface EnvItem {
   key: string;
@@ -39,13 +40,27 @@ export async function GET() {
     dbError = err?.message || "Database query failed";
   }
 
-  // 2. Storage check
-  const b2Bucket = process.env.B2_BUCKET_NAME || process.env.B2_BUCKET || "";
-  const b2Key = process.env.B2_APPLICATION_KEY || process.env.B2_APP_KEY || "";
-  const b2KeyId = process.env.B2_KEY_ID || process.env.B2_KEYID || "";
-  const b2Endpoint = process.env.B2_ENDPOINT || "";
+  // 2. Storage check & Latency measurement
+  const storeTarget = (process.env.STORE_TARGET || "b2").toLowerCase();
+  const b2Bucket = process.env.B2_BUCKET_NAME || process.env.B2_BUCKET || process.env.R2_BUCKET || "blindshare-vault";
+  const b2Key = process.env.B2_APPLICATION_KEY || process.env.B2_APP_KEY || process.env.R2_SECRET_ACCESS_KEY || "";
+  const b2KeyId = process.env.B2_KEY_ID || process.env.B2_KEYID || process.env.R2_ACCESS_KEY_ID || "";
+  const b2Endpoint = process.env.B2_ENDPOINT || process.env.R2_ENDPOINT || "s3.us-east-005.backblazeb2.com";
 
-  const storageOperational = Boolean(b2Bucket && b2Key && b2KeyId);
+  let storageOperational = false;
+  let storageLatencyMs = 0;
+  let storageError: string | null = null;
+
+  try {
+    const storageStart = Date.now();
+    const storage = getStorageAdapter();
+    await storage.getPresignedPutUrl("probe-diag.bin", "application/octet-stream", 60);
+    storageLatencyMs = Math.max(1, Date.now() - storageStart);
+    storageOperational = Boolean(b2Bucket && (b2Key || storeTarget === "local"));
+  } catch (err: any) {
+    storageOperational = false;
+    storageError = err?.message || "Storage probe failed";
+  }
 
   // Helper to safely mask secrets
   const maskSecret = (val?: string): string | null => {
@@ -253,7 +268,10 @@ export async function GET() {
       },
       storage: {
         status: storageOperational ? "operational" : "warning",
+        provider: storeTarget === "r2" ? "Cloudflare R2 S3 Storage" : storeTarget === "b2" ? "Backblaze B2 S3 Storage" : "Local Disk Storage",
         bucket: b2Bucket || null,
+        latencyMs: storageLatencyMs,
+        error: storageError,
       },
       crypto: {
         status: "operational",

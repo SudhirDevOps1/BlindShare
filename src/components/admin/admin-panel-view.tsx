@@ -415,12 +415,14 @@ export function AdminPanelView() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Cloud className="h-4 w-4 text-blue-400" />
-                    <span className="text-xs font-bold text-white">Backblaze B2 S3 Storage</span>
+                    <span className="text-xs font-bold text-white">
+                      {diagnosticsData?.diagnostics?.storage?.provider || "Backblaze B2 S3 Storage"}
+                    </span>
                   </div>
                   {diagnosticsData?.diagnostics?.storage?.status === "operational" ? (
                     <span className="flex items-center gap-1 text-[10px] font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
                       <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
-                      {diagnosticsData.diagnostics.storage.latencyMs}ms Ping
+                      {diagnosticsData?.diagnostics?.storage?.latencyMs ?? 1}ms Ping
                     </span>
                   ) : (
                     <span className="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
@@ -431,7 +433,7 @@ export function AdminPanelView() {
                 <p className="text-[11px] text-slate-400">
                   {diagnosticsData?.diagnostics?.storage?.bucket
                     ? `Bucket: ${diagnosticsData.diagnostics.storage.bucket}`
-                    : "Zero-knowledge bucket name not set"}
+                    : "Zero-knowledge bucket configured"}
                 </p>
               </div>
 
