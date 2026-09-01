@@ -16,11 +16,17 @@
   - `::1`, `fe80::/10` (IPv6 link-local)
   - `metadata.google.internal`, `instance-data`
 
-## 3. Stored XSS Prevention
-- **Rule:** Reader question text, viewer names, and feedback pins must be sanitized before persistence and rendering.
-- **Sanitization:** Strip HTML tags with regex `/<[^>]*>?/gm` and truncate to max safe boundaries (1,000 chars for questions, 80 chars for names).
+## 3. Safe HTML & SVG Sanitization (CodeQL SAST Standards)
+- **Rule:** Never use vulnerable multi-character regexes for HTML stripping.
+- **Character Escaping:** Transform `<` -> `&lt;`, `>` -> `&gt;`, `"` -> `&quot;`, `'` -> `&#39;`, `&` -> `&amp;`.
+- **SVG Parsing:** Use browser `DOMParser()` and enforce strict protocol allowlists (`https?:`, `mailto:`, `#`).
 
-## 4. Race Condition Immunity (TOCTOU)
+## 4. Tainted File Write & Temporary File Safety
+- **Rule:** User-controlled keys must never dictate physical file paths on disk.
+- **Hashing:** Map keys to `${crypto.createHash('sha256').update(key).digest('hex')}.blob`.
+- **Permissions:** Use `mode: 0o700` on storage directories and `mode: 0o600` on file writes.
+
+## 5. Race Condition Immunity (TOCTOU)
 - **Rule:** Single-use Burn-After-Reading links and Max-Views limits must be checked and updated in a single atomic SQL step.
 - **Query:**
   ```typescript
@@ -29,6 +35,6 @@
     .where(and(eq(links.id, linkId), eq(links.isRevoked, false), or(isNull(links.maxViews), sql`${links.viewCount} < ${links.maxViews}`)));
   ```
 
-## 5. Brute Force Protection
+## 6. Brute Force Protection
 - **Rule:** Password-gated links and user login attempts must enforce progressive lockouts.
 - **Thresholds:** 5 failed attempts within 15 minutes trigger a 15-minute IP/account lockout.

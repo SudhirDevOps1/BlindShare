@@ -2,7 +2,7 @@
 name: blindshare-architecture
 description: >-
   Master architectural knowledge, zero-knowledge cryptographic invariants,
-  zero-cost hosting presets, and hardened security defense protocols for BlindShare.
+  zero-cost hosting presets, CodeQL SAST hardening, and security protocols for BlindShare.
   Use when designing, extending, debugging, auditing, or maintaining the BlindShare
   platform or any zero-knowledge document sharing system.
 ---
@@ -24,6 +24,7 @@ Any AI modifying or extending this codebase **MUST UNCONDITIONALLY UPHOLD** thes
 - **Browser-Side Decrypt:** Decryption occurs strictly inside the viewer's browser via `crypto.subtle.decrypt('AES-GCM', ...)`.
 - **PBKDF2 Key Wrapping:** Password-protected links wrap the DocKey with PBKDF2 (SHA-256) at **250,000 iterations**. The server stores only salt and wrapped ciphertext key (`wrappedKeyHex`).
 - **GZIP Stream Compression:** Native browser `CompressionStream('gzip')` compresses payloads before AES-GCM-256 encryption, reducing storage and bandwidth by 50-80% at ₹0 / $0 server cost.
+- **CSPRNG Invariant:** Never use `Math.random()` anywhere in production or telemetry. Always use `crypto.getRandomValues()` or `crypto.randomUUID()`.
 
 ### 💰 B. Three Zero-Cost Master Presets (100% Free & No-Card Stacks)
 1. **Preset A: Cloud Serverless (Recommended Default)**
@@ -39,23 +40,28 @@ Any AI modifying or extending this codebase **MUST UNCONDITIONALLY UPHOLD** thes
 
 ---
 
-## 🛡️ 2. Hardened Security & Anti-Hacking Defenses (सुरक्षा व बग प्रिवेंशन)
+## 🛡️ 2. Hardened Security, CodeQL SAST & Anti-Hacking Defenses (सुरक्षा व बग प्रिवेंशन)
 
 Every AI must strictly implement and verify these security defenses on any new or existing route:
 
 1. **Admin Bootstrap Privilege Escalation Defense:**
    - Strict exact equality (`submittedNorm === adminBootstrapInvite`) is mandatory. Never use `.endsWith()` or partial matches.
-2. **Local Storage Path Traversal Confinement:**
-   - File paths must be sanitized with `path.basename` and confined within `path.resolve(storageDir)`.
+2. **Local Storage Path Traversal & Tainted File Write Immunity:**
+   - All disk-backed storage keys must be transformed into deterministic SHA-256 digests (`${sha256(key)}.blob`).
+   - File writes must use explicit boundary checks (`filePath.startsWith(storageRoot)`) and private permissions (`mode: 0o600`).
+   - Never write directly to shared `/tmp`; always use private directories (`.storage_blobs` with `mode: 0o700`).
 3. **Atomic Concurrency (TOCTOU) Link Protection:**
    - Single-use Burn-After-Reading and max-views checks must be performed in a single atomic SQL update query.
 4. **Timing-Safe HMAC Sessions & Multi-Device Invalidation:**
    - Session signatures must use `crypto.timingSafeEqual` and invalidate instantly across all devices on password change via `users.sessionVersion`.
 5. **SSRF & DNS Rebinding Mitigation:**
    - Webhook dispatches and email domain lookups must strictly block RFC 1918 private subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), loopback (`127.0.0.0/8`), and cloud metadata (`169.254.169.254`).
-6. **Orphan Sweep Version Blob Preservation:**
+6. **CodeQL-Compliant HTML & SVG Sanitization:**
+   - Avoid multi-character regex tag stripping (`replace(/<[^>]*>/g, "")`). Use character-level entity escaping (`<` -> `&lt;`, `>` -> `&gt;`).
+   - For SVGs, use browser `DOMParser()` and XML DOM attribute cleaning with strict allowlisted URL protocols (`http:`, `https:`, `mailto:`, `#`).
+7. **Orphan Sweep Version Blob Preservation:**
    - S3/B2 bucket cleaner must preserve `docVersions.storageKey` alongside `documents.storageKey` to prevent historical version deletion.
-7. **Sole Super Admin Self-Deletion Guard:**
+8. **Sole Super Admin Self-Deletion Guard:**
    - Prevent the last remaining Super Admin from deleting their own account.
 
 ---
@@ -71,6 +77,7 @@ Follow this protocol during any engineering task on BlindShare:
 | **3** | **Version Synchronization** | All files (`package.json`, `version/route.ts`, `README.md`, `CHANGELOG.md`) must report `v1.2.0`. |
 | **4** | **Automated Test Invariant** | Always run `npm run typecheck && npm test && npm run lint`. All 18+ security tests must pass with 0 errors. |
 | **5** | **Zero PII Logging** | Never output passwords, keys, viewer emails, or filenames to stdout. Use `logger.info/warn/error`. |
+| **6** | **Git Workspace Isolation** | Keep local AI configs (`.agents/`, `.claude/`, `.gemini/`) untracked via `.gitignore` while maintaining master skill docs in `docs/skills/`. |
 
 ---
 
