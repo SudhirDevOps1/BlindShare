@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { links, documents, viewSessions } from "@/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, and, or, isNull, sql } from "drizzle-orm";
 import { verifyPassword } from "@/lib/auth/password";
 import { hashIp, parseUserAgent } from "@/lib/analytics";
 import { sendPushToUser } from "@/lib/push";
@@ -144,7 +144,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
         isRevoked: shouldRevokeOnBurn ? true : links.isRevoked,
         updatedAt: new Date(),
       })
-      .where(eq(links.id, link.id));
+      .where(
+        and(
+          eq(links.id, link.id),
+          eq(links.isRevoked, false),
+          or(isNull(links.maxViews), sql`${links.viewCount} < ${links.maxViews}`)
+        )
+      );
 
     const [ownerDoc] = link.docId
       ? await db.select({ title: documents.title }).from(documents).where(eq(documents.id, link.docId)).limit(1)

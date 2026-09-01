@@ -22,8 +22,14 @@ export class LocalStorageAdapter implements StorageAdapter {
   }
 
   private getFilePath(key: string): string {
-    const sanitizedKey = key.replace(/[^a-zA-Z0-9_\-\.]/g, "_");
-    return path.join(this.storageDir, sanitizedKey);
+    const base = path.basename(key).replace(/\.\.+/g, "_").replace(/[^a-zA-Z0-9_\-\.]/g, "_");
+    const safeKey = base || "unnamed_blob";
+    const resolvedPath = path.resolve(this.storageDir, safeKey);
+    const resolvedRoot = path.resolve(this.storageDir);
+    if (!resolvedPath.startsWith(resolvedRoot)) {
+      throw new Error("Security violation: Path traversal attempt detected");
+    }
+    return resolvedPath;
   }
 
   async getPresignedPutUrl(key: string, contentType: string, expiresInSec = 600): Promise<StoragePresignResult> {

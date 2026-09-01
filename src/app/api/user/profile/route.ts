@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { users, auditLog } from "@/db/schema";
 import { eq, ne, and } from "drizzle-orm";
-import { getSession } from "@/lib/auth/session";
+import { getSession, createSessionCookie } from "@/lib/auth/session";
 import { verifyPassword, hashPassword } from "@/lib/auth/password";
 import { emailSchema, nameSchema, passwordSchema } from "@/lib/validation/schemas";
 import { z } from "zod";
@@ -97,6 +97,19 @@ export async function PATCH(request: Request) {
           passwordChanged: !!updates.passwordHash,
         }),
       });
+
+      if (updates.sessionVersion) {
+        await createSessionCookie(
+          {
+            id: session.id,
+            email: updates.email || currentUser.email,
+            name: updates.name || currentUser.name,
+            role: currentUser.role as "owner" | "super_admin" | "admin",
+            isBlocked: currentUser.isBlocked,
+          },
+          updates.sessionVersion
+        );
+      }
 
       logger.info("user.profile_updated", { userId: session.id });
     }

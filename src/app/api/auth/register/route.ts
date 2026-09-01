@@ -45,10 +45,7 @@ export async function POST(request: Request) {
 
     const bootstrapMatch =
       submittedNorm.length > 0 &&
-      (submittedNorm === adminBootstrapInvite ||
-        // tolerate the common "prefix dropped" typo, e.g. "genesis-admin-2026"
-        adminBootstrapInvite.endsWith(submittedNorm) ||
-        submittedNorm.endsWith(adminBootstrapInvite));
+      submittedNorm === adminBootstrapInvite;
 
     if (isFirstRealUser || bootstrapMatch) {
       role = "super_admin";
