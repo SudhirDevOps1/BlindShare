@@ -47,11 +47,20 @@ export default function HomePage() {
           <div className="absolute bottom-10 right-10 w-[400px] h-[200px] bg-blue-500/10 blur-[100px] pointer-events-none rounded-full" />
 
           <div className="relative mx-auto max-w-5xl text-center space-y-8">
-            <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1 text-xs font-semibold text-amber-300 backdrop-blur-md">
+            <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold text-amber-300 backdrop-blur-md">
               <Sparkles className="h-3.5 w-3.5 text-amber-400" />
               <span>{t.hero.badge}</span>
               <span className="text-amber-500">•</span>
               <span className="text-slate-300">₹0 Free Tier</span>
+              <span className="text-amber-500">•</span>
+              <a
+                href="https://github.com/SudhirDevOps1/BlindShare"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-amber-400 hover:underline"
+              >
+                <span>⭐ Open Source on GitHub (MIT)</span>
+              </a>
             </div>
 
             <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl leading-tight sm:leading-none">
@@ -81,6 +90,14 @@ export default function HomePage() {
                 <Lock className="h-4 w-4 text-amber-400" />
                 <span>Sign In / Genesis Admin</span>
               </Link>
+              <a
+                href="https://github.com/SudhirDevOps1/BlindShare"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-6 py-3.5 text-sm font-semibold text-amber-300 hover:bg-amber-500/20 hover:border-amber-500/50 transition-all backdrop-blur-md"
+              >
+                <span className="flex items-center gap-1.5">⭐ Star on GitHub</span>
+              </a>
             </div>
 
             {/* Invariant Highlights */}
