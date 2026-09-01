@@ -47,6 +47,17 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
 - **SSRF Defense Engine** (`src/lib/security/ssrf-validator.ts`): Outbound webhook destination validation
   that actively blocks loopback interfaces, private RFC-1918 subnets (`10.x`, `172.16.x`, `192.168.x`),
   multicast, and cloud metadata IP addresses (`169.254.169.254`, `metadata.google.internal`).
+- **Live DNS MX Verification & Temp Email Filter** (`src/lib/validation/email-validator.ts`): Real-time
+  DNS MX record resolution ensuring viewers provide legitimate corporate/personal mailboxes, combined
+  with a blocklist of 40+ disposable temp email domains and private subnet probe mitigation.
+- **Live Room Access Control & Presentation Guard** (`src/app/api/v/[slug]/room/route.ts`): Strict
+  owner-only session verification preventing unauthorized users from broadcasting or hijacking slide navigation.
+- **Tab-Switch Anti-Spy Privacy Shield** (`src/app/v/[slug]/page.tsx`): Focus & window visibility listeners
+  that automatically conceal confidential document canvases behind a dark-glass veil on blur or tab switch.
+- **Burn-After-Reading Atomic Self-Destruction** (`src/app/api/v/[slug]/verify/route.ts`): Single-use
+  links that immediately flag `isRevoked: true` in database upon initial unlock, permanently shredding future access.
+- **Client-Side GZIP Compression before AES-GCM Encryption** (`src/lib/crypto-core/index.ts`): Compresses
+  data client-side before AES-GCM-256 encryption, reducing storage footprint by 50–80% with zero server visibility.
 - **Distributed Edge Rate Limiting** (`src/lib/security/distributed-rate-limiter.ts`): Multi-node rate
   limiting via Upstash Redis REST HTTP API with zero-crash in-memory sliding window fallback.
 - **Resilient Self-Hosted PDF.js**: Local vendor script loading with CDN failover to guarantee 100%

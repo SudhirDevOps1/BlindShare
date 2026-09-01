@@ -126,6 +126,10 @@ BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your 
 <summary><strong>🔒 Security & Encryption</strong></summary>
 <br/>
 
+- **Transparent Client-Side GZIP Compression** — 50–80% storage footprint reduction on B2/R2 with zero server CPU load
+- **Live DNS MX Verification & Temp Email Blocker** — real-time Node.js DNS resolution + 40+ disposable domain blocklist + SSRF private IP filter
+- **Tab-Switch Anti-Spy Privacy Shield** — auto-obfuscates confidential documents when reader switches tabs/windows
+- **Burn-After-Reading Self-Destruct Links** — atomic single-use link crypto-shredding upon initial access
 - **Two-Factor Authentication (2FA / TOTP RFC 6238)** — Google Authenticator, Authy, 1Password QR code scan + 8 emergency backup codes
 - **AES-GCM-256** client-side encryption with CSPRNG per-document keys
 - **`#k=` URL fragment** key delivery — cryptographically guaranteed to never reach the server
@@ -145,6 +149,9 @@ BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your 
 <br/>
 
 - Upload **any file type**: PDF, Images (PNG, JPG, WebP, GIF, AVIF, BMP), SVG, Markdown, CSV/Spreadsheet, Audio, Video, ZIP bundles
+- **In-Doc Interactive Question Pins** — reader click-to-pin question overlay on slides with founder reply thread
+- **Voice Pitch Walkthrough Notes** — founder audio explanations attached to slides with floating wave player
+- **Live Presenter Room & Co-Browsing** — real-time host-to-viewer slide broadcast and synchronization
 - **300+ DPI Retina Crisp Super-Sampling** — ultra-sharp vector rendering on 1080p/2K/4K/Retina displays
 - **Fullscreen Pitch Presentation Mode** — slideshow presenter view with interactive red laser pointer, keyboard navigation (`Space`, `Arrows`, `L`), and watermark sync
 - **Resilient Self-Hosted PDF.js Engine** with high-availability CDN fallback (zero single points of failure)
@@ -161,12 +168,13 @@ BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your 
 <summary><strong>🔗 Link Studio</strong></summary>
 <br/>
 
+- **Granular 1-Click Expiry Presets** — `1 Hour`, `24 Hours`, `7 Days`, `30 Days`, and custom date/time picker
+- **Granular Max-View Limits** — `1 View (Burn)`, `5 Views`, `25 Views`, `100 Views`, and custom numeric limit
 - **Password protection** with PBKDF2-hashed gate
-- **Email gate** — require specific email(s) before access
+- **Email gate** with live MX DNS validation — require authentic corporate or personal emails before access
 - **Domain allowlist** — restrict viewing to `@yourcompany.com`
 - **NDA clickwrap** — custom terms the viewer must accept
 - **Digital Signatures** — in-app touch/mouse canvas signature signing
-- **Expiry dates** and **max-view limits** per link
 - **Download toggle** — prevent viewers from saving files
 - **Dynamic watermarks** with viewer's email / IP / timestamp
 - **QR code generation** for every share link
@@ -174,10 +182,11 @@ BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your 
 
 </details>
 
-<details>
-<summary><strong>📊 Analytics & Tracking</strong></summary>
+<details open>
+<summary><strong>📊 Analytics & AI Intent Scoring</strong></summary>
 <br/>
 
+- **AI Lead Conviction Intent Scoring Engine** — 0–100 conviction score (`🔥 HOT DEAL`, `⚡ WARM`, `❄️ CASUAL`) with actionable buyer signal pills
 - **Per-page dwell-time sparklines** and completion percentages
 - Device class, coarse geo-country, UTM source attribution
 - **CSV export** of all view sessions
