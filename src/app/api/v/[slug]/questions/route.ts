@@ -83,6 +83,14 @@ export async function POST(
       return NextResponse.json({ error: "Link not found" }, { status: 404 });
     }
 
+    const sanitizedText = questionText.replace(/<[^>]*>?/gm, "").trim().substring(0, 1000);
+    const sanitizedName = askerName ? String(askerName).replace(/<[^>]*>?/gm, "").trim().substring(0, 80) : "Anonymous Reader";
+    const sanitizedEmail = askerEmail ? String(askerEmail).trim().toLowerCase().substring(0, 254) : null;
+
+    if (!sanitizedText) {
+      return NextResponse.json({ error: "Question text cannot be empty" }, { status: 400 });
+    }
+
     const questionId = genId("qst");
 
     await db.insert(pageQuestions).values({
@@ -93,9 +101,9 @@ export async function POST(
       pageNumber: Math.max(1, parseInt(String(pageNumber), 10)),
       posXPercent: Math.min(100, Math.max(0, parseInt(String(posXPercent || 50), 10))),
       posYPercent: Math.min(100, Math.max(0, parseInt(String(posYPercent || 50), 10))),
-      questionText: questionText.trim().substring(0, 1000),
-      askerEmail: askerEmail ? String(askerEmail).trim().toLowerCase().substring(0, 254) : null,
-      askerName: askerName ? String(askerName).trim().substring(0, 100) : "Anonymous Reader",
+      questionText: sanitizedText,
+      askerEmail: sanitizedEmail,
+      askerName: sanitizedName,
     });
 
     // Notify document owner via Webhook & WebPush

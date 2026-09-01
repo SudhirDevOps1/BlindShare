@@ -56,6 +56,13 @@ export async function GET(
       }, { status: 410 });
     }
 
+    if (link.burnAfterReading && link.viewCount >= 1) {
+      return NextResponse.json({
+        isRevoked: true,
+        error: "This single-use Burn-After-Reading link has self-destructed.",
+      }, { status: 410 });
+    }
+
     const isExpired = (link.expiresAt && new Date(link.expiresAt) < new Date()) ||
       (link.maxViews !== null && link.viewCount >= link.maxViews);
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getSession } from "@/lib/auth/session";
 import { db } from "@/db";
 import { links, liveRooms } from "@/db/schema";
 import { eq } from "drizzle-orm";
@@ -55,17 +56,23 @@ export async function POST(
   const { slug } = await params;
 
   try {
+    const authUser = await getSession();
     const body = await request.json().catch(() => ({}));
     const { currentSlide, laserX, laserY, presenterActive } = body;
 
     const [link] = await db
-      .select({ id: links.id, isRevoked: links.isRevoked, isActive: links.isActive })
+      .select({ id: links.id, ownerId: links.ownerId, isRevoked: links.isRevoked, isActive: links.isActive })
       .from(links)
       .where(eq(links.slug, slug))
       .limit(1);
 
     if (!link || link.isRevoked || !link.isActive) {
       return NextResponse.json({ error: "Link not found" }, { status: 404 });
+    }
+
+    // Security Check: Only link owner can broadcast and control the presenter room
+    if (!authUser || authUser.id !== link.ownerId) {
+      return NextResponse.json({ error: "Only the document owner can broadcast in Live Presenter mode" }, { status: 403 });
     }
 
     const [existingRoom] = await db

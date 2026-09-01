@@ -68,6 +68,15 @@ export async function validateEmailWithMx(email: string): Promise<EmailValidatio
 
   const domain = match[1];
 
+  // Block private IPs, localhost, cloud metadata, and internal domains
+  const PRIVATE_DOMAIN_REGEX = /^(localhost|.*\.local|.*\.internal|.*\.lan|.*\.corp|.*\.home|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|169\.254\.)/i;
+  if (PRIVATE_DOMAIN_REGEX.test(domain) || !domain.includes(".")) {
+    return {
+      valid: false,
+      reason: "Internal, localhost, or private IP email domains are not allowed.",
+    };
+  }
+
   // Check disposable email blacklist
   if (DISPOSABLE_DOMAINS.has(domain)) {
     return {

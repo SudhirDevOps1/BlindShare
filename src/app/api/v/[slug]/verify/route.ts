@@ -135,9 +135,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       maxPageReached: 1,
     });
 
+    const shouldRevokeOnBurn = Boolean(link.burnAfterReading);
+
     await db
       .update(links)
-      .set({ viewCount: sql`${links.viewCount} + 1`, updatedAt: new Date() })
+      .set({
+        viewCount: sql`${links.viewCount} + 1`,
+        isRevoked: shouldRevokeOnBurn ? true : links.isRevoked,
+        updatedAt: new Date(),
+      })
       .where(eq(links.id, link.id));
 
     const [ownerDoc] = link.docId
