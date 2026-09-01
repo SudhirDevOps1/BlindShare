@@ -7,117 +7,74 @@ description: >-
   platform or any zero-knowledge document sharing system.
 ---
 
-# BlindShare Architecture & Engineering Mastery Skill
+# BlindShare Master AI Brain & Architectural Engineering Skill
 
-## Overview
-**BlindShare** (v1.2.0) is a self-hosted, zero-knowledge encrypted document sharing and analytics platform (DocSend & Papermark alternative). The core technical guarantee of BlindShare is: **the server never sees plaintext files, passwords, or decryption keys — not once, not ever.**
-
-This skill provides future AI agents with deep architectural context, strict security invariants, dual database driver support, zero-cost cloud deployment presets, and autonomous verification checklists.
+> 🌐 **Bilingual Master Directive (English + हिंदी):**  
+> This document acts as the definitive brain context, architectural standard, cryptographic rulebook, and self-improvement protocol for any AI agent interacting with the BlindShare codebase.
 
 ---
 
-## 🔒 1. Core Architectural & Cryptographic Invariants
+## 🧠 1. AI Brain Context & Zero-Knowledge Invariants (क्रिप्टोग्राफिक व आर्किटेक्चरल सिद्धांत)
 
-Any AI working on this codebase **MUST STRICTLY PRESERVE** the following invariants:
+Any AI modifying or extending this codebase **MUST UNCONDITIONALLY UPHOLD** these non-negotiable invariants:
 
-1. **Zero-Knowledge URL Fragment Key Transport (RFC 3986):**
-   - The master decryption key (`#k=...`) MUST ONLY live in the URL fragment.
-   - Per RFC 3986 §3.5, URL fragments are processed client-side by browsers and are **NEVER sent in HTTP request lines** to servers, CDNs, or reverse proxies.
-   - Decryption occurs strictly inside the viewer's browser via `crypto.subtle.decrypt('AES-GCM', ...)`.
+### 🔐 A. Zero-Knowledge Cryptography (RFC 3986)
+- **URL Fragment Rule:** The master decryption key (`#k=...`) MUST ONLY live in the URL fragment.
+  - *Hindi:* डिक्रिप्शन की (`#k=`) सिर्फ URL Fragment में रहेगी और कभी भी HTTP रिक्वेस्ट लाइन, सर्वर लॉग्स या CDN पर नहीं जाएगी (RFC 3986 §3.5)।
+- **Browser-Side Decrypt:** Decryption occurs strictly inside the viewer's browser via `crypto.subtle.decrypt('AES-GCM', ...)`.
+- **PBKDF2 Key Wrapping:** Password-protected links wrap the DocKey with PBKDF2 (SHA-256) at **250,000 iterations**. The server stores only salt and wrapped ciphertext key (`wrappedKeyHex`).
+- **GZIP Stream Compression:** Native browser `CompressionStream('gzip')` compresses payloads before AES-GCM-256 encryption, reducing storage and bandwidth by 50-80% at ₹0 / $0 server cost.
 
-2. **Transparent Client-Side GZIP Compression:**
-   - Before AES-GCM-256 encryption, documents are compressed using browser-native `CompressionStream('gzip')`.
-   - On viewer decrypt, documents pass through `DecompressionStream('gzip')`.
-   - This reduces file storage and bandwidth by 50-80% without incurring server CPU overhead.
-
-3. **Key Derivation & Password Gate (PBKDF2):**
-   - Password-gated links wrap the document key (`DocKey`) using PBKDF2 with SHA-256 and **250,000 iterations**.
-   - Server-side stores only the PBKDF2 salt and wrapped ciphertext key (`wrappedKeyHex`). The server cannot decrypt the document even with database access.
-
-4. **Timing-Safe HMAC Session Token Signatures:**
-   - Sessions are signed with HMAC-SHA256 (`crypto.createHmac`) using `SESSION_SECRET`.
-   - Verification MUST use `crypto.timingSafeEqual` to prevent side-channel timing attacks.
-   - Multi-device instant session invalidation is enforced via `users.sessionVersion`.
-
-5. **Atomic Concurrency & Anti-Race-Condition Updates (TOCTOU):**
-   - Single-use Burn-After-Reading and max-views links MUST be updated atomically in SQL:
-     ```typescript
-     where(and(eq(links.id, linkId), eq(links.isRevoked, false), or(isNull(links.maxViews), sql`${links.viewCount} < ${links.maxViews}`)))
-     ```
-   - Never separate the view count check from the increment update.
-
-6. **Strict Privilege Escalation Defense:**
-   - Admin bootstrap invite comparisons MUST use strict equality (`submittedNorm === adminBootstrapInvite`).
-   - Never use partial string matching (`.endsWith()` or `.includes()`) for authorization keys.
-
-7. **Storage Boundary Confinement (Path Traversal Defense):**
-   - File keys in local storage adapters MUST be sanitized via `path.basename` and confined within `path.resolve(storageDir)`.
+### 💰 B. Three Zero-Cost Master Presets (100% Free & No-Card Stacks)
+1. **Preset A: Cloud Serverless (Recommended Default)**
+   - *Stack:* Vercel / Render + Neon Serverless PostgreSQL (`DATABASE_DRIVER=postgres`) + Backblaze B2 (`STORE_TARGET=b2`).
+   - *Cost:* $0/month (Neon 512 MB free DB + B2 10 GB free encrypted vault).
+2. **Preset B: Zero-Cost Self-Hosted**
+   - *Stack:* Docker / VPS / Fly.io + SQLite (`DATABASE_DRIVER=sqlite`) + Litestream B2 Continuous WAL streaming.
+   - *Cost:* $0/month ($0 database hosting with sub-second RPO B2 backups).
+3. **Preset C: Edge & Infinite Bandwidth**
+   - *Stack:* Cloudflare Pages + Turso libSQL Edge (`libsql://...`) + Backblaze B2 via Proxied CNAME (`B2_ENDPOINT=download.yourdomain.com`).
+   - *Bandwidth Alliance Guarantee:* Data egress from B2 through Cloudflare CDN is **100% FREE ($0 Unlimited Egress)**.
+   - *Card Requirement:* 0% (No credit card required anywhere).
 
 ---
 
-## 💰 2. Three Master Zero-Cost Deployment Presets (No-Card Stacks)
+## 🛡️ 2. Hardened Security & Anti-Hacking Defenses (सुरक्षा व बग प्रिवेंशन)
 
-BlindShare supports three production presets engineered to run 100% on free tiers without requiring a credit card:
+Every AI must strictly implement and verify these security defenses on any new or existing route:
 
-### 🟢 Preset A: Cloud Serverless (Vercel / Render + Neon Postgres + Backblaze B2)
-- **Use Case:** Default 1-click cloud deployment.
-- **Database:** Neon PostgreSQL (`DATABASE_DRIVER=postgres`, 512 MB free storage, auto-sleeps on idle).
-- **Storage:** Backblaze B2 (`STORE_TARGET=b2`, 10 GB free forever, presigned direct browser uploads).
-- **Cost:** $0/month forever.
-
-### 🟢 Preset B: Zero-Cost Self-Hosted (Docker / VPS + SQLite + Litestream B2)
-- **Use Case:** Persistent servers, Raspberry Pi, Fly.io, or self-hosted VPS with zero database fees.
-- **Database:** Local SQLite at `/data/blindshare.db` (`DATABASE_DRIVER=sqlite`, Drizzle ORM).
-- **Disaster Recovery:** Litestream background daemon continuously streams SQLite WAL frames to Backblaze B2 every 1 second ($0 RPO).
-- **Auto-Restore:** `deploy/entrypoint.sh` automatically restores the database from B2 on cold container boot.
-- **Cost:** $0/month forever.
-
-### 🟢 Preset C: Edge & Infinite Bandwidth (Cloudflare Pages + Turso libSQL + B2 Bandwidth Alliance)
-- **Use Case:** High-traffic viral pitch decks requiring unlimited download bandwidth without surprise bills.
-- **Compute:** Cloudflare Pages / Workers (`npm run pages:build`, 0ms cold start).
-- **Database:** Turso SQLite Edge (`libsql://...`, 9 GB free storage, 1 Billion reads/month, 300+ edge locations).
-- **Storage:** Backblaze B2 via Cloudflare Proxied CNAME (`B2_ENDPOINT=download.yourdomain.com`).
-- **Bandwidth Alliance:** Under the Cloudflare + Backblaze Bandwidth Alliance, data transfer from B2 through Cloudflare CDN is **100% FREE ($0 Unlimited Egress)**.
-- **Card Requirement:** 0% — No credit card required on Cloudflare, Turso, or B2.
+1. **Admin Bootstrap Privilege Escalation Defense:**
+   - Strict exact equality (`submittedNorm === adminBootstrapInvite`) is mandatory. Never use `.endsWith()` or partial matches.
+2. **Local Storage Path Traversal Confinement:**
+   - File paths must be sanitized with `path.basename` and confined within `path.resolve(storageDir)`.
+3. **Atomic Concurrency (TOCTOU) Link Protection:**
+   - Single-use Burn-After-Reading and max-views checks must be performed in a single atomic SQL update query.
+4. **Timing-Safe HMAC Sessions & Multi-Device Invalidation:**
+   - Session signatures must use `crypto.timingSafeEqual` and invalidate instantly across all devices on password change via `users.sessionVersion`.
+5. **SSRF & DNS Rebinding Mitigation:**
+   - Webhook dispatches and email domain lookups must strictly block RFC 1918 private subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), loopback (`127.0.0.0/8`), and cloud metadata (`169.254.169.254`).
+6. **Orphan Sweep Version Blob Preservation:**
+   - S3/B2 bucket cleaner must preserve `docVersions.storageKey` alongside `documents.storageKey` to prevent historical version deletion.
+7. **Sole Super Admin Self-Deletion Guard:**
+   - Prevent the last remaining Super Admin from deleting their own account.
 
 ---
 
-## 🦆 3. Embedded In-Memory Analytics & SIEM Pipeline
+## 🚀 3. AI Self-Improvement & Strict Development Protocol (AI सुधार नियम)
 
-1. **DuckDB Columnar Analytics Engine (`src/lib/analytics/duckdb-engine.ts`):**
-   - High-performance in-process OLAP engine.
-   - Computes mathematical dwell percentiles (`p50, p90, p99`), slide drop-off rates, and completion heatmaps in sub-5ms without taxing the primary database.
-   - Supports streaming NDJSON and CSV exports.
+Follow this protocol during any engineering task on BlindShare:
 
-2. **AI Lead Conviction Scoring Engine (`src/lib/analytics/lead-scoring.ts`):**
-   - Mathematical 0-100 score analyzing 4 intent signals: Dwell Time (35%), Slide Completion (25%), Revisit Frequency (20%), and Focus/NDA (20%).
-   - Classifies readers into `🔥 HOT DEAL (85-100)`, `⚡ WARM (60-84)`, and `❄️ CASUAL (0-59)`.
-
-3. **Enterprise SIEM Forwarder (`src/lib/siem/siem-forwarder.ts`):**
-   - Streams security audit logs in Common Event Format (CEF) and JSON to Splunk HEC, Datadog Logs API, and Elastic Stack.
+| Step | Rule | Description |
+|:---:|---|---|
+| **1** | **Zero Content Deletion** | *"Bina kuchh hataye"* — Never delete existing features, documentation, or code paths. Only harden, extend, and improve. |
+| **2** | **Bilingual i18n Parity** | Every UI string must have entries in both `en` and `hi` in `src/lib/i18n/dictionary.ts`. |
+| **3** | **Version Synchronization** | All files (`package.json`, `version/route.ts`, `README.md`, `CHANGELOG.md`) must report `v1.2.0`. |
+| **4** | **Automated Test Invariant** | Always run `npm run typecheck && npm test && npm run lint`. All 18+ security tests must pass with 0 errors. |
+| **5** | **Zero PII Logging** | Never output passwords, keys, viewer emails, or filenames to stdout. Use `logger.info/warn/error`. |
 
 ---
 
-## 🛠️ 4. AI Self-Improvement & Development Protocol
-
-When developing or modifying BlindShare, follow these strict development rules:
-
-1. **Zero Content Deletions (Strict User Rule):**
-   - Never remove existing features, comments, routes, or documentation. Always refine, harden, or extend.
-2. **Dual-Language i18n Parity:**
-   - When adding new UI elements, register dictionary keys in both `en` and `hi` in `src/lib/i18n/dictionary.ts`.
-3. **Version Synchronization (v1.2.0):**
-   - Ensure `package.json`, `src/app/api/version/route.ts`, `README.md`, and `docs/CHANGELOG.md` all report identical version tags.
-4. **Mandatory Automated Verification:**
-   - Before committing any changes, run:
-     ```bash
-     npm run typecheck && npm test && npm run lint
-     ```
-   - All 18+ security & cryptographic E2E tests MUST pass with 0 errors.
-
----
-
-## 📁 References & Additional Documents
+## 📁 References & Deep Architecture Docs
 - [Security Invariants & Defenses](references/security-invariants.md)
 - [Zero-Cost Hosting Presets Guide](references/zero-cost-presets.md)
 - [Client-Side Cryptography Pipeline](references/crypto-pipeline.md)
