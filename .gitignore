@@ -34,3 +34,7 @@ Thumbs.db
 .idea/
 *.tsbuildinfo
 
+# AI Agent Local Configs & Workspace Skills (Kept locally, excluded from git)
+.agents/
+.claude/
+.gemini/
