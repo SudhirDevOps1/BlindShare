@@ -1,7 +1,7 @@
 import { StorageAdapter, StoragePresignResult } from "./types";
 import fs from "fs";
 import path from "path";
-import os from "os";
+import crypto from "crypto";
 
 export class LocalStorageAdapter implements StorageAdapter {
   name = "local";
@@ -10,23 +10,23 @@ export class LocalStorageAdapter implements StorageAdapter {
   constructor() {
     this.storageDir = path.resolve(process.cwd(), ".storage_blobs");
     if (!fs.existsSync(this.storageDir)) {
-      try {
-        fs.mkdirSync(this.storageDir, { recursive: true, mode: 0o700 });
-      } catch {
-        this.storageDir = path.resolve(os.tmpdir(), "blindshare_vault");
-        if (!fs.existsSync(this.storageDir)) {
-          fs.mkdirSync(this.storageDir, { recursive: true, mode: 0o700 });
-        }
-      }
+      fs.mkdirSync(this.storageDir, { recursive: true, mode: 0o700 });
     }
   }
 
   private getFilePath(key: string): string {
-    const cleanKey = path.basename(key).replace(/[^a-zA-Z0-9_\-\.]/g, "_");
-    const safeKey = cleanKey || "unnamed_blob";
-    const resolvedPath = path.resolve(this.storageDir, safeKey);
+    const rawKey = String(key || "").trim();
+    if (!rawKey) {
+      throw new Error("Security violation: Storage key cannot be empty");
+    }
+    // Deterministic cryptographic key digest prevents path traversal & arbitrary filesystem write
+    const keyHash = crypto.createHash("sha256").update(rawKey).digest("hex");
+    const safeFilename = `${keyHash}.blob`;
+    const resolvedPath = path.resolve(this.storageDir, safeFilename);
     const resolvedRoot = path.resolve(this.storageDir);
-    if (!resolvedPath.startsWith(resolvedRoot)) {
+
+    const rel = path.relative(resolvedRoot, resolvedPath);
+    if (rel.startsWith("..") || path.isAbsolute(rel)) {
       throw new Error("Security violation: Path traversal attempt detected");
     }
     return resolvedPath;

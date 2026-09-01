@@ -5,8 +5,8 @@ export async function PUT(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key");
-    if (!key) {
-      return NextResponse.json({ error: "Missing key parameter" }, { status: 400 });
+    if (!key || !/^[a-zA-Z0-9_\-\.\/]+$/.test(key) || key.includes("..")) {
+      return NextResponse.json({ error: "Invalid or illegal storage key" }, { status: 400 });
     }
 
     const arrayBuffer = await request.arrayBuffer();
