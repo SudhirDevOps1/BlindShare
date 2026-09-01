@@ -351,18 +351,59 @@ BlindShare features first-class internationalization out of the box:
 
 ---
 
-### 🟢 Preset C: Cloudflare Edge *(Global Edge Network)*
+### 🟢 Preset C: Edge & Infinite Bandwidth *(100% Free, Zero Card, Unlimited Egress)*
 
-**Cloudflare Pages + D1/Turso + R2**
-
-```bash
-npx wrangler pages deploy .next --project-name blindshare
-```
+**Cloudflare Pages / Vercel + Turso / Neon + Backblaze B2 (Bandwidth Alliance)**
 
 | | Details |
 |---|---|
 | ⚡ **Setup Time** | 3 Minutes |
-| 💰 **Monthly Cost** | $0 (5 GB D1 SQL + 10 GB R2 with $0 bandwidth egress) |
+| 💰 **Monthly Cost** | $0 (1 Billion Reads Turso + 10 GB B2 + $0 Unlimited Egress via Bandwidth Alliance) |
+| 💳 **Credit Card** | **Zero / None Required** (100% Free Forever Tiers) |
+| 🚀 **Deploy Target** | Cloudflare Pages / Vercel / Netlify |
+
+Combine **Cloudflare's Global CDN** with **Backblaze B2** under the **Bandwidth Alliance** to get **100% $0 unlimited download bandwidth** without paying egress fees or needing a credit card.
+
+```mermaid
+graph LR
+    User["👥 Viewers & Downloaders"] -->|"Unlimited $0 Egress"| CF["⚡ Cloudflare CDN Edge<br/>(Free Plan, No Card)"]
+    CF -->|"Bandwidth Alliance: $0 Transfer"| B2["☁️ Backblaze B2 Vault<br/>(10 GB Free, No Card)"]
+    App["🚀 BlindShare App<br/>(Cloudflare Pages / Vercel)"] -->|"Fast Edge Queries"| Turso[("⚡ Turso SQLite Edge<br/>(9 GB, 1B Reads, No Card)")]
+```
+
+#### 🛠️ 1-Command Edge Deploy:
+```bash
+# 1. Clone repository
+git clone https://github.com/SudhirDevOps1/BlindShare.git && cd BlindShare
+
+# 2. Deploy to Cloudflare Pages (or link Git repo in Cloudflare dashboard)
+npx wrangler pages deploy .next --project-name blindshare
+```
+
+#### ⚙️ Preset C Environment Configuration (`.env`):
+```ini
+NODE_ENV=production
+DATABASE_DRIVER=sqlite
+DATABASE_URL=libsql://your-database-name.turso.io
+TURSO_AUTH_TOKEN=your_turso_auth_token
+SESSION_SECRET=generate_with_openssl_rand_hex_64
+ADMIN_BOOTSTRAP_INVITE=BLINDSHARE-GENESIS-2026
+HEALTH_TOKEN=health_secret_token_99x
+
+# Backblaze B2 + Cloudflare CDN (Bandwidth Alliance = $0 Egress Forever)
+STORE_TARGET=b2
+B2_ENDPOINT=download.yourdomain.com
+B2_BUCKET=blindshare-vault
+B2_KEY_ID=your_b2_key_id
+B2_APPLICATION_KEY=your_b2_app_key
+DOCS_ENCRYPTION_MODE=e2ee-fragment
+```
+
+#### 🛡️ Key Advantages of Preset C:
+- 💳 **100% No Credit Card Needed:** Neither Cloudflare, Turso, nor Backblaze B2 require a credit card for their free tier.
+- 🚀 **1 Billion DB Reads / Month:** Turso gives 9 GB free storage and 1,000,000,000 reads/month on edge nodes.
+- 🌐 **Bandwidth Alliance Free Egress:** Cloudflare Proxied CNAME routes all file downloads through Cloudflare CDN, eliminating B2 egress bills.
+- ⚡ **Global Sub-30ms Latency:** Pages and files load from the nearest Cloudflare Edge data center worldwide.
 
 
 ---
