@@ -1,29 +1,29 @@
 import { StorageAdapter, StoragePresignResult } from "./types";
 import fs from "fs";
 import path from "path";
+import os from "os";
 
 export class LocalStorageAdapter implements StorageAdapter {
   name = "local";
   private storageDir: string;
 
   constructor() {
-    this.storageDir = path.join(process.cwd(), ".storage_blobs");
+    this.storageDir = path.resolve(process.cwd(), ".storage_blobs");
     if (!fs.existsSync(this.storageDir)) {
       try {
-        fs.mkdirSync(this.storageDir, { recursive: true });
-      } catch (e) {
-        console.warn("Could not create local storage dir, using /tmp/blindshare_blobs:", e);
-        this.storageDir = "/tmp/blindshare_blobs";
+        fs.mkdirSync(this.storageDir, { recursive: true, mode: 0o700 });
+      } catch {
+        this.storageDir = path.resolve(os.tmpdir(), "blindshare_vault");
         if (!fs.existsSync(this.storageDir)) {
-          fs.mkdirSync(this.storageDir, { recursive: true });
+          fs.mkdirSync(this.storageDir, { recursive: true, mode: 0o700 });
         }
       }
     }
   }
 
   private getFilePath(key: string): string {
-    const base = path.basename(key).replace(/\.\.+/g, "_").replace(/[^a-zA-Z0-9_\-\.]/g, "_");
-    const safeKey = base || "unnamed_blob";
+    const cleanKey = path.basename(key).replace(/[^a-zA-Z0-9_\-\.]/g, "_");
+    const safeKey = cleanKey || "unnamed_blob";
     const resolvedPath = path.resolve(this.storageDir, safeKey);
     const resolvedRoot = path.resolve(this.storageDir);
     if (!resolvedPath.startsWith(resolvedRoot)) {
