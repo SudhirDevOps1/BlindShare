@@ -27,6 +27,11 @@ npx wrangler kv namespace create blindshare-kv
 npx wrangler r2 bucket create blindshare-cipher
 npx wrangler pages deploy .next --project-name blindshare
 npx wrangler deploy
+**ALT-C Docker + SQLite + Litestream + B2 (Zero-Cost Self-Hosted)**
+```bash
+# 1. Fill B2 and SESSION_SECRET in .env
+# 2. Build and start with auto-restoring Litestream streaming WAL to B2
+docker compose -f deploy/docker-compose.yml up -d --build
 ```
 
 ## Smoke tests after every deploy

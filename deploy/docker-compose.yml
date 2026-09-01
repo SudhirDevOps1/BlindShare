@@ -1,0 +1,26 @@
+services:
+  blindshare:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: blindshare-app
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - DATABASE_DRIVER=sqlite
+      - DATABASE_URL=file:/data/blindshare.db
+      - SESSION_SECRET=change_this_to_a_random_64_character_hex_secret_in_production
+      # Backblaze B2 Storage & Litestream WAL Streaming
+      - B2_KEY_ID=${B2_KEY_ID}
+      - B2_APPLICATION_KEY=${B2_APPLICATION_KEY}
+      - B2_BUCKET_NAME=${B2_BUCKET_NAME}
+      - B2_ENDPOINT=${B2_ENDPOINT}
+    volumes:
+      - blindshare_data:/data
+
+volumes:
+  blindshare_data:
+    driver: local

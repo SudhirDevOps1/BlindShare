@@ -1,0 +1,14 @@
+# Litestream Configuration for BlindShare SQLite Zero-Cost Streaming Replication
+# Streams WAL changes in real-time to Backblaze B2 / Cloudflare R2 / AWS S3
+
+dbs:
+  - path: /data/blindshare.db
+    replicas:
+      - type: s3
+        bucket: "${B2_BUCKET_NAME}"
+        path: "litestream-db"
+        endpoint: "${B2_ENDPOINT}"
+        access-key-id: "${B2_KEY_ID}"
+        secret-access-key: "${B2_APPLICATION_KEY}"
+        sync-interval: 1s
+        retention: 720h # 30 days of WAL point-in-time recovery

@@ -580,6 +580,7 @@ All deep technical references, security specifications, and operational runbooks
 | 🚨 [Incident Response Plan](./docs/INCIDENT-RESPONSE.md) | Security incident triage, key compromise procedures, and containment steps |
 | 🔒 [Privacy Policy](./docs/PRIVACY-POLICY.md) | Zero-knowledge architecture, no-log privacy commitments, and GDPR-lite rights |
 | ⚖️ [Terms of Service](./docs/TERMS.md) | Platform usage terms, open-source conditions, and liability disclaimers |
+| 🌊 [Zero-Cost Litestream Guide](./docs/LITESTREAM-SELFHOSTING.md) | Self-hosting with SQLite, Litestream streaming WAL to Backblaze B2 ($0 DB cost) |
 | 🚀 [Enterprise Upgrade Prompt](./docs/ENTERPRISE-UPGRADE-PROMPT.txt) | 1-click copy-paste master AI prompt for full free-tier enterprise production upgrade |
 | 🤝 [Contribution Guide](./docs/CONTRIBUTING.md) | Local setup, commit linting, pull request rules, and coding standards |
 | 👥 [Code of Conduct](./docs/CODE_OF_CONDUCT.md) | Community pledge and standards of respectful collaboration |
