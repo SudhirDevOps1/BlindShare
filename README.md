@@ -263,17 +263,54 @@ If you deploy BlindShare on **Vercel + Neon Postgres + Backblaze B2 (Your Curren
 
 ---
 
+## 🚀 1-Click Deployment Presets
+
+Choose your desired deployment preset below:
+
+### 🟢 Preset A: Cloud Serverless (Vercel + Neon Postgres + Backblaze B2) — *Recommended Default*
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhirDevOps1%2FBlindShare&env=DATABASE_URL,SESSION_SECRET,ADMIN_BOOTSTRAP_INVITE,HEALTH_TOKEN,B2_KEY_ID,B2_APPLICATION_KEY,B2_BUCKET_NAME,B2_ENDPOINT)
+
+- ⚡ **Setup Time:** 2 Minutes
+- 💰 **Monthly Cost:** $0 (Free Forever on Neon + Vercel Hobby + B2 10 GB)
+- ⚙️ **Config:** Auto-creates database schema on first launch, zero server management.
+
+---
+
+### 🟢 Preset B: Zero-Cost Self-Hosted (Docker / VPS + SQLite + Litestream B2) — *100% Free DB*
+[![Deploy with Docker](https://img.shields.io/badge/Deploy-Docker%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](./docs/LITESTREAM-SELFHOSTING.md)
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/new)
+
+```bash
+# 1. Fill environment keys in .env (DATABASE_DRIVER=sqlite, B2 credentials)
+# 2. Launch with auto-restoring Litestream streaming WAL to Backblaze B2
+docker compose -f deploy/docker-compose.yml up -d --build
+```
+- ⚡ **Setup Time:** 1 Command
+- 💰 **Monthly Cost:** $0 Database Cost Forever (Streams WAL logs to B2 with sub-second RPO)
+- 🔄 **Disaster Recovery:** Automatic restore from B2 if server crashes or restarts.
+
+---
+
+### 🟢 Preset C: Cloudflare Edge (Cloudflare Pages + D1/Turso + R2)
+```bash
+npx wrangler pages deploy .next --project-name blindshare
+```
+- ⚡ **Setup Time:** 3 Minutes
+- 💰 **Monthly Cost:** $0 (5 GB D1 SQL + 10 GB R2 with $0 bandwidth egress)
+
+---
+
 ### 🔄 All Zero-Cost 100% Free-Tier Architecture Combinations
 
 BlindShare is built with adapter abstraction (`STORE_TARGET`, `DB_TARGET`, `BACKEND_TARGET`), allowing you to mix and match any of these **100% free (₹0 / $0, No Credit Card)** stacks:
 
 | Combination Stack | Hosting / Edge | Database | Encrypted Storage | Monthly Free Limits | Daily Traffic Capacity | Best For | No Card Needed? |
 |---|---|---|---|---|---|---|:---:|
-| **Combo 1<br/>*(Current Default)*** | **Vercel Hobby**<br/>(100 GB band, 1M calls) | **Neon Postgres**<br/>(512 MB, auto-sleep) | **Backblaze B2**<br/>(10 GB free forever) | 1M requests<br/>10 GB files<br/>500k DB rows | **3,000 – 5,000 views/day**<br/>(Up to 10,000 documents) | **Recommended**: 1-click deploy, instant setup, zero config | ✅ Yes |
-| **Combo 2<br/>*(Infinite Scale Edge)*** | **Cloudflare Pages / Workers**<br/>(100k requests/day free) | **Cloudflare D1 (SQL)**<br/>(5M rows read/day, 5 GB storage) | **Cloudflare R2**<br/>(10 GB free, **$0 egress fees**) | 3M req/mo<br/>10 GB storage<br/>Zero bandwidth egress bill | **5,000 – 10,000 views/day**<br/>(Up to 10,000 documents) | High-volume viral decks where bandwidth spikes happen | ✅ Yes |
-| **Combo 3<br/>*(Ultra-Generous DB)*** | **Vercel / Netlify**<br/>(100 GB band) | **Turso SQLite Edge**<br/>(9 GB storage, 1 Billion reads/mo) | **Backblaze B2 / Cloudflare R2**<br/>(10 GB free) | 1 Billion DB reads<br/>9 GB DB storage | **5,000 – 8,000 views/day**<br/>(Up to 10,000 documents) | Retaining multi-year granular analytics history | ✅ Yes |
-| **Combo 4<br/>*(Supabase BaaS)*** | **Vercel Hobby** | **Supabase Postgres**<br/>(500 MB DB, 50,000 MAU) | **Backblaze B2**<br/>(10 GB) | 500 MB DB<br/>10 GB B2 storage | **2,000 – 4,000 views/day** | Developers who want Supabase Studio table visualizer | ⚠️ Pauses if inactive >7d |
-| **Combo 5<br/>*(Self-Hosted Docker)*** | **Koyeb / Render / Fly.io**<br/>(Free hobby compute) | **Neon / Turso** | **Backblaze B2 / R2** | 100 GB egress<br/>512 MB container RAM | **1,500 – 3,000 views/day** | Self-hosting on sovereign container infrastructure | ✅ Yes |
+| **Combo 1<br/>*(Mode A: Vercel Default)*** | **Vercel Hobby**<br/>(100 GB band, 1M calls) | **Neon Postgres**<br/>(512 MB, auto-sleep) | **Backblaze B2**<br/>(10 GB free forever) | 1M requests<br/>10 GB files<br/>500k DB rows | **3,000 – 5,000 views/day**<br/>(Up to 10,000 documents) | **Recommended**: 1-click deploy, instant setup, zero config | ✅ Yes |
+| **Combo 2<br/>*(Mode B: Litestream B2)*** | **Docker / VPS / Fly.io**<br/>(Single small container) | **SQLite + Litestream**<br/>(Real-time B2 WAL streaming) | **Backblaze B2**<br/>(10 GB free forever) | Unlimited DB rows<br/>10 GB files | **5,000 – 10,000 views/day** | **Zero DB Cost**: Full data durability with $0 database hosting fees | ✅ Yes |
+| **Combo 3<br/>*(Cloudflare Infinite Edge)*** | **Cloudflare Pages / Workers**<br/>(100k requests/day free) | **Cloudflare D1 (SQL)**<br/>(5M rows read/day, 5 GB storage) | **Cloudflare R2**<br/>(10 GB free, **$0 egress fees**) | 3M req/mo<br/>10 GB storage<br/>Zero bandwidth egress bill | **5,000 – 10,000 views/day**<br/>(Up to 10,000 documents) | High-volume viral decks where bandwidth spikes happen | ✅ Yes |
+| **Combo 4<br/>*(Turso Ultra-Generous DB)*** | **Vercel / Netlify**<br/>(100 GB band) | **Turso SQLite Edge**<br/>(9 GB storage, 1 Billion reads/mo) | **Backblaze B2 / Cloudflare R2**<br/>(10 GB free) | 1 Billion DB reads<br/>9 GB DB storage | **5,000 – 8,000 views/day**<br/>(Up to 10,000 documents) | Retaining multi-year granular analytics history | ✅ Yes |
+| **Combo 5<br/>*(Supabase BaaS)*** | **Vercel Hobby** | **Supabase Postgres**<br/>(500 MB DB, 50,000 MAU) | **Backblaze B2**<br/>(10 GB) | 500 MB DB<br/>10 GB B2 storage | **2,000 – 4,000 views/day** | Developers who want Supabase Studio table visualizer | ⚠️ Pauses if inactive >7d |
 
 ---
 
