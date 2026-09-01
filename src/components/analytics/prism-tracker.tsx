@@ -14,7 +14,15 @@ export function PrismTracker() {
     try {
       let sid = sessionStorage.getItem("pa_sid");
       if (!sid) {
-        sid = typeof crypto.randomUUID === "function" ? crypto.randomUUID() : Math.random().toString(36).substring(2);
+        if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+          sid = crypto.randomUUID();
+        } else if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+          const arr = new Uint8Array(16);
+          crypto.getRandomValues(arr);
+          sid = Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
+        } else {
+          sid = `sid_${Date.now()}`;
+        }
         sessionStorage.setItem("pa_sid", sid);
       }
 

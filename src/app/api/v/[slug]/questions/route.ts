@@ -83,8 +83,14 @@ export async function POST(
       return NextResponse.json({ error: "Link not found" }, { status: 404 });
     }
 
-    const sanitizedText = questionText.replace(/<[^>]*>?/gm, "").trim().substring(0, 1000);
-    const sanitizedName = askerName ? String(askerName).replace(/<[^>]*>?/gm, "").trim().substring(0, 80) : "Anonymous Reader";
+    const escapeText = (str: string, maxLen: number) =>
+      String(str || "")
+        .replace(/[<>"'&]/g, (c) => (c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : c === "'" ? "&#39;" : "&amp;"))
+        .trim()
+        .substring(0, maxLen);
+
+    const sanitizedText = escapeText(questionText, 1000);
+    const sanitizedName = askerName ? escapeText(String(askerName), 80) : "Anonymous Reader";
     const sanitizedEmail = askerEmail ? String(askerEmail).trim().toLowerCase().substring(0, 254) : null;
 
     if (!sanitizedText) {

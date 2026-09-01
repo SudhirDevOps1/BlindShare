@@ -44,7 +44,7 @@ export default function RootLayout({
               __html: `(function(){
 try {
   var id='${prismId}', url='${prismUrl}';
-  var sid=sessionStorage.getItem('pa_sid')||(typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():Math.random().toString(36).substring(2));
+  var sid=sessionStorage.getItem('pa_sid')||(typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():('sid_'+Date.now()));
   sessionStorage.setItem('pa_sid',sid);
   function t(e,d){
     try {

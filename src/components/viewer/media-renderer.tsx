@@ -365,14 +365,32 @@ function inlineMd(text: string): string {
     .replace(/\[([^\]]+)\]\(((?:https?:\/\/|mailto:|#)[^\s"'<>]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-amber-400 hover:underline inline-flex items-center gap-0.5">$1</a>');
 }
 
-/** Sanitize SVG safely */
+/** Sanitize SVG safely using DOMParser */
 function sanitizeSvg(svg: string): string {
-  return svg
-    .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, "")
-    .replace(/\son\w+\s*=\s*"[^"]*"/gi, "")
-    .replace(/\son\w+\s*=\s*'[^']*'/gi, "")
-    .replace(/javascript:/gi, "blocked:");
+  if (typeof window === "undefined" || typeof DOMParser === "undefined") return svg;
+  try {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svg, "image/svg+xml");
+    // Strip scripts and foreignObjects
+    const dangerousNodes = doc.querySelectorAll("script, foreignObject");
+    dangerousNodes.forEach((node) => node.remove());
+
+    // Strip inline event listeners (on*) and dangerous URL schemes
+    const elements = doc.querySelectorAll("*");
+    elements.forEach((el) => {
+      for (const attr of Array.from(el.attributes)) {
+        const name = attr.name.toLowerCase();
+        const val = attr.value.toLowerCase().replace(/\s+/g, "");
+        if (name.startsWith("on") || val.startsWith("javascript:") || val.startsWith("data:text/html")) {
+          el.removeAttribute(attr.name);
+        }
+      }
+    });
+
+    return new XMLSerializer().serializeToString(doc.documentElement);
+  } catch {
+    return svg;
+  }
 }
 
 function parseDelimited(text: string, delimiter: string): string[][] {
