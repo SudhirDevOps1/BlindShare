@@ -2,50 +2,51 @@
 
 <br />
 
-<img alt="BlindShare" src="public/brand/icon.png" width="120" height="120" style="border-radius: 24px;" />
+<img alt="BlindShare" src="public/brand/icon.png" width="128" height="128" style="border-radius: 28px;" />
 
-<h1>BlindShare</h1>
+<h1>🔏 BlindShare</h1>
 
 <p>
-  <strong>Zero-Knowledge Encrypted Document Sharing & Analytics</strong><br/>
-  <sub>The server never sees your files — ever.</sub>
+  <strong>Zero-Knowledge Encrypted Document Sharing &amp; Analytics Platform</strong><br/>
+  <sub>The server never sees your files — ever. Not once. Not ever.</sub>
 </p>
 
 <p>
   <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v1.2.0">
-    <img src="https://img.shields.io/github/v/release/SudhirDevOps1/BlindShare?style=flat-square&label=release&color=22c55e" alt="Release" />
+    <img src="https://img.shields.io/badge/version-v1.2.0-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v1.2.0" />
   </a>
   <a href="./LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License" />
+    <img src="https://img.shields.io/badge/license-MIT-3b82f6?style=for-the-badge" alt="MIT License" />
   </a>
   <a href="https://github.com/SudhirDevOps1/BlindShare/actions">
-    <img src="https://img.shields.io/github/actions/workflow/status/SudhirDevOps1/BlindShare/ci.yml?branch=main&style=flat-square&label=CI" alt="CI" />
+    <img src="https://img.shields.io/github/actions/workflow/status/SudhirDevOps1/BlindShare/ci.yml?branch=main&style=for-the-badge&label=CI+%2F+CD&logo=githubactions&logoColor=white" alt="CI / CD" />
   </a>
-  <a href="https://github.com/SudhirDevOps1/BlindShare/issues">
-    <img src="https://img.shields.io/github/issues/SudhirDevOps1/BlindShare?style=flat-square&color=orange" alt="Open Issues" />
-  </a>
-  <a href="https://github.com/SudhirDevOps1/BlindShare/pulls">
-    <img src="https://img.shields.io/github/issues-pr/SudhirDevOps1/BlindShare?style=flat-square&color=blueviolet" alt="Pull Requests" />
-  </a>
+  <img src="https://img.shields.io/badge/cost-%240%2Fmonth-f59e0b?style=for-the-badge&logo=cashapp&logoColor=white" alt="Free Forever" />
 </p>
 
 <p>
   <a href="https://nextjs.org">
-    <img src="https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=nextdotjs" alt="Next.js" />
+    <img src="https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs" alt="Next.js" />
   </a>
   <img src="https://img.shields.io/badge/TypeScript-strict-3178c6?style=flat-square&logo=typescript" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/encryption-AES--GCM--256-red?style=flat-square&logo=gnuprivacyguard&logoColor=white" alt="AES-GCM-256" />
-  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square" alt="PRs Welcome" />
-  <img src="https://img.shields.io/badge/cost-\$0%2Fmonth-orange?style=flat-square" alt="Free" />
+  <img src="https://img.shields.io/badge/encryption-AES--GCM--256-ef4444?style=flat-square&logo=gnuprivacyguard&logoColor=white" alt="AES-GCM-256" />
+  <img src="https://img.shields.io/badge/i18n-EN%20%2F%20%E0%A4%B9%E0%A4%BF%E0%A4%A8%E0%A5%8D%E0%A4%A6%E0%A5%80-8b5cf6?style=flat-square" alt="Bilingual EN/HI" />
+  <img src="https://img.shields.io/badge/PRs-welcome-10b981?style=flat-square" alt="PRs Welcome" />
+  <a href="https://github.com/SudhirDevOps1/BlindShare/issues">
+    <img src="https://img.shields.io/github/issues/SudhirDevOps1/BlindShare?style=flat-square&color=f97316" alt="Open Issues" />
+  </a>
+  <a href="https://github.com/SudhirDevOps1/BlindShare/pulls">
+    <img src="https://img.shields.io/github/issues-pr/SudhirDevOps1/BlindShare?style=flat-square&color=8b5cf6" alt="Pull Requests" />
+  </a>
 </p>
 
 <p>
-  <a href="#-why-blindshare">Why BlindShare?</a> •
-  <a href="#-features">Features</a> •
-  <a href="#-quick-deploy">Deploy</a> •
-  <a href="#-how-it-works">How It Works</a> •
-  <a href="#-local-development">Local Dev</a> •
-  <a href="./docs/CONTRIBUTING.md">Contributing</a> •
+  <a href="#-why-blindshare">Why BlindShare?</a> &nbsp;•&nbsp;
+  <a href="#-features">Features</a> &nbsp;•&nbsp;
+  <a href="#-1-click-deployment-presets">Deploy</a> &nbsp;•&nbsp;
+  <a href="#-how-it-works">How It Works</a> &nbsp;•&nbsp;
+  <a href="#-local-development">Local Dev</a> &nbsp;•&nbsp;
+  <a href="./docs/CONTRIBUTING.md">Contributing</a> &nbsp;•&nbsp;
   <a href="#-roadmap">Roadmap</a>
 </p>
 
@@ -60,6 +61,8 @@
 ---
 
 ## 🤔 Why BlindShare?
+
+> The only document sharing platform where **the server is mathematically incapable of reading your files.**
 
 | | DocSend | Papermark | **BlindShare** |
 |---|:---:|:---:|:---:|
@@ -240,7 +243,7 @@ BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your 
 
 ## 🚀 Quick Deploy
 
-**Zero infrastructure setup required. Runs 100% on free tiers without requiring a credit card.**
+> **Zero infrastructure setup required. Runs 100% on free tiers without requiring a credit card.**
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/SudhirDevOps1/BlindShare)
 
@@ -265,19 +268,26 @@ If you deploy BlindShare on **Vercel + Neon Postgres + Backblaze B2 (Your Curren
 
 ## 🚀 1-Click Deployment Presets
 
-Choose your desired deployment preset below:
+> Choose your desired deployment preset below — all are **100% free, no credit card required.**
 
-### 🟢 Preset A: Cloud Serverless (Vercel / Render + Neon Postgres + Backblaze B2) — *Recommended Default*
+### 🟢 Preset A: Cloud Serverless *(Recommended Default)*
+
+**Vercel / Render + Neon Postgres + Backblaze B2**
+
+| | Details |
+|---|---|
+| ⚡ **Setup Time** | 2 Minutes |
+| 💰 **Monthly Cost** | $0 (Free Forever on Neon + Vercel/Render Hobby + B2 10 GB) |
+| ⚙️ **Config** | Auto-creates database schema on first launch, zero server management. |
+
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhirDevOps1%2FBlindShare&env=DATABASE_URL,SESSION_SECRET,ADMIN_BOOTSTRAP_INVITE,HEALTH_TOKEN,B2_KEY_ID,B2_APPLICATION_KEY,B2_BUCKET_NAME,B2_ENDPOINT)
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SudhirDevOps1/BlindShare)
 
-- ⚡ **Setup Time:** 2 Minutes
-- 💰 **Monthly Cost:** $0 (Free Forever on Neon + Vercel/Render Hobby + B2 10 GB)
-- ⚙️ **Config:** Auto-creates database schema on first launch, zero server management.
-
 ---
 
-### 🟢 Preset B: Zero-Cost Self-Hosted (Docker / VPS + SQLite + Litestream B2) — *100% Free DB*
+### 🟢 Preset B: Zero-Cost Self-Hosted *(100% Free DB)*
+
+**Docker / VPS + SQLite + Litestream B2**
 [![Deploy with Docker](https://img.shields.io/badge/Deploy-Docker%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](./docs/LITESTREAM-SELFHOSTING.md)
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/new)
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SudhirDevOps1/BlindShare)
@@ -341,12 +351,19 @@ BlindShare features first-class internationalization out of the box:
 
 ---
 
-### 🟢 Preset C: Cloudflare Edge (Cloudflare Pages + D1/Turso + R2)
+### 🟢 Preset C: Cloudflare Edge *(Global Edge Network)*
+
+**Cloudflare Pages + D1/Turso + R2**
+
 ```bash
 npx wrangler pages deploy .next --project-name blindshare
 ```
-- ⚡ **Setup Time:** 3 Minutes
-- 💰 **Monthly Cost:** $0 (5 GB D1 SQL + 10 GB R2 with $0 bandwidth egress)
+
+| | Details |
+|---|---|
+| ⚡ **Setup Time** | 3 Minutes |
+| 💰 **Monthly Cost** | $0 (5 GB D1 SQL + 10 GB R2 with $0 bandwidth egress) |
+
 
 ---
 
@@ -479,6 +496,7 @@ npm run dev          # Start development server with hot reload
 npm run build        # Production build
 npm run typecheck    # TypeScript strict type checking
 npm run lint         # ESLint code quality check
+npm test             # Run 18-test security & analytics suite
 ```
 
 ---
@@ -534,9 +552,26 @@ Then reopen your deployed URL and register a fresh Super Admin account.
 └──────────────────────────────────────────────┘
 ```
 
+| Layer | Technology |
+|---|---|
+| **Framework** | Next.js 16 App Router · TypeScript (strict) |
+| **Styling** | Tailwind CSS v4 |
+| **Encryption** | WebCrypto API (AES-GCM-256) · PBKDF2 (250k iterations) |
+| **PDF Engine** | PDF.js (self-hosted) + CDN fallback |
+| **ORM** | Drizzle ORM (Postgres + SQLite dual-mode) |
+| **Database A** | Neon PostgreSQL (Serverless) |
+| **Database B** | SQLite + Litestream (Self-hosted) |
+| **Storage** | Backblaze B2 / Cloudflare R2 (S3-compatible) |
+| **Analytics** | DuckDB In-Memory Columnar Engine |
+| **Auth** | HMAC Session Cookies · 2FA TOTP RFC 6238 |
+| **CI/CD** | GitHub Actions · Gitleaks · CodeQL · Trivy |
+| **Rate Limiting** | Upstash Redis REST + in-memory fallback |
+| **i18n** | Type-safe dictionary (EN + हिन्दी) |
+
 ---
 
 ## 📁 Project Structure
+
 
 ```
 BlindShare/
@@ -702,7 +737,7 @@ All deep technical references, security specifications, and operational runbooks
 
 <br/>
 
-<img alt="BlindShare" src="public/brand/icon.png" width="48" height="48" style="border-radius:10px;" />
+<img alt="BlindShare" src="public/brand/icon.png" width="56" height="56" style="border-radius:12px;" />
 
 <br/>
 
