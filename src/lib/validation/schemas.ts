@@ -236,8 +236,18 @@ export const adminInviteSchema = z.object({
 });
 
 export const adminSettingsSchema = z.object({
-  maintenanceMode: z.boolean().optional(),
+  maintenanceMode: z.union([z.boolean(), z.string().transform((v) => v === "true")]).optional(),
+  maintenance_mode: z.union([z.boolean(), z.string().transform((v) => v === "true")]).optional(),
   broadcastBanner: z.string().trim().max(500).optional(),
+  broadcast_banner: z.string().trim().max(500).optional(),
+  settings: z
+    .object({
+      maintenance_mode: z.union([z.boolean(), z.string().transform((v) => v === "true")]).optional(),
+      maintenanceMode: z.union([z.boolean(), z.string().transform((v) => v === "true")]).optional(),
+      broadcast_banner: z.string().trim().max(500).optional(),
+      broadcastBanner: z.string().trim().max(500).optional(),
+    })
+    .optional(),
 });
 
 export const pushSubscribeSchema = z.object({

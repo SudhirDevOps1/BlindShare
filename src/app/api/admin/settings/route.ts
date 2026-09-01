@@ -26,7 +26,24 @@ export async function POST(request: Request) {
 
   const parsed = await parseBody(request, adminSettingsSchema);
   if ("errorResponse" in parsed) return parsed.errorResponse;
-  const { maintenanceMode, broadcastBanner } = parsed.data;
+  const raw = parsed.data;
+  const maintenanceMode =
+    raw.maintenanceMode !== undefined
+      ? raw.maintenanceMode
+      : raw.maintenance_mode !== undefined
+      ? raw.maintenance_mode
+      : raw.settings?.maintenanceMode !== undefined
+      ? raw.settings.maintenanceMode
+      : raw.settings?.maintenance_mode;
+
+  const broadcastBanner =
+    raw.broadcastBanner !== undefined
+      ? raw.broadcastBanner
+      : raw.broadcast_banner !== undefined
+      ? raw.broadcast_banner
+      : raw.settings?.broadcastBanner !== undefined
+      ? raw.settings.broadcastBanner
+      : raw.settings?.broadcast_banner;
 
   try {
     const upsertSetting = async (key: string, value: string) => {
@@ -55,7 +72,12 @@ export async function POST(request: Request) {
       detailsJson: JSON.stringify({ maintenanceMode, hasBanner: !!broadcastBanner }),
     });
 
-    return NextResponse.json({ success: true });
+    // Return latest settings map
+    const latestSettings = await db.select().from(systemSettings);
+    const map: Record<string, string> = {};
+    for (const s of latestSettings) map[s.key] = s.value;
+
+    return NextResponse.json({ success: true, settings: map });
   } catch (err: any) {
     logger.error("admin.settings_update_failed", { message: err?.message });
     return NextResponse.json({ error: "Failed to update settings" }, { status: 500 });

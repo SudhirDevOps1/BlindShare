@@ -233,13 +233,29 @@ export function AdminPanelView() {
   };
 
   const handleSaveSettings = async () => {
-    const res = await fetch("/api/admin/settings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ settings }),
-    });
-    if (res.ok) {
-      setActionMessage("System settings saved.");
+    try {
+      const isMaint = settings.maintenance_mode === "true" || settings.maintenance_mode === true;
+      const res = await fetch("/api/admin/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          maintenanceMode: isMaint,
+          broadcastBanner: settings.broadcast_banner || "",
+        }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        if (json.settings) setSettings(json.settings);
+        setActionMessage(
+          isMaint
+            ? "Maintenance Mode is now ENABLED. System settings saved."
+            : "Maintenance Mode is now DISABLED. System settings saved."
+        );
+      } else {
+        setActionMessage(`Error: ${json.error || "Failed to save settings"}`);
+      }
+    } catch {
+      setActionMessage("Network error while saving settings.");
     }
   };
 
