@@ -1,0 +1,55 @@
+================================================================================
+🚀 ENTERPRISE PRODUCTION-GRADE UPGRADE & HARDENING PROMPT (100% FREE TIER)
+================================================================================
+
+YOU ARE AN ELITE PRINCIPAL CYBERSECURITY ARCHITECT & SENIOR DEVOPS ENGINEER.
+YOUR GOAL: Upgrade this project to full Enterprise Production-Grade (Fortune-500 Standard)
+using ONLY 100% FREE open-source tools, native web APIs, and zero-cost cloud tiers.
+
+DO NOT REMOVE ANY EXISTING FEATURES OR CODE. PRESERVE STRICT ZERO-KNOWLEDGE E2EE.
+
+--------------------------------------------------------------------------------
+1. ADVANCED PLAYWRIGHT E2E HEADLESS BROWSER SECURITY SUITE
+--------------------------------------------------------------------------------
+- Install and configure Playwright (`@playwright/test`) for automated browser tests.
+- Create multi-browser end-to-end tests covering:
+  a. End-to-End Encryption Flow: Upload file -> Client-side AES-GCM-256 + GZIP compress -> Verify `#k=` fragment decryption in viewer.
+  b. Password & Access Gates: Test PBKDF2 wrap, email domain allowlists, and NDA signature canvas.
+  c. Live Presenter Room & Co-Browsing: Verify host slide broadcasts and unauthorized viewer blocks.
+  d. Tab-Switch Anti-Spy Shield: Test canvas obfuscation on page visibility change.
+  e. Burn-After-Reading Destruction: Verify immediate revocation after first viewing.
+
+--------------------------------------------------------------------------------
+2. FORENSIC DIGITAL WATERMARKING & ANTI-LEAK STEGANOGRAPHY
+--------------------------------------------------------------------------------
+- Implement invisible canvas microdot steganography encoding viewer session ID, timestamp, and IP hash into rendered PDF/image canvases.
+- If a viewer takes a camera photo or screenshot, the embedded forensic metadata can identify the exact leaker.
+- 100% free, runs client-side on HTML5 Canvas with zero server overhead.
+
+--------------------------------------------------------------------------------
+3. FREE ENTERPRISE SSO & IDENTITY (GOOGLE WORKSPACE & OIDC)
+--------------------------------------------------------------------------------
+- Implement enterprise OpenID Connect (OIDC) / Google Workspace 1-click login alongside email/password and TOTP 2FA.
+- Support Domain Restriction: Only allow logins from specified corporate domains (e.g., `@company.com`).
+- Zero-cost using standard WebCrypto JWT/OIDC validation without paid identity brokers.
+
+--------------------------------------------------------------------------------
+4. OPENTELEMETRY (OTEL) DISTRIBUTED TRACING & ZERO-PII ERROR TELEMETRY
+--------------------------------------------------------------------------------
+- Add OpenTelemetry tracing instrumentation across Edge Middleware, Next.js API Routes, Database Queries, and Storage Presigned URLs.
+- Implement a privacy-preserving zero-PII client error boundary capturing unhandled UI exceptions without leaking document content.
+
+--------------------------------------------------------------------------------
+5. GITHUB ACTIONS DAST (DYNAMIC APPLICATION SECURITY TESTING)
+--------------------------------------------------------------------------------
+- Configure automated OWASP ZAP / DAST vulnerability scanner in `.github/workflows/dast.yml`.
+- Automatically attacks running staging instances to verify zero SQLi, zero XSS, zero CSRF, and strict CSP headers on every release.
+
+--------------------------------------------------------------------------------
+VERIFICATION INSTRUCTIONS:
+--------------------------------------------------------------------------------
+1. Run `npm test` and all automated E2E suites to guarantee 100% pass rate.
+2. Run `npm run typecheck && npm run lint` to ensure 0 TypeScript and ESLint errors.
+3. Update `docs/CHANGELOG.md` with complete timestamps and feature listings.
+4. Ensure all newly created documentation files in `docs/` are neatly linked in `README.md`.
+================================================================================
