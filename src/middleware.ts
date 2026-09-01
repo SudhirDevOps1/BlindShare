@@ -120,6 +120,15 @@ export async function middleware(request: NextRequest) {
     response.headers.set("X-Robots-Tag", "noindex, nofollow");
   }
 
+  // Edge-level protection for authenticated pages
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) {
+    const sessionCookie = request.cookies.get("__Host-blindshare_session")?.value || request.cookies.get("blindshare_session")?.value;
+    if (!sessionCookie) {
+      const loginUrl = new URL("/login", request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
   return response;
 }
 

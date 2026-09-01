@@ -27,5 +27,22 @@ export async function POST() {
     detailsJson: JSON.stringify({}),
   });
 
-  return NextResponse.json({ success: true, message: "All sessions revoked. Please sign in again." });
+  const response = NextResponse.json({ success: true, message: "All sessions revoked. Please sign in again." });
+
+  response.cookies.set("blindshare_session", "", {
+    path: "/",
+    expires: new Date(0),
+    maxAge: 0,
+    httpOnly: true,
+  });
+
+  response.cookies.set("__Host-blindshare_session", "", {
+    path: "/",
+    expires: new Date(0),
+    maxAge: 0,
+    httpOnly: true,
+    secure: true,
+  });
+
+  return response;
 }

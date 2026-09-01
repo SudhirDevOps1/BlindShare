@@ -32,6 +32,7 @@ export function BrandHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { lang, setLang, t, appName } = useI18n();
+  const isAuthRoute = pathname === "/login" || pathname === "/signup";
   const isDashboardRoute = pathname.startsWith("/dashboard") || pathname.startsWith("/admin");
 
   const [user, setUser] = useState<UserProfile | null>(null);
@@ -40,6 +41,15 @@ export function BrandHeader() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (isAuthRoute) {
+      setUser(null);
+      try {
+        sessionStorage.removeItem("blindshare_user");
+      } catch {}
+      setLoading(false);
+      return;
+    }
+
     try {
       const cached = sessionStorage.getItem("blindshare_user");
       if (cached) setUser(JSON.parse(cached));
@@ -62,19 +72,21 @@ export function BrandHeader() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [pathname, isAuthRoute]);
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
     try {
-      sessionStorage.removeItem("blindshare_user");
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch {}
+    try {
+      sessionStorage.clear();
+      localStorage.removeItem("blindshare_user");
     } catch {}
     setUser(null);
-    router.push("/");
-    router.refresh();
+    window.location.href = "/login";
   };
 
-  const showDashboardNav = Boolean(user || isDashboardRoute);
+  const showDashboardNav = !isAuthRoute && Boolean(user || isDashboardRoute);
 
   const navLinks = showDashboardNav
     ? [

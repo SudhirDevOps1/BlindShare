@@ -126,8 +126,38 @@ export async function createSessionCookie(user: SessionUser, sessionVersion = 1)
 
 export async function clearSessionCookie() {
   const cookieStore = await cookies();
+  const isProd = process.env.NODE_ENV === "production";
+
+  // Aggressively expire both possible names across all paths
+  cookieStore.set(sessionCookieName(), "", {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+  });
+
+  cookieStore.set("__Host-blindshare_session", "", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+  });
+
+  cookieStore.set("blindshare_session", "", {
+    httpOnly: true,
+    secure: false,
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+    expires: new Date(0),
+  });
+
   cookieStore.delete(sessionCookieName());
-  // Also clear the non-prefixed name in case env flipped between dev/prod.
+  cookieStore.delete("__Host-blindshare_session");
   cookieStore.delete("blindshare_session");
 }
 
