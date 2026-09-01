@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/rbac";
 import { db } from "@/db";
 import { users, documents } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, ne } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
 import { clearSessionCookie } from "@/lib/auth/session";
 
@@ -11,6 +11,20 @@ export async function POST() {
   if ("errorResponse" in auth) return auth.errorResponse;
 
   try {
+    if (auth.user.role === "super_admin") {
+      const otherSuperAdmins = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(and(eq(users.role, "super_admin"), ne(users.id, auth.user.id)))
+        .limit(1);
+      if (otherSuperAdmins.length === 0) {
+        return NextResponse.json(
+          { error: "Cannot delete account: You are the sole Super Admin. Please promote another administrator first or perform a factory reset." },
+          { status: 400 }
+        );
+      }
+    }
+
     // Purge owner storage ciphertext
     const userDocs = await db.select().from(documents).where(eq(documents.ownerId, auth.user.id));
     const storage = getStorageAdapter();

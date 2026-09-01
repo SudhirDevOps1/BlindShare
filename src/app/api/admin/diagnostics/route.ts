@@ -276,7 +276,7 @@ export async function GET() {
       crypto: {
         status: "operational",
         algorithm: "AES-GCM-256 (WebCrypto)",
-        kdf: "PBKDF2-HMAC-SHA256 (100k rounds)",
+        kdf: "PBKDF2-HMAC-SHA256 (250k rounds)",
       },
       runtime: {
         nodeEnv: process.env.NODE_ENV || "development",

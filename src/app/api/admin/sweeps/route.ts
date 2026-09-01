@@ -18,8 +18,14 @@ export async function GET() {
     const allDocs = await db
       .select({ id: documents.id, storageKey: documents.storageKey, isTombstone: documents.isTombstone })
       .from(documents);
+    const allVersions = await db
+      .select({ storageKey: docVersions.storageKey })
+      .from(docVersions);
 
-    const validKeySet = new Set(allDocs.filter((d) => !d.isTombstone).map((d) => d.storageKey));
+    const validKeySet = new Set([
+      ...allDocs.filter((d) => !d.isTombstone).map((d) => d.storageKey),
+      ...allVersions.map((v) => v.storageKey),
+    ].filter(Boolean));
     const orphanCount = storedKeys.filter((k) => !validKeySet.has(k)).length;
     const tombstoneCount = allDocs.filter((d) => d.isTombstone).length;
 
@@ -71,7 +77,8 @@ export async function POST(request: Request) {
       scannedKeys = storedKeys.length;
 
       const allDocs = await db.select({ storageKey: documents.storageKey }).from(documents);
-      const validKeySet = new Set(allDocs.map((d) => d.storageKey));
+      const allVersions = await db.select({ storageKey: docVersions.storageKey }).from(docVersions);
+      const validKeySet = new Set([...allDocs.map((d) => d.storageKey), ...allVersions.map((v) => v.storageKey)].filter(Boolean));
 
       for (const key of storedKeys) {
         if (!validKeySet.has(key)) {

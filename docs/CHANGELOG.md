@@ -53,6 +53,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
   - Atomic database self-destruction (`isRevoked: true`) immediately upon first session unlock.
 
 ### Security Fixes & Hardening
+- **Admin Bootstrap Privilege Escalation Mitigation:** Enforced strict exact matching for master bootstrap invite codes in `auth/register/route.ts` preventing single-character/suffix privilege escalation.
+- **Path Traversal Defense:** Hardened local storage key resolution with `path.basename` and `path.resolve` boundary checks in `local-adapter.ts`.
+- **Atomic Concurrency (TOCTOU) Protection:** Implemented atomic SQL conditions for Burn-After-Reading and Max-Views access in `v/[slug]/verify/route.ts` to prevent race condition multi-reads.
+- **Session Desync on Password Update:** Seamlessly re-issued updated HMAC session tokens on password changes in `user/profile/route.ts` while terminating all other active devices.
+- **Orphan Sweep Version Blob Preservation:** Included `docVersions.storageKey` in orphan sweep valid key sets (`admin/sweeps/route.ts`) to prevent accidental purging of historical document versions.
+- **Sole Super Admin Guard:** Prevented sole remaining Super Admin accounts from accidental self-deletion in `user/delete/route.ts`.
 - **Live Room Access Control:** Added strict owner authentication checks to `/api/v/[slug]/room` ensuring only document creators can broadcast slides.
 - **DNS Rebinding & SSRF Mitigation:** Enforced private IP / cloud metadata blocklists prior to DNS MX queries in `email-validator.ts`.
 - **Stored XSS Prevention:** Applied HTML tag stripping and sanitization on all reader question submissions and names.

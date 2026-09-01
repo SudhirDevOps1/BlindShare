@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/rbac";
+import { getSession } from "@/lib/auth/session";
 import { db } from "@/db";
 import { documents, docAudioNotes, links } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -13,16 +14,31 @@ export async function GET(
   const { id } = await params;
 
   try {
+    const session = await getSession();
     // Check if `id` is a docId or a linkSlug
     let targetDocId = id;
     if (id.startsWith("lnk_") || !id.startsWith("doc_")) {
       const [link] = await db
-        .select({ docId: links.docId })
+        .select({ docId: links.docId, isActive: links.isActive, isRevoked: links.isRevoked })
         .from(links)
         .where(eq(links.slug, id))
         .limit(1);
-      if (link && link.docId) {
-        targetDocId = link.docId;
+      if (!link || link.isRevoked || !link.isActive || !link.docId) {
+        return NextResponse.json({ error: "Audio notes not available" }, { status: 404 });
+      }
+      targetDocId = link.docId;
+    } else {
+      // If direct docId query, verify caller is the document owner
+      if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      const [doc] = await db
+        .select({ id: documents.id, ownerId: documents.ownerId })
+        .from(documents)
+        .where(and(eq(documents.id, id), eq(documents.ownerId, session.id)))
+        .limit(1);
+      if (!doc) {
+        return NextResponse.json({ error: "Document not found" }, { status: 404 });
       }
     }
 

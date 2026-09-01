@@ -2,6 +2,7 @@ import webPush from "web-push";
 import { db } from "@/db";
 import { pushSubscriptions } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { logger } from "@/lib/logger";
 
 const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
@@ -33,7 +34,7 @@ export async function sendPushToUser(
     }
 
     if (!isVapidConfigured) {
-      console.log(`[IN-APP NOTIFICATION SIMULATED for user ${userId}]`, payload);
+      logger.info("push.simulated", { userId, title: payload.title });
       return { sent: subs.length, failed: 0 };
     }
 
@@ -63,8 +64,8 @@ export async function sendPushToUser(
     }
 
     return { sent, failed };
-  } catch (err) {
-    console.error("Failed to send push notifications:", err);
+  } catch (err: any) {
+    logger.error("push.dispatch_failed", { userId, message: err?.message });
     return { sent: 0, failed: 0 };
   }
 }
