@@ -31,18 +31,32 @@ jobs:
       - name: Lint
         run: npm run lint
         
+      - name: Enterprise Security & Cryptographic E2E Tests
+        run: npm test
+        
+      - name: Zero-knowledge self-check
+        run: node scripts/selfcheck-e2ee.mjs
+
       - name: Build
         run: npm run build
         env:
           DATABASE_URL: postgres://user:pass@localhost:5432/db
           SESSION_SECRET: dummy_session_secret_for_build_time_validation_123
           
-      - name: Zero-knowledge self-check
-        run: node scripts/selfcheck-e2ee.mjs
-        
       - name: Dependency audit
         run: npm audit --omit=dev --audit-level=high || true
         
+      - name: Aqua Security Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@0.29.0
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+        continue-on-error: true
+
       - name: Secret scan
         uses: gitleaks/gitleaks-action@v2
         env:

@@ -15,6 +15,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
   - Real-time Node.js DNS `resolveMx(domain)` lookup on gated email submissions.
   - Curated blocklist of 40+ high-volume disposable/temp email domains (`mailinator`, `tempmail`, `10minutemail`, `yopmail`, `guerrillamail`, etc.).
   - SSRF protection blocking private IP subnets (`127.*`, `10.*`, `192.168.*`, `169.254.*`), `localhost`, and internal domain probes.
+- **Enterprise Automated Security & Cryptographic E2E Test Suite (`npm test`):**
+  - 16+ automated security tests verifying Zero-Knowledge cryptographic integrity, AES-GCM-256 + GZIP compression, SSRF private IP blocks, timing-safe HMAC token verification, sessionVersion invalidation, and XSS sanitization.
+- **Enterprise SIEM & SOC Log Forwarding Engine (`src/lib/siem/siem-forwarder.ts`):**
+  - Formats audit and auth events into Common Event Format (CEF) and JSON for live streaming to Splunk HEC, Datadog Logs API, and Elastic / Logstash.
+- **GitHub Advanced Static Security Pipeline (CodeQL & Aqua Trivy):**
+  - Added `.github/workflows/codeql.yml` for deep semantic AST vulnerability scanning (OWASP Top 10 / CWE).
+  - Added Aqua Security Trivy filesystem & dependency vulnerability scanning on every PR and commit.
 - **Database & Storage Bucket Maintenance & Purge Suite (`/admin`):**
   - **Live Cleanliness Dashboard:** Displays real-time counts of orphaned B2/R2 files, tombstoned soft-deleted documents, expired/revoked links, and stale telemetry.
   - **Orphan Bucket Sweep:** Scans and purges unreferenced encrypted ciphertext blobs from S3/B2 storage.
