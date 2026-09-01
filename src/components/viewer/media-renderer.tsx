@@ -362,7 +362,7 @@ function inlineMd(text: string): string {
     .replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 rounded bg-slate-800 text-amber-300 font-mono text-[11px]">$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white">$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em class="italic text-slate-200">$1</em>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="text-amber-400 hover:underline inline-flex items-center gap-0.5">$1</a>');
+    .replace(/\[([^\]]+)\]\(((?:https?:\/\/|mailto:|#)[^\s"'<>]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-amber-400 hover:underline inline-flex items-center gap-0.5">$1</a>');
 }
 
 /** Sanitize SVG safely */

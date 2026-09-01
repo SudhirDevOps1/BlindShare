@@ -1,0 +1,17 @@
+name: "BlindShare CodeQL Security Config"
+
+disable-default-queries: false
+
+queries:
+  - uses: security-extended
+
+paths-ignore:
+  - "docs/**"
+  - "scripts/**"
+  - "tests/**"
+  - "deploy/**"
+  - "public/vendor/**"
+  - ".agents/**"
+  - ".claude/**"
+  - ".gemini/**"
+  - "node_modules/**"
