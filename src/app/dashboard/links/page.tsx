@@ -25,7 +25,7 @@ import {
   FileText,
 } from "lucide-react";
 import QRCodeLib from "qrcode";
-import { hexToBuffer, docKeyToFragment } from "@/lib/crypto-core";
+import { hexToBuffer, bufferToHex, docKeyToFragment, fragmentToDocKey } from "@/lib/crypto-core";
 
 export default function LinksPage() {
   const { t } = useI18n();
@@ -40,6 +40,11 @@ export default function LinksPage() {
   // In-App Link Delete Confirmation Dialog State
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Key Recovery Dialog State (when browser storage was cleared)
+  const [keyRecoveryTarget, setKeyRecoveryTarget] = useState<any | null>(null);
+  const [keyInput, setKeyInput] = useState("");
+  const [keyError, setKeyError] = useState<string | null>(null);
 
   const fetchLinks = async () => {
     try {
@@ -59,12 +64,25 @@ export default function LinksPage() {
     fetchLinks();
   }, []);
 
+  const getStoredKeyHex = (link: any): string | null => {
+    if (typeof window === "undefined") return null;
+    return (
+      (link.docId && sessionStorage.getItem(`blindshare_key_${link.docId}`)) ||
+      (link.docId && localStorage.getItem(`blindshare_key_${link.docId}`)) ||
+      sessionStorage.getItem(`blindshare_link_key_${link.slug}`) ||
+      localStorage.getItem(`blindshare_link_key_${link.slug}`) ||
+      sessionStorage.getItem(`blindshare_key_${link.slug}`) ||
+      localStorage.getItem(`blindshare_key_${link.slug}`) ||
+      null
+    );
+  };
+
   const buildFullUrl = (link: any) => {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
     let url = `${origin}/v/${link.slug}`;
 
     if (link.docId) {
-      const storedHex = sessionStorage.getItem(`blindshare_key_${link.docId}`);
+      const storedHex = getStoredKeyHex(link);
       if (storedHex) {
         const docKey = hexToBuffer(storedHex);
         url += `#k=${docKeyToFragment(docKey)}`;
@@ -74,10 +92,62 @@ export default function LinksPage() {
   };
 
   const handleCopy = (link: any) => {
+    const storedHex = getStoredKeyHex(link);
+    // If it's an E2EE doc without password and key is missing in local storage, open recovery helper
+    if (link.docId && !link.hasPassword && !storedHex) {
+      setKeyRecoveryTarget(link);
+      setKeyInput("");
+      setKeyError(null);
+      return;
+    }
+
     const url = buildFullUrl(link);
     navigator.clipboard.writeText(url);
     setCopiedId(link.id);
     setTimeout(() => setCopiedId(null), 2500);
+  };
+
+  const handleSaveRecoveredKey = () => {
+    if (!keyRecoveryTarget || !keyInput.trim()) return;
+
+    try {
+      let docKey: Uint8Array | null = null;
+      const trimmed = keyInput.trim();
+
+      if (trimmed.includes("#k=")) {
+        docKey = fragmentToDocKey(trimmed.substring(trimmed.indexOf("#k=")));
+      } else if (trimmed.includes("/v/")) {
+        const hashIdx = trimmed.indexOf("#");
+        if (hashIdx !== -1) {
+          docKey = fragmentToDocKey(trimmed.substring(hashIdx));
+        }
+      } else if (trimmed.startsWith("k=")) {
+        docKey = fragmentToDocKey(`#${trimmed}`);
+      } else {
+        docKey = fragmentToDocKey(`#k=${trimmed}`);
+      }
+
+      if (!docKey || docKey.length < 16) {
+        setKeyError("Invalid decryption key format. Please enter a valid #k=... fragment or key string.");
+        return;
+      }
+
+      const hex = bufferToHex(docKey);
+      if (keyRecoveryTarget.docId) {
+        localStorage.setItem(`blindshare_key_${keyRecoveryTarget.docId}`, hex);
+        sessionStorage.setItem(`blindshare_key_${keyRecoveryTarget.docId}`, hex);
+      }
+      localStorage.setItem(`blindshare_link_key_${keyRecoveryTarget.slug}`, hex);
+      sessionStorage.setItem(`blindshare_link_key_${keyRecoveryTarget.slug}`, hex);
+
+      const url = buildFullUrl(keyRecoveryTarget);
+      navigator.clipboard.writeText(url);
+      setCopiedId(keyRecoveryTarget.id);
+      setTimeout(() => setCopiedId(null), 2500);
+      setKeyRecoveryTarget(null);
+    } catch {
+      setKeyError("Failed to parse decryption key.");
+    }
   };
 
   const handleOpenQr = async (link: any) => {
@@ -376,6 +446,68 @@ export default function LinksPage() {
           if (!deleting) setDeleteTarget(null);
         }}
       />
+
+      {/* Key Recovery / Restore Dialog */}
+      {keyRecoveryTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                <Lock className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white">Restore Decryption Key</h3>
+                <p className="text-xs text-slate-400">
+                  Link: <span className="text-slate-300 font-semibold">{keyRecoveryTarget.name}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-slate-400 space-y-1.5">
+              <p className="text-slate-300 font-medium">Why is this required?</p>
+              <p className="leading-relaxed">
+                Because of BlindShare&apos;s Zero-Knowledge guarantee, decryption keys are never stored on the server. Since browser cache was cleared on this device, paste the full share link or <code className="text-amber-400">#k=...</code> fragment once to restore it in this browser permanently.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-300">
+                Paste Decryption Key or Full Link
+              </label>
+              <input
+                type="text"
+                value={keyInput}
+                onChange={(e) => {
+                  setKeyInput(e.target.value);
+                  setKeyError(null);
+                }}
+                placeholder="e.g. #k=FrbRsj1DsTGEiO3o... or https://..."
+                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-600 focus:border-amber-500 focus:outline-none"
+                autoFocus
+              />
+              {keyError && <p className="text-xs text-red-400">{keyError}</p>}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setKeyRecoveryTarget(null)}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-slate-400 hover:text-white"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveRecoveredKey}
+                disabled={!keyInput.trim()}
+                className="rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 shadow-md shadow-amber-500/10"
+              >
+                Save & Copy Link
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <BrandFooter />
     </div>

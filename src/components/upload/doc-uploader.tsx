@@ -144,9 +144,11 @@ export function DocUploader({ onUploadSuccess }: DocUploaderProps) {
       setUploadProgress(100);
       setStatusMessage("Complete!");
 
-      // Save key in session storage for quick local access
+      // Save key in local and session storage for persistent local owner access
       if (typeof window !== "undefined") {
-        sessionStorage.setItem(`blindshare_key_${data.documentId}`, bufferToHex(docKey));
+        const hexKey = bufferToHex(docKey);
+        sessionStorage.setItem(`blindshare_key_${data.documentId}`, hexKey);
+        localStorage.setItem(`blindshare_key_${data.documentId}`, hexKey);
       }
 
       setSuccessData({

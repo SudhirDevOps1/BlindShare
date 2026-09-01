@@ -6,6 +6,7 @@ import {
   fragmentToDocKey,
   decryptBytes,
   hexToBuffer,
+  bufferToHex,
   unwrapKeyWithPassword,
 } from "@/lib/crypto-core";
 import {
@@ -251,9 +252,22 @@ export function PdfRenderer({
           const hash = window.location.hash;
           docKey = fragmentToDocKey(hash);
 
-          if (!docKey) {
-            // Check session storage fallback (e.g. if owner navigated directly after upload)
-            const storedHex = sessionStorage.getItem(`blindshare_key_${slug}`);
+          if (docKey && typeof window !== "undefined") {
+            // Cache in local & session storage for seamless reload and tab resilience
+            try {
+              const hex = bufferToHex(docKey);
+              sessionStorage.setItem(`blindshare_key_${slug}`, hex);
+              sessionStorage.setItem(`blindshare_key_${docData.id}`, hex);
+              localStorage.setItem(`blindshare_key_${docData.id}`, hex);
+              localStorage.setItem(`blindshare_link_key_${slug}`, hex);
+            } catch {}
+          } else if (!docKey && typeof window !== "undefined") {
+            // Check persistent storage fallback (e.g. if navigated without hash on same device)
+            const storedHex =
+              sessionStorage.getItem(`blindshare_key_${slug}`) ||
+              sessionStorage.getItem(`blindshare_key_${docData.id}`) ||
+              localStorage.getItem(`blindshare_link_key_${slug}`) ||
+              localStorage.getItem(`blindshare_key_${docData.id}`);
             if (storedHex) {
               docKey = hexToBuffer(storedHex);
             }

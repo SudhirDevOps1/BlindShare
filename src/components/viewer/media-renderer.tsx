@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useI18n } from "@/lib/i18n/context";
-import { fragmentToDocKey, decryptBytes, hexToBuffer } from "@/lib/crypto-core";
+import { fragmentToDocKey, decryptBytes, hexToBuffer, bufferToHex } from "@/lib/crypto-core";
 import {
   detectFormat,
   FormatKind,
@@ -506,11 +506,22 @@ export function MediaRenderer({
         let docKey: Uint8Array | null = docKeyOverride ?? null;
         if (!docKey) {
           docKey = fragmentToDocKey(window.location.hash);
+          if (docKey && typeof window !== "undefined") {
+            try {
+              const hex = bufferToHex(docKey);
+              sessionStorage.setItem(`blindshare_key_${docData.id}`, hex);
+              sessionStorage.setItem(`blindshare_key_${slug}`, hex);
+              localStorage.setItem(`blindshare_key_${docData.id}`, hex);
+              localStorage.setItem(`blindshare_link_key_${slug}`, hex);
+            } catch {}
+          }
         }
-        if (!docKey) {
+        if (!docKey && typeof window !== "undefined") {
           const stored =
             sessionStorage.getItem(`blindshare_key_${docData.id}`) ||
-            sessionStorage.getItem(`blindshare_key_${slug}`);
+            sessionStorage.getItem(`blindshare_key_${slug}`) ||
+            localStorage.getItem(`blindshare_link_key_${slug}`) ||
+            localStorage.getItem(`blindshare_key_${docData.id}`);
           if (stored) docKey = hexToBuffer(stored);
         }
         if (!docKey && docData.encryptionMode === "e2ee-fragment") {

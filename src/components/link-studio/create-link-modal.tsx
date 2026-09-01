@@ -87,7 +87,10 @@ export function CreateLinkModal({
 
       // If document is E2EE and password gate is enabled, wrap key client-side
       if (enablePassword && password.trim() && docId) {
-        const storedHex = sessionStorage.getItem(`blindshare_key_${docId}`);
+        const storedHex =
+          typeof window !== "undefined"
+            ? sessionStorage.getItem(`blindshare_key_${docId}`) || localStorage.getItem(`blindshare_key_${docId}`)
+            : null;
         if (storedHex) {
           const docKey = hexToBuffer(storedHex);
           const wrapped = await wrapKeyWithPassword(docKey, password.trim());
@@ -138,11 +141,20 @@ export function CreateLinkModal({
       let fullUrl = `${baseUrl}/v/${data.slug}`;
 
       if (docId) {
-        const storedHex = sessionStorage.getItem(`blindshare_key_${docId}`);
+        const storedHex =
+          typeof window !== "undefined"
+            ? sessionStorage.getItem(`blindshare_key_${docId}`) || localStorage.getItem(`blindshare_key_${docId}`)
+            : null;
         if (storedHex) {
           const docKey = hexToBuffer(storedHex);
           const fragment = docKeyToFragment(docKey);
           fullUrl = `${fullUrl}#k=${fragment}`;
+
+          // Persist link-to-key mapping for persistent copy capability
+          if (typeof window !== "undefined") {
+            sessionStorage.setItem(`blindshare_link_key_${data.slug}`, storedHex);
+            localStorage.setItem(`blindshare_link_key_${data.slug}`, storedHex);
+          }
         }
       }
 
