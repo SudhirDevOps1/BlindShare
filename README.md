@@ -12,7 +12,7 @@
 </p>
 
 <p>
-  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v1.1.0">
+  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v1.2.0">
     <img src="https://img.shields.io/github/v/release/SudhirDevOps1/BlindShare?style=flat-square&label=release&color=22c55e" alt="Release" />
   </a>
   <a href="./LICENSE">
@@ -580,7 +580,7 @@ All deep technical references, security specifications, and operational runbooks
 | 🚨 [Incident Response Plan](./docs/INCIDENT-RESPONSE.md) | Security incident triage, key compromise procedures, and containment steps |
 | 🔒 [Privacy Policy](./docs/PRIVACY-POLICY.md) | Zero-knowledge architecture, no-log privacy commitments, and GDPR-lite rights |
 | ⚖️ [Terms of Service](./docs/TERMS.md) | Platform usage terms, open-source conditions, and liability disclaimers |
-| 🚀 [Release Process](./docs/RELEASES.md) | Semantic versioning guidelines, git tag workflow, and changelog maintenance |
+| 🚀 [Enterprise Upgrade Prompt](./docs/ENTERPRISE-UPGRADE-PROMPT.txt) | 1-click copy-paste master AI prompt for full free-tier enterprise production upgrade |
 | 🤝 [Contribution Guide](./docs/CONTRIBUTING.md) | Local setup, commit linting, pull request rules, and coding standards |
 | 👥 [Code of Conduct](./docs/CODE_OF_CONDUCT.md) | Community pledge and standards of respectful collaboration |
 
