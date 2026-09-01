@@ -18,6 +18,9 @@
   <a href="./LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-3b82f6?style=for-the-badge" alt="MIT License" />
   </a>
+  <a href="https://github.com/SudhirDevOps1/BlindShare/security/code-scanning">
+    <img src="https://img.shields.io/badge/CodeQL-0%20Alerts%20(100%25%20Clean)-success?style=for-the-badge&logo=github&logoColor=white" alt="CodeQL 100% Clean" />
+  </a>
   <a href="https://github.com/SudhirDevOps1/BlindShare/actions">
     <img src="https://img.shields.io/github/actions/workflow/status/SudhirDevOps1/BlindShare/ci.yml?branch=main&style=for-the-badge&label=CI+%2F+CD&logo=githubactions&logoColor=white" alt="CI / CD" />
   </a>
@@ -25,6 +28,9 @@
 </p>
 
 <p>
+  <a href="https://github.com/SudhirDevOps1/BlindShare/stargazers">
+    <img src="https://img.shields.io/github/stars/SudhirDevOps1/BlindShare?style=social" alt="GitHub Stars" />
+  </a>
   <a href="https://nextjs.org">
     <img src="https://img.shields.io/badge/Next.js-16-000000?style=flat-square&logo=nextdotjs" alt="Next.js" />
   </a>

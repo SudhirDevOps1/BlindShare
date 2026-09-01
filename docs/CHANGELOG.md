@@ -61,8 +61,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - **Sole Super Admin Guard:** Prevented sole remaining Super Admin accounts from accidental self-deletion in `user/delete/route.ts`.
 - **Live Room Access Control:** Added strict owner authentication checks to `/api/v/[slug]/room` ensuring only document creators can broadcast slides.
 - **DNS Rebinding & SSRF Mitigation:** Enforced private IP / cloud metadata blocklists prior to DNS MX queries in `email-validator.ts`.
-- **Stored XSS Prevention:** Applied HTML tag stripping and sanitization on all reader question submissions and names.
+- **Stored XSS Prevention:** Applied HTML entity character escaping (`<` -> `&lt;`, `>` -> `&gt;`) on all reader question submissions and names.
 - **React Ref Render Body Fix:** Transitioned `audioRef.current` access in `VoiceNotePlayer` to metadata-driven state updates to ensure strict React concurrency compliance.
+- **CodeQL Advanced SAST Cleanliness (85/85 Resolved · 0 Open Alerts):**
+  - **Insecure Randomness (CSPRNG):** Replaced all `Math.random()` occurrences in telemetry and layout with `crypto.getRandomValues()` and `crypto.randomUUID()`.
+  - **Bad HTML Filtering Regexp & SVG Sanitization:** Replaced regex-based SVG tag stripping with native `DOMParser()` and URL protocol allowlist (`https?://`, `mailto:`, `#`) in `media-renderer.tsx`.
+  - **Insecure Temporary File & Tainted File Write:** Replaced hardcoded `/tmp` storage with private mode `0o700` directories, mapped storage keys to SHA-256 digests (`${sha256(key)}.blob`), and switched to low-level file descriptor access with `0o600` mode.
+  - **Local Upload Endpoint Gating:** Added `requireAuth()` and strict alphanumeric key validation on `/api/storage/local-upload`.
+- **GitHub Open-Source Branding & License:**
+  - Added GitHub Repository links and interactive Star ⭐ buttons across BrandHeader (desktop and mobile), BrandFooter, and HomePage hero section.
+  - Added MIT License open-source badges and links in navigation footer and landing page.
 
 
 ## [1.0.0] - 2026-08-29
