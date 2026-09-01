@@ -54,7 +54,7 @@ export default function HomePage() {
               <span className="text-slate-300">₹0 Free Tier</span>
               <span className="text-amber-500">•</span>
               <a
-                href="https://github.com/SudhirDevOps1/BlindShare"
+                href="https://github.com/SudhirDevOps1/BlindShare/blob/main/LICENSE"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-amber-400 hover:underline"

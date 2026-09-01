@@ -115,26 +115,26 @@ export function BrandHeader() {
       ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/80 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/90 backdrop-blur-md w-full">
+      <div className="mx-auto flex max-w-[1600px] items-center justify-between px-3 py-2.5 sm:px-6 gap-2">
         {/* Brand Logo & Name */}
-        <Link href={showDashboardNav ? "/dashboard" : "/"} className="flex items-center gap-3 group">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
-            <Lock className="h-5 w-5 text-slate-950" />
+        <Link href={showDashboardNav ? "/dashboard" : "/"} className="flex items-center gap-2.5 group flex-shrink-0">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform flex-shrink-0">
+            <Lock className="h-4.5 w-4.5 text-slate-950" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold tracking-tight text-white text-lg">{appName}</span>
-              <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-400 border border-amber-500/20">
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold tracking-tight text-white text-base sm:text-lg">{appName}</span>
+              <span className="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.2 text-[9px] font-semibold text-amber-400 border border-amber-500/20">
                 E2EE
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 hidden sm:block">Zero-Knowledge Doc Sharing</p>
+            <p className="text-[9px] text-slate-400 hidden 2xl:block">Zero-Knowledge Doc Sharing</p>
           </div>
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center gap-1">
+        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 flex-shrink">
           {navLinks.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -142,16 +142,16 @@ export function BrandHeader() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-1.5 rounded-lg px-2 xl:px-3 py-1.5 text-xs xl:text-sm font-medium transition-colors whitespace-nowrap ${
                   isActive
                     ? "bg-slate-800 text-amber-400 border border-amber-500/30 shadow-sm"
                     : "text-slate-300 hover:bg-slate-900 hover:text-white"
                 }`}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3.5 w-3.5 flex-shrink-0" />
                 <span>{item.label}</span>
                 {item.badge && (
-                  <span className="rounded bg-amber-500/20 px-1.5 py-0.2 text-[10px] font-bold text-amber-300 border border-amber-500/30">
+                  <span className="rounded bg-amber-500/20 px-1 py-0.2 text-[9px] font-bold text-amber-300 border border-amber-500/30">
                     {item.badge}
                   </span>
                 )}
@@ -160,28 +160,28 @@ export function BrandHeader() {
           })}
         </nav>
 
-        {/* Controls: Language Switcher & User Action */}
-        <div className="flex items-center gap-2">
+        {/* Controls: Language Switcher, GitHub & User Action */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
           {/* GitHub Star Button */}
           <a
             href="https://github.com/SudhirDevOps1/BlindShare"
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-xs font-semibold text-slate-300 hover:text-white hover:border-slate-700 transition shadow-sm"
+            className="hidden sm:flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-2 py-1 text-xs font-semibold text-slate-300 hover:text-white hover:border-slate-700 transition shadow-sm flex-shrink-0"
             title="Star BlindShare on GitHub"
           >
             <GithubIcon className="h-3.5 w-3.5 text-slate-300" />
-            <span className="hidden xl:inline">GitHub</span>
+            <span className="hidden 2xl:inline">GitHub</span>
             <span className="flex items-center gap-0.5 rounded bg-amber-500/10 px-1 py-0.5 text-[10px] font-bold text-amber-400 border border-amber-500/20">
               <Star className="h-2.5 w-2.5 fill-amber-400" /> Star
             </span>
           </a>
 
           {/* Language Switcher */}
-          <div className="flex items-center rounded-lg border border-slate-800 bg-slate-900 p-0.5 text-xs">
+          <div className="flex items-center rounded-lg border border-slate-800 bg-slate-900 p-0.5 text-[11px] flex-shrink-0">
             <button
               onClick={() => setLang("en")}
-              className={`rounded px-2 py-1 font-medium transition-colors ${
+              className={`rounded px-1.5 py-0.5 font-medium transition-colors ${
                 lang === "en" ? "bg-amber-500 text-slate-950 font-bold" : "text-slate-400 hover:text-white"
               }`}
             >
@@ -189,7 +189,7 @@ export function BrandHeader() {
             </button>
             <button
               onClick={() => setLang("hi")}
-              className={`rounded px-2 py-1 font-medium transition-colors ${
+              className={`rounded px-1.5 py-0.5 font-medium transition-colors ${
                 lang === "hi" ? "bg-amber-500 text-slate-950 font-bold" : "text-slate-400 hover:text-white"
               }`}
             >
@@ -198,47 +198,48 @@ export function BrandHeader() {
           </div>
 
           {showDashboardNav ? (
-            <div className="hidden sm:flex items-center gap-2 pl-2 border-l border-slate-800">
+            <div className="hidden sm:flex items-center gap-1.5 pl-1.5 border-l border-slate-800 flex-shrink-0">
               <button
                 type="button"
                 onClick={() => setTwoFactorModalOpen(true)}
-                className="flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition shadow-sm"
+                className="flex items-center gap-1 rounded-lg border border-amber-500/30 bg-amber-500/10 px-2 py-1 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition shadow-sm flex-shrink-0"
                 title="Two-Factor Authentication Security"
               >
                 <Smartphone className="h-3.5 w-3.5 text-amber-400" />
-                <span className="hidden xl:inline">2FA Security</span>
+                <span className="hidden 2xl:inline">2FA Security</span>
               </button>
 
               <Link
                 href="/dashboard/settings"
-                className="flex items-center gap-2 rounded-lg bg-slate-900 px-3 py-1.5 text-xs text-slate-300 border border-slate-800 hover:border-slate-700"
+                className="flex items-center gap-1.5 rounded-lg bg-slate-900 px-2.5 py-1 text-xs text-slate-300 border border-slate-800 hover:border-slate-700 flex-shrink-0"
+                title={user?.name || "Account Settings"}
               >
-                <User className="h-3.5 w-3.5 text-amber-400" />
-                <span className="max-w-[120px] truncate">{user?.name || "Account"}</span>
+                <User className="h-3.5 w-3.5 text-amber-400 flex-shrink-0" />
+                <span className="max-w-[70px] xl:max-w-[110px] truncate">{user?.name || "Account"}</span>
               </Link>
               <button
                 onClick={handleLogout}
                 title="Log out"
-                className="rounded-lg border border-slate-800 p-1.5 text-slate-400 hover:bg-red-950/30 hover:text-red-400 hover:border-red-900/50 transition-colors"
+                className="flex items-center justify-center rounded-lg border border-slate-800 p-1.5 text-slate-400 hover:bg-red-950/40 hover:text-red-400 hover:border-red-800 transition-colors flex-shrink-0"
               >
                 <LogOut className="h-4 w-4" />
               </button>
             </div>
           ) : (
-            <div className="hidden sm:flex items-center gap-2 pl-2">
+            <div className="hidden sm:flex items-center gap-2 pl-2 flex-shrink-0">
               <Link
                 href="/login"
-                className="rounded-lg bg-amber-500 px-3.5 py-1.5 text-xs font-semibold text-slate-950 hover:bg-amber-400 transition-colors shadow-sm shadow-amber-500/20"
+                className="rounded-lg bg-amber-500 px-3 py-1 text-xs font-semibold text-slate-950 hover:bg-amber-400 transition-colors shadow-sm shadow-amber-500/20"
               >
                 {t.nav.login}
               </Link>
             </div>
           )}
 
-          {/* Mobile menu button */}
+          {/* Mobile/Tablet menu button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-900 md:hidden"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-900 lg:hidden flex-shrink-0"
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>

@@ -30,10 +30,11 @@ export function BrandFooter() {
                 ₹0 Free-Tier Ready
               </span>
               <a
-                href="https://github.com/SudhirDevOps1/BlindShare"
+                href="https://github.com/SudhirDevOps1/BlindShare/blob/main/LICENSE"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 rounded bg-slate-900 px-2 py-0.5 text-[10px] text-slate-300 border border-slate-800 hover:border-slate-700 hover:text-white transition"
+                title="View MIT License"
               >
                 <Scale className="h-3 w-3 text-amber-400" />
                 <span>MIT Open Source</span>
