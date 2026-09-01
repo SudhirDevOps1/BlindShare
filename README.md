@@ -267,11 +267,12 @@ If you deploy BlindShare on **Vercel + Neon Postgres + Backblaze B2 (Your Curren
 
 Choose your desired deployment preset below:
 
-### 🟢 Preset A: Cloud Serverless (Vercel + Neon Postgres + Backblaze B2) — *Recommended Default*
+### 🟢 Preset A: Cloud Serverless (Vercel / Render + Neon Postgres + Backblaze B2) — *Recommended Default*
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhirDevOps1%2FBlindShare&env=DATABASE_URL,SESSION_SECRET,ADMIN_BOOTSTRAP_INVITE,HEALTH_TOKEN,B2_KEY_ID,B2_APPLICATION_KEY,B2_BUCKET_NAME,B2_ENDPOINT)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SudhirDevOps1/BlindShare)
 
 - ⚡ **Setup Time:** 2 Minutes
-- 💰 **Monthly Cost:** $0 (Free Forever on Neon + Vercel Hobby + B2 10 GB)
+- 💰 **Monthly Cost:** $0 (Free Forever on Neon + Vercel/Render Hobby + B2 10 GB)
 - ⚙️ **Config:** Auto-creates database schema on first launch, zero server management.
 
 ---
@@ -279,15 +280,64 @@ Choose your desired deployment preset below:
 ### 🟢 Preset B: Zero-Cost Self-Hosted (Docker / VPS + SQLite + Litestream B2) — *100% Free DB*
 [![Deploy with Docker](https://img.shields.io/badge/Deploy-Docker%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](./docs/LITESTREAM-SELFHOSTING.md)
 [![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/template/new)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/SudhirDevOps1/BlindShare)
 
+Run BlindShare on any VPS, Docker host, Raspberry Pi, Render, or Railway with **zero database hosting fees**. Litestream streams your SQLite Write-Ahead Logs (WAL) continuously to your private **Backblaze B2** bucket with sub-second Recovery Point Objective (RPO).
+
+```mermaid
+graph LR
+    User[👥 Viewers & Owners] -->|HTTP / API| App[⚡ Next.js App]
+    App -->|Reads/Writes 0ms latency| SQLite[(📁 Local SQLite DB)]
+    Litestream[🌊 Litestream Daemon] -->|Streams WAL every 1s| B2[☁️ Backblaze B2 Vault]
+    SQLite -.->|Monitors WAL changes| Litestream
+    B2 -.->|Auto-Restore on Boot| SQLite
+```
+
+#### 🛠️ 1-Command Startup:
 ```bash
-# 1. Fill environment keys in .env (DATABASE_DRIVER=sqlite, B2 credentials)
-# 2. Launch with auto-restoring Litestream streaming WAL to Backblaze B2
+# 1. Clone repository
+git clone https://github.com/SudhirDevOps1/BlindShare.git && cd BlindShare
+
+# 2. Configure your .env for Mode B (SQLite + B2)
+cp .env.example .env
+
+# 3. Launch container with embedded Litestream auto-replication
 docker compose -f deploy/docker-compose.yml up -d --build
 ```
-- ⚡ **Setup Time:** 1 Command
-- 💰 **Monthly Cost:** $0 Database Cost Forever (Streams WAL logs to B2 with sub-second RPO)
-- 🔄 **Disaster Recovery:** Automatic restore from B2 if server crashes or restarts.
+
+#### ⚙️ Preset B Environment Configuration (`.env`):
+```ini
+NODE_ENV=production
+DATABASE_DRIVER=sqlite
+DATABASE_URL=file:/data/blindshare.db
+SESSION_SECRET=generate_with_openssl_rand_hex_64
+ADMIN_BOOTSTRAP_INVITE=SUPER-ADMIN-PASS-999
+HEALTH_TOKEN=health_secret_token_99x
+
+# Backblaze B2 (Handles both encrypted documents & database WAL replicas for $0)
+B2_KEY_ID=your_b2_key_id
+B2_APPLICATION_KEY=your_b2_app_key
+B2_BUCKET_NAME=your_b2_bucket_name
+B2_ENDPOINT=https://s3.us-east-005.backblazeb2.com
+STORE_TARGET=b2
+DOCS_ENCRYPTION_MODE=e2ee-fragment
+```
+
+#### 🛡️ Key Advantages of Preset B:
+- 💰 **$0 Database Cost Forever:** No expensive managed cloud databases (Neon/Supabase/RDS) required.
+- ⚡ **Zero-Latency In-Process Queries:** Reads and writes execute directly on local disk with 0 network latency.
+- 🔄 **Autonomous Disaster Recovery:** On boot, `deploy/entrypoint.sh` checks if the local DB exists; if not, it automatically downloads and recovers the latest snapshot from Backblaze B2 in seconds.
+- 🦆 **Built-In DuckDB Analytics:** Page dwell-time aggregations and percentiles are processed instantly without taxing your database.
+- 📖 **Full Self-Hosting Guide:** See [docs/LITESTREAM-SELFHOSTING.md](./docs/LITESTREAM-SELFHOSTING.md) for Nginx reverse proxy, SSL certbot, and systemd service scripts.
+
+---
+
+### 🌐 Dual-Language Support (English / हिन्दी)
+
+BlindShare features first-class internationalization out of the box:
+- **Instant Language Switching:** Toggle seamlessly between **English (EN)** and **हिन्दी (HI)** from the navigation header without reloading or losing state.
+- **100% Localized:** Document Viewer, Security Watermarks, Lead Scoring Analytics, In-Doc Question Pins, Audio Walkthrough Notes, and System Admin Panel are fully translated.
+- **Type-Safe i18n:** Built on typed dictionaries with zero runtime overhead or external translation API delays.
 
 ---
 

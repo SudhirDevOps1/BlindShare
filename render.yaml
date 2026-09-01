@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: blindshare
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_DRIVER
+        value: postgres
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ADMIN_BOOTSTRAP_INVITE
+        sync: false
+      - key: HEALTH_TOKEN
+        sync: false
+      - key: B2_KEY_ID
+        sync: false
+      - key: B2_APPLICATION_KEY
+        sync: false
+      - key: B2_BUCKET_NAME
+        sync: false
+      - key: B2_ENDPOINT
+        value: https://s3.us-east-005.backblazeb2.com
+      - key: STORE_TARGET
+        value: b2
+      - key: DOCS_ENCRYPTION_MODE
+        value: e2ee-fragment
