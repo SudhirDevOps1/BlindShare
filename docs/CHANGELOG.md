@@ -15,6 +15,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
   - Real-time Node.js DNS `resolveMx(domain)` lookup on gated email submissions.
   - Curated blocklist of 40+ high-volume disposable/temp email domains (`mailinator`, `tempmail`, `10minutemail`, `yopmail`, `guerrillamail`, etc.).
   - SSRF protection blocking private IP subnets (`127.*`, `10.*`, `192.168.*`, `169.254.*`), `localhost`, and internal domain probes.
+- **Database & Storage Bucket Maintenance & Purge Suite (`/admin`):**
+  - **Live Cleanliness Dashboard:** Displays real-time counts of orphaned B2/R2 files, tombstoned soft-deleted documents, expired/revoked links, and stale telemetry.
+  - **Orphan Bucket Sweep:** Scans and purges unreferenced encrypted ciphertext blobs from S3/B2 storage.
+  - **Tombstone Purge:** Permanently deletes soft-deleted documents, their physical storage files, versions, and audio pitch notes.
+  - **Stale Link & Telemetry Pruning:** Cleans expired/revoked links and raw page dwell events older than 30 days to keep PostgreSQL within Neon free-tier limits.
+  - **Full Platform Vacuum:** 1-click audited safe optimization cycle with double-confirmation dialogs.
 - **Granular Link Expiration & View Limit Presets:**
   - 1-Click Expiry Presets in Link Studio: `1 Hour`, `24 Hours`, `7 Days`, `30 Days`, and custom date/time picker.
   - View Limit Presets: `1 View (Burn-After-Reading)`, `5 Views`, `25 Views`, `100 Views`, and custom numeric limit.

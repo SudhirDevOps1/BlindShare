@@ -563,7 +563,30 @@ git push origin feat/your-amazing-feature
 
 ---
 
-## 👥 Community
+## 📚 Documentation & Reference Index
+
+All deep technical references, security specifications, and operational runbooks are organized in the [`docs/`](./docs) directory:
+
+| Document | Description |
+|---|---|
+| 🏗️ [Architecture Overview](./docs/ARCHITECTURE.md) | Multi-adapter core, client-side GZIP + WebCrypto AES-GCM-256 pipeline, data model & telemetry batching |
+| 🛡️ [Security Policy](./docs/SECURITY.md) | Vulnerability disclosure, cryptographic invariants, 2FA, SSRF defense & headers |
+| 🎯 [Threat Model & Attack Surface](./docs/THREAT-MODEL.md) | Threat modeling across sender, viewer, server, bucket, and network layers |
+| 📋 [Changelog](./docs/CHANGELOG.md) | Chronological release history, timestamps, bug fixes, and feature additions |
+| 📄 [Supported File Formats](./docs/FORMATS.md) | PDF, Image, SVG, Markdown, Code, CSV, Video, Audio and presentation specs |
+| 📖 [Operations Runbook](./docs/RUNBOOK.md) | Deployment guides, DB schema migrations, health checks, and troubleshooting |
+| 🔑 [Secrets & Environment Reference](./docs/SECRETS.md) | Complete list of all mandatory and optional environment keys |
+| 🧹 [Data Retention Policy](./docs/DATA-RETENTION.md) | Free-tier retention periods, tombstone lifecycle, and automatic sweep rules |
+| 🚨 [Incident Response Plan](./docs/INCIDENT-RESPONSE.md) | Security incident triage, key compromise procedures, and containment steps |
+| 🔒 [Privacy Policy](./docs/PRIVACY-POLICY.md) | Zero-knowledge architecture, no-log privacy commitments, and GDPR-lite rights |
+| ⚖️ [Terms of Service](./docs/TERMS.md) | Platform usage terms, open-source conditions, and liability disclaimers |
+| 🚀 [Release Process](./docs/RELEASES.md) | Semantic versioning guidelines, git tag workflow, and changelog maintenance |
+| 🤝 [Contribution Guide](./docs/CONTRIBUTING.md) | Local setup, commit linting, pull request rules, and coding standards |
+| 👥 [Code of Conduct](./docs/CODE_OF_CONDUCT.md) | Community pledge and standards of respectful collaboration |
+
+---
+
+## 👥 Community & Support
 
 | Resource | Link |
 |----------|------|
@@ -572,15 +595,7 @@ git push origin feat/your-amazing-feature
 | 📋 Changelog | [CHANGELOG.md](./docs/CHANGELOG.md) |
 | 🔒 Security Policy | [SECURITY.md](./docs/SECURITY.md) |
 | 🤝 Code of Conduct | [CODE_OF_CONDUCT.md](./docs/CODE_OF_CONDUCT.md) |
-| 📖 Operations Runbook | [docs/RUNBOOK.md](./docs/RUNBOOK.md) |
-
----
-
-## 🔒 Security Policy
-
-We take security seriously. See [SECURITY.md](./docs/SECURITY.md) for our responsible disclosure policy.
-
-> ⚠️ **Please do NOT report security vulnerabilities in public GitHub issues.** Contact maintainers privately so issues can be patched before disclosure.
+| 📖 Operations Runbook | [RUNBOOK.md](./docs/RUNBOOK.md) |
 
 ---
 

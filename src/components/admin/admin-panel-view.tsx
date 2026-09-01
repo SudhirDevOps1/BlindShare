@@ -35,13 +35,19 @@ import {
 export function AdminPanelView() {
   const { t, appName } = useI18n();
 
-  const [tab, setTab] = useState<"overview" | "users" | "invites" | "audit" | "settings" | "diagnostics">("overview");
+  const [tab, setTab] = useState<"overview" | "users" | "invites" | "audit" | "maintenance" | "settings" | "diagnostics">("overview");
   const [loading, setLoading] = useState(true);
   const [metricsData, setMetricsData] = useState<any>(null);
   const [usersList, setUsersList] = useState<any[]>([]);
   const [invitesList, setInvitesList] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [settings, setSettings] = useState<any>({ maintenance_mode: "false", broadcast_banner: "" });
+
+  // Maintenance & Purge Suite State
+  const [sweepStats, setSweepStats] = useState<any>(null);
+  const [runningSweepAction, setRunningSweepAction] = useState<string | null>(null);
+  const [sweepConfirmTarget, setSweepConfirmTarget] = useState<{ action: string; title: string; message: string } | null>(null);
+  const [sweepResult, setSweepResult] = useState<any>(null);
 
   // In-App User Delete Confirmation Dialog State
   const [deleteUserTarget, setDeleteUserTarget] = useState<{ id: string; name: string } | null>(null);
@@ -112,6 +118,37 @@ export function AdminPanelView() {
     setTestingEnv(false);
   };
 
+  const fetchSweepStats = async () => {
+    try {
+      const res = await fetch("/api/admin/sweeps");
+      const json = await res.json();
+      if (res.ok && json.stats) setSweepStats(json.stats);
+    } catch {}
+  };
+
+  const handleExecuteSweep = async () => {
+    if (!sweepConfirmTarget) return;
+    try {
+      setRunningSweepAction(sweepConfirmTarget.action);
+      const res = await fetch("/api/admin/sweeps", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: sweepConfirmTarget.action }),
+      });
+      const json = await res.json();
+      if (res.ok && json.summary) {
+        setSweepResult(json.summary);
+        setActionMessage(`Maintenance action "${sweepConfirmTarget.action}" completed successfully.`);
+        fetchSweepStats();
+        fetchMetrics();
+        fetchAudit();
+      }
+    } catch {} finally {
+      setRunningSweepAction(null);
+      setSweepConfirmTarget(null);
+    }
+  };
+
   useEffect(() => {
     fetchMetrics();
     fetchUsers();
@@ -119,6 +156,7 @@ export function AdminPanelView() {
     fetchAudit();
     fetchSettings();
     fetchDiagnostics();
+    fetchSweepStats();
   }, []);
 
   const handleToggleBlock = async (userId: string, currentBlocked: boolean) => {
@@ -299,6 +337,21 @@ export function AdminPanelView() {
         >
           <HardDrive className="h-4 w-4" />
           <span>Audit Logs</span>
+        </button>
+
+        <button
+          onClick={() => setTab("maintenance")}
+          className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-semibold transition ${
+            tab === "maintenance"
+              ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
+              : "text-slate-400 hover:bg-slate-900 hover:text-white"
+          }`}
+        >
+          <Trash2 className="h-4 w-4 text-rose-400" />
+          <span>Database & Bucket Purge</span>
+          {sweepStats && (sweepStats.orphanObjectsCount > 0 || sweepStats.tombstonedDocsCount > 0) && (
+            <span className="h-2 w-2 rounded-full bg-rose-400 animate-pulse" />
+          )}
         </button>
 
         <button
@@ -800,7 +853,216 @@ export function AdminPanelView() {
         </div>
       )}
 
-      {/* Tab 5: System Controls */}
+      {/* Tab 5: Maintenance & Storage Purge Suite */}
+      {tab === "maintenance" && (
+        <div className="space-y-6">
+          {/* Top Status Banner */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Trash2 className="h-5 w-5 text-rose-400" />
+                  Database & Storage Bucket Maintenance Suite
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Safely sweep orphaned storage objects in Backblaze B2/R2, purge tombstoned documents, and clean stale database records to remain within free tiers.
+                </p>
+              </div>
+              <button
+                onClick={fetchSweepStats}
+                className="flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-700 transition w-fit"
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+                <span>Refresh Stats</span>
+              </button>
+            </div>
+
+            {/* Live Counts Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950">
+                <div className="text-[11px] font-medium text-slate-400">Total Bucket Objects</div>
+                <div className="text-2xl font-bold text-white mt-1">{sweepStats?.totalBucketObjects ?? "—"}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Physical files in S3/B2</div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950">
+                <div className="text-[11px] font-medium text-slate-400">Orphaned Bucket Objects</div>
+                <div className="text-2xl font-bold text-rose-400 mt-1">{sweepStats?.orphanObjectsCount ?? "—"}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Files with no DB record</div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950">
+                <div className="text-[11px] font-medium text-slate-400">Tombstoned Documents</div>
+                <div className="text-2xl font-bold text-amber-400 mt-1">{sweepStats?.tombstonedDocsCount ?? "—"}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Soft-deleted items</div>
+              </div>
+
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950">
+                <div className="text-[11px] font-medium text-slate-400">Expired / Revoked Links</div>
+                <div className="text-2xl font-bold text-blue-400 mt-1">{sweepStats?.expiredOrRevokedLinksCount ?? "—"}</div>
+                <div className="text-[10px] text-slate-500 mt-0.5">Stale share tokens</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Card 1: Orphan Bucket Sweep */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-bold text-white">
+                  <Cloud className="h-4 w-4 text-blue-400" />
+                  <span>Sweep Orphan Bucket Objects</span>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">
+                  Scans Backblaze B2 / Cloudflare R2 bucket for abandoned ciphertext blobs that do not belong to any active document and permanently deletes them.
+                </p>
+              </div>
+              <button
+                onClick={() =>
+                  setSweepConfirmTarget({
+                    action: "orphan_sweep",
+                    title: "Sweep Orphan Bucket Objects?",
+                    message: "This will scan your storage bucket and delete any encrypted files that are no longer associated with a document in the database.",
+                  })
+                }
+                disabled={Boolean(runningSweepAction)}
+                className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-blue-600/20 border border-blue-500/30 px-4 py-2.5 text-xs font-bold text-blue-300 hover:bg-blue-600/30 transition disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${runningSweepAction === "orphan_sweep" ? "animate-spin" : ""}`} />
+                <span>{runningSweepAction === "orphan_sweep" ? "Sweeping..." : "Run Orphan Bucket Sweep"}</span>
+              </button>
+            </div>
+
+            {/* Card 2: Purge Tombstoned Documents */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-bold text-white">
+                  <Trash2 className="h-4 w-4 text-rose-400" />
+                  <span>Permanently Purge Tombstones</span>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">
+                  Permanently destroys soft-deleted documents, their physical ciphertext storage blobs on B2/R2, versions, audio notes, and question pins.
+                </p>
+              </div>
+              <button
+                onClick={() =>
+                  setSweepConfirmTarget({
+                    action: "purge_tombstones",
+                    title: "Purge All Tombstoned Documents?",
+                    message: "This will permanently crypto-shred and delete all soft-deleted documents and their physical storage blobs from B2/R2.",
+                  })
+                }
+                disabled={Boolean(runningSweepAction)}
+                className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-rose-600/20 border border-rose-500/30 px-4 py-2.5 text-xs font-bold text-rose-300 hover:bg-rose-600/30 transition disabled:opacity-50"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                <span>{runningSweepAction === "purge_tombstones" ? "Purging..." : "Purge Tombstoned Documents"}</span>
+              </button>
+            </div>
+
+            {/* Card 3: Prune Expired & Revoked Links */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-bold text-white">
+                  <Key className="h-4 w-4 text-amber-400" />
+                  <span>Prune Expired & Revoked Links</span>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">
+                  Removes inactive share links that have reached their expiration date, exceeded maximum views, or were manually revoked.
+                </p>
+              </div>
+              <button
+                onClick={() =>
+                  setSweepConfirmTarget({
+                    action: "prune_expired_links",
+                    title: "Prune Stale & Expired Links?",
+                    message: "This will delete all expired and revoked share links and their associated live rooms.",
+                  })
+                }
+                disabled={Boolean(runningSweepAction)}
+                className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-amber-600/20 border border-amber-500/30 px-4 py-2.5 text-xs font-bold text-amber-300 hover:bg-amber-600/30 transition disabled:opacity-50"
+              >
+                <Key className="h-3.5 w-3.5" />
+                <span>{runningSweepAction === "prune_expired_links" ? "Pruning..." : "Prune Stale Links"}</span>
+              </button>
+            </div>
+
+            {/* Card 4: Prune Stale Telemetry */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-bold text-white">
+                  <Database className="h-4 w-4 text-emerald-400" />
+                  <span>Prune Old Page Telemetry (&gt;30 Days)</span>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">
+                  Cleans old raw page dwell events older than 30 days while preserving aggregate document view counts to save Neon PostgreSQL database rows.
+                </p>
+              </div>
+              <button
+                onClick={() =>
+                  setSweepConfirmTarget({
+                    action: "prune_telemetry",
+                    title: "Prune Old Page Telemetry?",
+                    message: "This will clean raw page dwell events older than 30 days to free database row quota.",
+                  })
+                }
+                disabled={Boolean(runningSweepAction)}
+                className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-emerald-600/20 border border-emerald-500/30 px-4 py-2.5 text-xs font-bold text-emerald-300 hover:bg-emerald-600/30 transition disabled:opacity-50"
+              >
+                <Database className="h-3.5 w-3.5" />
+                <span>{runningSweepAction === "prune_telemetry" ? "Pruning..." : "Prune Old Telemetry"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Full Vacuum Card */}
+          <div className="rounded-2xl border border-purple-500/30 bg-gradient-to-r from-purple-950/40 to-slate-900/80 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-sm font-bold text-purple-300">
+                <Sparkles className="h-5 w-5 text-purple-400" />
+                <span>Full Platform Vacuum & Cleanup</span>
+              </div>
+              <p className="text-xs text-slate-400 mt-1 max-w-xl">
+                Executes a complete, safe optimization cycle: sweeps orphan bucket objects, purges tombstones, removes expired links, and prunes stale telemetry in one audited batch.
+              </p>
+            </div>
+            <button
+              onClick={() =>
+                setSweepConfirmTarget({
+                  action: "full_clean",
+                  title: "Execute Full Platform Vacuum?",
+                  message: "This will run a full optimization sweep across both the storage bucket and the PostgreSQL database.",
+                })
+              }
+              disabled={Boolean(runningSweepAction)}
+              className="whitespace-nowrap rounded-xl bg-purple-600 px-6 py-3 text-xs font-bold text-white hover:bg-purple-500 shadow-lg shadow-purple-600/20 transition disabled:opacity-50"
+            >
+              {runningSweepAction === "full_clean" ? "Vacuuming..." : "Execute Full Vacuum"}
+            </button>
+          </div>
+
+          {/* Sweep Result Banner */}
+          {sweepResult && (
+            <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-300 text-xs flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="font-bold flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>Maintenance Sweep Summary</span>
+                </div>
+                <div>
+                  Deleted {sweepResult.purgedOrphanObjects} orphan bucket objects, {sweepResult.purgedTombstonedDocs} tombstones, {sweepResult.prunedStaleLinks} stale links, and {sweepResult.prunedTelemetryRows} telemetry events.
+                </div>
+              </div>
+              <button onClick={() => setSweepResult(null)} className="text-emerald-400 hover:text-white font-bold">
+                ✕
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab 6: System Controls */}
       {tab === "settings" && (
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-6">
           <h3 className="text-sm font-bold text-white mb-3">Platform Broadcast & Maintenance Controls</h3>
@@ -846,6 +1108,21 @@ export function AdminPanelView() {
           </button>
         </div>
       )}
+
+      {/* Sweep Action Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(sweepConfirmTarget)}
+        title={sweepConfirmTarget?.title || "Confirm Action"}
+        message={sweepConfirmTarget?.message || ""}
+        confirmLabel="Execute Maintenance"
+        cancelLabel="Cancel"
+        variant="danger"
+        loading={Boolean(runningSweepAction)}
+        onConfirm={handleExecuteSweep}
+        onCancel={() => {
+          if (!runningSweepAction) setSweepConfirmTarget(null);
+        }}
+      />
 
       {/* In-App User Delete Confirmation Modal */}
       <ConfirmModal
