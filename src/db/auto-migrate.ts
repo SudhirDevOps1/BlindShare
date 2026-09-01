@@ -182,10 +182,52 @@ export async function ensureDatabaseSchema(pool: Pool) {
           updated_at timestamp with time zone NOT NULL DEFAULT now()
         );
 
+        CREATE TABLE IF NOT EXISTS page_questions (
+          id text PRIMARY KEY,
+          link_id text NOT NULL REFERENCES links(id) ON DELETE CASCADE,
+          doc_id text REFERENCES documents(id) ON DELETE CASCADE,
+          session_id text REFERENCES view_sessions(id) ON DELETE SET NULL,
+          page_number integer NOT NULL,
+          pos_x_percent integer NOT NULL DEFAULT 50,
+          pos_y_percent integer NOT NULL DEFAULT 50,
+          question_text text NOT NULL,
+          asker_email text,
+          asker_name text,
+          reply_text text,
+          replied_at timestamp with time zone,
+          is_resolved boolean NOT NULL DEFAULT false,
+          created_at timestamp with time zone NOT NULL DEFAULT now()
+        );
+
+        CREATE TABLE IF NOT EXISTS doc_audio_notes (
+          id text PRIMARY KEY,
+          doc_id text NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
+          page_number integer NOT NULL,
+          storage_key text NOT NULL,
+          duration_sec integer NOT NULL DEFAULT 0,
+          title text,
+          audio_data_url text,
+          created_at timestamp with time zone NOT NULL DEFAULT now()
+        );
+
+        CREATE TABLE IF NOT EXISTS live_rooms (
+          id text PRIMARY KEY,
+          link_id text NOT NULL REFERENCES links(id) ON DELETE CASCADE UNIQUE,
+          current_slide integer NOT NULL DEFAULT 1,
+          laser_x integer DEFAULT 50,
+          laser_y integer DEFAULT 50,
+          presenter_active boolean NOT NULL DEFAULT false,
+          updated_at timestamp with time zone NOT NULL DEFAULT now()
+        );
+
         -- Self-healing Column Migrations for Existing Databases
         ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled boolean NOT NULL DEFAULT false;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret text;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_backup_codes text;
+
+        ALTER TABLE links ADD COLUMN IF NOT EXISTS anti_spy_shield_enabled boolean NOT NULL DEFAULT true;
+        ALTER TABLE links ADD COLUMN IF NOT EXISTS burn_after_reading boolean NOT NULL DEFAULT false;
+        ALTER TABLE links ADD COLUMN IF NOT EXISTS voice_pitch_enabled boolean NOT NULL DEFAULT true;
       `);
       migrationDone = true;
       logger.info("db.auto_migration_complete");

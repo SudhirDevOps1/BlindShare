@@ -58,6 +58,9 @@ export function CreateLinkModal({
   const [brandLogoUrl, setBrandLogoUrl] = useState("");
   const [brandAccentColor, setBrandAccentColor] = useState("");
   const [antiLeakBlurEnabled, setAntiLeakBlurEnabled] = useState(true);
+  const [antiSpyShieldEnabled, setAntiSpyShieldEnabled] = useState(true);
+  const [burnAfterReading, setBurnAfterReading] = useState(false);
+  const [voicePitchEnabled, setVoicePitchEnabled] = useState(true);
   const [maxViews, setMaxViews] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
 
@@ -117,6 +120,9 @@ export function CreateLinkModal({
           brandLogoUrl: brandLogoUrl.trim() || undefined,
           brandAccentColor: brandAccentColor.trim() || undefined,
           antiLeakBlurEnabled,
+          antiSpyShieldEnabled,
+          burnAfterReading,
+          voicePitchEnabled,
           maxViews: maxViews ? parseInt(maxViews, 10) : undefined,
           expiresAt: expiresAt || undefined,
         }),
@@ -439,30 +445,200 @@ export function CreateLinkModal({
                   />
                 </div>
 
-                {/* Limits: Expiry & Max Views */}
-                <div className="grid grid-cols-2 gap-3">
+                {/* Tab-Switch Anti-Spy Shield */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 flex items-center justify-between">
                   <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">
-                      {t.linkStudio.expiryDate}
-                    </label>
+                    <div className="text-xs font-medium text-white flex items-center gap-1.5">
+                      <span>👁️ Tab-Switch Anti-Spy Shield</span>
+                      <span className="rounded bg-blue-500/10 px-1.5 py-0.5 text-[9px] font-bold text-blue-400 border border-blue-500/20">NEW</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400">Instantly shields content with blur overlay when viewer leaves tab or switches windows</div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={antiSpyShieldEnabled}
+                    onChange={(e) => setAntiSpyShieldEnabled(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500"
+                  />
+                </div>
+
+                {/* Burn After Reading (Self-Destruct Link) */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-medium text-white flex items-center gap-1.5">
+                      <span>🔥 Burn After Reading (Single-Use Link)</span>
+                      <span className="rounded bg-red-500/10 px-1.5 py-0.5 text-[9px] font-bold text-red-400 border border-red-500/20">EPHEMERAL</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400">Automatically self-destructs and revokes link permanently after recipient finishes reading</div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={burnAfterReading}
+                    onChange={(e) => setBurnAfterReading(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-red-500 focus:ring-red-500"
+                  />
+                </div>
+
+                {/* Voice Pitch Walkthrough Notes */}
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 flex items-center justify-between">
+                  <div>
+                    <div className="text-xs font-medium text-white flex items-center gap-1.5">
+                      <span>🎙️ Founder Voice Pitch Walkthrough</span>
+                      <span className="rounded bg-purple-500/10 px-1.5 py-0.5 text-[9px] font-bold text-purple-400 border border-purple-500/20">INTERACTIVE</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400">Allow recipient to listen to embedded founder audio explanations per slide</div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={voicePitchEnabled}
+                    onChange={(e) => setVoicePitchEnabled(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-purple-500 focus:ring-purple-500"
+                  />
+                </div>
+
+                {/* Limits: Expiry & Max Views */}
+                <div className="space-y-3 rounded-xl border border-slate-800 bg-slate-950 p-3.5">
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-medium text-white flex items-center gap-1.5">
+                        <Calendar className="h-3.5 w-3.5 text-amber-400" />
+                        <span>Link Expiration Date & Time</span>
+                      </label>
+                      {expiresAt && (
+                        <button
+                          type="button"
+                          onClick={() => setExpiresAt("")}
+                          className="text-[10px] text-amber-400 hover:underline"
+                        >
+                          Clear (Never Expires)
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Expiry Quick Presets */}
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const d = new Date(Date.now() + 1 * 3600 * 1000);
+                          setExpiresAt(new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16));
+                        }}
+                        className="rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-[10px] font-medium text-slate-300 hover:border-amber-500/40 hover:text-amber-300 transition"
+                      >
+                        ⚡ 1 Hour
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const d = new Date(Date.now() + 24 * 3600 * 1000);
+                          setExpiresAt(new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16));
+                        }}
+                        className="rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-[10px] font-medium text-slate-300 hover:border-amber-500/40 hover:text-amber-300 transition"
+                      >
+                        ⏱️ 24 Hours
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const d = new Date(Date.now() + 7 * 24 * 3600 * 1000);
+                          setExpiresAt(new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16));
+                        }}
+                        className="rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-[10px] font-medium text-slate-300 hover:border-amber-500/40 hover:text-amber-300 transition"
+                      >
+                        📅 7 Days
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const d = new Date(Date.now() + 30 * 24 * 3600 * 1000);
+                          setExpiresAt(new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16));
+                        }}
+                        className="rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-[10px] font-medium text-slate-300 hover:border-amber-500/40 hover:text-amber-300 transition"
+                      >
+                        🗓️ 30 Days
+                      </button>
+                    </div>
+
                     <input
                       type="datetime-local"
                       value={expiresAt}
                       onChange={(e) => setExpiresAt(e.target.value)}
-                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white placeholder-slate-500"
                     />
                   </div>
-                  <div>
-                    <label className="block text-xs font-medium text-slate-300 mb-1">
-                      {t.linkStudio.maxViews}
-                    </label>
+
+                  <div className="border-t border-slate-800/80 pt-2.5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-xs font-medium text-white flex items-center gap-1.5">
+                        <Eye className="h-3.5 w-3.5 text-blue-400" />
+                        <span>Maximum Allowed View Limit</span>
+                      </label>
+                      {maxViews && (
+                        <button
+                          type="button"
+                          onClick={() => setMaxViews("")}
+                          className="text-[10px] text-blue-400 hover:underline"
+                        >
+                          Clear (Unlimited)
+                        </button>
+                      )}
+                    </div>
+
+                    {/* View Limit Presets */}
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      <button
+                        type="button"
+                        onClick={() => setMaxViews("1")}
+                        className={`rounded-lg border px-2.5 py-1 text-[10px] font-medium transition ${
+                          maxViews === "1"
+                            ? "border-red-500/50 bg-red-950/40 text-red-300 font-bold"
+                            : "border-slate-800 bg-slate-900 text-slate-300 hover:text-white"
+                        }`}
+                      >
+                        🔥 1 View (Burn)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMaxViews("5")}
+                        className={`rounded-lg border px-2.5 py-1 text-[10px] font-medium transition ${
+                          maxViews === "5"
+                            ? "border-blue-500/50 bg-blue-950/40 text-blue-300 font-bold"
+                            : "border-slate-800 bg-slate-900 text-slate-300 hover:text-white"
+                        }`}
+                      >
+                        👀 5 Views
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMaxViews("25")}
+                        className={`rounded-lg border px-2.5 py-1 text-[10px] font-medium transition ${
+                          maxViews === "25"
+                            ? "border-blue-500/50 bg-blue-950/40 text-blue-300 font-bold"
+                            : "border-slate-800 bg-slate-900 text-slate-300 hover:text-white"
+                        }`}
+                      >
+                        📊 25 Views
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMaxViews("100")}
+                        className={`rounded-lg border px-2.5 py-1 text-[10px] font-medium transition ${
+                          maxViews === "100"
+                            ? "border-blue-500/50 bg-blue-950/40 text-blue-300 font-bold"
+                            : "border-slate-800 bg-slate-900 text-slate-300 hover:text-white"
+                        }`}
+                      >
+                        🚀 100 Views
+                      </button>
+                    </div>
+
                     <input
                       type="number"
                       min="1"
                       value={maxViews}
                       onChange={(e) => setMaxViews(e.target.value)}
-                      placeholder={t.linkStudio.maxViewsPlaceholder}
-                      className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white"
+                      placeholder="Custom view count limit (e.g. 10)"
+                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white placeholder-slate-500"
                     />
                   </div>
                 </div>

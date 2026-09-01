@@ -579,7 +579,31 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
                         </td>
 
                         <td className="py-3">
-                          {s.intent === "high" ? (
+                          {s.intentScore !== undefined ? (
+                            <div className="flex flex-col items-start gap-0.5">
+                              <span
+                                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
+                                  s.intentScore >= 75
+                                    ? "bg-red-500/20 text-red-300 border-red-500/30"
+                                    : s.intentScore >= 45
+                                    ? "bg-amber-500/20 text-amber-300 border-amber-500/30"
+                                    : "bg-slate-800 text-slate-400 border-slate-700"
+                                }`}
+                              >
+                                {s.intentScore >= 75 ? (
+                                  <Flame className="h-3 w-3 text-red-400" />
+                                ) : s.intentScore >= 45 ? (
+                                  <Zap className="h-3 w-3 text-amber-400" />
+                                ) : (
+                                  <Snowflake className="h-3 w-3 text-slate-500" />
+                                )}
+                                <span>{s.intentScore}% Score</span>
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-medium truncate max-w-[120px]">
+                                {s.intentScore >= 75 ? "🔥 Hot Deal" : s.intentScore >= 45 ? "⚡ Engaged" : "👀 Skimmed"}
+                              </span>
+                            </div>
+                          ) : s.intent === "high" ? (
                             <span className="inline-flex items-center gap-1 rounded-full bg-red-500/20 px-2.5 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30">
                               <Flame className="h-3 w-3 text-red-400" />
                               High Intent
@@ -617,11 +641,36 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
                         </td>
                       </tr>
 
-                      {/* Expanded Page-by-Page breakdown for this specific reader */}
+                      {/* Expanded Page-by-Page breakdown & AI Key Insights */}
                       {isExpanded && (
                         <tr className="bg-slate-950/80">
                           <td colSpan={8} className="p-4 border-y border-slate-800/80">
-                            <div className="space-y-2">
+                            <div className="space-y-3">
+                              {/* AI Lead Summary & Signals */}
+                              {s.intentInsights && s.intentInsights.length > 0 && (
+                                <div className="rounded-xl border border-amber-500/20 bg-amber-950/10 p-3 space-y-1.5">
+                                  <div className="flex items-center gap-2 text-xs font-bold text-amber-300">
+                                    <Zap className="h-3.5 w-3.5 text-amber-400" />
+                                    <span>AI Intent Intelligence & Signals</span>
+                                    {s.intentScore !== undefined && (
+                                      <span className="rounded-full bg-amber-500/20 px-2 py-0.2 text-[10px] font-mono font-bold text-amber-300">
+                                        {s.intentScore}/100 Conviction
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="flex flex-wrap gap-1.5 pt-1">
+                                    {s.intentInsights.map((insight: string, idx: number) => (
+                                      <span
+                                        key={idx}
+                                        className="rounded-lg border border-slate-800 bg-slate-900 px-2.5 py-1 text-[11px] text-slate-300"
+                                      >
+                                        💡 {insight}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
                               <div className="text-xs font-bold text-slate-300 flex items-center justify-between">
                                 <span>Reader Dwell Per Page Breakdown ({s.viewerEmail || "Anonymous"})</span>
                                 <span className="text-[11px] text-slate-500 font-normal">

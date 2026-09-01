@@ -97,6 +97,39 @@ export function fragmentToDocKey(fragment: string): Uint8Array | null {
 /**
  * Client-Side Encrypt document bytes using AES-GCM-256
  */
+/**
+ * Browser-native GZIP client-side compression to reduce B2/R2 bucket storage size by 50-80%
+ */
+export async function compressBytes(data: Uint8Array): Promise<Uint8Array> {
+  if (typeof CompressionStream === "undefined") return data;
+  try {
+    const stream = new Response(new Blob([data as any])).body!.pipeThrough(new CompressionStream("gzip"));
+    const buffer = await new Response(stream).arrayBuffer();
+    return new Uint8Array(buffer);
+  } catch {
+    return data;
+  }
+}
+
+/**
+ * Browser-native GZIP client-side decompression with auto-detect magic bytes
+ */
+export async function decompressBytes(data: Uint8Array): Promise<Uint8Array> {
+  if (data.length >= 2 && data[0] === 0x1f && data[1] === 0x8b && typeof DecompressionStream !== "undefined") {
+    try {
+      const stream = new Response(new Blob([data as any])).body!.pipeThrough(new DecompressionStream("gzip"));
+      const buffer = await new Response(stream).arrayBuffer();
+      return new Uint8Array(buffer);
+    } catch {
+      return data;
+    }
+  }
+  return data;
+}
+
+/**
+ * Client-Side Encrypt document bytes using AES-GCM-256 (with transparent client-side compression)
+ */
 export async function encryptBytes(
   plaintext: ArrayBuffer | Uint8Array,
   rawKey: Uint8Array
@@ -105,6 +138,10 @@ export async function encryptBytes(
   if (!cryptoSubtle) {
     throw new Error("WebCrypto SubtleCrypto is not supported in this environment");
   }
+
+  // Transparently compress client-side to minimize bucket storage footprint
+  const rawBytes = plaintext instanceof Uint8Array ? plaintext : new Uint8Array(plaintext);
+  const compressed = await compressBytes(rawBytes);
 
   // Import raw key
   const cryptoKey = await cryptoSubtle.importKey(
@@ -126,7 +163,7 @@ export async function encryptBytes(
       tagLength: 128,
     },
     cryptoKey,
-    plaintext as ArrayBufferView<ArrayBuffer>
+    compressed as ArrayBufferView<ArrayBuffer>
   );
 
   return {
@@ -136,7 +173,7 @@ export async function encryptBytes(
 }
 
 /**
- * Client-Side Decrypt document bytes using AES-GCM-256
+ * Client-Side Decrypt document bytes using AES-GCM-256 (with transparent decompression)
  */
 export async function decryptBytes(
   ciphertext: ArrayBuffer | Uint8Array,
@@ -166,7 +203,9 @@ export async function decryptBytes(
     ciphertext as ArrayBufferView<ArrayBuffer>
   );
 
-  return decrypted;
+  // Decompress if compressed, otherwise return raw buffer
+  const decompressed = await decompressBytes(new Uint8Array(decrypted));
+  return decompressed.buffer as ArrayBuffer;
 }
 
 /**

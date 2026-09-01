@@ -8,6 +8,7 @@ import { sendPushToUser } from "@/lib/push";
 import { sendWebhookNotification } from "@/lib/notifications/webhook-notifier";
 import { parseBody } from "@/lib/validation";
 import { verifyLinkSchema } from "@/lib/validation/schemas";
+import { validateEmailWithMx } from "@/lib/validation/email-validator";
 import { checkLockout, recordFailure, recordSuccess } from "@/lib/auth/lockout";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
@@ -78,6 +79,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
         return NextResponse.json({ error: "A valid email address is required to view this document" }, { status: 400 });
       }
       cleanEmail = email.trim().toLowerCase();
+
+      // Anti-fake email protection: Verify DNS MX records & block disposable domains
+      const emailCheck = await validateEmailWithMx(cleanEmail);
+      if (!emailCheck.valid) {
+        return NextResponse.json(
+          { error: emailCheck.reason || "Please provide a valid working email address" },
+          { status: 400 }
+        );
+      }
 
       if (link.allowedDomains) {
         const allowedList = link.allowedDomains.split(",").map((d) => d.trim().toLowerCase()).filter(Boolean);

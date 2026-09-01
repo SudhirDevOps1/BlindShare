@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { links, documents, viewSessions, pageEvents } from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { generateCsv, formatDuration } from "@/lib/analytics";
+import { computeReaderIntent } from "@/lib/analytics/intent-scorer";
 
 export async function GET(
   request: Request,
@@ -119,18 +120,30 @@ export async function GET(
       countryCounts[cty] = (countryCounts[cty] || 0) + 1;
 
       const completionRate = Math.min(100, Math.round((s.maxPageReached / totalPages) * 100));
-      let intent: "high" | "medium" | "low" = "low";
-      if (completionRate >= 75 || s.totalDwellSeconds >= 120) {
-        intent = "high";
-      } else if (completionRate >= 30 || s.totalDwellSeconds >= 30) {
-        intent = "medium";
-      }
+
+      const pageDwellsList = Object.entries(sessionPagesMap.get(s.id) || {}).map(([pNum, dSec]) => ({
+        pageNumber: parseInt(pNum, 10),
+        dwellSeconds: dSec,
+      }));
+
+      const aiIntent = computeReaderIntent({
+        totalDwellSeconds: s.totalDwellSeconds || 0,
+        completedPages: s.completedPages || s.maxPageReached,
+        totalPages,
+        viewerEmail: s.viewerEmail,
+        ndaSigned: Boolean(s.ndaAgreedAt),
+        pageDwells: pageDwellsList,
+      });
 
       return {
         ...s,
         formattedDwell: formatDuration(s.totalDwellSeconds),
         completionRate,
-        intent,
+        intent: aiIntent.level,
+        intentScore: aiIntent.score,
+        intentBadge: aiIntent.badgeText,
+        intentSummary: aiIntent.summary,
+        intentInsights: aiIntent.keyInsights,
         isLive,
         pageBreakdown: sessionPagesMap.get(s.id) || {},
       };

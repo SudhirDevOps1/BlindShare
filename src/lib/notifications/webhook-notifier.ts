@@ -6,10 +6,12 @@ import { isSafeWebhookUrl } from "@/lib/security/ssrf-validator";
  */
 
 export interface WebhookEventPayload {
-  event: "link_opened" | "nda_signed" | "signature_submitted" | "reading_milestone";
+  event: "link_opened" | "nda_signed" | "signature_submitted" | "reading_milestone" | "question_asked";
   linkName: string;
   linkSlug: string;
   docTitle?: string;
+  pageNumber?: number;
+  questionText?: string;
   viewerEmail?: string;
   viewerCountry?: string;
   viewerDevice?: string;
@@ -97,6 +99,8 @@ function getEventTitle(event: WebhookEventPayload["event"]): string {
       return "Document Digitally Signed";
     case "reading_milestone":
       return "High Interest: Reading > 1 min";
+    case "question_asked":
+      return "💬 Question Asked on Slide";
     default:
       return "Document Activity";
   }

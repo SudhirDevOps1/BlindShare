@@ -27,6 +27,36 @@ export default function ViewerPage({ params }: { params: Promise<{ slug: string 
   const [hasSigned, setHasSigned] = useState(false);
   const [unwrappedKey, setUnwrappedKey] = useState<Uint8Array | null>(null);
   const [keyError, setKeyError] = useState<string | null>(null);
+  const [isWindowBlurred, setIsWindowBlurred] = useState(false);
+
+  // Tab-Switch Anti-Spy Shield: Obfuscates document when user switches tabs or windows
+  useEffect(() => {
+    if (!payload?.link?.antiSpyShieldEnabled) return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        setIsWindowBlurred(true);
+      }
+    };
+
+    const handleWindowBlur = () => {
+      setIsWindowBlurred(true);
+    };
+
+    const handleWindowFocus = () => {
+      setIsWindowBlurred(false);
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("blur", handleWindowBlur);
+    window.addEventListener("focus", handleWindowFocus);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("blur", handleWindowBlur);
+      window.removeEventListener("focus", handleWindowFocus);
+    };
+  }, [payload?.link?.antiSpyShieldEnabled]);
 
   useEffect(() => {
     let cancelled = false;
@@ -262,44 +292,67 @@ export default function ViewerPage({ params }: { params: Promise<{ slug: string 
     viewerIdentity: verified.viewerIdentity,
   };
 
-  if (isPdf(doc.originalFilename)) {
-    return (
-      <PdfRenderer
-        {...rendererProps}
-        linkData={{
-          ...rendererProps.linkData,
-          slug,
-          requiresNda: link.requiresNda,
-          ndaText: link.ndaText,
-        }}
-        docData={{
-          id: doc.id,
-          title: doc.title,
-          pageCount: doc.pageCount,
-          encryptionMode: doc.encryptionMode,
-          ivHex: doc.ivHex,
-          tagHex: doc.tagHex,
-        }}
-        initialPassword={unwrappedKey ? undefined : verified.passwordEntered}
-        wrappedKeyHex={link.wrappedKeyHex}
-        passwordSaltHex={link.passwordSaltHex}
-      />
-    );
-  }
-
   return (
-    <MediaRenderer
-      {...rendererProps}
-      docData={{
-        id: doc.id,
-        title: doc.title,
-        originalFilename: doc.originalFilename,
-        pageCount: doc.pageCount,
-        encryptionMode: doc.encryptionMode,
-        ivHex: doc.ivHex,
-      }}
-      docKeyOverride={unwrappedKey}
-    />
+    <div className="relative min-h-screen">
+      {/* Anti-Spy Tab-Switch Obfuscation Shield */}
+      {isWindowBlurred && (
+        <div
+          onClick={() => setIsWindowBlurred(false)}
+          className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-slate-950/95 backdrop-blur-2xl p-6 text-center select-none cursor-pointer"
+        >
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-500/30 bg-blue-500/10 text-blue-400 shadow-2xl shadow-blue-500/20 animate-pulse">
+            <Shield className="h-8 w-8" />
+          </div>
+          <h2 className="text-lg font-bold text-white mb-1.5">Anti-Spy Privacy Shield Active</h2>
+          <p className="text-xs text-slate-400 max-w-sm mb-5 leading-relaxed">
+            Document contents are secured and hidden while your browser tab is out of focus.
+          </p>
+          <button
+            onClick={() => setIsWindowBlurred(false)}
+            className="rounded-xl bg-blue-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-blue-400 transition shadow-lg shadow-blue-500/20"
+          >
+            Click Anywhere to Resume Viewing
+          </button>
+        </div>
+      )}
+
+      {isPdf(doc.originalFilename) ? (
+        <PdfRenderer
+          {...rendererProps}
+          linkData={{
+            ...rendererProps.linkData,
+            slug,
+            requiresNda: link.requiresNda,
+            ndaText: link.ndaText,
+            voicePitchEnabled: link.voicePitchEnabled,
+          }}
+          docData={{
+            id: doc.id,
+            title: doc.title,
+            pageCount: doc.pageCount,
+            encryptionMode: doc.encryptionMode,
+            ivHex: doc.ivHex,
+            tagHex: doc.tagHex,
+          }}
+          initialPassword={unwrappedKey ? undefined : verified.passwordEntered}
+          wrappedKeyHex={link.wrappedKeyHex}
+          passwordSaltHex={link.passwordSaltHex}
+        />
+      ) : (
+        <MediaRenderer
+          {...rendererProps}
+          docData={{
+            id: doc.id,
+            title: doc.title,
+            originalFilename: doc.originalFilename,
+            pageCount: doc.pageCount,
+            encryptionMode: doc.encryptionMode,
+            ivHex: doc.ivHex,
+          }}
+          docKeyOverride={unwrappedKey}
+        />
+      )}
+    </div>
   );
 }
 

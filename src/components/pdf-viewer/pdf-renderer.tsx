@@ -24,8 +24,16 @@ import {
   Sparkles,
   BookOpen,
   Presentation,
+  MessageSquarePlus,
+  MessageCircle,
+  Radio,
+  Send,
+  CheckCircle2,
+  X,
+  HelpCircle,
 } from "lucide-react";
 import { PresenterModeView } from "@/components/viewer/presenter-mode-view";
+import { VoiceNotePlayer } from "@/components/viewer/voice-note-player";
 import { setupAntiLeakListeners } from "@/lib/security/anti-leak-detector";
 
 interface PdfRendererProps {
@@ -42,6 +50,7 @@ interface PdfRendererProps {
     brandLogoUrl?: string | null;
     brandAccentColor?: string | null;
     antiLeakBlurEnabled?: boolean;
+    voicePitchEnabled?: boolean;
   };
   docData: {
     id: string;
@@ -81,6 +90,97 @@ export function PdfRenderer({
   const [rotation, setRotation] = useState(0);
   const [presenterMode, setPresenterMode] = useState(false);
   const [antiLeakActive, setAntiLeakActive] = useState(false);
+
+  // Next-Gen Feature States
+  const [audioNotes, setAudioNotes] = useState<any[]>([]);
+  const [questionPins, setQuestionPins] = useState<any[]>([]);
+  const [isAddingPin, setIsAddingPin] = useState(false);
+  const [activePin, setActivePin] = useState<any | null>(null);
+  const [newPinCoords, setNewPinCoords] = useState<{ x: number; y: number } | null>(null);
+  const [newPinText, setNewPinText] = useState("");
+  const [newPinName, setNewPinName] = useState(viewerIdentity.includes("@") ? viewerIdentity.split("@")[0] : "");
+  const [newPinEmail, setNewPinEmail] = useState(viewerIdentity.includes("@") ? viewerIdentity : "");
+  const [submittingPin, setSubmittingPin] = useState(false);
+
+  // Live Presenter Room Sync
+  const [isLiveRoomActive, setIsLiveRoomActive] = useState(false);
+  const [followPresenter, setFollowPresenter] = useState(true);
+
+  // Fetch Audio Notes & Questions for this document/link
+  useEffect(() => {
+    let cancelled = false;
+
+    // Load Audio Walkthrough Notes
+    fetch(`/api/docs/${docData.id}/audio`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && d.notes) setAudioNotes(d.notes);
+      })
+      .catch(() => {});
+
+    // Load Question Pins
+    fetch(`/api/v/${slug}/questions`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && d.questions) setQuestionPins(d.questions);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [docData.id, slug]);
+
+  // Live Presenter Sync Watchdog
+  useEffect(() => {
+    const roomPoll = setInterval(async () => {
+      try {
+        const r = await fetch(`/api/v/${slug}/room`);
+        if (r.ok) {
+          const d = await r.json();
+          setIsLiveRoomActive(d.isLive);
+          if (d.isLive && followPresenter && d.currentSlide !== currentPage) {
+            setCurrentPage(d.currentSlide);
+          }
+        }
+      } catch {}
+    }, 2500);
+
+    return () => clearInterval(roomPoll);
+  }, [slug, followPresenter, currentPage]);
+
+  // Submit new Question Pin
+  const handleCreateQuestionPin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPinCoords || !newPinText.trim()) return;
+
+    try {
+      setSubmittingPin(true);
+      const res = await fetch(`/api/v/${slug}/questions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pageNumber: currentPage,
+          posXPercent: Math.round(newPinCoords.x),
+          posYPercent: Math.round(newPinCoords.y),
+          questionText: newPinText.trim(),
+          askerName: newPinName.trim() || undefined,
+          askerEmail: newPinEmail.trim() || undefined,
+          sessionId,
+        }),
+      });
+
+      const data = await res.json();
+      if (res.ok && data.question) {
+        setQuestionPins((prev) => [data.question, ...prev]);
+        setNewPinCoords(null);
+        setNewPinText("");
+        setIsAddingPin(false);
+      }
+    } catch {} finally {
+      setSubmittingPin(false);
+    }
+  };
 
   // Setup Anti-leak screenshot and focus deterrents
   useEffect(() => {
@@ -611,6 +711,32 @@ export function PdfRenderer({
         </div>
       </div>
 
+      {/* Live Room Broadcaster Alert Banner */}
+      {isLiveRoomActive && (
+        <div className="bg-gradient-to-r from-red-600/20 via-amber-500/20 to-red-600/20 border-b border-red-500/30 px-4 py-2 text-xs text-white">
+          <div className="mx-auto max-w-4xl flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2.5 w-2.5 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+              </span>
+              <span className="font-bold text-red-300">Live Presenter Broadcast Active</span>
+              <span className="text-slate-300 hidden sm:inline">• Host is navigating this deck in real-time</span>
+            </div>
+            <button
+              onClick={() => setFollowPresenter(!followPresenter)}
+              className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
+                followPresenter
+                  ? "bg-red-500 text-white shadow-md shadow-red-500/30"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+              }`}
+            >
+              {followPresenter ? "✓ Syncing Slides (Active)" : "Sync Slides"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Resume Reading Notice Prompt */}
       {resumePrompt && (
         <div className="bg-amber-500/10 border-b border-amber-500/20 px-4 py-2 text-xs text-amber-300">
@@ -662,8 +788,23 @@ export function PdfRenderer({
         <PresenterModeView
           currentPage={currentPage}
           totalPages={totalPages}
-          onPageChange={setCurrentPage}
-          onClose={() => setPresenterMode(false)}
+          onPageChange={async (p) => {
+            setCurrentPage(p);
+            // Broadcast live slide transition to viewers
+            fetch(`/api/v/${slug}/room`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ currentSlide: p, presenterActive: true }),
+            }).catch(() => {});
+          }}
+          onClose={() => {
+            setPresenterMode(false);
+            fetch(`/api/v/${slug}/room`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ presenterActive: false }),
+            }).catch(() => {});
+          }}
           brandLogoUrl={linkData.brandLogoUrl}
           brandAccentColor={linkData.brandAccentColor}
           watermarkText={linkData.watermarkEnabled ? (linkData.watermarkText || viewerIdentity || "CONFIDENTIAL") : null}
@@ -679,8 +820,33 @@ export function PdfRenderer({
           </div>
         </PresenterModeView>
       ) : (
-        <div className={`flex-1 flex items-center justify-center p-4 sm:p-8 overflow-auto ${antiLeakActive ? "blur-xl" : ""}`}>
-          <div className="relative shadow-2xl rounded-lg overflow-hidden border border-slate-800 bg-slate-900">
+        <div className={`flex-1 flex flex-col items-center justify-center p-4 sm:p-8 overflow-auto ${antiLeakActive ? "blur-xl" : ""}`}>
+          {/* Question Mode Helper Banner */}
+          {isAddingPin && (
+            <div className="mb-3 flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-950/40 px-3.5 py-1.5 text-xs text-amber-200 animate-pulse">
+              <MessageSquarePlus className="h-4 w-4 text-amber-400" />
+              <span>Click anywhere on this slide to drop a private question / feedback pin</span>
+              <button
+                onClick={() => setIsAddingPin(false)}
+                className="ml-2 rounded-md bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300 hover:text-white"
+              >
+                Cancel
+              </button>
+            </div>
+          )}
+
+          <div
+            className={`relative shadow-2xl rounded-lg overflow-hidden border border-slate-800 bg-slate-900 ${
+              isAddingPin ? "cursor-crosshair ring-2 ring-amber-500/50" : ""
+            }`}
+            onClick={(e) => {
+              if (!isAddingPin) return;
+              const rect = e.currentTarget.getBoundingClientRect();
+              const xPercent = ((e.clientX - rect.left) / rect.width) * 100;
+              const yPercent = ((e.clientY - rect.top) / rect.height) * 100;
+              setNewPinCoords({ x: xPercent, y: yPercent });
+            }}
+          >
             {/* Main PDF Page Render Canvas */}
             <canvas ref={canvasRef} className="block max-w-full h-auto" />
 
@@ -691,9 +857,155 @@ export function PdfRenderer({
                 className="pointer-events-none absolute inset-0 block h-full w-full"
               />
             )}
+
+            {/* In-Doc Interactive Question Pins Overlay */}
+            {questionPins
+              .filter((q) => q.pageNumber === currentPage)
+              .map((q) => (
+                <div
+                  key={q.id}
+                  style={{ left: `${q.posXPercent}%`, top: `${q.posYPercent}%` }}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 z-20"
+                >
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActivePin(activePin?.id === q.id ? null : q);
+                    }}
+                    className={`flex h-6 w-6 items-center justify-center rounded-full text-slate-950 shadow-xl transition transform hover:scale-125 ${
+                      q.isResolved
+                        ? "bg-emerald-400 border border-emerald-300"
+                        : "bg-amber-400 border border-amber-300 animate-bounce"
+                    }`}
+                    title={q.questionText}
+                  >
+                    <MessageCircle className="h-3.5 w-3.5 fill-current" />
+                  </button>
+
+                  {/* Question Popover */}
+                  {activePin?.id === q.id && (
+                    <div
+                      onClick={(e) => e.stopPropagation()}
+                      className="absolute left-8 top-0 z-30 w-64 rounded-xl border border-slate-700 bg-slate-950 p-3.5 shadow-2xl text-left space-y-2 backdrop-blur-md"
+                    >
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-1.5 text-[11px]">
+                        <span className="font-bold text-amber-400">{q.askerName || "Reader Question"}</span>
+                        <button
+                          onClick={() => setActivePin(null)}
+                          className="text-slate-400 hover:text-white"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-slate-200 leading-relaxed">{q.questionText}</p>
+                      {q.replyText ? (
+                        <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/20 p-2 text-[11px] text-emerald-300 space-y-1">
+                          <div className="font-bold flex items-center gap-1">
+                            <CheckCircle2 className="h-3 w-3" />
+                            <span>Founder Reply</span>
+                          </div>
+                          <div>{q.replyText}</div>
+                        </div>
+                      ) : (
+                        <div className="text-[10px] text-slate-500 italic">Pending founder reply...</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
           </div>
+
+          {/* New Question Pin Form Modal */}
+          {newPinCoords && (
+            <div
+              onClick={() => setNewPinCoords(null)}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-5 shadow-2xl space-y-3 text-left"
+              >
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <div className="flex items-center gap-2">
+                    <MessageSquarePlus className="h-4 w-4 text-amber-400" />
+                    <h4 className="text-xs font-bold text-white">Ask Question on Slide {currentPage}</h4>
+                  </div>
+                  <button onClick={() => setNewPinCoords(null)} className="text-slate-400 hover:text-white">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+
+                <form onSubmit={handleCreateQuestionPin} className="space-y-3">
+                  <div>
+                    <textarea
+                      value={newPinText}
+                      onChange={(e) => setNewPinText(e.target.value)}
+                      placeholder="What is your question about this slide?"
+                      rows={3}
+                      required
+                      className="w-full rounded-xl border border-slate-700 bg-slate-950 p-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      value={newPinName}
+                      onChange={(e) => setNewPinName(e.target.value)}
+                      placeholder="Your Name (Optional)"
+                      className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-white placeholder-slate-500"
+                    />
+                    <input
+                      type="email"
+                      value={newPinEmail}
+                      onChange={(e) => setNewPinEmail(e.target.value)}
+                      placeholder="Email for reply"
+                      className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-white placeholder-slate-500"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={submittingPin || !newPinText.trim()}
+                    className="w-full flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-40 transition"
+                  >
+                    <Send className="h-3.5 w-3.5" />
+                    <span>{submittingPin ? "Submitting..." : "Submit Question Pin"}</span>
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
+
+      {/* Floating Action Overlay: Voice Walkthrough Player & Question Pin Button */}
+      <div className="fixed bottom-12 right-6 z-30 flex flex-col items-end gap-2.5">
+        {/* Voice Walkthrough Player for Current Page */}
+        {linkData.voicePitchEnabled !== false &&
+          audioNotes
+            .filter((n) => n.pageNumber === currentPage)
+            .map((note) => (
+              <VoiceNotePlayer
+                key={note.id}
+                audioDataUrl={note.audioDataUrl}
+                durationSec={note.durationSec}
+                title={note.title}
+                pageNumber={currentPage}
+              />
+            ))}
+
+        {/* Pin Question Button */}
+        <button
+          onClick={() => setIsAddingPin(!isAddingPin)}
+          className={`flex items-center gap-2 rounded-2xl border px-3.5 py-2 text-xs font-bold shadow-2xl backdrop-blur-md transition ${
+            isAddingPin
+              ? "border-amber-400 bg-amber-500 text-slate-950 shadow-amber-500/20"
+              : "border-slate-800 bg-slate-950/90 text-slate-200 hover:border-amber-500/50 hover:text-white"
+          }`}
+        >
+          <MessageSquarePlus className="h-4 w-4 text-amber-400" />
+          <span>{isAddingPin ? "Click Slide to Pin" : "Ask Question"}</span>
+        </button>
+      </div>
 
       {/* Bottom Floating Footer / Watermark Deterrent Disclaimer */}
       <div className="border-t border-slate-900 bg-slate-950 px-4 py-2 text-center text-[11px] text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">

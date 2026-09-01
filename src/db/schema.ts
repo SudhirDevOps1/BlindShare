@@ -104,6 +104,9 @@ export const links = pgTable("links", {
   brandLogoUrl: text("brand_logo_url"),
   brandAccentColor: text("brand_accent_color"),
   antiLeakBlurEnabled: boolean("anti_leak_blur_enabled").notNull().default(true),
+  antiSpyShieldEnabled: boolean("anti_spy_shield_enabled").notNull().default(true),
+  burnAfterReading: boolean("burn_after_reading").notNull().default(false),
+  voicePitchEnabled: boolean("voice_pitch_enabled").notNull().default(true),
   maxViews: integer("max_views"),
   viewCount: integer("view_count").notNull().default(0),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
@@ -149,6 +152,44 @@ export const pageEvents = pgTable("page_events", {
   pageNumber: integer("page_number").notNull(),
   dwellSeconds: integer("dwell_seconds").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const pageQuestions = pgTable("page_questions", {
+  id: text("id").primaryKey(),
+  linkId: text("link_id").notNull().references(() => links.id, { onDelete: "cascade" }),
+  docId: text("doc_id").references(() => documents.id, { onDelete: "cascade" }),
+  sessionId: text("session_id").references(() => viewSessions.id, { onDelete: "set null" }),
+  pageNumber: integer("page_number").notNull(),
+  posXPercent: integer("pos_x_percent").notNull().default(50), // 0 - 100 percentage of page width
+  posYPercent: integer("pos_y_percent").notNull().default(50), // 0 - 100 percentage of page height
+  questionText: text("question_text").notNull(),
+  askerEmail: text("asker_email"),
+  askerName: text("asker_name"),
+  replyText: text("reply_text"),
+  repliedAt: timestamp("replied_at", { withTimezone: true }),
+  isResolved: boolean("is_resolved").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const docAudioNotes = pgTable("doc_audio_notes", {
+  id: text("id").primaryKey(),
+  docId: text("doc_id").notNull().references(() => documents.id, { onDelete: "cascade" }),
+  pageNumber: integer("page_number").notNull(),
+  storageKey: text("storage_key").notNull(),
+  durationSec: integer("duration_sec").notNull().default(0),
+  title: text("title"),
+  audioDataUrl: text("audio_data_url"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+export const liveRooms = pgTable("live_rooms", {
+  id: text("id").primaryKey(),
+  linkId: text("link_id").notNull().references(() => links.id, { onDelete: "cascade" }).unique(),
+  currentSlide: integer("current_slide").notNull().default(1),
+  laserX: integer("laser_x").default(50),
+  laserY: integer("laser_y").default(50),
+  presenterActive: boolean("presenter_active").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
 export const pushSubscriptions = pgTable("push_subscriptions", {
