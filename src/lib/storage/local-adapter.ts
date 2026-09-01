@@ -52,12 +52,17 @@ export class LocalStorageAdapter implements StorageAdapter {
 
   async putObject(key: string, body: Buffer | Uint8Array, contentType: string): Promise<void> {
     const filePath = this.getFilePath(key);
-    const buf = Buffer.isBuffer(body) ? body : Buffer.from(body);
     const storageRoot = path.resolve(this.storageDir);
     if (!filePath.startsWith(storageRoot)) {
       throw new Error("Security violation: Invalid storage destination path");
     }
-    await fs.promises.writeFile(filePath, buf, { mode: 0o600, flag: "w" });
+    const buf = Buffer.isBuffer(body) ? body : Buffer.from(body);
+    const fd = await fs.promises.open(filePath, "w", 0o600);
+    try {
+      await fd.write(buf, 0, buf.length, 0);
+    } finally {
+      await fd.close();
+    }
   }
 
   async getObject(key: string): Promise<{ data: Buffer; contentType: string } | null> {

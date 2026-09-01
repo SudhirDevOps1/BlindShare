@@ -1,24 +1,22 @@
 import { NextResponse } from "next/server";
 import { getStorageAdapter } from "@/lib/storage";
-import { getSession } from "@/lib/auth/session";
+import { requireAuth } from "@/lib/auth/rbac";
 
 export async function PUT(request: Request) {
   try {
-    const session = await getSession();
-    if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const auth = await requireAuth();
+    if ("errorResponse" in auth) return auth.errorResponse;
 
     const { searchParams } = new URL(request.url);
-    const key = searchParams.get("key");
-    if (!key || !/^[a-zA-Z0-9_\-\.\/]+$/.test(key) || key.includes("..")) {
+    const rawKey = searchParams.get("key") || "";
+    const key = rawKey.replace(/[^a-zA-Z0-9_-]/g, "");
+    if (!key || key.length > 256) {
       return NextResponse.json({ error: "Invalid or illegal storage key" }, { status: 400 });
     }
 
     const arrayBuffer = await request.arrayBuffer();
-    // 50MB safe boundary for local storage write
-    if (arrayBuffer.byteLength > 50 * 1024 * 1024) {
-      return NextResponse.json({ error: "Payload exceeds 50MB limit" }, { status: 413 });
+    if (arrayBuffer.byteLength === 0 || arrayBuffer.byteLength > 50 * 1024 * 1024) {
+      return NextResponse.json({ error: "Invalid payload size (max 50MB)" }, { status: 400 });
     }
 
     const storage = getStorageAdapter();
