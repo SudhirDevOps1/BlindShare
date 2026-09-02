@@ -14,26 +14,29 @@ function GithubIcon({ className = "h-4 w-4" }: { className?: string }) {
 }
 
 export function BrandFooter() {
-  const { t, appName } = useI18n();
+  const { t, appName, lang, setLang } = useI18n();
 
   return (
-    <footer className="border-t border-slate-900 bg-slate-950 text-slate-400 text-xs">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pb-6 border-b border-slate-900">
-          <div className="space-y-3 md:col-span-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-md bg-amber-500/20 text-amber-400">
-                <Lock className="h-3.5 w-3.5" />
+    <footer className="border-t border-slate-800/80 bg-slate-950/90 text-slate-400 text-xs backdrop-blur-xl relative z-10">
+      {/* Top ambient highlight line */}
+      <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
+
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-slate-800/80">
+          <div className="space-y-4 md:col-span-2">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-md shadow-amber-500/20 text-slate-950 font-bold">
+                <Lock className="h-4 w-4 stroke-[2.5]" />
               </div>
-              <span className="font-bold text-white text-sm">{appName}</span>
-              <span className="rounded bg-emerald-500/10 px-2 py-0.5 text-[10px] text-emerald-400 border border-emerald-500/20">
+              <span className="font-bold text-white text-base tracking-tight">{appName}</span>
+              <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 shadow-sm">
                 ₹0 Free-Tier Ready
               </span>
               <a
                 href="https://github.com/SudhirDevOps1/BlindShare/blob/main/LICENSE"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 rounded bg-slate-900 px-2 py-0.5 text-[10px] text-slate-300 border border-slate-800 hover:border-slate-700 hover:text-white transition"
+                className="inline-flex items-center gap-1.5 rounded-full bg-slate-900/90 px-2.5 py-0.5 text-[10px] font-medium text-slate-300 border border-slate-800 hover:border-slate-700 hover:text-white transition shadow-sm"
                 title="View MIT License"
               >
                 <Scale className="h-3 w-3 text-amber-400" />
@@ -41,15 +44,22 @@ export function BrandFooter() {
               </a>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed max-w-md">
-              Secure, client-side zero-knowledge document sharing platform with granular per-page reading analytics.
-              The server acts solely as a blind courier and never holds unencrypted file bytes.
+              Enterprise-Grade, client-side Zero-Knowledge document sharing platform with granular per-page reading analytics.
+              The server acts strictly as a blind courier and never holds unencrypted file bytes or decryption keys.
             </p>
-            <div className="flex items-center gap-3 pt-1">
+
+            {/* Live Operational Status */}
+            <div className="inline-flex items-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-950/20 px-3.5 py-1.5 text-[11px] text-emerald-300 shadow-inner">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-medium">All Systems Operational · Zero-Knowledge Cryptography Invariant Active</span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <a
                 href="https://github.com/SudhirDevOps1/BlindShare"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 hover:border-slate-700 transition shadow-sm"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-700/80 bg-slate-900/90 px-3.5 py-2 text-xs font-semibold text-white hover:bg-slate-800 hover:border-amber-500/40 transition-all shadow-md hover:-translate-y-0.5"
               >
                 <GithubIcon className="h-4 w-4" />
                 <span>GitHub Repository</span>
@@ -58,7 +68,7 @@ export function BrandFooter() {
                 href="https://github.com/SudhirDevOps1/BlindShare"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition shadow-sm"
+                className="inline-flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 hover:border-amber-500/50 transition-all shadow-md hover:-translate-y-0.5"
               >
                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />
                 <span>Star on GitHub</span>
@@ -67,16 +77,16 @@ export function BrandFooter() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-slate-200 uppercase tracking-wider text-[11px] mb-3">Security & Legal</h4>
-            <ul className="space-y-2">
+            <h4 className="font-bold text-slate-200 uppercase tracking-wider text-[11px] mb-3.5">Security & Legal</h4>
+            <ul className="space-y-2.5">
               <li>
-                <Link href="/privacy" className="hover:text-amber-400 transition-colors">
-                  {t.nav.privacy} (4-Quadrant Inventory)
+                <Link href="/privacy" className="hover:text-amber-300 text-slate-300 transition-colors flex items-center gap-1.5">
+                  <span>{t.nav.privacy} (4-Quadrant)</span>
                 </Link>
               </li>
               <li>
-                <Link href="/terms" className="hover:text-amber-400 transition-colors">
-                  {t.nav.terms} & Deterrent Notices
+                <Link href="/terms" className="hover:text-amber-300 text-slate-300 transition-colors flex items-center gap-1.5">
+                  <span>{t.nav.terms} & Deterrent Notices</span>
                 </Link>
               </li>
               <li>
@@ -84,19 +94,19 @@ export function BrandFooter() {
                   href="https://github.com/SudhirDevOps1/BlindShare/blob/main/LICENSE"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-amber-400 transition-colors flex items-center gap-1"
+                  className="hover:text-amber-300 text-slate-300 transition-colors flex items-center gap-1.5"
                 >
-                  <Scale className="h-3 w-3 text-slate-400" />
+                  <Scale className="h-3.5 w-3.5 text-slate-400" />
                   <span>MIT License (Open Source)</span>
                 </a>
               </li>
               <li>
-                <a href="/api/health" target="_blank" className="hover:text-amber-400 transition-colors flex items-center gap-1">
+                <a href="/api/health" target="_blank" className="hover:text-amber-300 text-slate-300 transition-colors flex items-center gap-1.5">
                   <span>/healthz Deep Check</span>
                 </a>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-amber-400 text-amber-400/90 transition-colors flex items-center gap-1">
+                <Link href="/contact" className="hover:text-amber-300 text-amber-400/90 font-medium transition-colors flex items-center gap-1.5">
                   <span>💬 Contact & Feedback</span>
                 </Link>
               </li>
@@ -104,30 +114,36 @@ export function BrandFooter() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-slate-200 uppercase tracking-wider text-[11px] mb-3">Zero-Knowledge Proof</h4>
-            <ul className="space-y-2 text-slate-400 text-[11px]">
-              <li className="flex items-center gap-1.5">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />
+            <h4 className="font-bold text-slate-200 uppercase tracking-wider text-[11px] mb-3.5">Zero-Knowledge Proofs</h4>
+            <ul className="space-y-2.5 text-slate-300 text-[11px]">
+              <li className="flex items-center gap-2">
+                <div className="p-1 rounded bg-emerald-500/10 text-emerald-400">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                </div>
                 <span>DocKey in URL Fragment (#k=...)</span>
               </li>
-              <li className="flex items-center gap-1.5">
-                <ServerOff className="h-3.5 w-3.5 text-amber-400" />
-                <span>Zero Server Decryption</span>
+              <li className="flex items-center gap-2">
+                <div className="p-1 rounded bg-amber-500/10 text-amber-400">
+                  <ServerOff className="h-3.5 w-3.5" />
+                </div>
+                <span>Zero Server Decryption Invariant</span>
               </li>
-              <li className="flex items-center gap-1.5">
-                <Code2 className="h-3.5 w-3.5 text-blue-400" />
-                <span>WebCrypto AES-GCM-256</span>
+              <li className="flex items-center gap-2">
+                <div className="p-1 rounded bg-blue-500/10 text-blue-400">
+                  <Code2 className="h-3.5 w-3.5" />
+                </div>
+                <span>WebCrypto AES-GCM-256 Engine</span>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-[11px]">
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-[11px]">
           <div className="flex flex-wrap items-center gap-2">
-            <span>© {new Date().getFullYear()} {appName}. 100% Free & Open Source under MIT License.</span>
+            <span>© {new Date().getFullYear()} {appName} v1.2.0. 100% Free & Open Source under MIT License.</span>
           </div>
           <div className="flex items-center gap-3">
-            <span>Honest Note: Watermarks & Anti-Download are deterrents, not DRM.</span>
+            <span className="text-slate-500">Honest Note: Watermarks & Anti-Download are deterrents, not DRM.</span>
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { useI18n } from "@/lib/i18n/context";
+import { CryptoInteractiveDemo } from "@/components/landing/crypto-interactive-demo";
 import {
   Lock,
   ShieldCheck,
@@ -122,6 +123,11 @@ export default function HomePage() {
                   </div>
                 );
               })}
+            </div>
+
+            {/* Live Interactive Zero-Knowledge Simulator */}
+            <div className="pt-10">
+              <CryptoInteractiveDemo />
             </div>
           </div>
         </section>
