@@ -103,8 +103,15 @@ export default function LinksPage() {
     return url;
   };
 
-  const handleCopy = (link: any) => {
-    const storedHex = getStoredKeyHex(link);
+  const handleCopy = async (link: any) => {
+    let storedHex = getStoredKeyHex(link);
+
+    // If key is missing in localStorage, attempt immediate auto-unwrap via active session vault
+    if (!storedHex && (link.ownerEncryptedKeyHex || link.docId)) {
+      await syncVaultDocumentKeys([], [link]);
+      storedHex = getStoredKeyHex(link);
+    }
+
     // If it's an E2EE doc without password and key is missing in local storage, open recovery helper
     if (link.docId && !link.hasPassword && !storedHex) {
       setKeyRecoveryTarget(link);
