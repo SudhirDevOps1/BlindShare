@@ -6,6 +6,7 @@ import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { useI18n } from "@/lib/i18n/context";
 import { CryptoInteractiveDemo } from "@/components/landing/crypto-interactive-demo";
+import { FeaturesShowcase } from "@/components/landing/features-showcase";
 import {
   Lock,
   ShieldCheck,
@@ -252,6 +253,11 @@ export default function HomePage() {
               })}
             </div>
           </div>
+        </section>
+
+        {/* Deep Interactive Features & Security Showcase */}
+        <section className="border-t border-slate-900/80 bg-slate-950/60">
+          <FeaturesShowcase />
         </section>
       </main>
 
