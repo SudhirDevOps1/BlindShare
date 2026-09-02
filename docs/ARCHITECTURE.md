@@ -27,7 +27,7 @@ users 1─* invites · users 1─* push_subscriptions · audit_log · system_set
 1. **Client-Side GZIP Compression**: Browser compresses document bytes via native `CompressionStream('gzip')` (50–80% space saving on B2/R2).
 2. `crypto.getRandomValues(32)` → DocKey.
 3. `AES-GCM-256` encrypts compressed bytes with 96-bit IV; IV stored in DB (public, harmless).
-4. **Bitwarden-Grade Owner Master Vault**:
+4. **Enterprise-Grade Owner Master Vault**:
    - Client derives `OwnerMasterKey = PBKDF2-SHA256(AccountPassword, UserSalt, 100 000 iterations)` in browser RAM.
    - Client wraps `owner_encrypted_key_hex = AES-GCM(DocKey, OwnerMasterKey)` and stores it in the `documents` table.
    - On login or across cache clears / new devices, the client derives the master key and automatically unwraps all `DocKeys` in RAM without server knowledge.
@@ -57,7 +57,7 @@ users 1─* invites · users 1─* push_subscriptions · audit_log · system_set
 
 ## Security & Defense Layer
 - **Two-Factor Authentication (2FA / TOTP RFC 6238)**: User-level TOTP engine (`src/lib/auth/totp.ts`) with HMAC-SHA1 30-second windows and 8 single-use hashed recovery backup codes.
-- **Bitwarden-Grade Owner Master Key Vault**: Cross-device, cache-immune Zero-Knowledge key synchronization (`src/lib/vault/master-vault.ts`).
+- **Enterprise-Grade Owner Master Key Vault**: Cross-device, cache-immune Zero-Knowledge key synchronization (`src/lib/vault/master-vault.ts`).
 - **Live DNS MX Verification & Temp Email Filter (`src/lib/validation/email-validator.ts`)**: Live Node.js DNS `resolveMx` checking real mail servers + 40+ disposable domain blocklist + SSRF private IP filter.
 - **SSRF Defense Engine**: Pre-flight outbound request validation (`src/lib/security/ssrf-validator.ts`) blocking RFC-1918 private subnets, loopback, and cloud metadata.
 - **Live Room Owner-Only Authorization**: Strict owner authentication preventing presenter slide hijacking.

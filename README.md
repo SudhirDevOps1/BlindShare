@@ -58,7 +58,7 @@
 
 <br/>
 
-> **BlindShare** is a self-hosted, privacy-first alternative to **DocSend** and **Papermark** — built for founders, lawyers, and creators who need to share sensitive documents without trusting a third-party server with their content.
+> **BlindShare** is a self-hosted, privacy-first alternative to **traditional centralized document sharing tools** — built for founders, lawyers, and creators who need to share sensitive documents without trusting a third-party server with their content.
 
 <br/>
 
@@ -70,7 +70,7 @@
 
 > The only document sharing platform where **the server is mathematically incapable of reading your files.**
 
-| | DocSend | Papermark | **BlindShare** |
+| Feature | Traditional Cloud Platforms | Other Web Tools | **BlindShare** |
 |---|:---:|:---:|:---:|
 | Self-hosted | ❌ | ✅ | ✅ |
 | **Server never sees files** | ❌ | ❌ | ✅ |
@@ -135,7 +135,7 @@ BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your 
 <summary><strong>🔒 Security & Encryption</strong></summary>
 <br/>
 
-- **Bitwarden-Grade Zero-Knowledge Owner Master Key Vault** — client-side PBKDF2 (100k rounds) + AES-GCM-256 wrapping for seamless cross-device, cache-immune document key persistence
+- **Enterprise Zero-Knowledge Owner Master Key Vault** — client-side PBKDF2 (100k rounds) + AES-GCM-256 wrapping for seamless cross-device, cache-immune document key persistence
 - **Transparent Client-Side GZIP Compression** — 50–80% storage footprint reduction on B2/R2 with zero server CPU load
 - **Live DNS MX Verification & Temp Email Blocker** — real-time Node.js DNS resolution + 40+ disposable domain blocklist + SSRF private IP filter
 - **Tab-Switch Anti-Spy Privacy Shield** — auto-obfuscates confidential documents when reader switches tabs/windows
@@ -802,10 +802,6 @@ All deep technical references, security specifications, and operational runbooks
 [💡 Request a Feature](https://github.com/SudhirDevOps1/BlindShare/discussions) &nbsp;·&nbsp;
 [📋 Changelog](./docs/CHANGELOG.md) &nbsp;·&nbsp;
 [🤝 Contribute](./docs/CONTRIBUTING.md)
-
-<br/>
-
-<sub>BlindShare is not affiliated with DocSend or Papermark. All trademarks belong to their respective owners.</sub>
 
 </div>
 

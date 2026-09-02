@@ -307,7 +307,7 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
         </div>
       </div>
 
-      {/* Reader Funnel Drop-off Analysis (DocSend Enterprise Style) */}
+      {/* Reader Funnel Drop-off Analysis (Enterprise Analytics) */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>

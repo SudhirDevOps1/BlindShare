@@ -62,7 +62,7 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
   limiting via Upstash Redis REST HTTP API with zero-crash in-memory sliding window fallback.
 - **Resilient Self-Hosted PDF.js**: Local vendor script loading with CDN failover to guarantee 100%
   viewer uptime without single-point supply-chain dependencies.
-- **Bitwarden-Grade Owner Master Key Vault** (`src/lib/vault/master-vault.ts`):
+- **Enterprise-Grade Owner Master Key Vault** (`src/lib/vault/master-vault.ts`):
   - Derives a 256-bit `OwnerMasterKey` in browser memory via WebCrypto `PBKDF2-SHA256` (100,000 rounds) using a per-user 16-byte random salt.
   - Automatically wraps every document's 32-byte `DocKey` with `AES-GCM-256` before sending metadata to `/api/docs`.
   - On login or across browser cache clears, the client derives the master key in RAM and decrypts all document keys locally.

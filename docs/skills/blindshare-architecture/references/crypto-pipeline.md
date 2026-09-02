@@ -18,7 +18,7 @@
 (Presigned S3 PUT to B2)       (URL Fragment only)            (Saved to DB)
 ```
 
-## Owner Master Vault Wrapping (Bitwarden-Style Persistence)
+## Owner Master Vault Wrapping (Zero-Knowledge Key Persistence)
 When an authenticated owner uploads a document:
 1. Client derives `OwnerMasterKey = PBKDF2(AccountPassword, UserSalt, 100000, SHA-256)` in browser RAM.
 2. Client encrypts `OwnerWrappedKey = AES-GCM(DocKey, OwnerMasterKey)` with random 96-bit IV.

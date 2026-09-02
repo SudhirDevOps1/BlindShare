@@ -2,7 +2,7 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/).
 
-- **Bitwarden-Grade Zero-Knowledge Owner Master Key Vault (`src/lib/vault/master-vault.ts`):**
+- **Enterprise-Grade Zero-Knowledge Owner Master Key Vault (`src/lib/vault/master-vault.ts`):**
   - Client-side WebCrypto `PBKDF2-SHA256` (100,000 iterations) with 16-byte user-specific salt deriving an `OwnerMasterKey` in browser RAM.
   - Transparent AES-GCM-256 wrapping of individual 32-byte `DocKey`s before saving metadata to `/api/docs`.
   - Seamless cross-device and cache-immune document key synchronization without server knowledge.

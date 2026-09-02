@@ -129,7 +129,7 @@ export default function HomePage() {
             <div className="text-center space-y-2">
               <h2 className="text-2xl sm:text-3xl font-bold text-white">How Zero-Knowledge Document Sharing Works</h2>
               <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto">
-                Unlike ordinary DocSend/Papermark which store plaintext PDFs on their servers, BlindShare encrypts your document with WebCrypto AES-GCM before it ever leaves your browser.
+                Unlike ordinary document sharing platforms which store plaintext PDFs on their servers, BlindShare encrypts your document with WebCrypto AES-GCM before it ever leaves your browser.
               </p>
             </div>
 
@@ -185,7 +185,7 @@ export default function HomePage() {
             <div className="text-center space-y-2">
               <h2 className="text-2xl sm:text-3xl font-bold text-white">Enterprise Power-Sharing Features</h2>
               <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto">
-                All the security gates of DocSend, without the subscription fees or brand lock-in.
+                All the enterprise security gates and analytics, without subscription fees or brand lock-in.
               </p>
             </div>
 

@@ -20,7 +20,7 @@ export const translations = {
     hero: {
       badge: "Zero-Knowledge & Privacy First",
       title: "Secure Document Sharing with Deep Reading Analytics",
-      subtitle: "DocSend & Papermark alternative with client-side E2EE. Your server never sees unencrypted document bytes. Track page-by-page reading dwell time, email gates, dynamic watermarks, and datarooms on a 100% ₹0 free tier.",
+      subtitle: "Privacy-first Zero-Knowledge document sharing with client-side E2EE. Your server never sees unencrypted document bytes. Track page-by-page reading dwell time, email gates, dynamic watermarks, and datarooms on a 100% ₹0 free tier.",
       ctaUpload: "Open Document Studio",
       ctaDemo: "Live Demo Document",
       bullet1: "Client-Side AES-GCM-256 E2EE",
@@ -210,7 +210,7 @@ export const translations = {
     hero: {
       badge: "शून्य-ज्ञान और पूर्ण गोपनीयता",
       title: "गहन पाठन विश्लेषण के साथ सुरक्षित दस्तावेज़ साझाकरण",
-      subtitle: "ब्राउज़र-आधारित E2EE के साथ Papermark और DocSend का खुला विकल्प। सर्वर कभी भी आपका पठनीय दस्तावेज़ नहीं देखता। प्रति-पृष्ठ पाठन समय, ईमेल गेट्स, वॉटरमार्क और डेटा रूम का आनंद लें ₹0 फ्री टियर पर।",
+      subtitle: "ब्राउज़र-आधारित E2EE के साथ सुरक्षित और निजी दस्तावेज़ साझाकरण। सर्वर कभी भी आपका पठनीय दस्तावेज़ नहीं देखता। प्रति-पृष्ठ पाठन समय, ईमेल गेट्स, वॉटरमार्क और डेटा रूम का आनंद लें ₹0 फ्री टियर पर।",
       ctaUpload: "दस्तावेज़ स्टूडियो खोलें",
       ctaDemo: "लाइव डेमो दस्तावेज़",
       bullet1: "क्लाइंट-साइड AES-GCM-256 एन्क्रिप्शन",
