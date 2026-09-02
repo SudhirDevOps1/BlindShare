@@ -129,6 +129,38 @@ BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your 
 
 ---
 
+## 🛡️ Enterprise Zero-Knowledge Key Vault & Cache-Immune Recovery
+
+BlindShare features a **Zero-Knowledge Master Key Vault** that guarantees you never lose access to your document links—even after clearing your browser cache, wiping local storage, or switching to a new laptop/phone.
+
+```
+[ User Account Password ] + [ 16-Byte Cryptographic Salt ]
+           │
+           ▼  (WebCrypto API: 100,000 Rounds PBKDF2-SHA256 in Browser RAM)
+[ 256-bit Owner Master Key ] ──(Never leaves device memory)──┐
+           │                                                  │
+           ▼                                                  ▼
+[ Database stores AES-GCM-256 wrapped keys ] ──► [ Unwrapped in RAM on Login ]
+```
+
+### 🔄 What Happens When You Clear Your Browser Cache?
+1. **Cache / Local Storage Wiped**: Local memory is cleared, but your documents and wrapped keys remain encrypted in the database.
+2. **Re-Login with Account Password**: When you log in, your browser derives the `OwnerMasterKey` in RAM via 100,000 PBKDF2 rounds.
+3. **Instant In-Memory Sync**: The browser retrieves your wrapped document keys and unwraps all 32-byte `DocKeys` locally in 0.1s.
+4. **All Links Restored**: Your dashboard links immediately display with `#k=...` ready to share, maintaining 100% Zero-Knowledge confidentiality.
+
+---
+
+## 🔒 Client-Side WebCrypto vs. Server Environment Secrets
+
+| Layer | Environment | Technology | Primary Responsibility |
+|---|---|---|---|
+| **Client Application** | Browser RAM Only | WebCrypto AES-GCM-256 + PBKDF2 (100k) | Document encryption/decryption, `#k=` fragment delivery, and Master Key unwrapping. |
+| **Server Infrastructure** | Vercel / Cloudflare (`.env`) | Node.js Crypto (HMAC-SHA256) | Session token signatures (`SESSION_SECRET`), rate-limiting, and storage routing. |
+| **Encrypted Storage** | Backblaze B2 / Cloudflare R2 | S3-Compatible Private Buckets | Stores encrypted ciphertext blobs. Zero plaintext access. |
+
+---
+
 ## ✨ Features
 
 <details open>
