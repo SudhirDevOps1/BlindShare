@@ -103,4 +103,28 @@ export class LocalStorageAdapter implements StorageAdapter {
       return [];
     }
   }
+
+  async getBucketUsage(prefix?: string): Promise<{ totalBytes: number; objectCount: number }> {
+    try {
+      if (!fs.existsSync(this.storageDir)) return { totalBytes: 0, objectCount: 0 };
+      const files = await fs.promises.readdir(this.storageDir);
+      let totalBytes = 0;
+      let objectCount = 0;
+
+      for (const file of files) {
+        if (!prefix || file.startsWith(prefix)) {
+          const filePath = path.join(this.storageDir, file);
+          const stat = await fs.promises.stat(filePath).catch(() => null);
+          if (stat && stat.isFile()) {
+            totalBytes += stat.size;
+            objectCount++;
+          }
+        }
+      }
+
+      return { totalBytes, objectCount };
+    } catch {
+      return { totalBytes: 0, objectCount: 0 };
+    }
+  }
 }

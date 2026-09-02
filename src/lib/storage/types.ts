@@ -13,4 +13,5 @@ export interface StorageAdapter {
   getObject(key: string): Promise<{ data: Buffer; contentType: string } | null>;
   deleteObject(key: string): Promise<boolean>;
   listObjects(prefix?: string): Promise<string[]>;
+  getBucketUsage?(prefix?: string): Promise<{ totalBytes: number; objectCount: number }>;
 }

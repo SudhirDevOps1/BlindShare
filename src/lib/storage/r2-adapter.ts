@@ -112,4 +112,32 @@ export class R2StorageAdapter implements StorageAdapter {
       return [];
     }
   }
+
+  async getBucketUsage(prefix?: string): Promise<{ totalBytes: number; objectCount: number }> {
+    try {
+      let totalBytes = 0;
+      let objectCount = 0;
+      let continuationToken: string | undefined = undefined;
+
+      do {
+        const cmd: ListObjectsV2Command = new ListObjectsV2Command({
+          Bucket: this.bucket,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+        });
+        const res: any = await this.client.send(cmd);
+        if (res.Contents) {
+          for (const item of res.Contents) {
+            totalBytes += (item.Size || 0);
+            objectCount++;
+          }
+        }
+        continuationToken = res.NextContinuationToken;
+      } while (continuationToken);
+
+      return { totalBytes, objectCount };
+    } catch {
+      return { totalBytes: 0, objectCount: 0 };
+    }
+  }
 }
