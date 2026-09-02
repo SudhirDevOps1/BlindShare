@@ -49,7 +49,7 @@ export function formatCef(e: SiemSecurityEvent): string {
     .map(([k, v]) => `${k}=${typeof v === "object" ? JSON.stringify(v) : v}`)
     .join(" ");
 
-  return `CEF:0|BlindShare|E2EE-Platform|1.2.0|${e.event}|${e.event}|${severityNum}|rt=${ts} src=${srcIp} suser=${user} cs1=${e.resource?.type || "none"} cs1Label=ResourceType ${details}`;
+  return `CEF:0|BlindShare|E2EE-Platform|1.3.0|${e.event}|${e.event}|${severityNum}|rt=${ts} src=${srcIp} suser=${user} cs1=${e.resource?.type || "none"} cs1Label=ResourceType ${details}`;
 }
 
 /**
