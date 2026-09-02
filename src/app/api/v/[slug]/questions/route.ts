@@ -6,6 +6,7 @@ import { genId } from "@/lib/ids";
 import { sendWebhookNotification } from "@/lib/notifications/webhook-notifier";
 import { sendPushToUser } from "@/lib/push";
 import { logger } from "@/lib/logger";
+import { rateLimitDistributed } from "@/lib/security/distributed-rate-limiter";
 
 export async function GET(
   request: Request,
@@ -55,6 +56,15 @@ export async function POST(
   const { slug } = await params;
 
   try {
+    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "127.0.0.1";
+    const check = await rateLimitDistributed(`question:${ip}:${slug}`, 15, 60_000);
+    if (!check.allowed) {
+      return NextResponse.json(
+        { error: "Too many question submissions. Please wait a minute." },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const { pageNumber, posXPercent, posYPercent, questionText, askerEmail, askerName, sessionId } = body;
 

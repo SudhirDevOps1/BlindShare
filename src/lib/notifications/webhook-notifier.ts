@@ -31,8 +31,16 @@ export async function sendWebhookNotification(webhookUrl: string, payload: Webho
   }
 
   try {
-    const isDiscord = webhookUrl.includes("discord.com/api/webhooks") || webhookUrl.includes("discordapp.com/api/webhooks");
-    const isSlack = webhookUrl.includes("hooks.slack.com/services");
+    const parsed = new URL(webhookUrl);
+    const host = parsed.hostname.toLowerCase();
+    const path = parsed.pathname;
+
+    const isDiscord =
+      (host === "discord.com" || host.endsWith(".discord.com") || host === "discordapp.com" || host.endsWith(".discordapp.com")) &&
+      path.startsWith("/api/webhooks");
+    const isSlack =
+      (host === "hooks.slack.com" || host.endsWith(".slack.com")) &&
+      path.startsWith("/services");
 
     let body: any;
 

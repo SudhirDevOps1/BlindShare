@@ -65,9 +65,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Question not found or access denied" }, { status: 404 });
     }
 
+    const escapeText = (str: string, maxLen: number) =>
+      String(str || "")
+        .replace(/[<>"'&]/g, (c) => (c === "<" ? "&lt;" : c === ">" ? "&gt;" : c === '"' ? "&quot;" : c === "'" ? "&#39;" : "&amp;"))
+        .trim()
+        .substring(0, maxLen);
+
     const updatePayload: any = {};
     if (typeof replyText === "string") {
-      updatePayload.replyText = replyText.trim();
+      updatePayload.replyText = escapeText(replyText, 2000);
       updatePayload.repliedAt = new Date();
     }
     if (typeof isResolved === "boolean") {
