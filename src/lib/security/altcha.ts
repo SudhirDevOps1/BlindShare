@@ -128,13 +128,16 @@ export function verifyAltchaPayload(payload: string | AltchaPayload | null | und
       return false;
     }
 
-    // 4. Verify Proof-of-Work solution: SHA256(salt + number) === challenge
+    // 4. Verify Proof-of-Work solution: SHA256(salt + number) === challenge in constant time
     const computedChallenge = crypto
       .createHash("sha256")
       .update(`${data.salt}${data.number}`, "utf8")
       .digest("hex");
 
-    if (computedChallenge !== data.challenge) {
+    const compBuf = Buffer.from(computedChallenge, "utf8");
+    const chalBuf = Buffer.from(data.challenge, "utf8");
+
+    if (compBuf.length !== chalBuf.length || !crypto.timingSafeEqual(compBuf, chalBuf)) {
       logger.warn("altcha.verification_failed", { reason: "invalid_pow" });
       return false;
     }

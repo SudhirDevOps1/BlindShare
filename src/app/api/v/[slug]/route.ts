@@ -88,8 +88,6 @@ export async function GET(
           encryptionMode: documents.encryptionMode,
           ivHex: documents.ivHex,
           tagHex: documents.tagHex,
-          ownerEncryptedKeyHex: documents.ownerEncryptedKeyHex,
-          ownerEncryptedKeyIvHex: documents.ownerEncryptedKeyIvHex,
           isTombstone: documents.isTombstone,
         })
         .from(documents)

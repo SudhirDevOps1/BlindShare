@@ -44,9 +44,14 @@ export async function POST(request: Request) {
       .limit(1);
     const isFirstRealUser = realOwners.length === 0;
 
-    const bootstrapMatch =
-      submittedNorm.length > 0 &&
-      submittedNorm === adminBootstrapInvite;
+    let bootstrapMatch = false;
+    if (submittedNorm.length > 0) {
+      const subBuf = Buffer.from(submittedNorm, "utf8");
+      const bootBuf = Buffer.from(adminBootstrapInvite, "utf8");
+      if (subBuf.length === bootBuf.length && crypto.timingSafeEqual(subBuf, bootBuf)) {
+        bootstrapMatch = true;
+      }
+    }
 
     if (isFirstRealUser || bootstrapMatch) {
       role = "super_admin";
