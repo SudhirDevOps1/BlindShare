@@ -7,6 +7,8 @@ import { BrandFooter } from "@/components/brand-footer";
 import { useI18n } from "@/lib/i18n/context";
 import { CryptoInteractiveDemo } from "@/components/landing/crypto-interactive-demo";
 import { FeaturesShowcase } from "@/components/landing/features-showcase";
+import { StatsCounter } from "@/components/landing/stats-counter";
+import { WorkflowTimeline } from "@/components/landing/workflow-timeline";
 import {
   Lock,
   ShieldCheck,
@@ -133,6 +135,9 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── Stats Counter Strip ─────────────────────────────────────── */}
+        <StatsCounter />
+
         {/* Zero-Knowledge Flow Diagram Section */}
         <section id="security" className="border-t border-slate-900/80 bg-slate-950/70 py-24 px-4 sm:px-6">
           <div className="mx-auto max-w-6xl space-y-12">
@@ -192,6 +197,9 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* ── 7-Step Workflow Timeline ─────────────────────────────────── */}
+        <WorkflowTimeline />
 
         {/* Features Grid */}
         <section id="features" className="py-24 px-4 sm:px-6 border-t border-slate-900">
