@@ -43,6 +43,7 @@ import {
 import { PresenterModeView } from "@/components/viewer/presenter-mode-view";
 import { VoiceNotePlayer } from "@/components/viewer/voice-note-player";
 import { setupAntiLeakListeners } from "@/lib/security/anti-leak-detector";
+import { AltchaBox } from "@/components/security/altcha-box";
 
 interface PdfRendererProps {
   slug: string;
@@ -111,6 +112,7 @@ export function PdfRenderer({
   const [newPinText, setNewPinText] = useState("");
   const [newPinName, setNewPinName] = useState(viewerIdentity.includes("@") ? viewerIdentity.split("@")[0] : "");
   const [newPinEmail, setNewPinEmail] = useState(viewerIdentity.includes("@") ? viewerIdentity : "");
+  const [questionAltcha, setQuestionAltcha] = useState<string | null>(null);
   const [submittingPin, setSubmittingPin] = useState(false);
 
   // Live Presenter Room Sync
@@ -192,6 +194,7 @@ export function PdfRenderer({
           askerName: newPinName.trim() || undefined,
           askerEmail: newPinEmail.trim() || undefined,
           sessionId,
+          altcha: questionAltcha || undefined,
         }),
       });
 
@@ -1309,6 +1312,10 @@ export function PdfRenderer({
                       className="rounded-lg border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-xs text-white placeholder-slate-500"
                     />
                   </div>
+                  <div className="py-1">
+                    <AltchaBox onVerify={(payload: string) => setQuestionAltcha(payload)} />
+                  </div>
+
                   <button
                     type="submit"
                     disabled={submittingPin || !newPinText.trim()}

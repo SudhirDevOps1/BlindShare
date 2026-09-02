@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { Lock, Mail, FileCheck, Shield, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 
+import { AltchaBox } from "@/components/security/altcha-box";
+
 interface ViewerGatesProps {
   slug: string;
   hasPassword: boolean;
@@ -28,6 +30,7 @@ export function ViewerGates({
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [ndaAgreed, setNdaAgreed] = useState(false);
+  const [altchaPayload, setAltchaPayload] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -56,6 +59,7 @@ export function ViewerGates({
           password: password.trim() || undefined,
           email: email.trim() || undefined,
           ndaAgreed,
+          altcha: altchaPayload || undefined,
         }),
       });
 
@@ -171,6 +175,11 @@ export function ViewerGates({
               </label>
             </div>
           )}
+
+          {/* ALTCHA Zero-Knowledge Proof-of-Work Bot Defense */}
+          <div className="pt-1">
+            <AltchaBox onVerify={(payload: string) => setAltchaPayload(payload)} />
+          </div>
 
           <button
             type="submit"
