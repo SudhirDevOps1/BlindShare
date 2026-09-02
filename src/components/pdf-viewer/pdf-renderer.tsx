@@ -1029,13 +1029,14 @@ export function PdfRenderer({
         {/* Pin Question Button */}
         <button
           onClick={() => setIsAddingPin(!isAddingPin)}
-          className={`flex items-center gap-2 rounded-2xl border px-3.5 py-2 text-xs font-bold shadow-2xl backdrop-blur-md transition ${
+          title={isAddingPin ? "Click anywhere on the document slide to leave a question" : "Drop a question or feedback pin on this slide for the document owner"}
+          className={`flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-xs font-bold shadow-2xl backdrop-blur-md transition-all ${
             isAddingPin
-              ? "border-amber-400 bg-amber-500 text-slate-950 shadow-amber-500/20"
+              ? "border-amber-400 bg-amber-500 text-slate-950 shadow-amber-500/30 scale-105"
               : "border-slate-800 bg-slate-950/90 text-slate-200 hover:border-amber-500/50 hover:text-white"
           }`}
         >
-          <MessageSquarePlus className="h-4 w-4 text-amber-400" />
+          <MessageSquarePlus className={`h-4 w-4 ${isAddingPin ? "text-slate-950" : "text-amber-400"}`} />
           <span>{isAddingPin ? "Click Slide to Pin" : "Ask Question"}</span>
         </button>
       </div>
