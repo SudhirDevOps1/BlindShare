@@ -134,7 +134,7 @@ export default function QuestionsPage() {
   const resolvedCount = questions.filter((q) => q.isResolved).length;
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100 selection:bg-amber-500/30 selection:text-amber-200">
+    <div className="flex flex-col text-slate-100 selection:bg-amber-500/30 selection:text-amber-200">
 
       <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         {/* Top Header */}

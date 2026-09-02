@@ -57,7 +57,7 @@ export default function DashboardPage() {
   const totalViews = links.reduce((acc, l) => acc + (l.viewCount || 0), 0);
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100">
+    <div className="flex flex-col text-slate-100">
 
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 py-8 sm:px-6 space-y-8">
         {/* Welcome Header */}
