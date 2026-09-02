@@ -1,15 +1,23 @@
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth/rbac";
-import { db } from "@/db";
+import { db, pool } from "@/db";
 import { documents, links, pageEvents, viewSessions, auditLog, docVersions, pageQuestions, docAudioNotes, liveRooms } from "@/db/schema";
 import { eq, and, lt, or, sql, inArray } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
 
-export async function GET() {
-  const auth = await requireAdmin();
-  if ("errorResponse" in auth) return auth.errorResponse;
+export async function GET(request: Request) {
+  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = request.headers.get("authorization") || request.headers.get("x-cron-secret");
+  const isCronAuthed = cronSecret && (authHeader === `Bearer ${cronSecret}` || authHeader === cronSecret);
+
+  let adminUser = null;
+  if (!isCronAuthed) {
+    const auth = await requireAdmin();
+    if ("errorResponse" in auth) return auth.errorResponse;
+    adminUser = auth.user;
+  }
 
   try {
     const storage = getStorageAdapter();
@@ -57,8 +65,16 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireAdmin();
-  if ("errorResponse" in auth) return auth.errorResponse;
+  const cronSecret = process.env.CRON_SECRET;
+  const authHeader = request.headers.get("authorization") || request.headers.get("x-cron-secret");
+  const isCronAuthed = cronSecret && (authHeader === `Bearer ${cronSecret}` || authHeader === cronSecret);
+
+  let adminUserId = "system_cron";
+  if (!isCronAuthed) {
+    const auth = await requireAdmin();
+    if ("errorResponse" in auth) return auth.errorResponse;
+    adminUserId = auth.user.id;
+  }
 
   try {
     const body = await request.json().catch(() => ({}));
@@ -70,6 +86,7 @@ export async function POST(request: Request) {
     let purgedTombstonesCount = 0;
     let prunedLinksCount = 0;
     let prunedTelemetryRowsCount = 0;
+    let vacuumCompleted = false;
 
     // 1. Sweep Orphan Objects in Storage Bucket
     if (action === "orphan_sweep" || action === "full_clean") {
@@ -138,11 +155,22 @@ export async function POST(request: Request) {
       prunedTelemetryRowsCount = (res as any)?.rowCount || 0;
     }
 
+    // 5. Database Space Defragmentation & Vacuum Optimization
+    if (action === "vacuum_optimize" || action === "full_clean") {
+      try {
+        await pool.query("VACUUM (ANALYZE)");
+        vacuumCompleted = true;
+      } catch {
+        // Fallback for non-Postgres or restricted pooled connections
+        vacuumCompleted = false;
+      }
+    }
+
     // Log Action in Blind Audit Trail
     await db.insert(auditLog).values({
       id: genId("aud"),
-      userId: auth.user.id,
-      actorType: "admin",
+      userId: adminUserId,
+      actorType: isCronAuthed ? "system" : "admin",
       action: `admin.maintenance.${action}`,
       resourceType: "storage_and_db",
       detailsJson: JSON.stringify({
@@ -152,6 +180,7 @@ export async function POST(request: Request) {
         purgedTombstonesCount,
         prunedLinksCount,
         prunedTelemetryRowsCount,
+        vacuumCompleted,
       }),
     });
 
@@ -164,6 +193,7 @@ export async function POST(request: Request) {
         purgedTombstonedDocs: purgedTombstonesCount,
         prunedStaleLinks: prunedLinksCount,
         prunedTelemetryRows: prunedTelemetryRowsCount,
+        vacuumCompleted,
       },
     });
   } catch (err: any) {
