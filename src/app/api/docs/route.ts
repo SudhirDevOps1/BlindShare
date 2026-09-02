@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/rbac";
 import { db } from "@/db";
 import { documents, docVersions, auditLog } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, sql } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
 import { parseBody } from "@/lib/validation";
 import { createDocumentSchema } from "@/lib/validation/schemas";
@@ -67,6 +67,15 @@ export async function POST(request: Request) {
 
     const presign = await storage.getPresignedPutUrl(storageKey, "application/octet-stream", 600);
 
+    // Self-healing schema migration for documents table
+    await db.execute(sql`
+      ALTER TABLE documents 
+      ADD COLUMN IF NOT EXISTS owner_encrypted_key_hex TEXT,
+      ADD COLUMN IF NOT EXISTS owner_encrypted_key_iv_hex TEXT,
+      ADD COLUMN IF NOT EXISTS thumbnail_storage_key TEXT,
+      ADD COLUMN IF NOT EXISTS is_tombstone BOOLEAN NOT NULL DEFAULT FALSE;
+    `).catch(() => {});
+
     await db.insert(documents).values({
       id: docId,
       ownerId: auth.user.id,
@@ -113,7 +122,7 @@ export async function POST(request: Request) {
       presignedPutUrl: presign.url,
     });
   } catch (err: any) {
-    logger.error("docs.create_failed", { ownerId: auth.user.id, message: err?.message });
-    return NextResponse.json({ error: "Failed to create document" }, { status: 500 });
+    logger.error("docs.create_failed", { ownerId: auth.user.id, message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: err?.message || "Failed to create document" }, { status: 500 });
   }
 }
