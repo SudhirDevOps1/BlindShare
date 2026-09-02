@@ -439,39 +439,54 @@ export function PdfRenderer({
     };
   }, [currentPage, slug, sessionId]);
 
-  // Draw Dynamic Live Watermark on Overlay Canvas
+  // Draw Dynamic Live Watermark on Overlay Canvas (Staggered Matrix with Zero Collision)
   const drawWatermark = useCallback(
     (canvasWidth: number, canvasHeight: number) => {
       const wmCanvas = watermarkCanvasRef.current;
       if (!wmCanvas || !linkData.watermarkEnabled) return;
 
-      wmCanvas.width = canvasWidth;
-      wmCanvas.height = canvasHeight;
+      const dpr = window.devicePixelRatio || 1;
+      wmCanvas.width = canvasWidth * dpr;
+      wmCanvas.height = canvasHeight * dpr;
+      wmCanvas.style.width = `${canvasWidth}px`;
+      wmCanvas.style.height = `${canvasHeight}px`;
 
       const ctx = wmCanvas.getContext("2d");
       if (!ctx) return;
 
+      ctx.scale(dpr, dpr);
       ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
       // Watermark text composition: Identity · Timestamp · Short Slug
-      const timeStr = new Date().toISOString().substring(0, 16).replace("T", " ");
+      const timeStr = new Date().toISOString().substring(0, 10);
       const identityLabel = viewerIdentity || "CONFIDENTIAL";
       const customLabel = linkData.watermarkText ? `[${linkData.watermarkText}] ` : "";
       const watermarkString = `${customLabel}${identityLabel} • ${timeStr} • ${slug.substring(0, 8)}`;
 
       ctx.save();
-      ctx.rotate((-28 * Math.PI) / 180);
-      ctx.font = "bold 15px sans-serif";
-      ctx.fillStyle = "rgba(148, 163, 184, 0.22)"; // Subtle, readable, non-obtrusive
+      // Rotate around the center of the canvas
+      ctx.translate(canvasWidth / 2, canvasHeight / 2);
+      ctx.rotate((-25 * Math.PI) / 180);
+      ctx.translate(-canvasWidth / 2, -canvasHeight / 2);
+
+      ctx.font = "bold 13px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+      ctx.fillStyle = "rgba(148, 163, 184, 0.18)"; // Subtle, readable, non-obtrusive
       ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
 
-      const stepX = 280;
-      const stepY = 160;
+      // Dynamically calculate column and row pitch based on text length to prevent any overlapping
+      const textWidth = ctx.measureText(watermarkString).width;
+      const stepX = Math.max(textWidth + 80, 360);
+      const stepY = 120;
 
-      for (let x = -canvasWidth; x < canvasWidth * 2; x += stepX) {
-        for (let y = -canvasHeight; y < canvasHeight * 2; y += stepY) {
-          ctx.fillText(watermarkString, x, y);
+      let rowIndex = 0;
+      for (let y = -canvasHeight; y < canvasHeight * 2; y += stepY) {
+        // Stagger alternating rows so watermark repeats cleanly without collision
+        const xOffset = rowIndex % 2 === 1 ? stepX / 2 : 0;
+        for (let x = -canvasWidth; x < canvasWidth * 2; x += stepX) {
+          ctx.fillText(watermarkString, x + xOffset, y);
         }
+        rowIndex++;
       }
       ctx.restore();
     },

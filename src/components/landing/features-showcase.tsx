@@ -26,8 +26,45 @@ import {
 export function FeaturesShowcase() {
   // 1. Watermark Interactive Simulator State
   const [watermarkText, setWatermarkText] = useState("investor@sequoia-capital.vc");
-  const [watermarkOpacity, setWatermarkOpacity] = useState(25);
-  const [watermarkAngle, setWatermarkAngle] = useState(-30);
+  const [watermarkOpacity, setWatermarkOpacity] = useState(22);
+  const [watermarkAngle, setWatermarkAngle] = useState(-28);
+  const watermarkCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
+
+  // Redraw Canvas Watermark whenever text, opacity, or angle changes
+  React.useEffect(() => {
+    const canvas = watermarkCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const width = canvas.parentElement?.clientWidth || 700;
+    const height = canvas.parentElement?.clientHeight || 420;
+    canvas.width = width;
+    canvas.height = height;
+
+    ctx.clearRect(0, 0, width, height);
+    ctx.save();
+    ctx.translate(width / 2, height / 2);
+    ctx.rotate((watermarkAngle * Math.PI) / 180);
+    ctx.translate(-width / 2, -height / 2);
+
+    const opacityFrac = Math.max(0.08, Math.min(0.6, watermarkOpacity / 100));
+    ctx.fillStyle = `rgba(245, 158, 11, ${opacityFrac})`;
+    ctx.font = "bold 12px ui-monospace, SFMono-Regular, Menlo, monospace";
+    ctx.textAlign = "center";
+
+    const label = `${watermarkText.trim() || "CONFIDENTIAL"} • IP: 198.51.100.42 • ${new Date().toISOString().substring(0, 10)}`;
+
+    const stepX = 360;
+    const stepY = 110;
+
+    for (let x = -width * 1.5; x < width * 2.5; x += stepX) {
+      for (let y = -height * 1.5; y < height * 2.5; y += stepY) {
+        ctx.fillText(label, x, y);
+      }
+    }
+    ctx.restore();
+  }, [watermarkText, watermarkOpacity, watermarkAngle]);
 
   // 2. Heatmap Dwell Simulator State
   const [activeSlide, setActiveSlide] = useState(3);
@@ -75,13 +112,13 @@ export function FeaturesShowcase() {
         <div className="text-center space-y-3 mb-10">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1 text-xs font-semibold text-amber-300">
             <ShieldCheck className="h-3.5 w-3.5" />
-            <span>Anti-Leak Forensics</span>
+            <span>Forensic Screenshot Deterrence</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
             Interactive Dynamic Watermark Studio
           </h2>
           <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto">
-            Test how BlindShare dynamically burns the viewer's verified email and IP address diagonally across every slide to deter screenshots and unauthorized distribution.
+            Test how BlindShare burns real-time tiled forensic watermarks across every slide. Notice how the watermark matrix distributes cleanly across the entire canvas without obscuring slide typography.
           </p>
         </div>
 
@@ -90,28 +127,48 @@ export function FeaturesShowcase() {
           <div className="lg:col-span-5 glass-panel rounded-3xl p-6 sm:p-7 space-y-5 border border-slate-800/80 shadow-xl">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <Sliders className="h-4.5 w-4.5 text-amber-400" />
-              <span>Watermark Configuration</span>
+              <span>Watermark Matrix Settings</span>
             </h3>
 
+            {/* Quick Presets */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Quick Presets</label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { label: "Venture Partner", text: "partner@sequoia.vc" },
+                  { label: "M&A Advisory", text: "dealteam@morganstanley.com" },
+                  { label: "Board Member", text: "director@board.internal" },
+                ].map((preset) => (
+                  <button
+                    key={preset.label}
+                    onClick={() => setWatermarkText(preset.text)}
+                    className="rounded-lg bg-slate-900 px-2.5 py-1 text-[11px] font-medium text-slate-300 hover:text-amber-300 hover:bg-slate-800 border border-slate-800 transition"
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <label className="text-xs font-medium text-slate-300">Recipient Email / Identity Text</label>
+              <label className="text-xs font-medium text-slate-300">Viewer Identifier (Email / IP / Token)</label>
               <input
                 type="text"
                 value={watermarkText}
                 onChange={(e) => setWatermarkText(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono shadow-inner"
+                className="w-full rounded-xl border border-slate-700 bg-slate-900/90 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono shadow-inner"
               />
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-slate-300">
-                <span>Overlay Opacity</span>
-                <span className="font-mono text-amber-400">{watermarkOpacity}%</span>
+                <span>Matrix Opacity</span>
+                <span className="font-mono text-amber-400 font-semibold">{watermarkOpacity}%</span>
               </div>
               <input
                 type="range"
                 min="10"
-                max="60"
+                max="50"
                 value={watermarkOpacity}
                 onChange={(e) => setWatermarkOpacity(Number(e.target.value))}
                 className="w-full accent-amber-500 cursor-pointer"
@@ -120,8 +177,8 @@ export function FeaturesShowcase() {
 
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-slate-300">
-                <span>Diagonal Tilt Angle</span>
-                <span className="font-mono text-amber-400">{watermarkAngle}°</span>
+                <span>Tiled Tilt Angle</span>
+                <span className="font-mono text-amber-400 font-semibold">{watermarkAngle}°</span>
               </div>
               <input
                 type="range"
@@ -135,65 +192,53 @@ export function FeaturesShowcase() {
 
             <div className="pt-2 flex items-center gap-2 text-[11px] text-slate-400">
               <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-              <span>Burned client-side directly into HTML5 canvas before rasterization.</span>
+              <span>Drawn directly via HTML5 2D Canvas in browser memory before rasterization.</span>
             </div>
           </div>
 
-          {/* Live Document Preview Card with Watermark */}
+          {/* Live Document Preview Card with True Tiled HTML5 Canvas Watermark */}
           <div className="lg:col-span-7 relative">
-            <div className="rounded-3xl border border-slate-700/80 bg-slate-900/90 shadow-2xl p-6 sm:p-8 aspect-[16/10] relative overflow-hidden flex flex-col justify-between select-none">
-              {/* Mock Pitch Deck Document Content */}
+            <div className="rounded-3xl border border-slate-700/80 bg-slate-900/95 shadow-2xl p-6 sm:p-8 aspect-[16/10] relative overflow-hidden flex flex-col justify-between select-none">
+              {/* Document Content Layer */}
               <div className="space-y-4 z-10">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded bg-amber-500/20 flex items-center justify-center text-amber-400 text-xs font-bold">
+                    <div className="h-6 w-6 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-slate-950 text-xs font-black">
                       B
                     </div>
                     <span className="font-bold text-white text-xs">Series A Pitch Deck · Confidential</span>
                   </div>
-                  <span className="text-[10px] font-mono text-slate-400">Slide 3 of 12</span>
+                  <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Slide 3 of 12</span>
                 </div>
 
                 <div className="space-y-2 pt-2">
-                  <h4 className="text-lg font-bold text-white">Q4 Zero-Knowledge Financial Growth</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed max-w-md">
-                    Targeting 340% YoY expansion with zero infrastructure operational costs. Cryptographic zero-knowledge invariants protect all IP.
+                  <h4 className="text-lg sm:text-xl font-bold text-white tracking-tight">Q4 Zero-Knowledge Financial Growth</h4>
+                  <p className="text-xs text-slate-300 leading-relaxed max-w-lg">
+                    Targeting 340% YoY expansion with zero infrastructure operational costs. Cryptographic zero-knowledge invariants protect all proprietary algorithms.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3 pt-3">
-                  <div className="rounded-xl bg-slate-950/80 p-3 border border-slate-800">
-                    <div className="text-[10px] text-slate-400">ARR Runway</div>
-                    <div className="text-sm font-bold text-emerald-400">$4.2M</div>
+                  <div className="rounded-xl bg-slate-950/90 p-3.5 border border-slate-800">
+                    <div className="text-[10px] text-slate-400 font-medium">ARR Runway</div>
+                    <div className="text-base font-bold text-emerald-400 mt-0.5">$4.2M</div>
                   </div>
-                  <div className="rounded-xl bg-slate-950/80 p-3 border border-slate-800">
-                    <div className="text-[10px] text-slate-400">Gross Margin</div>
-                    <div className="text-sm font-bold text-amber-400">92.4%</div>
+                  <div className="rounded-xl bg-slate-950/90 p-3.5 border border-slate-800">
+                    <div className="text-[10px] text-slate-400 font-medium">Gross Margin</div>
+                    <div className="text-base font-bold text-amber-400 mt-0.5">92.4%</div>
                   </div>
-                  <div className="rounded-xl bg-slate-950/80 p-3 border border-slate-800">
-                    <div className="text-[10px] text-slate-400">Egress Cost</div>
-                    <div className="text-sm font-bold text-blue-400">$0.00</div>
+                  <div className="rounded-xl bg-slate-950/90 p-3.5 border border-slate-800">
+                    <div className="text-[10px] text-slate-400 font-medium">Egress Cost</div>
+                    <div className="text-base font-bold text-blue-400 mt-0.5">$0.00</div>
                   </div>
                 </div>
               </div>
 
-              {/* Dynamic Diagonal Watermark Grid Overlay */}
-              <div
-                className="absolute inset-0 pointer-events-none flex items-center justify-center z-20"
-                style={{
-                  transform: `rotate(${watermarkAngle}deg)`,
-                  opacity: watermarkOpacity / 100,
-                }}
-              >
-                <div className="text-center space-y-4">
-                  <div className="text-sm sm:text-base font-mono font-black text-amber-300 uppercase tracking-widest whitespace-nowrap">
-                    CONFIDENTIAL · {watermarkText}
-                  </div>
-                  <div className="text-[10px] font-mono text-slate-300">
-                    IP: 198.51.100.42 · {new Date().toLocaleDateString()} · TOKEN: 9b2a7e
-                  </div>
-                </div>
-              </div>
+              {/* True Real-time HTML5 Tiled Canvas Watermark Matrix */}
+              <canvas
+                ref={watermarkCanvasRef}
+                className="pointer-events-none absolute inset-0 block h-full w-full z-20"
+              />
             </div>
           </div>
         </div>

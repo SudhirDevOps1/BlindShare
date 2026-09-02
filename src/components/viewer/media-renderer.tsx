@@ -860,15 +860,17 @@ export function MediaRenderer({
 
       {/* Main Content Area */}
       <div className="relative min-h-[60vh] max-h-[85vh] overflow-auto p-4 sm:p-6 bg-slate-950/60">
-        {/* Dynamic Watermark Overlay */}
+        {/* Dynamic Watermark Overlay (Clean Staggered Forensic Matrix) */}
         {linkData.watermarkEnabled && (
           <div
             className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center overflow-hidden select-none"
             aria-hidden="true"
           >
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-24 opacity-15 rotate-[-25deg] text-center font-mono text-xs font-bold text-slate-300">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <div key={i}>{watermarkLabel}</div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-32 gap-y-20 opacity-15 rotate-[-25deg] text-center font-mono text-xs font-bold text-slate-300 whitespace-nowrap">
+              {Array.from({ length: 18 }).map((_, i) => (
+                <div key={i} className={i % 2 === 1 ? "translate-x-12" : ""}>
+                  {watermarkLabel}
+                </div>
               ))}
             </div>
           </div>
