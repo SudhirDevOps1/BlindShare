@@ -4,14 +4,26 @@ import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
 
-interface EnvItem {
+export type EnvCategory =
+  | "Database"
+  | "Storage"
+  | "Security & Secrets"
+  | "Rate Limiting"
+  | "Email & Webhooks"
+  | "Push Notifications"
+  | "Analytics & Telemetry"
+  | "Branding & App"
+  | "Operational Policies";
+
+export interface EnvItem {
   key: string;
-  category: "Database" | "Storage" | "Security & Secrets" | "Email & Webhooks" | "App Configuration";
+  category: EnvCategory;
   required: boolean;
   isSet: boolean;
-  status: "healthy" | "missing" | "warning";
+  status: "healthy" | "missing" | "warning" | "optional_unset";
   maskedValue: string | null;
   description: string;
+  guide: string;
   diagnosticTest?: string;
   isWorking?: boolean;
 }
@@ -62,30 +74,37 @@ export async function GET() {
     storageError = err?.message || "Storage probe failed";
   }
 
-  // Helper to safely mask secrets
+  // Helper to safely mask secrets so no sensitive credentials leak to logs/UI
   const maskSecret = (val?: string): string | null => {
-    if (!val) return null;
-    if (val.length <= 8) return "••••••••";
-    if (val.startsWith("postgres://") || val.startsWith("postgresql://")) {
-      const parts = val.split("@");
+    if (!val || val.trim().length === 0) return null;
+    const v = val.trim();
+    if (v.length <= 6) return "••••••";
+    if (v.startsWith("postgres://") || v.startsWith("postgresql://")) {
+      const parts = v.split("@");
       if (parts.length > 1) {
-        return `postgresql://••••••••@${parts[1].substring(0, 15)}...`;
+        return `postgresql://••••••••@${parts[1].substring(0, 18)}...`;
       }
       return "postgresql://••••••••";
     }
-    if (val.startsWith("http://") || val.startsWith("https://")) {
+    if (v.startsWith("http://") || v.startsWith("https://")) {
       try {
-        const u = new URL(val);
-        return `${u.protocol}//${u.host}${u.pathname.substring(0, 8)}...`;
+        const u = new URL(v);
+        return `${u.protocol}//${u.host}${u.pathname.length > 1 ? u.pathname.substring(0, 8) + "..." : ""}`;
       } catch {
-        return `${val.substring(0, 10)}...••••`;
+        return `${v.substring(0, 10)}...••••`;
       }
     }
-    return `${val.substring(0, 4)}••••••••${val.substring(val.length - 4)}`;
+    if (v.startsWith("re_") || v.startsWith("ghp_") || v.startsWith("key-")) {
+      return `${v.substring(0, 4)}••••••••${v.substring(v.length - 3)}`;
+    }
+    if (v.length > 20) {
+      return `${v.substring(0, 4)}••••••••${v.substring(v.length - 4)}`;
+    }
+    return `${v.substring(0, 2)}••••${v.substring(v.length - 2)}`;
   };
 
   const envVariables: EnvItem[] = [
-    // Database
+    // 🗄️ Database
     {
       key: "DATABASE_URL",
       category: "Database",
@@ -93,55 +112,159 @@ export async function GET() {
       isSet: Boolean(process.env.DATABASE_URL),
       status: dbStatus === "operational" ? "healthy" : Boolean(process.env.DATABASE_URL) ? "warning" : "missing",
       maskedValue: maskSecret(process.env.DATABASE_URL),
-      description: "Neon PostgreSQL primary connection string for documents, links, audit logs & sessions.",
+      description: "Primary database connection URI for users, encrypted metadata, dwell analytics & audit logs.",
+      guide: "Neon Console -> Connection Details -> Pooled connection -> Copy String",
       diagnosticTest: dbStatus === "operational" ? `Connected (${dbLatencyMs}ms ping)` : `Connection Failed: ${dbError || "Unreachable"}`,
       isWorking: dbStatus === "operational",
     },
+    {
+      key: "DATABASE_DRIVER",
+      category: "Database",
+      required: false,
+      isSet: Boolean(process.env.DATABASE_DRIVER),
+      status: "healthy",
+      maskedValue: process.env.DATABASE_DRIVER || "postgres (default)",
+      description: "Database engine driver ('postgres' for Neon/Supabase, 'sqlite' for Turso/Litestream).",
+      guide: "Preset A: 'postgres' | Preset B/C: 'sqlite'",
+      isWorking: true,
+    },
+    {
+      key: "TURSO_DATABASE_URL",
+      category: "Database",
+      required: false,
+      isSet: Boolean(process.env.TURSO_DATABASE_URL),
+      status: Boolean(process.env.TURSO_DATABASE_URL) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.TURSO_DATABASE_URL),
+      description: "Turso libSQL remote database endpoint (Optional for Preset C edge deployments).",
+      guide: "Turso CLI -> `turso db show <db-name> --url`",
+      isWorking: true,
+    },
+    {
+      key: "TURSO_AUTH_TOKEN",
+      category: "Database",
+      required: false,
+      isSet: Boolean(process.env.TURSO_AUTH_TOKEN),
+      status: Boolean(process.env.TURSO_AUTH_TOKEN) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.TURSO_AUTH_TOKEN),
+      description: "Turso libSQL authentication JWT token for edge execution.",
+      guide: "Turso CLI -> `turso db tokens create <db-name>`",
+      isWorking: true,
+    },
+    {
+      key: "SUPABASE_URL",
+      category: "Database",
+      required: false,
+      isSet: Boolean(process.env.SUPABASE_URL),
+      status: Boolean(process.env.SUPABASE_URL) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.SUPABASE_URL),
+      description: "Supabase project REST endpoint (Optional alternative PostgreSQL provider).",
+      guide: "Supabase Dashboard -> Project Settings -> API -> Project URL",
+      isWorking: true,
+    },
 
-    // Storage
+    // 🪣 Object Storage
+    {
+      key: "STORE_TARGET",
+      category: "Storage",
+      required: true,
+      isSet: Boolean(process.env.STORE_TARGET),
+      status: "healthy",
+      maskedValue: (process.env.STORE_TARGET || "b2").toUpperCase(),
+      description: "Active encrypted object storage backend ('b2' = Backblaze B2, 'r2' = Cloudflare R2, 'local' = Disk).",
+      guide: "Set to 'b2' for Backblaze 10GB free tier, 'r2' for zero-egress Cloudflare",
+      isWorking: true,
+    },
     {
       key: "B2_ENDPOINT",
       category: "Storage",
-      required: true,
+      required: storeTarget === "b2",
       isSet: Boolean(b2Endpoint),
       status: Boolean(b2Endpoint) ? "healthy" : "missing",
-      maskedValue: maskSecret(b2Endpoint),
+      maskedValue: b2Endpoint || null,
       description: "Backblaze B2 S3-compatible API endpoint URL (e.g. s3.us-east-005.backblazeb2.com).",
+      guide: "Backblaze B2 -> Buckets -> Endpoint URL",
       isWorking: Boolean(b2Endpoint),
+    },
+    {
+      key: "B2_BUCKET_NAME",
+      category: "Storage",
+      required: storeTarget === "b2",
+      isSet: Boolean(b2Bucket),
+      status: Boolean(b2Bucket) ? "healthy" : "missing",
+      maskedValue: b2Bucket || null,
+      description: "Private zero-knowledge cloud bucket name storing client-encrypted AES-GCM payloads.",
+      guide: "Backblaze B2 -> Buckets -> Create Bucket (Private)",
+      diagnosticTest: storageOperational ? `Operational (${storageLatencyMs}ms ping)` : `Bucket probe: ${storageError || "Missing"}`,
+      isWorking: storageOperational,
     },
     {
       key: "B2_KEY_ID",
       category: "Storage",
-      required: true,
+      required: storeTarget === "b2",
       isSet: Boolean(b2KeyId),
       status: Boolean(b2KeyId) ? "healthy" : "missing",
       maskedValue: maskSecret(b2KeyId),
-      description: "Backblaze B2 Application Key ID for authenticating encrypted ciphertext uploads.",
+      description: "Backblaze B2 Application Key ID for authenticating presigned uploads and downloads.",
+      guide: "Backblaze B2 -> Application Keys -> Add a New Application Key",
       isWorking: Boolean(b2KeyId),
     },
     {
       key: "B2_APPLICATION_KEY",
       category: "Storage",
-      required: true,
+      required: storeTarget === "b2",
       isSet: Boolean(b2Key),
       status: Boolean(b2Key) ? "healthy" : "missing",
       maskedValue: maskSecret(b2Key),
-      description: "Backblaze B2 Application Key secret token with read/write bucket permissions.",
+      description: "Backblaze B2 Application Key secret token with read/write bucket capabilities.",
+      guide: "Backblaze B2 -> Application Keys -> Copy applicationKey",
       isWorking: Boolean(b2Key),
     },
     {
-      key: "B2_BUCKET_NAME",
+      key: "B2_REGION",
       category: "Storage",
-      required: true,
-      isSet: Boolean(b2Bucket),
-      status: Boolean(b2Bucket) ? "healthy" : "missing",
-      maskedValue: b2Bucket || null,
-      description: "Encrypted Zero-Knowledge cloud bucket name storing AES-GCM ciphertext objects.",
-      diagnosticTest: storageOperational ? "Credentials Configured" : "Missing Bucket Credentials",
-      isWorking: storageOperational,
+      required: false,
+      isSet: Boolean(process.env.B2_REGION),
+      status: "healthy",
+      maskedValue: process.env.B2_REGION || "us-east-005 (default)",
+      description: "Backblaze B2 S3 region identifier.",
+      guide: "Extracted from B2 endpoint (e.g. us-east-005)",
+      isWorking: true,
+    },
+    {
+      key: "R2_ACCOUNT_ID",
+      category: "Storage",
+      required: storeTarget === "r2",
+      isSet: Boolean(process.env.R2_ACCOUNT_ID),
+      status: Boolean(process.env.R2_ACCOUNT_ID) ? "healthy" : storeTarget === "r2" ? "missing" : "optional_unset",
+      maskedValue: maskSecret(process.env.R2_ACCOUNT_ID),
+      description: "Cloudflare 32-character Account ID for R2 Object Storage integration.",
+      guide: "Cloudflare Dashboard -> R2 -> Account Details",
+      isWorking: true,
+    },
+    {
+      key: "R2_ACCESS_KEY_ID",
+      category: "Storage",
+      required: storeTarget === "r2",
+      isSet: Boolean(process.env.R2_ACCESS_KEY_ID),
+      status: Boolean(process.env.R2_ACCESS_KEY_ID) ? "healthy" : storeTarget === "r2" ? "missing" : "optional_unset",
+      maskedValue: maskSecret(process.env.R2_ACCESS_KEY_ID),
+      description: "Cloudflare R2 API Token Access Key ID.",
+      guide: "Cloudflare Dashboard -> R2 -> Manage R2 API Tokens",
+      isWorking: true,
+    },
+    {
+      key: "R2_SECRET_ACCESS_KEY",
+      category: "Storage",
+      required: storeTarget === "r2",
+      isSet: Boolean(process.env.R2_SECRET_ACCESS_KEY),
+      status: Boolean(process.env.R2_SECRET_ACCESS_KEY) ? "healthy" : storeTarget === "r2" ? "missing" : "optional_unset",
+      maskedValue: maskSecret(process.env.R2_SECRET_ACCESS_KEY),
+      description: "Cloudflare R2 API Token Secret Access Key.",
+      guide: "Cloudflare Dashboard -> R2 -> Manage R2 API Tokens -> Copy Secret",
+      isWorking: true,
     },
 
-    // Security & Secrets
+    // 🔐 Security, Cryptography & Auth Secrets
     {
       key: "SESSION_SECRET",
       category: "Security & Secrets",
@@ -150,17 +273,41 @@ export async function GET() {
       status: (process.env.SESSION_SECRET?.length || 0) >= 32 ? "healthy" : Boolean(process.env.SESSION_SECRET) ? "warning" : "missing",
       maskedValue: maskSecret(process.env.SESSION_SECRET),
       description: "High-entropy 32+ byte secret key used for signing HMAC HTTP-only authentication session JWTs.",
+      guide: "Run in terminal: node -e \"console.log(require('crypto').randomBytes(64).toString('hex'))\"",
       diagnosticTest: (process.env.SESSION_SECRET?.length || 0) >= 32 ? "Entropy: Strong (>=32 chars)" : "Entropy: Weak (<32 chars)",
       isWorking: Boolean(process.env.SESSION_SECRET),
+    },
+    {
+      key: "ADMIN_BOOTSTRAP_INVITE",
+      category: "Security & Secrets",
+      required: true,
+      isSet: Boolean(process.env.ADMIN_BOOTSTRAP_INVITE),
+      status: Boolean(process.env.ADMIN_BOOTSTRAP_INVITE) ? "healthy" : "warning",
+      maskedValue: maskSecret(process.env.ADMIN_BOOTSTRAP_INVITE || "blindshare-genesis-admin-2026"),
+      description: "Secret passphrase allowing the very first Super Admin account to register upon fresh deployment.",
+      guide: "Define any secret phrase (e.g. BLINDSHARE-GENESIS-2026) in your .env or Vercel settings",
+      isWorking: true,
+    },
+    {
+      key: "HEALTH_TOKEN",
+      category: "Security & Secrets",
+      required: true,
+      isSet: Boolean(process.env.HEALTH_TOKEN),
+      status: Boolean(process.env.HEALTH_TOKEN) ? "healthy" : "warning",
+      maskedValue: maskSecret(process.env.HEALTH_TOKEN),
+      description: "Bearer authentication secret for external uptime monitoring and `/api/health` probes.",
+      guide: "Generate a random 32-byte string for SIEM/UptimeRobot health checks",
+      isWorking: true,
     },
     {
       key: "PEPPER_SECRET",
       category: "Security & Secrets",
       required: false,
       isSet: Boolean(process.env.PEPPER_SECRET),
-      status: Boolean(process.env.PEPPER_SECRET) ? "healthy" : "warning",
+      status: Boolean(process.env.PEPPER_SECRET) ? "healthy" : "optional_unset",
       maskedValue: maskSecret(process.env.PEPPER_SECRET),
       description: "Server-side cryptographic pepper added to PBKDF2 link password hashing rounds.",
+      guide: "Optional random 32-byte hex string for defense-in-depth against precomputed rainbow tables",
       isWorking: true,
     },
     {
@@ -168,41 +315,60 @@ export async function GET() {
       category: "Security & Secrets",
       required: false,
       isSet: Boolean(process.env.DATA_ENCRYPTION_KEY),
-      status: Boolean(process.env.DATA_ENCRYPTION_KEY) ? "healthy" : "warning",
+      status: Boolean(process.env.DATA_ENCRYPTION_KEY) ? "healthy" : "optional_unset",
       maskedValue: maskSecret(process.env.DATA_ENCRYPTION_KEY),
       description: "Master key for server-side tenant metadata envelope encryption fallback.",
+      guide: "Optional 64-character hex string for server-level envelope encryption at rest",
       isWorking: true,
     },
     {
-      key: "UPSTASH_REDIS_REST_URL",
+      key: "SERVER_MASTER_KEY",
       category: "Security & Secrets",
       required: false,
+      isSet: Boolean(process.env.SERVER_MASTER_KEY),
+      status: Boolean(process.env.SERVER_MASTER_KEY) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.SERVER_MASTER_KEY),
+      description: "Server master key for encrypting audit log sensitive records and system backups.",
+      guide: "Optional server secret for encrypting telemetry at rest",
+      isWorking: true,
+    },
+
+    // ⚡ Rate Limiting
+    {
+      key: "UPSTASH_REDIS_REST_URL",
+      category: "Rate Limiting",
+      required: false,
       isSet: Boolean(process.env.UPSTASH_REDIS_REST_URL),
-      status: Boolean(process.env.UPSTASH_REDIS_REST_URL) ? "healthy" : "warning",
+      status: Boolean(process.env.UPSTASH_REDIS_REST_URL) ? "healthy" : "optional_unset",
       maskedValue: maskSecret(process.env.UPSTASH_REDIS_REST_URL),
-      description: "Upstash Redis REST endpoint for distributed edge rate limiting (falls back to memory if unconfigured).",
+      description: "Upstash Redis REST endpoint for distributed edge rate limiting across all Vercel edge regions.",
+      guide: "https://console.upstash.com -> Redis Database -> REST API -> Copy UPSTASH_REDIS_REST_URL",
+      diagnosticTest: Boolean(process.env.UPSTASH_REDIS_REST_URL) ? "Distributed Redis Active" : "In-Memory Rate Limiter Fallback (Active)",
       isWorking: true,
     },
     {
       key: "UPSTASH_REDIS_REST_TOKEN",
-      category: "Security & Secrets",
+      category: "Rate Limiting",
       required: false,
       isSet: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN),
-      status: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN) ? "healthy" : "warning",
+      status: Boolean(process.env.UPSTASH_REDIS_REST_TOKEN) ? "healthy" : "optional_unset",
       maskedValue: maskSecret(process.env.UPSTASH_REDIS_REST_TOKEN),
-      description: "Upstash Redis REST authentication token for edge rate limit pipeline.",
+      description: "Upstash Redis REST bearer token for authenticating edge sliding-window rate limit calls.",
+      guide: "https://console.upstash.com -> REST API -> Copy UPSTASH_REDIS_REST_TOKEN",
       isWorking: true,
     },
 
-    // Email & Alerts
+    // 📧 Email & Webhooks
     {
       key: "RESEND_API_KEY",
       category: "Email & Webhooks",
       required: false,
       isSet: Boolean(process.env.RESEND_API_KEY),
-      status: Boolean(process.env.RESEND_API_KEY) ? "healthy" : "warning",
+      status: Boolean(process.env.RESEND_API_KEY) ? "healthy" : "optional_unset",
       maskedValue: maskSecret(process.env.RESEND_API_KEY),
-      description: "Resend transactional email API key for reader notifications and OTP authentication.",
+      description: "Resend transactional email API key for recipient view alerts, OTP codes, and invite links.",
+      guide: "https://resend.com -> API Keys -> Create Key (3,000 free emails/month)",
+      diagnosticTest: Boolean(process.env.RESEND_API_KEY) ? "Resend API Configured" : "Email Dispatch Disabled",
       isWorking: Boolean(process.env.RESEND_API_KEY),
     },
     {
@@ -210,47 +376,267 @@ export async function GET() {
       category: "Email & Webhooks",
       required: false,
       isSet: Boolean(process.env.SLACK_WEBHOOK_URL),
-      status: Boolean(process.env.SLACK_WEBHOOK_URL) ? "healthy" : "warning",
+      status: Boolean(process.env.SLACK_WEBHOOK_URL) ? "healthy" : "optional_unset",
       maskedValue: maskSecret(process.env.SLACK_WEBHOOK_URL),
-      description: "Global fallback Slack/Discord webhook URL for real-time document view alerts.",
+      description: "Global Slack/Discord incoming webhook URL for broadcasting live document viewing alerts.",
+      guide: "Slack -> Apps -> Incoming Webhooks OR Discord -> Integrations -> Webhooks",
       isWorking: Boolean(process.env.SLACK_WEBHOOK_URL),
     },
+    {
+      key: "BOT_WEBHOOK_URL",
+      category: "Email & Webhooks",
+      required: false,
+      isSet: Boolean(process.env.BOT_WEBHOOK_URL),
+      status: Boolean(process.env.BOT_WEBHOOK_URL) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.BOT_WEBHOOK_URL),
+      description: "Secondary automated bot webhook trigger for SIEM security alerts and NDA signatures.",
+      guide: "Custom webhook endpoint for security automation or Telegram/Teams bots",
+      isWorking: Boolean(process.env.BOT_WEBHOOK_URL),
+    },
 
-    // App Configuration
+    // 🔔 Push Notifications
+    {
+      key: "VAPID_PUBLIC_KEY",
+      category: "Push Notifications",
+      required: false,
+      isSet: Boolean(process.env.VAPID_PUBLIC_KEY),
+      status: Boolean(process.env.VAPID_PUBLIC_KEY) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.VAPID_PUBLIC_KEY),
+      description: "Web Push (VAPID) public key for browser push notifications when investors open links.",
+      guide: "Generate in terminal: `npx web-push generate-vapid-keys`",
+      isWorking: true,
+    },
+    {
+      key: "VAPID_PRIVATE_KEY",
+      category: "Push Notifications",
+      required: false,
+      isSet: Boolean(process.env.VAPID_PRIVATE_KEY),
+      status: Boolean(process.env.VAPID_PRIVATE_KEY) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.VAPID_PRIVATE_KEY),
+      description: "Web Push (VAPID) private secret key for encrypting browser push notifications.",
+      guide: "Extracted from `npx web-push generate-vapid-keys` output",
+      isWorking: true,
+    },
+    {
+      key: "VAPID_SUBJECT",
+      category: "Push Notifications",
+      required: false,
+      isSet: Boolean(process.env.VAPID_SUBJECT),
+      status: "healthy",
+      maskedValue: process.env.VAPID_SUBJECT || "mailto:admin@blindshare.app (default)",
+      description: "Contact email or URL identifying the sender for Web Push protocol compliance.",
+      guide: "Format: mailto:your-email@domain.com",
+      isWorking: true,
+    },
+
+    // 📊 Analytics & Telemetry
+    {
+      key: "NEXT_PUBLIC_PRISM_ANALYTICS_ID",
+      category: "Analytics & Telemetry",
+      required: false,
+      isSet: Boolean(process.env.NEXT_PUBLIC_PRISM_ANALYTICS_ID),
+      status: Boolean(process.env.NEXT_PUBLIC_PRISM_ANALYTICS_ID) ? "healthy" : "optional_unset",
+      maskedValue: process.env.NEXT_PUBLIC_PRISM_ANALYTICS_ID || null,
+      description: "Zero-cookie privacy analytics website identifier for anonymous telemetry.",
+      guide: "Self-hosted Cloudflare Worker PrismAnalytics site ID",
+      isWorking: true,
+    },
+    {
+      key: "NEXT_PUBLIC_PRISM_ANALYTICS_URL",
+      category: "Analytics & Telemetry",
+      required: false,
+      isSet: Boolean(process.env.NEXT_PUBLIC_PRISM_ANALYTICS_URL),
+      status: Boolean(process.env.NEXT_PUBLIC_PRISM_ANALYTICS_URL) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.NEXT_PUBLIC_PRISM_ANALYTICS_URL),
+      description: "Zero-cookie privacy analytics ingestion URL endpoint.",
+      guide: "Cloudflare Worker telemetry ingestion route (e.g. https://analytics.domain.com/api/track)",
+      isWorking: true,
+    },
+
+    // 🎨 Branding & App
     {
       key: "NEXT_PUBLIC_APP_URL",
-      category: "App Configuration",
+      category: "Branding & App",
       required: false,
       isSet: Boolean(process.env.NEXT_PUBLIC_APP_URL),
       status: Boolean(process.env.NEXT_PUBLIC_APP_URL) ? "healthy" : "warning",
-      maskedValue: process.env.NEXT_PUBLIC_APP_URL || null,
-      description: "Canonical public base URL (e.g. https://blindshare.app) for constructing share links.",
+      maskedValue: process.env.NEXT_PUBLIC_APP_URL || "https://blindshare.app",
+      description: "Canonical public base URL used for generating zero-knowledge link fragment URLs (#k=...).",
+      guide: "Your production URL (e.g. https://blindshare.vercel.app or https://blindshare.app)",
       isWorking: true,
     },
     {
       key: "PUBLIC_APP_NAME",
-      category: "App Configuration",
+      category: "Branding & App",
       required: false,
       isSet: Boolean(process.env.PUBLIC_APP_NAME),
       status: "healthy",
       maskedValue: process.env.PUBLIC_APP_NAME || "BlindShare",
       description: "Custom platform branding name displayed across UI, emails, and header.",
+      guide: "Custom title for white-label enterprise deployments",
       isWorking: true,
     },
     {
       key: "PUBLIC_BRAND_ACCENT",
-      category: "App Configuration",
+      category: "Branding & App",
       required: false,
       isSet: Boolean(process.env.PUBLIC_BRAND_ACCENT),
       status: "healthy",
       maskedValue: process.env.PUBLIC_BRAND_ACCENT || "#f59e0b",
-      description: "Brand primary color hex code for themed UI buttons, badges, and progress meters.",
+      description: "Brand primary accent color hex code for themed UI buttons, badges, and progress meters.",
+      guide: "Hex color code (e.g. #f59e0b for Amber, #3b82f6 for Blue)",
+      isWorking: true,
+    },
+    {
+      key: "PUBLIC_BRAND_LOGO_URL",
+      category: "Branding & App",
+      required: false,
+      isSet: Boolean(process.env.PUBLIC_BRAND_LOGO_URL),
+      status: "healthy",
+      maskedValue: process.env.PUBLIC_BRAND_LOGO_URL || "/brand/logo.svg",
+      description: "Custom brand logo icon SVG or PNG image path.",
+      guide: "Relative path (e.g. /brand/logo.svg) or external HTTPS logo URL",
+      isWorking: true,
+    },
+    {
+      key: "PUBLIC_UI_LANG_DEFAULT",
+      category: "Branding & App",
+      required: false,
+      isSet: Boolean(process.env.PUBLIC_UI_LANG_DEFAULT),
+      status: "healthy",
+      maskedValue: process.env.PUBLIC_UI_LANG_DEFAULT || "hi (Hindi)",
+      description: "Default platform UI language for first-time visitors ('hi' = Hindi, 'en' = English).",
+      guide: "Set to 'hi' for Hindi or 'en' for English",
+      isWorking: true,
+    },
+    {
+      key: "NODE_ENV",
+      category: "Branding & App",
+      required: false,
+      isSet: Boolean(process.env.NODE_ENV),
+      status: "healthy",
+      maskedValue: process.env.NODE_ENV || "development",
+      description: "Node.js runtime environment mode ('production' enables strict cookie security).",
+      guide: "Managed automatically by Vercel / Node runtime",
+      isWorking: true,
+    },
+    {
+      key: "MAINTENANCE_MODE",
+      category: "Branding & App",
+      required: false,
+      isSet: Boolean(process.env.MAINTENANCE_MODE),
+      status: "healthy",
+      maskedValue: process.env.MAINTENANCE_MODE === "true" ? "ENABLED (Locked)" : "Disabled (Live)",
+      description: "Global maintenance switch. When true, shows maintenance banner to non-admin visitors.",
+      guide: "Set to 'true' during database migrations, otherwise 'false'",
+      isWorking: true,
+    },
+
+    // ⚙️ Operational Policies
+    {
+      key: "MAX_FILE_MB",
+      category: "Operational Policies",
+      required: false,
+      isSet: Boolean(process.env.MAX_FILE_MB),
+      status: "healthy",
+      maskedValue: `${process.env.MAX_FILE_MB || "25"} MB`,
+      description: "Maximum encrypted PDF/document upload size limit.",
+      guide: "Default: 25 MB (can increase to 100 MB for enterprise)",
+      isWorking: true,
+    },
+    {
+      key: "MAX_VIDEO_MB",
+      category: "Operational Policies",
+      required: false,
+      isSet: Boolean(process.env.MAX_VIDEO_MB),
+      status: "healthy",
+      maskedValue: `${process.env.MAX_VIDEO_MB || "50"} MB`,
+      description: "Maximum encrypted video file upload size limit.",
+      guide: "Default: 50 MB",
+      isWorking: true,
+    },
+    {
+      key: "SESSION_MAX_AGE_DAYS",
+      category: "Operational Policies",
+      required: false,
+      isSet: Boolean(process.env.SESSION_MAX_AGE_DAYS),
+      status: "healthy",
+      maskedValue: `${process.env.SESSION_MAX_AGE_DAYS || "30"} Days`,
+      description: "Authentication login cookie lifespan in days before requiring re-login.",
+      guide: "Default: 30 days",
+      isWorking: true,
+    },
+    {
+      key: "BCRYPT_COST_FACTOR",
+      category: "Operational Policies",
+      required: false,
+      isSet: Boolean(process.env.BCRYPT_COST_FACTOR),
+      status: "healthy",
+      maskedValue: `${process.env.BCRYPT_COST_FACTOR || "12"} Salt Rounds`,
+      description: "Bcrypt CPU work factor for hashing user login passwords.",
+      guide: "Default: 12 rounds (recommended 10-14 for high security)",
+      isWorking: true,
+    },
+    {
+      key: "PASSWORD_MIN_LENGTH",
+      category: "Operational Policies",
+      required: false,
+      isSet: Boolean(process.env.PASSWORD_MIN_LENGTH),
+      status: "healthy",
+      maskedValue: `${process.env.PASSWORD_MIN_LENGTH || "10"} Characters`,
+      description: "Minimum character length required for new user passwords.",
+      guide: "Default: 10 characters",
+      isWorking: true,
+    },
+    {
+      key: "LOGIN_LOCKOUT_TRIES",
+      category: "Operational Policies",
+      required: false,
+      isSet: Boolean(process.env.LOGIN_LOCKOUT_TRIES),
+      status: "healthy",
+      maskedValue: `${process.env.LOGIN_LOCKOUT_TRIES || "5"} Attempts`,
+      description: "Maximum consecutive failed login attempts before temporary IP lockout.",
+      guide: "Default: 5 attempts",
+      isWorking: true,
+    },
+    {
+      key: "LOGIN_LOCKOUT_MINUTES",
+      category: "Operational Policies",
+      required: false,
+      isSet: Boolean(process.env.LOGIN_LOCKOUT_MINUTES),
+      status: "healthy",
+      maskedValue: `${process.env.LOGIN_LOCKOUT_MINUTES || "15"} Minutes`,
+      description: "Temporary IP lockout duration following brute force detection.",
+      guide: "Default: 15 minutes",
+      isWorking: true,
+    },
+    {
+      key: "VIEW_HEARTBEAT_SEC",
+      category: "Operational Policies",
+      required: false,
+      isSet: Boolean(process.env.VIEW_HEARTBEAT_SEC),
+      status: "healthy",
+      maskedValue: `${process.env.VIEW_HEARTBEAT_SEC || "10"} Seconds`,
+      description: "Per-page reading dwell time telemetry sync heartbeat interval.",
+      guide: "Default: 10 seconds",
+      isWorking: true,
+    },
+    {
+      key: "DOC_TTL_SWEEP_DAYS",
+      category: "Operational Policies",
+      required: false,
+      isSet: Boolean(process.env.DOC_TTL_SWEEP_DAYS),
+      status: "healthy",
+      maskedValue: process.env.DOC_TTL_SWEEP_DAYS && process.env.DOC_TTL_SWEEP_DAYS !== "0" ? `${process.env.DOC_TTL_SWEEP_DAYS} Days` : "0 (Retain Forever)",
+      description: "Automatic document auto-delete retention period (0 = keep forever until deleted).",
+      guide: "Set to 0 to keep documents forever, or N days for automatic ephemerality",
       isWorking: true,
     },
   ];
 
   const total = envVariables.length;
   const setVars = envVariables.filter((v) => v.isSet).length;
+  const unsetVars = total - setVars;
   const requiredTotal = envVariables.filter((v) => v.required).length;
   const requiredSet = envVariables.filter((v) => v.required && v.isSet).length;
   const missingRequired = envVariables.filter((v) => v.required && !v.isSet).length;
@@ -275,8 +661,9 @@ export async function GET() {
       },
       crypto: {
         status: "operational",
-        algorithm: "AES-GCM-256 (WebCrypto)",
-        kdf: "PBKDF2-HMAC-SHA256 (250k rounds)",
+        algorithm: "AES-GCM-256 (WebCrypto CSPRNG)",
+        kdf: "PBKDF2-HMAC-SHA256 (100,000 rounds)",
+        vault: "Enterprise-Grade Zero-Knowledge Owner Master Key Vault",
       },
       runtime: {
         nodeEnv: process.env.NODE_ENV || "development",
@@ -286,6 +673,7 @@ export async function GET() {
     stats: {
       total,
       setVars,
+      unsetVars,
       requiredTotal,
       requiredSet,
       missingRequired,

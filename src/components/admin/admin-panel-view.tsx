@@ -30,6 +30,7 @@ import {
   Layers,
   AlertCircle,
   HelpCircle,
+  Search,
 } from "lucide-react";
 
 export function AdminPanelView() {
@@ -56,7 +57,9 @@ export function AdminPanelView() {
   // Diagnostics & Environment State
   const [diagnosticsData, setDiagnosticsData] = useState<any>(null);
   const [testingEnv, setTestingEnv] = useState(false);
-  const [envFilter, setEnvFilter] = useState<"all" | "missing" | "configured" | "required">("all");
+  const [envFilter, setEnvFilter] = useState<"all" | "missing" | "configured" | "required" | "optional_unset">("all");
+  const [envCategoryFilter, setEnvCategoryFilter] = useState<string>("all");
+  const [envSearch, setEnvSearch] = useState<string>("");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -269,12 +272,27 @@ export function AdminPanelView() {
   const filteredVariables = useMemo(() => {
     if (!diagnosticsData?.variables) return [];
     return diagnosticsData.variables.filter((v: any) => {
-      if (envFilter === "missing") return !v.isSet;
-      if (envFilter === "configured") return v.isSet;
-      if (envFilter === "required") return v.required;
+      // Status filter
+      if (envFilter === "missing" && (v.isSet || !v.required)) return false;
+      if (envFilter === "configured" && !v.isSet) return false;
+      if (envFilter === "required" && !v.required) return false;
+      if (envFilter === "optional_unset" && (v.isSet || v.required)) return false;
+
+      // Category filter
+      if (envCategoryFilter !== "all" && v.category !== envCategoryFilter) return false;
+
+      // Search filter
+      if (envSearch.trim()) {
+        const q = envSearch.toLowerCase().trim();
+        const matchesKey = v.key.toLowerCase().includes(q);
+        const matchesDesc = (v.description || "").toLowerCase().includes(q);
+        const matchesCategory = (v.category || "").toLowerCase().includes(q);
+        if (!matchesKey && !matchesDesc && !matchesCategory) return false;
+      }
+
       return true;
     });
-  }, [diagnosticsData, envFilter]);
+  }, [diagnosticsData, envFilter, envCategoryFilter, envSearch]);
 
   return (
     <div className="space-y-6">
@@ -524,123 +542,198 @@ export function AdminPanelView() {
             </div>
           </div>
 
-          {/* Filter Bar & Summary */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-white">Environment Configuration:</span>
-              <span className="rounded bg-slate-800 px-2 py-0.5 text-xs font-mono text-amber-400">
-                {diagnosticsData?.stats?.setVars || 0} / {diagnosticsData?.stats?.total || 0} Set ({diagnosticsData?.stats?.score || 0}%)
-              </span>
+          {/* Filter Bar, Quick Search & Category Pills */}
+          <div className="space-y-4">
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+              {/* Search Bar */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <input
+                  type="text"
+                  placeholder="Search variables (e.g. DATABASE, B2, SESSION_SECRET, REDIS)..."
+                  value={envSearch}
+                  onChange={(e) => setEnvSearch(e.target.value)}
+                  className="w-full rounded-xl border border-slate-800 bg-slate-950 pl-10 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 font-mono shadow-inner"
+                />
+                {envSearch && (
+                  <button
+                    onClick={() => setEnvSearch("")}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Status Filters */}
+              <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-950 p-1 text-[11px]">
+                <button
+                  onClick={() => setEnvFilter("all")}
+                  className={`px-3 py-1 rounded-lg transition ${envFilter === "all" ? "bg-slate-800 text-white font-bold" : "text-slate-400 hover:text-slate-200"}`}
+                >
+                  All ({diagnosticsData?.stats?.total || 0})
+                </button>
+                <button
+                  onClick={() => setEnvFilter("configured")}
+                  className={`px-3 py-1 rounded-lg transition ${envFilter === "configured" ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30" : "text-slate-400 hover:text-emerald-300"}`}
+                >
+                  🟢 Configured ({diagnosticsData?.stats?.setVars || 0})
+                </button>
+                <button
+                  onClick={() => setEnvFilter("missing")}
+                  className={`px-3 py-1 rounded-lg transition ${envFilter === "missing" ? "bg-red-500/20 text-red-300 font-bold border border-red-500/30" : "text-slate-400 hover:text-red-300"}`}
+                >
+                  🔴 Missing ({diagnosticsData?.stats?.missingRequired || 0})
+                </button>
+                <button
+                  onClick={() => setEnvFilter("optional_unset")}
+                  className={`px-3 py-1 rounded-lg transition ${envFilter === "optional_unset" ? "bg-slate-700 text-slate-200 font-bold" : "text-slate-400 hover:text-slate-200"}`}
+                >
+                  ⚪ Optional Unset ({(diagnosticsData?.stats?.unsetVars || 0) - (diagnosticsData?.stats?.missingRequired || 0)})
+                </button>
+                <button
+                  onClick={() => setEnvFilter("required")}
+                  className={`px-3 py-1 rounded-lg transition ${envFilter === "required" ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30" : "text-slate-400 hover:text-amber-300"}`}
+                >
+                  ⚙️ Required ({diagnosticsData?.stats?.requiredTotal || 0})
+                </button>
+              </div>
             </div>
 
-            <div className="flex rounded-lg border border-slate-800 bg-slate-950 p-0.5 text-[11px]">
-              <button
-                onClick={() => setEnvFilter("all")}
-                className={`px-3 py-1 rounded-md transition ${envFilter === "all" ? "bg-slate-800 text-white font-bold" : "text-slate-400"}`}
-              >
-                All ({diagnosticsData?.stats?.total || 0})
-              </button>
-              <button
-                onClick={() => setEnvFilter("configured")}
-                className={`px-3 py-1 rounded-md transition ${envFilter === "configured" ? "bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30" : "text-slate-400"}`}
-              >
-                🟢 Configured ({diagnosticsData?.stats?.setVars || 0})
-              </button>
-              <button
-                onClick={() => setEnvFilter("missing")}
-                className={`px-3 py-1 rounded-md transition ${envFilter === "missing" ? "bg-red-500/20 text-red-300 font-bold border border-red-500/30" : "text-slate-400"}`}
-              >
-                🔴 Missing ({(diagnosticsData?.stats?.total || 0) - (diagnosticsData?.stats?.setVars || 0)})
-              </button>
-              <button
-                onClick={() => setEnvFilter("required")}
-                className={`px-3 py-1 rounded-md transition ${envFilter === "required" ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30" : "text-slate-400"}`}
-              >
-                ⚙️ Required ({diagnosticsData?.stats?.requiredTotal || 0})
-              </button>
+            {/* Category Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              {[
+                { id: "all", label: "All Categories" },
+                { id: "Database", label: "🗄️ Database" },
+                { id: "Storage", label: "🪣 Object Storage" },
+                { id: "Security & Secrets", label: "🔐 Security & Secrets" },
+                { id: "Rate Limiting", label: "⚡ Rate Limiting" },
+                { id: "Email & Webhooks", label: "📧 Email & Webhooks" },
+                { id: "Push Notifications", label: "🔔 Push Notifications" },
+                { id: "Analytics & Telemetry", label: "📊 Analytics" },
+                { id: "Branding & App", label: "🎨 Branding & App" },
+                { id: "Operational Policies", label: "⚙️ Policies" },
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => setEnvCategoryFilter(cat.id)}
+                  className={`rounded-lg px-2.5 py-1 text-[10px] font-semibold transition ${
+                    envCategoryFilter === cat.id
+                      ? "bg-amber-500 text-slate-950 shadow-sm shadow-amber-500/20"
+                      : "bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white border border-slate-800"
+                  }`}
+                >
+                  {cat.label}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Grid of Environment Variables */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredVariables.map((v: any) => {
-              const isCopied = copiedKey === v.key;
-              return (
-                <div
-                  key={v.key}
-                  className={`rounded-2xl border p-4 transition space-y-2.5 ${
-                    !v.isSet && v.required
-                      ? "border-red-500/40 bg-red-950/10"
-                      : v.isSet
-                      ? "border-slate-800 bg-slate-900/60 hover:border-slate-700"
-                      : "border-slate-800/80 bg-slate-950/50"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <code className="font-mono text-xs font-bold text-amber-400">{v.key}</code>
-                        <button
-                          onClick={() => handleCopyKey(v.key)}
-                          className="text-slate-500 hover:text-white p-0.5"
-                          title="Copy Key Name"
-                        >
-                          {isCopied ? <Check className="h-3 w-3 text-emerald-400" /> : <Copy className="h-3 w-3" />}
-                        </button>
+          {filteredVariables.length === 0 ? (
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-12 text-center space-y-3">
+              <AlertCircle className="h-8 w-8 text-slate-500 mx-auto" />
+              <p className="text-sm font-semibold text-slate-300">No matching environment variables found</p>
+              <p className="text-xs text-slate-500">Try adjusting your search query or category filters.</p>
+              <button
+                onClick={() => {
+                  setEnvFilter("all");
+                  setEnvCategoryFilter("all");
+                  setEnvSearch("");
+                }}
+                className="rounded-xl bg-slate-800 px-3.5 py-1.5 text-xs text-amber-400 hover:text-white hover:bg-slate-700 transition"
+              >
+                Reset Filters
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredVariables.map((v: any) => {
+                const isCopied = copiedKey === v.key;
+                return (
+                  <div
+                    key={v.key}
+                    className={`rounded-2xl border p-5 transition space-y-3 ${
+                      !v.isSet && v.required
+                        ? "border-red-500/40 bg-red-950/15 ring-1 ring-red-500/20 shadow-lg shadow-red-950/20"
+                        : v.isSet
+                        ? "border-slate-800 bg-slate-900/70 hover:border-slate-700 shadow-sm"
+                        : "border-slate-800/80 bg-slate-950/40 opacity-80 hover:opacity-100"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <code className="font-mono text-xs font-bold text-amber-400">{v.key}</code>
+                          <button
+                            onClick={() => handleCopyKey(v.key)}
+                            className="text-slate-500 hover:text-amber-400 p-0.5 transition"
+                            title="Copy Key Name"
+                          >
+                            {isCopied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                          </button>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-medium">{v.category}</span>
                       </div>
-                      <span className="text-[10px] text-slate-500 font-medium">{v.category}</span>
+
+                      <div className="flex items-center gap-1.5">
+                        {v.required ? (
+                          <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold text-amber-400 border border-amber-500/20">
+                            REQUIRED
+                          </span>
+                        ) : (
+                          <span className="rounded-md bg-slate-800/80 px-2 py-0.5 text-[9px] font-medium text-slate-400">
+                            OPTIONAL
+                          </span>
+                        )}
+
+                        {v.isSet ? (
+                          <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/20">
+                            <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                            <span>Configured</span>
+                          </span>
+                        ) : v.required ? (
+                          <span className="flex items-center gap-1 rounded-full bg-red-500/20 px-2.5 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30 animate-pulse">
+                            <AlertCircle className="h-3 w-3 text-red-400" />
+                            <span>Missing</span>
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-[10px] font-medium text-slate-400">
+                            Unset (Default)
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
-                      {v.required ? (
-                        <span className="rounded bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold text-amber-400 border border-amber-500/20">
-                          REQUIRED
-                        </span>
-                      ) : (
-                        <span className="rounded bg-slate-800 px-2 py-0.5 text-[9px] font-medium text-slate-400">
-                          OPTIONAL
-                        </span>
-                      )}
+                    <p className="text-xs text-slate-300 leading-relaxed">{v.description}</p>
 
-                      {v.isSet ? (
-                        <span className="flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/20">
-                          <CheckCircle2 className="h-3 w-3 text-emerald-400" />
-                          <span>Configured</span>
-                        </span>
-                      ) : v.required ? (
-                        <span className="flex items-center gap-1 rounded-full bg-red-500/20 px-2.5 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30 animate-pulse">
-                          <AlertCircle className="h-3 w-3 text-red-400" />
-                          <span>Missing</span>
-                        </span>
-                      ) : (
-                        <span className="rounded-full bg-slate-800 px-2.5 py-0.5 text-[10px] font-medium text-slate-400">
-                          Unset
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-slate-300 leading-relaxed">{v.description}</p>
-
-                  {/* Masked Safe Preview or Status */}
-                  <div className="rounded-xl bg-slate-950 p-2.5 border border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between">
-                    <span className="truncate max-w-[280px]">
-                      {v.isSet ? (
-                        <span className="text-slate-300">{v.maskedValue}</span>
-                      ) : (
-                        <span className="text-slate-500 italic">Not defined in environment</span>
-                      )}
-                    </span>
-                    {v.diagnosticTest && (
-                      <span className={`text-[10px] font-sans ${v.isWorking ? "text-emerald-400" : "text-red-400"}`}>
-                        {v.diagnosticTest}
-                      </span>
+                    {v.guide && (
+                      <div className="text-[10px] text-slate-400 bg-slate-950/80 px-2.5 py-1.5 rounded-lg border border-slate-800/80 font-mono">
+                        <span className="text-amber-400/80 font-bold">Guide: </span>
+                        <span>{v.guide}</span>
+                      </div>
                     )}
+
+                    {/* Masked Safe Preview or Status */}
+                    <div className="rounded-xl bg-slate-950 p-2.5 border border-slate-800/90 text-[11px] font-mono text-slate-400 flex items-center justify-between gap-2">
+                      <span className="truncate max-w-[280px]">
+                        {v.isSet ? (
+                          <span className="text-slate-200 font-semibold">{v.maskedValue}</span>
+                        ) : (
+                          <span className="text-slate-500 italic">Blank / Not defined</span>
+                        )}
+                      </span>
+                      {v.diagnosticTest && (
+                        <span className={`text-[10px] font-sans font-bold shrink-0 ${v.isWorking ? "text-emerald-400" : "text-red-400"}`}>
+                          {v.diagnosticTest}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
