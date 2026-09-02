@@ -79,8 +79,13 @@
 | Password-protected links | ✅ | ✅ | ✅ |
 | NDA clickwrap | ✅ | ❌ | ✅ |
 | Dynamic watermarks | ✅ | ✅ | ✅ |
+| **Permanent indelible PDF watermark on download** | ❌ | ❌ | ✅ |
+| **Auto vault unlock on login (Bitwarden model)** | ❌ | ❌ | ✅ |
+| **In-doc real-time Q&A with founder replies** | ❌ | ❌ | ✅ |
+| **AI lead conviction intent scoring** | ❌ | ❌ | ✅ |
 | **Free to host** | ❌ | ❌ | ✅ |
 | GDPR-lite data controls | ❌ | ❌ | ✅ |
+| **20 automated security tests (CI)** | ❌ | ❌ | ✅ |
 
 ---
 
@@ -168,6 +173,7 @@ BlindShare features a **Zero-Knowledge Master Key Vault** that guarantees you ne
 <br/>
 
 - **Enterprise Zero-Knowledge Owner Master Key Vault** — client-side PBKDF2 (100k rounds) + AES-GCM-256 wrapping for seamless cross-device, cache-immune document key persistence
+- **Auto Master Vault Unlock on Login (Bitwarden / Proton Model)** — PBKDF2 master key derived automatically on login and 2FA; all document keys unwrapped in background with zero user friction
 - **Transparent Client-Side GZIP Compression** — 50–80% storage footprint reduction on B2/R2 with zero server CPU load
 - **Live DNS MX Verification & Temp Email Blocker** — real-time Node.js DNS resolution + 40+ disposable domain blocklist + SSRF private IP filter
 - **Tab-Switch Anti-Spy Privacy Shield** — auto-obfuscates confidential documents when reader switches tabs/windows
@@ -183,6 +189,8 @@ BlindShare features a **Zero-Knowledge Master Key Vault** that guarantees you ne
 - **Strict Content Security Policy (CSP)** & Cross-Origin-Opener-Policy isolation
 - **PII-redacting structured logger** — no email/IP in logs
 - **Gitleaks** secret scanning on every CI run
+- **CodeQL SAST** — 86/86 alerts resolved, 0 open vulnerabilities
+- **20 automated enterprise security tests** (`npm test`) — zero-knowledge crypto, SSRF, HMAC, XSS, SIEM, DuckDB, AI scoring
 
 </details>
 
@@ -191,10 +199,14 @@ BlindShare features a **Zero-Knowledge Master Key Vault** that guarantees you ne
 <br/>
 
 - Upload **any file type**: PDF, Images (PNG, JPG, WebP, GIF, AVIF, BMP), SVG, Markdown, CSV/Spreadsheet, Audio, Video, ZIP bundles
-- **In-Doc Interactive Question Pins** — reader click-to-pin question overlay on slides with founder reply thread
+- **Permanent Indelible PDF Watermark on Download** — `pdf-lib` burns diagonal multi-layer watermarks (email, timestamp, slug, custom text) permanently into every page stream before export
+- **Tab-Level Decrypted Session Cache** — 10ms (0.01s) instant F5 refresh reloads using ephemeral `sessionStorage` buffer; auto-wiped on tab close, zero re-download or re-decrypt
+- **In-Doc Interactive Question Pins & Live Q&A** — reader click-to-pin question overlay on slides; real-time 3-second watchdog syncs founder replies without requiring page reload
+- **Dedicated Q&A Inbox Dashboard** — centralized founder view with search, filter (All/Pending/Resolved), and inline reply composer
 - **Voice Pitch Walkthrough Notes** — founder audio explanations attached to slides with floating wave player
 - **Live Presenter Room & Co-Browsing** — real-time host-to-viewer slide broadcast and synchronization
 - **300+ DPI Retina Crisp Super-Sampling** — ultra-sharp vector rendering on 1080p/2K/4K/Retina displays
+- **Interactive Text Layer** — full text selection, clipboard copy, `Ctrl+F` search, and clickable hyperlinks over canvas slides
 - **Fullscreen Pitch Presentation Mode** — slideshow presenter view with interactive red laser pointer, keyboard navigation (`Space`, `Arrows`, `L`), and watermark sync
 - **Resilient Self-Hosted PDF.js Engine** with high-availability CDN fallback (zero single points of failure)
 - **Smart Viewport Auto-Fitting** for seamless mobile and desktop reading
@@ -576,7 +588,7 @@ npm run dev          # Start development server with hot reload
 npm run build        # Production build
 npm run typecheck    # TypeScript strict type checking
 npm run lint         # ESLint code quality check
-npm test             # Run 18-test security & analytics suite
+npm test             # Run 20-test enterprise security & analytics suite
 ```
 
 ---
@@ -637,7 +649,7 @@ Then reopen your deployed URL and register a fresh Super Admin account.
 | **Framework** | Next.js 16 App Router · TypeScript (strict) |
 | **Styling** | Tailwind CSS v4 |
 | **Encryption** | WebCrypto API (AES-GCM-256) · PBKDF2 (250k iterations) |
-| **PDF Engine** | PDF.js (self-hosted) + CDN fallback |
+| **PDF Engine** | PDF.js (self-hosted) + CDN fallback · **pdf-lib** (watermark stamping) |
 | **ORM** | Drizzle ORM (Postgres + SQLite dual-mode) |
 | **Database A** | Neon PostgreSQL (Serverless) |
 | **Database B** | SQLite + Litestream (Self-hosted) |
@@ -657,68 +669,93 @@ Then reopen your deployed URL and register a fresh Super Admin account.
 BlindShare/
 ├── src/
 │   ├── app/
-│   │   ├── api/                 # REST API: auth, docs, links, admin
-│   │   ├── dashboard/           # Authenticated dashboard UI
-│   │   │   └── settings/        # Profile, password & invite manager
-│   │   ├── view/[id]/           # Zero-knowledge public viewer
-│   │   ├── contact/             # Feedback & contact form
-│   │   ├── login/               # Auth pages
-│   │   └── layout.tsx           # Root layout + PrismAnalytics
+│   │   ├── api/                       # REST API: auth, docs, links, admin
+│   │   │   ├── v/[slug]/questions/    # Public Q&A pin submit (rate-limited)
+│   │   │   ├── questions/             # Founder Q&A inbox (reply, filter)
+│   │   │   ├── version/               # Platform version endpoint (v1.3.0)
+│   │   │   └── health/                # Health check & diagnostics endpoint
+│   │   ├── dashboard/                 # Authenticated dashboard UI
+│   │   │   ├── links/                 # Link Studio & Zero-Knowledge key recovery
+│   │   │   ├── questions/             # Q&A Inbox (All/Pending/Resolved)
+│   │   │   └── settings/              # Profile, password & invite manager
+│   │   ├── v/[slug]/                  # Zero-knowledge public viewer
+│   │   ├── login/                     # Auth pages (auto vault unlock on login)
+│   │   └── layout.tsx                 # Root layout + PrismAnalytics
 │   ├── components/
-│   │   ├── analytics/           # PrismTracker
-│   │   ├── contact/             # Contact modal
-│   │   └── ui/                  # Shared UI primitives
+│   │   ├── pdf-viewer/
+│   │   │   └── pdf-renderer.tsx       # PDF render, watermark burn, Q&A, tab cache
+│   │   ├── brand-header.tsx           # Scrollable nav tabs, v1.3.0 badge
+│   │   └── ui/                        # Shared UI primitives
 │   ├── db/
-│   │   ├── index.ts             # pg pool singleton
-│   │   └── auto-migrate.ts      # First-run schema migrator (12 tables)
+│   │   ├── index.ts                   # pg pool (RFC URL hostname validation)
+│   │   └── auto-migrate.ts            # First-run schema migrator (12+ tables)
 │   ├── lib/
-│   │   ├── auth/                # Session, RBAC, password, brute-force
-│   │   ├── crypto/              # AES-GCM-256, PBKDF2 helpers
-│   │   ├── storage/             # B2 / R2 / local adapters
-│   │   └── i18n/                # EN + HI translations
-│   └── middleware.ts            # CSP headers · auth guard · rate limiting
+│   │   ├── auth/                      # Session, RBAC, password, brute-force
+│   │   ├── crypto-core/               # AES-GCM-256, PBKDF2 + GZIP compression
+│   │   ├── vault/                     # Zero-knowledge Owner Master Key Vault
+│   │   ├── storage/                   # B2 / R2 / local adapters
+│   │   ├── analytics/                 # DuckDB engine, lead scoring
+│   │   ├── siem/                      # CEF/JSON log forwarder (Splunk, Datadog)
+│   │   ├── security/                  # SSRF validator, rate limiter
+│   │   ├── notifications/             # Webhook notifier (RFC URL validated)
+│   │   └── i18n/                      # EN + HI type-safe translations
+│   └── middleware.ts                  # CSP headers · auth guard · rate limiting
+│
+├── tests/
+│   └── security/                      # 20 automated security & E2E tests
 │
 ├── scripts/
-│   ├── reset-db.sql             # One-click factory reset
-│   ├── selfcheck-e2ee.mjs       # Zero-knowledge self-audit
-│   └── make-demo-pdf.mjs        # Demo document generator
+│   ├── reset-db.sql                   # One-click factory reset
+│   ├── selfcheck-e2ee.mjs             # Zero-knowledge self-audit
+│   └── make-demo-pdf.mjs              # Demo document generator
 │
 ├── docs/
-│   └── RUNBOOK.md               # Full operations runbook
+│   ├── CHANGELOG.md                   # Keep-a-Changelog (v1.3.0 current)
+│   ├── SECURITY.md                    # 86/86 CodeQL clean · SSRF/XSS hardening
+│   ├── ARCHITECTURE.md                # Multi-adapter core, crypto pipeline
+│   ├── THREAT-MODEL.md                # Attacker model & mitigations
+│   └── RUNBOOK.md                     # Full operations runbook
 │
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml               # Typecheck · Lint · Build · Security scan
-│       └── release.yml          # Auto GitHub Release on tag push
+│       ├── ci.yml                     # Typecheck · Lint · Build · Security scan
+│       └── release.yml                # Auto GitHub Release on tag push
 │
-├── public/brand/                # Logo · PWA icons · favicons
-├── CHANGELOG.md                 # Keep-a-Changelog format
-├── SECURITY.md                  # Responsible disclosure policy
-└── .env.example                 # All variables with documentation
+├── public/brand/                      # Logo · PWA icons · favicons
+├── CHANGELOG.md                       # Keep-a-Changelog format
+├── SECURITY.md                        # Responsible disclosure policy
+└── .env.example                       # All variables with documentation
 ```
 
 ---
 
 ## 📋 Roadmap
 
-- **v1.2 — Live Collaboration**
+- **v1.2 — Live Collaboration** ✅ *Shipped*
   - Real-time deck sync via WebSocket rooms
-  - Request-access flow (viewer can ask for access)
-  - Geo/time gates (restrict to country or business hours)
-  - Kill-switch — revoke a link from analytics dashboard
   - Q&A ping (viewer can message owner without leaving the doc)
+  - Kill-switch — revoke a link from analytics dashboard
+  - Geo/time gates (restrict to country or business hours)
+  - Request-access flow (viewer can ask for access)
 
-- **v1.3 — Engagement Intelligence**
+- **v1.3 — Engagement Intelligence** ✅ *Shipped · Current Release*
   - Voice notes per page
-  - Lead scoring based on dwell time and engagement
-  - Cover-page builder
-  - Outgoing webhooks on view events
+  - AI lead conviction intent scoring (HOT/WARM/COLD)
+  - Permanent indelible PDF watermark burning on download (`pdf-lib`)
+  - Dedicated Q&A Inbox dashboard with real-time live reply sync
+  - Auto vault unlock on login (Bitwarden/Proton model)
+  - Tab-level decrypted session cache (10ms F5 reload)
+  - Interactive text layer + clickable hyperlinks in PDF viewer
+  - Scrollable nav bar with pinned left/right controls
+  - CodeQL 86/86 alerts resolved · 20 automated security tests
 
-- **v2.0 — Mobile**
+- **v2.0 — Mobile & Enterprise** *(Planned)*
   - Capacitor Android app
   - Share-sheet upload from any app
   - Biometric lock for the vault
   - `FLAG_SECURE` — prevent screenshot on Android
+  - Enterprise SSO (SAML 2.0 / OIDC)
+  - Multi-tenant organization workspaces
 
 ---
 
