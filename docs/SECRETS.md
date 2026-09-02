@@ -16,3 +16,20 @@
 
 Rules: `.env` is never committed · secrets never appear in logs, chat or the database ·
 presigned-URL signatures are masked in logs.
+
+---
+
+## 🔐 Zero-Knowledge Invariant & Key Separation
+
+### Why Document Decryption Keys are NEVER in `.env`:
+1. **Client-Side Zero-Knowledge (`Browser Memory`)**:
+   - The `OwnerMasterKey` is derived client-side from the user's password using `PBKDF2-SHA256` (100,000 rounds) and a unique salt.
+   - Individual document keys (`DocKey`) are generated using CSPRNG in the browser, encrypted with `OwnerMasterKey` (AES-GCM-256), and stored as ciphertext in the database.
+   - Decryption occurs exclusively in the recipient/owner browser.
+2. **Server Environment Secrets (`.env`)**:
+   - Server secrets (`SESSION_SECRET`, `DATABASE_URL`, `B2_APPLICATION_KEY`, etc.) protect backend operations, database connections, and session integrity.
+   - The server is a **100% Blind Courier** that stores ciphertext blobs and transmits them upon authorized requests, but mathematically cannot decrypt document bytes.
+3. **Defense-in-Depth Synergy**:
+   - Compromise of the server or `.env` does NOT compromise plaintext documents because the server lacks document decryption keys.
+   - Compromise of client local cache does NOT compromise document keys because they can be re-derived on the fly by entering the account password.
+
