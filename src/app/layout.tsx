@@ -140,6 +140,23 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        {/* OpenGraph & Social Media Meta Tags for WhatsApp, Telegram, Twitter, LinkedIn */}
+        <meta property="og:title" content={`${appName} - Zero-Knowledge Secure Document Sharing & Analytics`} />
+        <meta property="og:description" content="Privacy-first Zero-Knowledge document sharing with client-side AES-GCM-256 encryption, page-by-page reading dwell analytics, and dynamic watermarks on a 100% ₹0 free tier." />
+        <meta property="og:image" content={`${siteUrl}/brand/og-image.png`} />
+        <meta property="og:image:secure_url" content={`${siteUrl}/brand/og-image.png`} />
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:url" content={siteUrl} />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content={appName} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${appName} - Zero-Knowledge Secure Document Sharing & Analytics`} />
+        <meta name="twitter:description" content="Client-side E2EE document sharing with per-page dwell time tracking, dynamic watermarks, and ₹0 free-tier presets." />
+        <meta name="twitter:image" content={`${siteUrl}/brand/og-image.png`} />
+        <link rel="image_src" href={`${siteUrl}/brand/og-image.png`} />
+
         {/* JSON-LD Structured Data Schema for Google & AI Web Indexing */}
         <script
           type="application/ld+json"
