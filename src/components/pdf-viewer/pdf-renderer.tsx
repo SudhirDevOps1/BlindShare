@@ -121,8 +121,8 @@ export function PdfRenderer({
   useEffect(() => {
     let cancelled = false;
 
-    // Load Audio Walkthrough Notes
-    fetch(`/api/docs/${docData.id}/audio`)
+    // Load Audio Walkthrough Notes (via public link slug)
+    fetch(`/api/docs/${slug}/audio`)
       .then((r) => r.json())
       .then((d) => {
         if (!cancelled && d.notes) setAudioNotes(d.notes);
@@ -385,29 +385,31 @@ export function PdfRenderer({
         // Keep a cloned copy for downloading so PDF.js worker detachment never affects download
         decryptedDataRef.current = pdfBytes.slice(0);
 
-        // 3. Load PDF.js (Local Self-Hosted with CDN Fallback)
+        // 3. Load PDF.js (CDN with failover)
         setLoadingStep("Rendering document via Mozilla PDF.js...");
 
         if (!(window as any).pdfjsLib) {
           await new Promise<void>((resolve, reject) => {
             const script = document.createElement("script");
-            // Try local vendor first, fallback to CDN
-            script.src = "/vendor/pdfjs/pdf.min.js";
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+            script.crossOrigin = "anonymous";
             script.onload = () => {
-              (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = "/vendor/pdfjs/pdf.worker.min.js";
+              (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
+                "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
               resolve();
             };
             script.onerror = () => {
-              // CDN Fallback
-              const cdnScript = document.createElement("script");
-              cdnScript.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-              cdnScript.onload = () => {
+              // Backup CDN
+              const unpkgScript = document.createElement("script");
+              unpkgScript.src = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
+              unpkgScript.crossOrigin = "anonymous";
+              unpkgScript.onload = () => {
                 (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
-                  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+                  "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
                 resolve();
               };
-              cdnScript.onerror = () => reject(new Error("Failed to load PDF.js renderer engine"));
-              document.head.appendChild(cdnScript);
+              unpkgScript.onerror = () => reject(new Error("Failed to load PDF.js renderer engine"));
+              document.head.appendChild(unpkgScript);
             };
             document.head.appendChild(script);
           });
@@ -657,6 +659,7 @@ export function PdfRenderer({
               textLayerDiv.innerHTML = "";
               textLayerDiv.style.width = `${displayWidth}px`;
               textLayerDiv.style.height = `${displayHeight}px`;
+              textLayerDiv.style.setProperty("--scale-factor", `${targetScale}`);
 
               const cssViewport = page.getViewport({ scale: targetScale, rotation });
               const pdfjsLib = (window as any).pdfjsLib;
