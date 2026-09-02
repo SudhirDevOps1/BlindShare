@@ -135,8 +135,8 @@ export function BrandHeader() {
           </div>
         </Link>
 
-        {/* Desktop Nav */}
-        <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 flex-shrink">
+        {/* Scrollable Center Nav Tabs (Never squishes right-side user profile/logout) */}
+        <nav className="hidden md:flex flex-1 min-w-0 mx-2 lg:mx-3 items-center gap-1 lg:gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5 px-0.5">
           {navLinks.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -144,7 +144,7 @@ export function BrandHeader() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-1.5 rounded-xl px-2.5 xl:px-3.5 py-1.5 text-xs xl:text-sm font-medium transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 lg:px-3 py-1.5 text-xs lg:text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
                   isActive
                     ? "bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm shadow-amber-500/10"
                     : "text-slate-300 hover:bg-slate-900/80 hover:text-white hover:border-slate-800 border border-transparent"

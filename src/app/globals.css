@@ -160,3 +160,12 @@
   background: rgba(245, 158, 11, 0.4);
   color: #ffffff;
 }
+
+/* Horizontal Scrollable Nav without Ugly Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
