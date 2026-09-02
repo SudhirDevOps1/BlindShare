@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { Lock, Mail, User, Key, AlertCircle, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
 import { unlockOwnerVault, syncVaultDocumentKeys } from "@/lib/vault/master-vault";
+import { AltchaBox } from "@/components/security/altcha-box";
 
 export default function LoginPage({ defaultRegister = false }: { defaultRegister?: boolean }) {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
   const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [altchaPayload, setAltchaPayload] = useState<string | null>(null);
 
   // 2FA Challenge state
   const [require2fa, setRequire2fa] = useState(false);
@@ -137,7 +139,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
       const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
       const payload = isRegister
         ? { email, password, name, inviteCode: inviteCode.trim() || undefined }
-        : { email, password };
+        : { email, password, altcha: altchaPayload || undefined };
 
       const res = await fetch(endpoint, {
         method: "POST",
@@ -395,6 +397,8 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
                 account you create now becomes <strong>Super Admin</strong>.
               </div>
             )}
+
+            <AltchaBox onVerify={setAltchaPayload} className="my-2" />
 
             <button
               type="submit"

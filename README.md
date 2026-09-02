@@ -85,7 +85,7 @@
 | **AI lead conviction intent scoring** | ❌ | ❌ | ✅ |
 | **Free to host** | ❌ | ❌ | ✅ |
 | GDPR-lite data controls | ❌ | ❌ | ✅ |
-| **20 automated security tests (CI)** | ❌ | ❌ | ✅ |
+| **24 automated security tests (CI)** | ❌ | ❌ | ✅ |
 
 ---
 
@@ -182,6 +182,7 @@ BlindShare features a **Zero-Knowledge Master Key Vault** that guarantees you ne
 - **AES-GCM-256** client-side encryption with CSPRNG per-document keys
 - **`#k=` URL fragment** key delivery — cryptographically guaranteed to never reach the server
 - **SSRF Defense Engine** — private RFC 1918 subnets, loopback interfaces, and cloud metadata (`169.254.169.254`) filtering
+- **ALTCHA Proof-of-Work Bot Defense** — 100% self-hosted, cookie-less SHA-256 PoW challenge verification with HMAC signatures & replay prevention
 - **Distributed Edge Rate Limiting** — Upstash Redis REST support with seamless zero-crash in-memory sliding window fallback
 - **PBKDF2 (250,000 iterations)** link password wrapping
 - **`__Host-` prefixed** session cookies in production (CSRF-resistant)
@@ -190,7 +191,7 @@ BlindShare features a **Zero-Knowledge Master Key Vault** that guarantees you ne
 - **PII-redacting structured logger** — no email/IP in logs
 - **Gitleaks** secret scanning on every CI run
 - **CodeQL SAST** — 86/86 alerts resolved, 0 open vulnerabilities
-- **20 automated enterprise security tests** (`npm test`) — zero-knowledge crypto, SSRF, HMAC, XSS, SIEM, DuckDB, AI scoring
+- **24 automated enterprise security tests** (`npm test`) — zero-knowledge crypto, ALTCHA PoW, SSRF, HMAC, XSS, SIEM, DuckDB, AI scoring
 
 </details>
 
@@ -857,7 +858,7 @@ BlindShare/
   - Tab-level decrypted session cache (10ms F5 reload)
   - Interactive text layer + clickable hyperlinks in PDF viewer
   - Scrollable nav bar with pinned left/right controls
-  - CodeQL 86/86 alerts resolved · 20 automated security tests
+  - CodeQL 86/86 alerts resolved · 24 automated security tests
 
 - **v2.0 — Mobile & Enterprise** *(Planned)*
   - Capacitor Android app

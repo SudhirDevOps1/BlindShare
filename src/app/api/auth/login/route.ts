@@ -10,6 +10,7 @@ import { loginSchema } from "@/lib/validation/schemas";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
 import crypto from "crypto";
+import { verifyAltchaPayload } from "@/lib/security/altcha";
 
 function clientIp(request: Request): string {
   return (
@@ -25,9 +26,20 @@ export async function POST(request: Request) {
 
     const parsed = await parseBody(request, loginSchema);
     if ("errorResponse" in parsed) return parsed.errorResponse;
-    const { email, password } = parsed.data;
+    const { email, password, altcha } = parsed.data;
 
     const ip = clientIp(request);
+
+    // Verify ALTCHA if provided or if high failed attempt count
+    if (altcha) {
+      const isValidAltcha = verifyAltchaPayload(altcha);
+      if (!isValidAltcha) {
+        return NextResponse.json(
+          { error: "Security challenge verification failed. Please try again.", reason: "invalid_captcha" },
+          { status: 400 }
+        );
+      }
+    }
 
     const lockedFor = checkLockout(email, ip);
     if (lockedFor > 0) {

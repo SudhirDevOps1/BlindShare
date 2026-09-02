@@ -49,6 +49,8 @@ export async function GET(
   }
 }
 
+import { verifyAltchaPayload } from "@/lib/security/altcha";
+
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ slug: string }> }
@@ -66,7 +68,18 @@ export async function POST(
     }
 
     const body = await request.json().catch(() => ({}));
-    const { pageNumber, posXPercent, posYPercent, questionText, askerEmail, askerName, sessionId } = body;
+    const { pageNumber, posXPercent, posYPercent, questionText, askerEmail, askerName, sessionId, altcha } = body;
+
+    // Verify ALTCHA Proof-of-Work if submitted
+    if (altcha) {
+      const isValid = verifyAltchaPayload(altcha);
+      if (!isValid) {
+        return NextResponse.json(
+          { error: "Security verification failed. Please try again." },
+          { status: 400 }
+        );
+      }
+    }
 
     if (!pageNumber || !questionText || typeof questionText !== "string" || !questionText.trim()) {
       return NextResponse.json(

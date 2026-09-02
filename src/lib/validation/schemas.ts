@@ -70,6 +70,7 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1, "Password is required").max(256),
+  altcha: z.string().optional(),
 });
 
 // ── Documents ────────────────────────────────────────────────────────────────
@@ -188,6 +189,7 @@ export const verifyLinkSchema = z.object({
   email: z.string().trim().max(254).email().optional().or(z.literal("")),
   ndaAgreed: z.boolean().optional(),
   signatureProvided: z.boolean().optional(),
+  altcha: z.string().optional(),
 });
 
 export const submitSignatureSchema = z.object({

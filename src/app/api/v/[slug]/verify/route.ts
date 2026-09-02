@@ -21,14 +21,26 @@ function clientIp(request: Request): string {
   );
 }
 
+import { verifyAltchaPayload } from "@/lib/security/altcha";
+
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
 
   const parsed = await parseBody(request, verifyLinkSchema);
   if ("errorResponse" in parsed) return parsed.errorResponse;
-  const { password, email, ndaAgreed } = parsed.data;
+  const { password, email, ndaAgreed, altcha } = parsed.data;
 
   const ip = clientIp(request);
+
+  if (altcha) {
+    const isAltchaValid = verifyAltchaPayload(altcha);
+    if (!isAltchaValid) {
+      return NextResponse.json(
+        { error: "Bot security verification failed. Please refresh and try again." },
+        { status: 400 }
+      );
+    }
+  }
 
   try {
     // Password-gate brute-force lockout, scoped per link+IP (independent of the
