@@ -88,7 +88,6 @@ export default function DocsPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100">
-      <BrandHeader />
 
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 py-8 sm:px-6 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
@@ -337,8 +336,6 @@ export default function DocsPage() {
           if (!deleting) setDeleteDocTarget(null);
         }}
       />
-
-      <BrandFooter />
     </div>
   );
 }

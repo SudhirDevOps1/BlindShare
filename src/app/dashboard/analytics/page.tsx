@@ -64,14 +64,12 @@ export default function GlobalAnalyticsPage() {
   if (loading && !data) {
     return (
       <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100">
-        <BrandHeader />
         <main className="mx-auto flex w-full max-w-7xl flex-1 items-center justify-center p-8">
           <div className="flex flex-col items-center gap-3">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-amber-500 border-t-transparent" />
             <p className="text-xs text-slate-400">Loading Live Document Intelligence...</p>
           </div>
         </main>
-        <BrandFooter />
       </div>
     );
   }
@@ -91,7 +89,6 @@ export default function GlobalAnalyticsPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100">
-      <BrandHeader />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 space-y-6">
         {/* Top Header & Live Pulse Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
@@ -435,7 +432,6 @@ export default function GlobalAnalyticsPage() {
           )}
         </div>
       </main>
-      <BrandFooter />
     </div>
   );
 }

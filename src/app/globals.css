@@ -169,3 +169,16 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* ── Premium Dashboard Sidebar ─────────────────────────── */
+.sidebar-transition {
+  transition: width 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes sidebarFadeIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.sidebar-enter {
+  animation: sidebarFadeIn 0.22s ease forwards;
+}

@@ -135,7 +135,6 @@ export default function QuestionsPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-950 text-slate-100 selection:bg-amber-500/30 selection:text-amber-200">
-      <BrandHeader />
 
       <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         {/* Top Header */}
@@ -361,8 +360,6 @@ export default function QuestionsPage() {
           </div>
         )}
       </main>
-
-      <BrandFooter />
     </div>
   );
 }

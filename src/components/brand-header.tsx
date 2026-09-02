@@ -116,6 +116,9 @@ export function BrandHeader() {
         { href: "/privacy", label: t.nav.privacy, icon: Globe },
       ];
 
+  // Dashboard & admin routes use DashboardShell sidebar — no top header needed
+  if (isDashboardRoute) return null;
+
   return (
     <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl w-full shadow-lg shadow-black/20">
       <div className="mx-auto flex max-w-[1600px] items-center justify-between px-3 py-2.5 sm:px-6 gap-2">
