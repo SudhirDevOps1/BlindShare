@@ -225,12 +225,13 @@ export async function getUserSessionVersion(userId: string): Promise<number> {
  */
 export async function ensureGenesisAdmin() {
   try {
-    // Self-healing schema migration for 2FA columns
+    // Self-healing schema migration for 2FA & Master Vault columns
     await db.execute(sql`
       ALTER TABLE users 
       ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN NOT NULL DEFAULT FALSE,
       ADD COLUMN IF NOT EXISTS two_factor_secret TEXT,
-      ADD COLUMN IF NOT EXISTS two_factor_backup_codes TEXT;
+      ADD COLUMN IF NOT EXISTS two_factor_backup_codes TEXT,
+      ADD COLUMN IF NOT EXISTS master_key_salt_hex TEXT;
     `).catch(() => {});
 
     const realUsers = await db.select({ id: users.id }).from(users).where(ne(users.email, GENESIS_PLACEHOLDER_EMAIL)).limit(1);

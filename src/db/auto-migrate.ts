@@ -224,6 +224,7 @@ export async function ensureDatabaseSchema(pool: Pool) {
         ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled boolean NOT NULL DEFAULT false;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret text;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_backup_codes text;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS master_key_salt_hex text;
 
         ALTER TABLE links ADD COLUMN IF NOT EXISTS anti_spy_shield_enabled boolean NOT NULL DEFAULT true;
         ALTER TABLE links ADD COLUMN IF NOT EXISTS burn_after_reading boolean NOT NULL DEFAULT false;

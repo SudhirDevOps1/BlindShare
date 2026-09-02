@@ -8,6 +8,7 @@ import { parseBody } from "@/lib/validation";
 import { registerSchema } from "@/lib/validation/schemas";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import crypto from "crypto";
 
 export async function POST(request: Request) {
   try {
@@ -95,9 +96,7 @@ export async function POST(request: Request) {
 
     const userId = genId("usr");
     const passwordHash = await hashPassword(password);
-    const saltBytes = new Uint8Array(16);
-    crypto.getRandomValues(saltBytes);
-    const masterKeySaltHex = Array.from(saltBytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    const masterKeySaltHex = crypto.randomBytes(16).toString("hex");
 
     await db.insert(users).values({
       id: userId,

@@ -9,6 +9,7 @@ import { parseBody } from "@/lib/validation";
 import { loginSchema } from "@/lib/validation/schemas";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import crypto from "crypto";
 
 function clientIp(request: Request): string {
   return (
@@ -98,9 +99,7 @@ export async function POST(request: Request) {
 
     let masterKeySaltHex = user.masterKeySaltHex;
     if (!masterKeySaltHex) {
-      const saltBytes = new Uint8Array(16);
-      crypto.getRandomValues(saltBytes);
-      masterKeySaltHex = Array.from(saltBytes, (b) => b.toString(16).padStart(2, "0")).join("");
+      masterKeySaltHex = crypto.randomBytes(16).toString("hex");
       await db
         .update(users)
         .set({ lastLoginAt: new Date(), failedLoginCount: 0, masterKeySaltHex })
