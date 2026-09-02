@@ -48,6 +48,16 @@ export async function POST(request: Request) {
       .limit(1);
 
     if (!user) {
+      const [anyUser] = await db.select({ id: users.id }).from(users).limit(1);
+      if (!anyUser) {
+        return NextResponse.json(
+          {
+            error: "Database is fresh and has no accounts yet. Please click 'Create Account' to register your Super Admin account (no invite required).",
+            reason: "no_users",
+          },
+          { status: 404 }
+        );
+      }
       recordFailure(cleanEmail, ip);
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }

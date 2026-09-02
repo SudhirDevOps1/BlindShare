@@ -39,9 +39,23 @@ export default function LoginPage() {
   } | null>(null);
 
   useEffect(() => {
+    // Check URL parameters for signup/register
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("register") === "true" || params.get("signup") === "true") {
+        setIsRegister(true);
+      }
+    }
+
     fetch("/api/auth/bootstrap")
       .then((r) => r.json())
-      .then((d) => setBootstrap(d))
+      .then((d) => {
+        setBootstrap(d);
+        // If database is completely fresh, default directly to Create Account mode
+        if (d.mode === "setup") {
+          setIsRegister(true);
+        }
+      })
       .catch(() => {});
   }, []);
 
@@ -359,10 +373,12 @@ export default function LoginPage() {
                 setIsRegister(!isRegister);
                 setError(null);
               }}
-              className="text-xs text-amber-400 hover:underline"
+              className="text-xs text-amber-400 hover:underline transition font-medium"
             >
               {isRegister
-                ? "Already have an account? Sign In"
+                ? "Already registered? Sign In instead"
+                : bootstrap?.mode === "setup" || !inviteRequired
+                ? "🌱 Fresh Database: Create First Super Admin Account"
                 : "Have an invite code? Create Account"}
             </button>
           </div>
