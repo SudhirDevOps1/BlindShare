@@ -39,12 +39,17 @@ users 1─* invites · users 1─* push_subscriptions · audit_log · system_set
 **Invariant:** no server file contains `crypto.subtle.decrypt` on document bytes.
 
 ## Client-Side Master Key vs. Server `.env` Secrets
-| Dimension | Browser Master Key (Zero-Knowledge) | Server `.env` Secret (e.g. `SESSION_SECRET`) |
+| Dimension | Browser Master Key (Zero-Knowledge) | Server `.env` Secret (e.g. `SESSION_SECRET` on Vercel/Cloudflare) |
 |---|---|---|
-| **Where it lives** | Client browser memory only (never sent to server) | Server environment variables (`.env`) |
+| **Where it lives** | Client browser memory only (never sent to server) | Server environment variables (`.env`, Vercel Env, Cloudflare Secrets) |
 | **Purpose** | Encrypts & decrypts document keys & user files | Signs session cookies (HMAC-SHA256) & authenticates DB/Storage |
 | **Server visibility** | **ZERO Knowledge** (server cannot inspect or decrypt) | Server can use it for system HMAC & token verification |
-| **What happens if in `.env`?** | If a document key is placed on the server, the server is no longer Zero-Knowledge. In BlindShare, master document encryption is strictly client-side. | Required for backend session integrity and edge security. |
+| **What happens if in `.env`?** | Document decryption keys are strictly client-side to maintain zero-knowledge guarantees. | Required for backend session integrity and edge security. |
+
+### Multi-Cloud Secrets & Encryption Coordination (Vercel & Cloudflare):
+- **Vercel Deployments**: `SESSION_SECRET` and database URLs are configured in *Project Settings → Environment Variables*. Vercel serverless functions handle API routing and metadata without accessing plaintext document keys.
+- **Cloudflare Pages / Workers**: Environment secrets are provisioned in *Settings → Variables and Secrets*. Edge nodes perform rate-limiting and session verification while document decryption remains 100% in client WebCrypto.
+- **Master Password / Login Pass Protection**: The user's account password acts as the client-side master key seed, deriving a 256-bit AES-GCM wrapping key via 100,000 PBKDF2 iterations. Even if the hosting infrastructure or database is breached, document contents remain mathematically inaccessible without the user's password.
 
 ## Event pipeline & AI Intent Scoring
 - **Telemetry Batching**: Viewer buffers per-page dwell in memory → flush every `VIEW_HEARTBEAT_SEC` (10s) as a batched array → `POST /api/v/<slug>/session` writes one aggregate row update + N page_event rows.
