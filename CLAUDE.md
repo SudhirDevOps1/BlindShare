@@ -18,6 +18,6 @@
 ## 📋 3. Strict Development Protocols
 - **Bina Kuchh Hataye (Zero Deletion):** Never delete existing features, endpoints, or translations. Always harden, extend, and preserve.
 - **Bilingual Parity:** All UI strings must exist in English and Hindi in `src/lib/i18n/dictionary.ts`.
-- **Strict Versioning:** Platform version is `1.2.0` across `package.json`, health, version, and headers.
+- **Strict Versioning:** Platform version is `1.3.0` across `package.json`, health, version, and headers.
 - **Commitlint Standard:** Conventional commit headers must be <= 100 characters.
 

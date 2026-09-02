@@ -14,5 +14,5 @@
 ## 🛡️ 2. Verification Protocol
 - Run `npm run typecheck && npm test && npm run lint` before completing any task.
 - Ensure all 20 security tests pass with 0 failures.
-- Version string must strictly be `1.2.0`.
+- Version string must strictly be `1.3.0`.
 

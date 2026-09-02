@@ -37,7 +37,7 @@ export async function GET(request: Request) {
       timestamp: new Date().toISOString(),
       uptimeSeconds: Math.floor(process.uptime ? process.uptime() : 0),
       responseTimeMs: Date.now() - startTime,
-      version: "1.2.0",
+      version: "1.3.0",
       backend: process.env.BACKEND_TARGET || "vercel",
       db: {
         target: process.env.DB_TARGET || "neon",

@@ -12,8 +12,8 @@
 </p>
 
 <p>
-  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v1.2.0">
-    <img src="https://img.shields.io/badge/version-v1.2.0-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v1.2.0" />
+  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v1.3.0">
+    <img src="https://img.shields.io/badge/version-v1.3.0-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v1.3.0" />
   </a>
   <a href="./LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-3b82f6?style=for-the-badge" alt="MIT License" />

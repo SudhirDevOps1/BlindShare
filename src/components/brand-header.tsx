@@ -128,7 +128,7 @@ export function BrandHeader() {
             <div className="flex items-center gap-1.5">
               <span className="font-bold tracking-tight text-white text-base sm:text-lg">{appName}</span>
               <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-bold text-amber-300 border border-amber-500/30">
-                v1.2.0 E2EE
+                v1.3.0 E2EE
               </span>
             </div>
             <p className="text-[9px] text-slate-400 hidden 2xl:block">Zero-Knowledge Doc Sharing</p>
