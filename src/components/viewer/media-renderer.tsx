@@ -645,10 +645,15 @@ export function MediaRenderer({
     const a = document.createElement("a");
     a.href = url;
     a.download = docData.originalFilename;
+    a.rel = "noopener noreferrer";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+
+    // Defer revoke by 60s so browser download managers have plenty of time
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 60000);
   };
 
   const handleCopyCode = () => {

@@ -303,7 +303,8 @@ export function PdfRenderer({
         }
 
         if (isCancelled) return;
-        decryptedDataRef.current = pdfBytes;
+        // Keep a cloned copy for downloading so PDF.js worker detachment never affects download
+        decryptedDataRef.current = pdfBytes.slice(0);
 
         // 3. Load PDF.js (Local Self-Hosted with CDN Fallback)
         setLoadingStep("Rendering document via Mozilla PDF.js...");
@@ -582,15 +583,23 @@ export function PdfRenderer({
   // Handle Download (Only if allowDownload is enabled)
   const handleDownload = () => {
     if (!linkData.allowDownload || !decryptedDataRef.current) return;
+    const safeTitle = (docData.title || "document").replace(/[^a-zA-Z0-9_\-\.]/g, "_");
+    const filename = safeTitle.toLowerCase().endsWith(".pdf") ? safeTitle : `${safeTitle}.pdf`;
+
     const blob = new Blob([decryptedDataRef.current], { type: "application/pdf" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${docData.title.replace(/[^a-zA-Z0-9_\-\.]/g, "_")}.pdf`;
+    a.download = filename;
+    a.rel = "noopener noreferrer";
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+
+    // Defer revoke by 60s so browser download managers & PDF renderers have plenty of time
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 60000);
   };
 
   if (loading) {
