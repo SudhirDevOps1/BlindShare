@@ -32,6 +32,10 @@ import {
   CheckCircle2,
   X,
   HelpCircle,
+  Copy,
+  Check,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import { PresenterModeView } from "@/components/viewer/presenter-mode-view";
 import { VoiceNotePlayer } from "@/components/viewer/voice-note-player";
@@ -227,8 +231,16 @@ export function PdfRenderer({
   const totalDwellRef = useRef(0);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const textLayerRef = useRef<HTMLDivElement | null>(null);
+  const annotationLayerRef = useRef<HTMLDivElement | null>(null);
   const watermarkCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const renderTaskRef = useRef<any>(null);
+
+  // Text Extraction & Link Annotation State
+  const [currentSlideText, setCurrentSlideText] = useState("");
+  const [showTextModal, setShowTextModal] = useState(false);
+  const [copiedText, setCopiedText] = useState(false);
+  const [pdfLinksCount, setPdfLinksCount] = useState(0);
 
   // Decrypted PDF array buffer in browser memory
   const decryptedDataRef = useRef<ArrayBuffer | null>(null);
@@ -562,6 +574,97 @@ export function PdfRenderer({
 
         if (!isCancelled) {
           drawWatermark(displayWidth, displayHeight);
+
+          // 4. Render Text Layer for text selection, highlighting, copy & search
+          try {
+            const textContent = await page.getTextContent();
+            const slideRawText = textContent.items
+              .map((item: any) => item.str || "")
+              .join(" ")
+              .replace(/\s+/g, " ")
+              .trim();
+            setCurrentSlideText(slideRawText);
+
+            const textLayerDiv = textLayerRef.current;
+            if (textLayerDiv) {
+              textLayerDiv.innerHTML = "";
+              textLayerDiv.style.width = `${displayWidth}px`;
+              textLayerDiv.style.height = `${displayHeight}px`;
+
+              const cssViewport = page.getViewport({ scale: targetScale, rotation });
+              const pdfjsLib = (window as any).pdfjsLib;
+
+              if (pdfjsLib?.renderTextLayer) {
+                await pdfjsLib.renderTextLayer({
+                  textContentSource: textContent,
+                  container: textLayerDiv,
+                  viewport: cssViewport,
+                  textDivs: [],
+                }).promise?.catch(() => {});
+              } else {
+                // High-fidelity fallback DOM text spans
+                textContent.items.forEach((item: any) => {
+                  if (item.str && item.transform) {
+                    const tx = pdfjsLib?.Util?.transform
+                      ? pdfjsLib.Util.transform(cssViewport.transform, item.transform)
+                      : item.transform;
+                    const span = document.createElement("span");
+                    span.textContent = item.str;
+                    const fontHeight = Math.hypot(tx[2] || 0, tx[3] || 12);
+                    span.style.fontSize = `${Math.max(fontHeight, 10)}px`;
+                    span.style.fontFamily = item.fontName || "sans-serif";
+                    span.style.left = `${tx[4] || 0}px`;
+                    span.style.top = `${Math.max((tx[5] || fontHeight) - fontHeight, 0)}px`;
+                    textLayerDiv.appendChild(span);
+                  }
+                });
+              }
+            }
+          } catch (textErr) {
+            console.warn("PDF text layer extraction warning:", textErr);
+          }
+
+          // 5. Render Interactive Clickable Hyperlink Annotations Layer
+          try {
+            const annotations = await page.getAnnotations();
+            const annotationLayerDiv = annotationLayerRef.current;
+            if (annotationLayerDiv) {
+              annotationLayerDiv.innerHTML = "";
+              annotationLayerDiv.style.width = `${displayWidth}px`;
+              annotationLayerDiv.style.height = `${displayHeight}px`;
+
+              const cssViewport = page.getViewport({ scale: targetScale, rotation });
+              let linkCount = 0;
+
+              annotations.forEach((annot: any) => {
+                if (annot.subtype === "Link" && annot.url && annot.rect) {
+                  linkCount++;
+                  const rect = cssViewport.convertToViewportRectangle(annot.rect);
+                  const minX = Math.min(rect[0], rect[2]);
+                  const minY = Math.min(rect[1], rect[3]);
+                  const width = Math.abs(rect[2] - rect[0]);
+                  const height = Math.abs(rect[3] - rect[1]);
+
+                  const linkEl = document.createElement("a");
+                  linkEl.href = annot.url;
+                  linkEl.target = "_blank";
+                  linkEl.rel = "noopener noreferrer";
+                  linkEl.title = `🔗 Open: ${annot.url}`;
+                  linkEl.className =
+                    "absolute z-10 block rounded border border-amber-400/30 bg-amber-400/5 hover:border-amber-400 hover:bg-amber-400/25 transition-all cursor-pointer shadow-sm";
+                  linkEl.style.left = `${minX}px`;
+                  linkEl.style.top = `${minY}px`;
+                  linkEl.style.width = `${width}px`;
+                  linkEl.style.height = `${height}px`;
+
+                  annotationLayerDiv.appendChild(linkEl);
+                }
+              });
+              setPdfLinksCount(linkCount);
+            }
+          } catch (annotErr) {
+            console.warn("PDF annotations warning:", annotErr);
+          }
         }
       } catch (err: any) {
         if (err?.name !== "RenderingCancelledException") {
@@ -731,6 +834,31 @@ export function PdfRenderer({
             <span className="hidden md:inline">Presenter Mode</span>
           </button>
 
+          {/* Extract / Copy Slide Text Button */}
+          {currentSlideText && (
+            <button
+              onClick={() => {
+                navigator.clipboard.writeText(currentSlideText);
+                setCopiedText(true);
+                setTimeout(() => setCopiedText(false), 2500);
+              }}
+              className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:text-white hover:border-amber-400/50 transition shadow-sm"
+              title="Copy extracted text from this slide to clipboard"
+            >
+              {copiedText ? (
+                <>
+                  <Check className="h-3.5 w-3.5 text-emerald-400" />
+                  <span className="text-emerald-400 font-bold">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-3.5 w-3.5 text-amber-400" />
+                  <span className="hidden sm:inline">Copy Text</span>
+                </>
+              )}
+            </button>
+          )}
+
           {/* Allow Download Button */}
           {linkData.allowDownload && (
             <button
@@ -892,11 +1020,17 @@ export function PdfRenderer({
             {/* Main PDF Page Render Canvas */}
             <canvas ref={canvasRef} className="block max-w-full h-auto" />
 
+            {/* Interactive Selectable & Searchable Text Layer */}
+            <div ref={textLayerRef} className="pdf-text-layer" />
+
+            {/* Interactive Clickable Hyperlinks Layer */}
+            <div ref={annotationLayerRef} className="absolute inset-0 pointer-events-auto z-10" />
+
             {/* Dynamic Live Watermark Overlay Canvas */}
             {linkData.watermarkEnabled && (
               <canvas
                 ref={watermarkCanvasRef}
-                className="pointer-events-none absolute inset-0 block h-full w-full"
+                className="pointer-events-none absolute inset-0 block h-full w-full z-15"
               />
             )}
 

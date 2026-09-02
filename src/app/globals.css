@@ -133,3 +133,30 @@
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(245, 158, 11, 0.6);
 }
+
+/* PDF Text Layer Selection & Extraction */
+.pdf-text-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  line-height: 1;
+  text-size-adjust: none;
+  forced-color-adjust: none;
+  transform-origin: 0 0;
+  z-index: 5;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+.pdf-text-layer span {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.pdf-text-layer ::selection {
+  background: rgba(245, 158, 11, 0.4);
+  color: #ffffff;
+}
