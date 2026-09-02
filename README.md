@@ -624,107 +624,217 @@ Then reopen your deployed URL and register a fresh Super Admin account.
 ## 🏗️ Tech Stack
 
 ```
-┌──────────────────────────────────────────────┐
-│                  FRONTEND                     │
-│  Next.js 16 App Router · Tailwind CSS v4     │
-│  WebCrypto API · pdf.js · TypeScript          │
-├──────────────────────────────────────────────┤
-│                  BACKEND                      │
-│  Next.js API Routes (Serverless)              │
-│  Zod Validation · HMAC Session Auth          │
-│  Drizzle ORM · Rate Limiting                 │
-├──────────────────────────────────────────────┤
-│                 DATA LAYER                    │
-│  Neon PostgreSQL (pg pool)                   │
-│  Backblaze B2 / Cloudflare R2 (S3)           │
-├──────────────────────────────────────────────┤
-│                INFRASTRUCTURE                 │
-│  Vercel Edge · Cloudflare Workers            │
-│  GitHub Actions CI · Gitleaks Security Scan  │
-└──────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                         FRONTEND                              │
+│  Next.js 16.2.6 App Router · React 19 · Tailwind CSS v4     │
+│  WebCrypto API (AES-GCM-256 + PBKDF2) · CompressionStream   │
+│  pdfjs-dist 6.x (self-hosted) · pdf-lib 1.17 (watermarking)  │
+│  lucide-react icons · TypeScript 5.9 strict                  │
+├──────────────────────────────────────────────────────────────┤
+│                         BACKEND                               │
+│  Next.js 16 API Routes (Serverless / Cloudflare Workers)     │
+│  Zod v4 schema validation · bcryptjs 3 · HMAC-SHA256 auth   │
+│  Drizzle ORM 0.45 · web-push VAPID · jszip · qrcode          │
+├──────────────────────────────────────────────────────────────┤
+│                        DATA LAYER                             │
+│  Neon PostgreSQL (pg 8.20, pooled) — Preset A                │
+│  SQLite + Litestream WAL replication — Preset B              │
+│  Turso libSQL Edge — Preset C                                 │
+│  AWS S3 SDK v3 · Backblaze B2 / Cloudflare R2 (presigned)   │
+├──────────────────────────────────────────────────────────────┤
+│                      INFRASTRUCTURE                            │
+│  Vercel Edge · Cloudflare Pages (next-on-pages)              │
+│  GitHub Actions CI/CD · Gitleaks · CodeQL · Aqua Trivy       │
+│  Husky + CommitLint (Conventional Commits)                    │
+│  Upstash Redis (distributed rate limiting) · DuckDB in-proc  │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-| Layer | Technology |
-|---|---|
-| **Framework** | Next.js 16 App Router · TypeScript (strict) |
-| **Styling** | Tailwind CSS v4 |
-| **Encryption** | WebCrypto API (AES-GCM-256) · PBKDF2 (250k iterations) |
-| **PDF Engine** | PDF.js (self-hosted) + CDN fallback · **pdf-lib** (watermark stamping) |
-| **ORM** | Drizzle ORM (Postgres + SQLite dual-mode) |
-| **Database A** | Neon PostgreSQL (Serverless) |
-| **Database B** | SQLite + Litestream (Self-hosted) |
-| **Storage** | Backblaze B2 / Cloudflare R2 (S3-compatible) |
-| **Analytics** | DuckDB In-Memory Columnar Engine |
-| **Auth** | HMAC Session Cookies · 2FA TOTP RFC 6238 |
-| **CI/CD** | GitHub Actions · Gitleaks · CodeQL · Trivy |
-| **Rate Limiting** | Upstash Redis REST + in-memory fallback |
-| **i18n** | Type-safe dictionary (EN + हिन्दी) |
+| Layer | Technology | Package / Version |
+|---|---|---|
+| **Framework** | Next.js App Router | `next@16.2.6` |
+| **UI Runtime** | React | `react@19.2.6` · `react-dom@19.2.6` |
+| **Styling** | Tailwind CSS | `tailwindcss@4.1.17` |
+| **Language** | TypeScript Strict | `typescript@5.9.3` |
+| **Icons** | Lucide React | `lucide-react@1.37.0` |
+| **Encryption** | WebCrypto API (browser-native) | AES-GCM-256 · PBKDF2 (100k–250k rounds) |
+| **PDF Renderer** | PDF.js (self-hosted + CDN fallback) | `pdfjs-dist@6.3.289` |
+| **PDF Watermarking** | pdf-lib (client-side burn) | `pdf-lib@1.17.1` |
+| **ORM** | Drizzle ORM (Postgres + SQLite dual-mode) | `drizzle-orm@0.45.2` |
+| **Database A** | Neon PostgreSQL (serverless pool) | `pg@8.20.0` |
+| **Database B** | SQLite + Litestream WAL to B2 | *(self-hosted Docker preset)* |
+| **Database C** | Turso libSQL Edge | *(Cloudflare preset)* |
+| **Object Storage** | Backblaze B2 / Cloudflare R2 (S3-compat) | `@aws-sdk/client-s3@3.1121` · `@aws-sdk/s3-request-presigner@3.1121` |
+| **ZIP Bundles** | JSZip | `jszip@3.10.1` |
+| **QR Codes** | qrcode | `qrcode@1.5.4` |
+| **Push Notifications** | Web Push VAPID | `web-push@3.6.7` |
+| **Password Hashing** | bcryptjs | `bcryptjs@3.0.3` |
+| **Validation** | Zod | `zod@4.5.2` |
+| **Analytics Engine** | DuckDB In-Process Columnar | *(wasm, in-memory)* |
+| **Auth** | HMAC-SHA256 session cookies · 2FA TOTP RFC 6238 | *(WebCrypto + custom TOTP)* |
+| **Rate Limiting** | Upstash Redis REST + in-memory sliding window fallback | `src/lib/security/distributed-rate-limiter.ts` |
+| **CI/CD** | GitHub Actions · Gitleaks · CodeQL · Aqua Trivy | `.github/workflows/` |
+| **Git Hooks** | Husky + CommitLint | `husky@9.1.7` · `@commitlint/cli@21.2.2` |
+| **i18n** | Type-safe dictionary | EN + हिन्दी (`src/lib/i18n/dictionary.ts`) |
+| **Cloudflare Build** | next-on-pages | `@cloudflare/next-on-pages@1.13.16` |
+
 
 ---
 
 ## 📁 Project Structure
 
-
 ```
 BlindShare/
 ├── src/
 │   ├── app/
-│   │   ├── api/                       # REST API: auth, docs, links, admin
-│   │   │   ├── v/[slug]/questions/    # Public Q&A pin submit (rate-limited)
-│   │   │   ├── questions/             # Founder Q&A inbox (reply, filter)
-│   │   │   ├── version/               # Platform version endpoint (v1.3.0)
-│   │   │   └── health/                # Health check & diagnostics endpoint
-│   │   ├── dashboard/                 # Authenticated dashboard UI
-│   │   │   ├── links/                 # Link Studio & Zero-Knowledge key recovery
-│   │   │   ├── questions/             # Q&A Inbox (All/Pending/Resolved)
-│   │   │   └── settings/              # Profile, password & invite manager
-│   │   ├── v/[slug]/                  # Zero-knowledge public viewer
-│   │   ├── login/                     # Auth pages (auto vault unlock on login)
-│   │   └── layout.tsx                 # Root layout + PrismAnalytics
+│   │   ├── .well-known/security.txt       # Security contact disclosure
+│   │   ├── admin/                         # Admin panel (users, audit, settings)
+│   │   ├── api/
+│   │   │   ├── admin/                     # audit · diagnostics · invites · metrics · settings · sweeps · users
+│   │   │   ├── analytics/overview/        # Analytics aggregations
+│   │   │   ├── auth/                      # login · logout · logout-all · me · register · 2fa · bootstrap
+│   │   │   ├── datarooms/[id]/            # Dataroom CRUD
+│   │   │   ├── docs/[id]/                 # doc CRUD · audio · download · questions · versions
+│   │   │   ├── health/                    # Health check + diagnostics (v1.3.0)
+│   │   │   ├── links/[id]/analytics/      # Link analytics
+│   │   │   ├── push/subscribe/            # VAPID push subscription
+│   │   │   ├── questions/                 # Founder Q&A inbox (reply, filter)
+│   │   │   ├── storage/                   # local-upload · local-download
+│   │   │   ├── user/                      # profile · 2fa · delete · export
+│   │   │   ├── v/[slug]/                  # bytes · questions · room · session · sign · verify
+│   │   │   └── version/                   # Platform version endpoint (1.3.0)
+│   │   ├── contact/                       # Contact form page
+│   │   ├── dashboard/
+│   │   │   ├── analytics/[id]/            # Per-link analytics view
+│   │   │   ├── datarooms/                 # Virtual deal rooms
+│   │   │   ├── docs/                      # Document management
+│   │   │   ├── links/                     # Link Studio + Zero-Knowledge key recovery
+│   │   │   ├── questions/                 # Q&A Inbox (All / Pending / Resolved)
+│   │   │   └── settings/                  # Profile, password, 2FA, invite manager
+│   │   ├── login/                         # Auth (auto master vault unlock on login)
+│   │   ├── privacy/                       # Privacy Policy page
+│   │   ├── security/                      # Public security page
+│   │   ├── signup/                        # Registration page
+│   │   ├── terms/                         # Terms of Service page
+│   │   └── v/[slug]/                      # Zero-knowledge public document viewer
+│   │
 │   ├── components/
+│   │   ├── admin/                         # Admin panel UI components
+│   │   ├── analytics/
+│   │   │   ├── link-analytics-view.tsx    # Per-session analytics UI
+│   │   │   └── prism-tracker.tsx          # Zero-cookie PrismAnalytics beacon
+│   │   ├── auth/                          # Auth forms, 2FA setup, backup codes
+│   │   ├── contact/                       # Contact modal
+│   │   ├── gates/
+│   │   │   └── viewer-gates.tsx           # Email, password, NDA, signature gates
+│   │   ├── landing/                       # Landing page sections
+│   │   ├── link-studio/
+│   │   │   └── create-link-modal.tsx      # Full link creation wizard
 │   │   ├── pdf-viewer/
-│   │   │   └── pdf-renderer.tsx       # PDF render, watermark burn, Q&A, tab cache
-│   │   ├── brand-header.tsx           # Scrollable nav tabs, v1.3.0 badge
-│   │   └── ui/                        # Shared UI primitives
+│   │   │   └── pdf-renderer.tsx           # PDF.js render + pdf-lib watermark burn + Q&A + tab cache
+│   │   ├── upload/
+│   │   │   └── doc-uploader.tsx           # Encrypted document upload
+│   │   ├── viewer/
+│   │   │   ├── media-renderer.tsx         # Image/Video/Audio/Markdown/SVG viewer
+│   │   │   ├── presenter-mode-view.tsx    # Fullscreen pitch + laser pointer
+│   │   │   ├── signature-pad-modal.tsx    # In-app NDA digital signature
+│   │   │   └── voice-note-player.tsx      # Founder audio pitch player
+│   │   ├── brand-footer.tsx               # Footer
+│   │   └── brand-header.tsx               # Scrollable nav tabs + v1.3.0 badge
+│   │
 │   ├── db/
-│   │   ├── index.ts                   # pg pool (RFC URL hostname validation)
-│   │   └── auto-migrate.ts            # First-run schema migrator (12+ tables)
-│   ├── lib/
-│   │   ├── auth/                      # Session, RBAC, password, brute-force
-│   │   ├── crypto-core/               # AES-GCM-256, PBKDF2 + GZIP compression
-│   │   ├── vault/                     # Zero-knowledge Owner Master Key Vault
-│   │   ├── storage/                   # B2 / R2 / local adapters
-│   │   ├── analytics/                 # DuckDB engine, lead scoring
-│   │   ├── siem/                      # CEF/JSON log forwarder (Splunk, Datadog)
-│   │   ├── security/                  # SSRF validator, rate limiter
-│   │   ├── notifications/             # Webhook notifier (RFC URL validated)
-│   │   └── i18n/                      # EN + HI type-safe translations
-│   └── middleware.ts                  # CSP headers · auth guard · rate limiting
+│   │   ├── index.ts                       # pg pool (RFC URL hostname validation)
+│   │   ├── schema.ts                      # Drizzle Postgres schema (12+ tables)
+│   │   ├── sqlite-schema.ts               # Drizzle SQLite schema (self-hosted)
+│   │   └── auto-migrate.ts                # First-run schema auto-migrator
+│   │
+│   └── lib/
+│       ├── analytics/
+│       │   ├── duckdb-engine.ts           # In-process DuckDB columnar analytics
+│       │   ├── index.ts                   # Analytics helpers
+│       │   └── intent-scorer.ts           # AI lead conviction scoring (0–100)
+│       ├── auth/
+│       │   ├── lockout.ts                 # Brute-force lockout engine
+│       │   ├── password.ts                # bcryptjs helpers + strength validation
+│       │   ├── rbac.ts                    # Role-Based Access Control
+│       │   ├── session.ts                 # HMAC-SHA256 signed session cookies
+│       │   └── totp.ts                    # 2FA TOTP RFC 6238 + backup codes
+│       ├── crypto-core/
+│       │   ├── index.ts                   # AES-GCM-256 + GZIP CompressionStream
+│       │   └── adapters/                  # Crypto environment adapters
+│       ├── formats/                       # Supported file format detection
+│       ├── i18n/
+│       │   ├── context.tsx                # Language context provider
+│       │   └── dictionary.ts              # EN + हिन्दी type-safe translations
+│       ├── notifications/
+│       │   └── webhook-notifier.ts        # Outbound webhook (RFC URL validated)
+│       ├── push/
+│       │   └── index.ts                   # VAPID Web Push notifications
+│       ├── security/
+│       │   ├── anti-leak-detector.ts      # Link/key leakage detection
+│       │   ├── distributed-rate-limiter.ts # Upstash Redis + in-memory fallback
+│       │   └── ssrf-validator.ts          # Private subnet + metadata IP blocklist
+│       ├── siem/
+│       │   └── siem-forwarder.ts          # CEF/JSON logs → Splunk / Datadog / Elastic
+│       ├── storage/
+│       │   ├── b2-adapter.ts              # Backblaze B2 (AWS S3 SDK v3)
+│       │   ├── r2-adapter.ts              # Cloudflare R2 (AWS S3 SDK v3)
+│       │   ├── local-adapter.ts           # Local filesystem adapter
+│       │   ├── index.ts                   # StorageAdapter factory
+│       │   └── types.ts                   # Shared storage interface
+│       ├── validation/
+│       │   ├── email-validator.ts         # Live DNS MX + disposable domain filter
+│       │   ├── schemas.ts                 # Zod v4 API request schemas
+│       │   └── index.ts
+│       ├── vault/
+│       │   └── master-vault.ts            # Zero-knowledge PBKDF2 Owner Master Key Vault
+│       ├── env.ts                         # Fail-fast environment validation
+│       ├── ids.ts                         # CSPRNG 128-bit ID generator
+│       └── logger.ts                      # PII-redacting structured logger
 │
 ├── tests/
-│   └── security/                      # 20 automated security & E2E tests
+│   └── security/
+│       ├── auth-session-lockout.test.mjs  # HMAC timing-safe · session revocation · 2FA codes
+│       ├── crypto-zk-proof.test.mjs       # AES-GCM-256 · ZK key integrity · GZIP · Master Vault · RFC 3986
+│       ├── duckdb-engine.test.mjs         # DuckDB dwell percentiles · heatmap aggregations
+│       ├── intent-and-sanitization.test.mjs # AI scoring · XSS sanitization
+│       ├── siem-forwarder.test.mjs        # CEF string format
+│       └── ssrf-dns-defense.test.mjs      # SSRF private IP blocks · email MX defense
 │
 ├── scripts/
-│   ├── reset-db.sql                   # One-click factory reset
-│   ├── selfcheck-e2ee.mjs             # Zero-knowledge self-audit
-│   └── make-demo-pdf.mjs              # Demo document generator
+│   ├── reset-db.sql                       # One-click factory reset
+│   ├── selfcheck-e2ee.mjs                 # Zero-knowledge self-audit
+│   └── make-demo-pdf.mjs                  # Demo document generator
 │
 ├── docs/
-│   ├── CHANGELOG.md                   # Keep-a-Changelog (v1.3.0 current)
-│   ├── SECURITY.md                    # 86/86 CodeQL clean · SSRF/XSS hardening
-│   ├── ARCHITECTURE.md                # Multi-adapter core, crypto pipeline
-│   ├── THREAT-MODEL.md                # Attacker model & mitigations
-│   └── RUNBOOK.md                     # Full operations runbook
+│   ├── ARCHITECTURE.md                    # Adapter model, data ER, crypto pipeline
+│   ├── CHANGELOG.md                       # Keep-a-Changelog (v1.3.0 current)
+│   ├── CODE_OF_CONDUCT.md
+│   ├── CONTRIBUTING.md
+│   ├── DATA-RETENTION.md
+│   ├── FORMATS.md
+│   ├── INCIDENT-RESPONSE.md
+│   ├── LITESTREAM-SELFHOSTING.md
+│   ├── PRIVACY-POLICY.md
+│   ├── RELEASES.md
+│   ├── RUNBOOK.md
+│   ├── SECRETS.md
+│   ├── SECURITY.md                        # 86/86 CodeQL clean
+│   ├── TERMS.md
+│   └── THREAT-MODEL.md
 │
 ├── .github/
 │   └── workflows/
-│       ├── ci.yml                     # Typecheck · Lint · Build · Security scan
-│       └── release.yml                # Auto GitHub Release on tag push
+│       ├── ci.yml                         # Typecheck · Lint · Build · Security scan
+│       └── release.yml                    # Auto GitHub Release on tag push
 │
-├── public/brand/                      # Logo · PWA icons · favicons
-├── CHANGELOG.md                       # Keep-a-Changelog format
-├── SECURITY.md                        # Responsible disclosure policy
-└── .env.example                       # All variables with documentation
+├── public/brand/                          # Logo · PWA icons · favicons
+├── AGENTS.md                              # Multi-agent universal directives
+├── CLAUDE.md                              # Claude agent context
+├── GEMINI.md                              # Gemini agent context
+├── SECURITY.md
+├── README.md
+└── .env.example                           # All environment variables documented
 ```
 
 ---
