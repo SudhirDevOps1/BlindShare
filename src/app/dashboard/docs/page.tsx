@@ -21,6 +21,8 @@ import {
   Upload,
 } from "lucide-react";
 
+import { syncVaultDocumentKeys, isVaultUnlocked } from "@/lib/vault/master-vault";
+
 export default function DocsPage() {
   const { t } = useI18n();
 
@@ -44,7 +46,12 @@ export default function DocsPage() {
         return;
       }
       const json = await res.json();
-      if (json.documents) setDocs(json.documents);
+      if (json.documents) {
+        setDocs(json.documents);
+        if (isVaultUnlocked()) {
+          syncVaultDocumentKeys(json.documents).catch(() => {});
+        }
+      }
     } catch {}
     setLoading(false);
   };

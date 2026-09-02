@@ -34,8 +34,18 @@ export async function POST(request: Request) {
 
   const parsed = await parseBody(request, createDocumentSchema);
   if ("errorResponse" in parsed) return parsed.errorResponse;
-  const { title, originalFilename, sizeBytes, pageCount, encryptionMode, ivHex, tagHex, directCiphertextBase64 } =
-    parsed.data;
+  const {
+    title,
+    originalFilename,
+    sizeBytes,
+    pageCount,
+    encryptionMode,
+    ivHex,
+    tagHex,
+    ownerEncryptedKeyHex,
+    ownerEncryptedKeyIvHex,
+    directCiphertextBase64,
+  } = parsed.data;
 
   try {
     // Defence-in-depth: reject filename extensions the client renderer does not
@@ -67,6 +77,8 @@ export async function POST(request: Request) {
       encryptionMode: encryptionMode || "e2ee-fragment",
       ivHex: ivHex || null,
       tagHex: tagHex || null,
+      ownerEncryptedKeyHex: ownerEncryptedKeyHex || null,
+      ownerEncryptedKeyIvHex: ownerEncryptedKeyIvHex || null,
       pageCount: pageCount || 1,
       currentVersion: 1,
       isTombstone: false,

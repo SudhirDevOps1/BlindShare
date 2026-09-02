@@ -95,6 +95,9 @@ export async function POST(request: Request) {
 
     const userId = genId("usr");
     const passwordHash = await hashPassword(password);
+    const saltBytes = new Uint8Array(16);
+    crypto.getRandomValues(saltBytes);
+    const masterKeySaltHex = Array.from(saltBytes, (b) => b.toString(16).padStart(2, "0")).join("");
 
     await db.insert(users).values({
       id: userId,
@@ -104,6 +107,7 @@ export async function POST(request: Request) {
       role,
       isBlocked: false,
       sessionVersion: 1,
+      masterKeySaltHex,
     });
 
     if (inviteRecord) {
@@ -135,7 +139,10 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      user: sessionUser,
+      user: {
+        ...sessionUser,
+        masterKeySaltHex,
+      },
     });
   } catch (err: any) {
     logger.error("auth.register_error", { message: err?.message });

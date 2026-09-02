@@ -8,6 +8,7 @@ import { BrandFooter } from "@/components/brand-footer";
 import { useI18n } from "@/lib/i18n/context";
 import { Lock, Mail, User, Key, AlertCircle, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
+import { unlockOwnerVault } from "@/lib/vault/master-vault";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,6 +17,8 @@ export default function LoginPage() {
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [savedPasswordFor2fa, setSavedPasswordFor2fa] = useState("");
+  const [savedSaltFor2fa, setSavedSaltFor2fa] = useState("");
   const [name, setName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
@@ -81,6 +84,10 @@ export default function LoginPage() {
         throw new Error(data.error || "2FA verification failed");
       }
 
+      if (savedPasswordFor2fa && (data.user?.masterKeySaltHex || savedSaltFor2fa)) {
+        await unlockOwnerVault(savedPasswordFor2fa, data.user?.masterKeySaltHex || savedSaltFor2fa).catch(() => {});
+      }
+
       router.push("/dashboard");
       router.refresh();
     } catch (err: any) {
@@ -127,8 +134,15 @@ export default function LoginPage() {
       if (data.require2fa) {
         setRequire2fa(true);
         setTempToken(data.tempToken);
+        setSavedPasswordFor2fa(password);
+        setSavedSaltFor2fa(data.masterKeySaltHex || "");
         setTwoFactorCode("");
         return;
+      }
+
+      // Unlock Zero-Knowledge Master Vault in memory
+      if (data.user?.masterKeySaltHex) {
+        await unlockOwnerVault(password, data.user.masterKeySaltHex).catch(() => {});
       }
 
       router.push("/dashboard");

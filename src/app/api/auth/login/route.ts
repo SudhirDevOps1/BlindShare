@@ -96,10 +96,21 @@ export async function POST(request: Request) {
       user.sessionVersion
     );
 
-    await db
-      .update(users)
-      .set({ lastLoginAt: new Date(), failedLoginCount: 0 })
-      .where(eq(users.id, user.id));
+    let masterKeySaltHex = user.masterKeySaltHex;
+    if (!masterKeySaltHex) {
+      const saltBytes = new Uint8Array(16);
+      crypto.getRandomValues(saltBytes);
+      masterKeySaltHex = Array.from(saltBytes, (b) => b.toString(16).padStart(2, "0")).join("");
+      await db
+        .update(users)
+        .set({ lastLoginAt: new Date(), failedLoginCount: 0, masterKeySaltHex })
+        .where(eq(users.id, user.id));
+    } else {
+      await db
+        .update(users)
+        .set({ lastLoginAt: new Date(), failedLoginCount: 0 })
+        .where(eq(users.id, user.id));
+    }
 
     await db.insert(auditLog).values({
       id: genId("aud"),
@@ -118,6 +129,7 @@ export async function POST(request: Request) {
         email: user.email,
         name: user.name,
         role: user.role,
+        masterKeySaltHex,
       },
     });
   } catch (err: any) {

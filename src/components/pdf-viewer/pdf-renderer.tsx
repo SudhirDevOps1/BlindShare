@@ -63,6 +63,7 @@ interface PdfRendererProps {
   };
   sessionId: string;
   viewerIdentity: string;
+  docKeyOverride?: Uint8Array | null;
   initialPassword?: string;
   wrappedKeyHex?: string | null;
   passwordSaltHex?: string | null;
@@ -74,6 +75,7 @@ export function PdfRenderer({
   docData,
   sessionId,
   viewerIdentity,
+  docKeyOverride,
   initialPassword,
   wrappedKeyHex,
   passwordSaltHex,
@@ -241,13 +243,15 @@ export function PdfRenderer({
         setError(null);
         setLoadingStep("Extracting zero-knowledge key from URL fragment...");
 
-        // 1. Get raw key from fragment or password unwrapping
-        let docKey: Uint8Array | null = null;
+        // 1. Get raw key from override, password unwrapping, fragment or storage
+        let docKey: Uint8Array | null = docKeyOverride ?? null;
 
-        if (initialPassword && wrappedKeyHex && passwordSaltHex) {
+        if (!docKey && initialPassword && wrappedKeyHex && passwordSaltHex) {
           setLoadingStep("Unwrapping AES key with PBKDF2 passphrase...");
           docKey = await unwrapKeyWithPassword(wrappedKeyHex, passwordSaltHex, initialPassword);
-        } else {
+        }
+
+        if (!docKey) {
           // Fragment key
           const hash = window.location.hash;
           docKey = fragmentToDocKey(hash);

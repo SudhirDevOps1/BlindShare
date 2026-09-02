@@ -96,3 +96,44 @@ test("Key Transport: URL #fragment format adheres to RFC 3986 (Never sent in HTT
   assert.equal(parsed.hash, `#k=${docKey}`, "Key must live strictly in #fragment anchor");
   assert.equal(parsed.search, "", "Decryption key must NEVER be passed as a query param (?k=)");
 });
+
+test("Master Vault: PBKDF2 100k rounds derives deterministic 256-bit Owner Master Key", async () => {
+  const masterPassword = "SuperSecurePassword123!";
+  const salt = crypto.randomBytes(16);
+
+  const derivedKey1 = crypto.pbkdf2Sync(masterPassword, salt, 100000, 32, "sha256");
+  const derivedKey2 = crypto.pbkdf2Sync(masterPassword, salt, 100000, 32, "sha256");
+
+  assert.equal(derivedKey1.length, 32, "Master key must be exactly 256 bits (32 bytes)");
+  assert.equal(derivedKey1.toString("hex"), derivedKey2.toString("hex"), "Same password and salt must produce identical key");
+
+  const wrongPasswordKey = crypto.pbkdf2Sync("WrongPassword456!", salt, 100000, 32, "sha256");
+  assert.notEqual(derivedKey1.toString("hex"), wrongPasswordKey.toString("hex"), "Different password must produce distinct key");
+});
+
+test("Master Vault: Wraps and unwraps DocKey with AES-GCM-256 for cross-device persistence", async () => {
+  const masterPassword = "MyAccountPassword$2026";
+  const salt = crypto.randomBytes(16);
+  const masterKey = crypto.pbkdf2Sync(masterPassword, salt, 100000, 32, "sha256");
+
+  const originalDocKey = crypto.randomBytes(32);
+  const iv = crypto.randomBytes(12);
+
+  // Wrap
+  const cipher = crypto.createCipheriv("aes-256-gcm", masterKey, iv);
+  const wrapped = Buffer.concat([cipher.update(originalDocKey), cipher.final(), cipher.getAuthTag()]);
+
+  // Unwrap
+  const decipher = crypto.createDecipheriv("aes-256-gcm", masterKey, iv);
+  const authTag = wrapped.subarray(wrapped.length - 16);
+  const cipherBytes = wrapped.subarray(0, wrapped.length - 16);
+  decipher.setAuthTag(authTag);
+  const unwrappedDocKey = Buffer.concat([decipher.update(cipherBytes), decipher.final()]);
+
+  assert.equal(
+    unwrappedDocKey.toString("hex"),
+    originalDocKey.toString("hex"),
+    "Unwrapped DocKey must match original 32-byte key perfectly"
+  );
+});
+

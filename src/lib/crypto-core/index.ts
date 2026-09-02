@@ -312,3 +312,80 @@ export async function unwrapKeyWithPassword(
 
   return new Uint8Array(decryptedKey);
 }
+
+/**
+ * Derive 256-bit Owner Master Key using PBKDF2 with SHA-256 (100,000 iterations)
+ */
+export async function deriveOwnerMasterKey(
+  password: string,
+  saltHex: string
+): Promise<CryptoKey> {
+  const cryptoSubtle = crypto.subtle;
+  const salt = hexToBuffer(saltHex);
+  const enc = new TextEncoder();
+  const baseKey = await cryptoSubtle.importKey(
+    "raw",
+    enc.encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveKey"]
+  );
+
+  return await cryptoSubtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: salt as ArrayBufferView<ArrayBuffer>,
+      iterations: 100000,
+      hash: "SHA-256",
+    },
+    baseKey,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"]
+  );
+}
+
+/**
+ * Wrap a 32-byte DocKey with the OwnerMasterKey (AES-GCM-256)
+ */
+export async function wrapDocKeyForOwner(
+  docKey: Uint8Array,
+  masterKey: CryptoKey
+): Promise<{ wrappedHex: string; ivHex: string }> {
+  const cryptoSubtle = crypto.subtle;
+  const iv = new Uint8Array(12);
+  crypto.getRandomValues(iv);
+
+  const encryptedKey = await cryptoSubtle.encrypt(
+    { name: "AES-GCM", iv },
+    masterKey,
+    docKey as ArrayBufferView<ArrayBuffer>
+  );
+
+  return {
+    wrappedHex: bufferToHex(encryptedKey),
+    ivHex: bufferToHex(iv),
+  };
+}
+
+/**
+ * Unwrap a 32-byte DocKey using the OwnerMasterKey (AES-GCM-256)
+ */
+export async function unwrapDocKeyForOwner(
+  wrappedHex: string,
+  ivHex: string,
+  masterKey: CryptoKey
+): Promise<Uint8Array> {
+  const cryptoSubtle = crypto.subtle;
+  const iv = hexToBuffer(ivHex);
+  const ciphertext = hexToBuffer(wrappedHex);
+
+  const decryptedKey = await cryptoSubtle.decrypt(
+    { name: "AES-GCM", iv: iv as ArrayBufferView<ArrayBuffer> },
+    masterKey,
+    ciphertext as ArrayBufferView<ArrayBuffer>
+  );
+
+  return new Uint8Array(decryptedKey);
+}
+

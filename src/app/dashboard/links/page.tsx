@@ -25,7 +25,8 @@ import {
   FileText,
 } from "lucide-react";
 import QRCodeLib from "qrcode";
-import { hexToBuffer, bufferToHex, docKeyToFragment, fragmentToDocKey } from "@/lib/crypto-core";
+import { hexToBuffer, bufferToHex, docKeyToFragment, fragmentToDocKey, unwrapDocKeyForOwner } from "@/lib/crypto-core";
+import { syncVaultDocumentKeys, isVaultUnlocked, unlockOwnerVault, getOwnerMasterKey } from "@/lib/vault/master-vault";
 
 export default function LinksPage() {
   const { t } = useI18n();
@@ -49,13 +50,24 @@ export default function LinksPage() {
   const fetchLinks = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/links");
-      if (res.status === 401) {
+      const [resLinks, resDocs] = await Promise.all([
+        fetch("/api/links"),
+        fetch("/api/docs"),
+      ]);
+
+      if (resLinks.status === 401) {
         window.location.href = "/login";
         return;
       }
-      const json = await res.json();
-      if (json.links) setLinks(json.links);
+
+      const jsonLinks = await resLinks.json();
+      const jsonDocs = await resDocs.json().catch(() => ({}));
+
+      if (jsonLinks.links) setLinks(jsonLinks.links);
+
+      if (jsonDocs.documents && isVaultUnlocked()) {
+        await syncVaultDocumentKeys(jsonDocs.documents);
+      }
     } catch {}
     setLoading(false);
   };
@@ -107,28 +119,53 @@ export default function LinksPage() {
     setTimeout(() => setCopiedId(null), 2500);
   };
 
-  const handleSaveRecoveredKey = () => {
+  const handleSaveRecoveredKey = async () => {
     if (!keyRecoveryTarget || !keyInput.trim()) return;
 
     try {
       let docKey: Uint8Array | null = null;
       const trimmed = keyInput.trim();
 
-      if (trimmed.includes("#k=")) {
-        docKey = fragmentToDocKey(trimmed.substring(trimmed.indexOf("#k=")));
-      } else if (trimmed.includes("/v/")) {
-        const hashIdx = trimmed.indexOf("#");
-        if (hashIdx !== -1) {
-          docKey = fragmentToDocKey(trimmed.substring(hashIdx));
+      // 1. Check if user typed account password to unlock Master Vault
+      try {
+        const meRes = await fetch("/api/auth/me");
+        const meJson = await meRes.json().catch(() => ({}));
+        if (meJson.user?.masterKeySaltHex) {
+          const masterKey = await unlockOwnerVault(trimmed, meJson.user.masterKeySaltHex);
+          const docsRes = await fetch("/api/docs");
+          const docsJson = await docsRes.json().catch(() => ({}));
+          if (docsJson.documents) {
+            const targetDoc = docsJson.documents.find((d: any) => d.id === keyRecoveryTarget.docId);
+            if (targetDoc?.ownerEncryptedKeyHex && targetDoc?.ownerEncryptedKeyIvHex) {
+              docKey = await unwrapDocKeyForOwner(
+                targetDoc.ownerEncryptedKeyHex,
+                targetDoc.ownerEncryptedKeyIvHex,
+                masterKey
+              );
+            }
+            await syncVaultDocumentKeys(docsJson.documents);
+          }
         }
-      } else if (trimmed.startsWith("k=")) {
-        docKey = fragmentToDocKey(`#${trimmed}`);
-      } else {
-        docKey = fragmentToDocKey(`#k=${trimmed}`);
+      } catch {}
+
+      // 2. If not a master password or vault unwrap, parse as fragment / direct key
+      if (!docKey) {
+        if (trimmed.includes("#k=")) {
+          docKey = fragmentToDocKey(trimmed.substring(trimmed.indexOf("#k=")));
+        } else if (trimmed.includes("/v/")) {
+          const hashIdx = trimmed.indexOf("#");
+          if (hashIdx !== -1) {
+            docKey = fragmentToDocKey(trimmed.substring(hashIdx));
+          }
+        } else if (trimmed.startsWith("k=")) {
+          docKey = fragmentToDocKey(`#${trimmed}`);
+        } else {
+          docKey = fragmentToDocKey(`#k=${trimmed}`);
+        }
       }
 
       if (!docKey || docKey.length < 16) {
-        setKeyError("Invalid decryption key format. Please enter a valid #k=... fragment or key string.");
+        setKeyError("Invalid key or account password. Please enter your account password, full link, or #k=... fragment.");
         return;
       }
 
@@ -146,7 +183,7 @@ export default function LinksPage() {
       setTimeout(() => setCopiedId(null), 2500);
       setKeyRecoveryTarget(null);
     } catch {
-      setKeyError("Failed to parse decryption key.");
+      setKeyError("Failed to parse decryption key or verify account password.");
     }
   };
 
@@ -464,24 +501,24 @@ export default function LinksPage() {
             </div>
 
             <div className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-slate-400 space-y-1.5">
-              <p className="text-slate-300 font-medium">Why is this required?</p>
+              <p className="text-slate-300 font-medium">Zero-Knowledge Vault Recovery</p>
               <p className="leading-relaxed">
-                Because of BlindShare&apos;s Zero-Knowledge guarantee, decryption keys are never stored on the server. Since browser cache was cleared on this device, paste the full share link or <code className="text-amber-400">#k=...</code> fragment once to restore it in this browser permanently.
+                Enter your <span className="text-amber-400 font-semibold">Account Password</span> to automatically unlock and restore all document keys from your Zero-Knowledge Master Vault, or paste the share link / <code className="text-amber-400">#k=...</code> fragment.
               </p>
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-semibold text-slate-300">
-                Paste Decryption Key or Full Link
+                Account Password, Decryption Key, or Link
               </label>
               <input
-                type="text"
+                type="password"
                 value={keyInput}
                 onChange={(e) => {
                   setKeyInput(e.target.value);
                   setKeyError(null);
                 }}
-                placeholder="e.g. #k=FrbRsj1DsTGEiO3o... or https://..."
+                placeholder="Enter account password or #k=... fragment"
                 className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-600 focus:border-amber-500 focus:outline-none"
                 autoFocus
               />

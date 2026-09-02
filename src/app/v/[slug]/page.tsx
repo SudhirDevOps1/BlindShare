@@ -334,7 +334,8 @@ export default function ViewerPage({ params }: { params: Promise<{ slug: string 
             ivHex: doc.ivHex,
             tagHex: doc.tagHex,
           }}
-          initialPassword={unwrappedKey ? undefined : verified.passwordEntered}
+          docKeyOverride={unwrappedKey}
+          initialPassword={verified.passwordEntered}
           wrappedKeyHex={link.wrappedKeyHex}
           passwordSaltHex={link.passwordSaltHex}
         />

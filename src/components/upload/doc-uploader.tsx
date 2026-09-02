@@ -10,6 +10,7 @@ import {
   bufferToBase64Url,
 } from "@/lib/crypto-core";
 import { detectFormat, FormatKind } from "@/lib/formats";
+import { autoWrapDocKeyForOwner } from "@/lib/vault/master-vault";
 import {
   UploadCloud,
   Lock,
@@ -122,6 +123,10 @@ export function DocUploader({ onUploadSuccess }: DocUploaderProps) {
       }
       const directCiphertextBase64 = btoa(binary);
 
+      setStatusMessage("Wrapping key for Owner Master Vault...");
+      const vaultWrapped = await autoWrapDocKeyForOwner(docKey);
+
+      setStatusMessage("Saving metadata and ciphertext...");
       const res = await fetch("/api/docs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -132,6 +137,8 @@ export function DocUploader({ onUploadSuccess }: DocUploaderProps) {
           pageCount,
           encryptionMode: "e2ee-fragment",
           ivHex: bufferToHex(encrypted.iv),
+          ownerEncryptedKeyHex: vaultWrapped?.ownerEncryptedKeyHex,
+          ownerEncryptedKeyIvHex: vaultWrapped?.ownerEncryptedKeyIvHex,
           directCiphertextBase64,
         }),
       });

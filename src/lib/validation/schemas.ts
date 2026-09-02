@@ -91,6 +91,8 @@ export const createDocumentSchema = z
     encryptionMode: z.enum(["e2ee-fragment", "plain-cipher-at-rest"]).optional(),
     ivHex: hexStringSchema(64),
     tagHex: hexStringSchema(64),
+    ownerEncryptedKeyHex: hexStringSchema(256),
+    ownerEncryptedKeyIvHex: hexStringSchema(64),
     directCiphertextBase64: z.string().max(700 * 1024 * 1024).optional(),
   })
   .superRefine((val, ctx) => {

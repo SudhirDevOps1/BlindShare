@@ -15,6 +15,7 @@ export const users = pgTable("users", {
   twoFactorEnabled: boolean("two_factor_enabled").notNull().default(false),
   twoFactorSecret: text("two_factor_secret"),
   twoFactorBackupCodes: text("two_factor_backup_codes"),
+  masterKeySaltHex: text("master_key_salt_hex"),
   lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -42,6 +43,8 @@ export const documents = pgTable("documents", {
   encryptionMode: text("encryption_mode").notNull().default("e2ee-fragment"), // e2ee-fragment | plain-cipher-at-rest
   ivHex: text("iv_hex"),
   tagHex: text("tag_hex"),
+  ownerEncryptedKeyHex: text("owner_encrypted_key_hex"),
+  ownerEncryptedKeyIvHex: text("owner_encrypted_key_iv_hex"),
   pageCount: integer("page_count").notNull().default(1),
   currentVersion: integer("current_version").notNull().default(1),
   isTombstone: boolean("is_tombstone").notNull().default(false),
