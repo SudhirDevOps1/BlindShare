@@ -125,6 +125,15 @@ export async function POST(request: Request) {
 
     const linkId = genId("lnk");
 
+    // Self-healing schema migration for links table
+    await db.execute(sql`
+      ALTER TABLE links 
+      ADD COLUMN IF NOT EXISTS anti_leak_blur_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+      ADD COLUMN IF NOT EXISTS anti_spy_shield_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+      ADD COLUMN IF NOT EXISTS burn_after_reading BOOLEAN NOT NULL DEFAULT FALSE,
+      ADD COLUMN IF NOT EXISTS voice_pitch_enabled BOOLEAN NOT NULL DEFAULT TRUE;
+    `).catch(() => {});
+
     await db.insert(links).values({
       id: linkId,
       docId: docId || null,
@@ -170,7 +179,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, linkId, slug: finalSlug });
   } catch (err: any) {
-    logger.error("links.create_failed", { ownerId: auth.user.id, message: err?.message });
-    return NextResponse.json({ error: "Failed to create link" }, { status: 500 });
+    logger.error("links.create_failed", { ownerId: auth.user.id, message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: err?.message || "Failed to create link" }, { status: 500 });
   }
 }
