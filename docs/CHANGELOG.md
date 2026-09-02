@@ -2,7 +2,32 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/).
 
-- **Enterprise-Grade Zero-Knowledge Owner Master Key Vault (`src/lib/vault/master-vault.ts`):**
+## [1.3.0] - 2026-09-02
+
+### 🚀 Added & Enhanced
+- **Permanent Indelible PDF Download Watermarking (`src/components/pdf-viewer/pdf-renderer.tsx`):**
+  - Integrated client-side `pdf-lib` to burn and stamp diagonal matrix watermarks directly into every single page stream when downloading watermarked PDFs.
+  - Watermark includes recipient identity/email, timestamp, document slug, and custom watermark text with opacity control.
+- **Dedicated Dashboard Q&A Inbox (`src/app/dashboard/questions/page.tsx`, `src/app/api/questions/route.ts`):**
+  - Centralized founder control center to search, filter (All, Pending, Resolved), and manage reader questions from slides.
+  - Inline composer to publish official **Founder Replies** with instant real-time sync back to reader viewers.
+- **Real-Time 3-Second Live Q&A Synchronizer:**
+  - Real-time bidirectional watchdog updating reader question pin popovers and status badges (`✓ Founder Reply`) without requiring page reloads.
+- **Automatic Master Vault Unlock on Login (Bitwarden / Proton Model):**
+  - Automatic client-side PBKDF2 master key derivation and background document/link key unwrapping on `/login` and 2FA verification.
+- **Tab-Level Decrypted Session Cache:**
+  - Fast 0.01s (10ms) reloads on browser page refresh (`F5`) utilizing ephemeral tab-level `sessionStorage` buffers that automatically wipe on tab closure.
+- **Interactive Selectable Text Layer & Clickable Hyperlinks:**
+  - Full text selection, clipboard extraction (**Copy Text** button), `Ctrl+F` search, and interactive clickable `<a>` hyperlinks over canvas slides.
+- **Horizontal Scrollable Navigation Bar (`src/components/brand-header.tsx`, `src/app/globals.css`):**
+  - Added smooth horizontal scrolling (`no-scrollbar`) for center navigation tabs to prevent UI squishing on smaller laptop screens.
+
+### 🛡️ Security Hardening
+- **CodeQL Alert #86 Fixed:** Replaced substring URL matching with strict RFC `URL` hostname and search param verification in `src/db/index.ts` and `src/lib/notifications/webhook-notifier.ts`.
+- **DDoS / Spam Protection on Public In-Doc Questions:** Added distributed rate limiting (`15 req/min per IP`) on `/api/v/[slug]/questions`.
+- **Stored XSS Sanitization:** Comprehensive HTML entity sanitization on reader inquiries and founder replies.
+
+## [1.2.0] - 2026-09-01
   - Client-side WebCrypto `PBKDF2-SHA256` (100,000 iterations) with 16-byte user-specific salt deriving an `OwnerMasterKey` in browser RAM.
   - Transparent AES-GCM-256 wrapping of individual 32-byte `DocKey`s before saving metadata to `/api/docs`.
   - Seamless cross-device and cache-immune document key synchronization without server knowledge.

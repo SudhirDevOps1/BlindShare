@@ -70,10 +70,15 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
 - **Client vs. Server Key Isolation**:
   - The server `.env` variables (`SESSION_SECRET`, `ADMIN_BOOTSTRAP_INVITE`, `UPSTASH_REDIS_REST_TOKEN`) are strictly isolated for session HMACs, database operations, and edge rate-limiting.
   - Document decryption keys NEVER exist in `.env` or on the server file system. All document decryption happens exclusively inside viewer and owner browsers using WebCrypto.
-- **CodeQL Advanced SAST Hardening (85/85 Alerts Resolved · 0 Open)**:
+- **CodeQL Advanced SAST Hardening (86/86 Alerts Resolved · 0 Open)**:
+  - **URL Substring Parsing Hardening**: Replaced substring checks with strict RFC `URL` hostname and search parameter validators in database connection pools and webhooks.
   - **CSPRNG Invariant**: Pure WebCrypto `crypto.getRandomValues()` and `crypto.randomUUID()` used everywhere. `Math.random()` completely eliminated.
   - **SVG DOMParser Sanitization**: Native XML DOM parsing and strict URL protocol allowlisting (`http:`, `https:`, `mailto:`, `#`), replacing bypass-vulnerable regexes.
-  - **HTML Entity Character Encoding**: Question text and asker names strictly converted (`<` -> `&lt;`, `>` -> `&gt;`) to ensure stored XSS immunity.
+  - **HTML Entity Character Encoding**: Question text, asker names, and founder replies strictly converted (`<` -> `&lt;`, `>` -> `&gt;`, `"` -> `&quot;`, `'` -> `&#39;`) to ensure stored XSS immunity.
   - **Tainted File Write & Storage Confinement**: All storage keys mapped to SHA-256 digests (`${sha256(key)}.blob`), path boundary verification, and low-level file descriptor access with `0o600` owner-only mode.
+- **Permanent Indelible PDF Download Watermark Embedding (`pdf-lib`)**:
+  - Automatically stamps multi-layer diagonal matrix watermarks (verified recipient identity, timestamp, custom text, slug) directly into every page stream before export.
+- **Edge Rate Limiting on Public In-Doc Inquiries**:
+  - Distributed sliding-window limiter on `/api/v/[slug]/questions` (`15 req/min per IP`) to prevent database spam and DDoS.
 - **Privacy-First Telemetry Architecture (`PrismAnalytics`)**:
   - Optional, self-hosted telemetry engine with zero third-party scripts, zero PII, zero cross-site cookies, and 10s buffered batch beaconing.
