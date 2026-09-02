@@ -145,8 +145,7 @@ export default function LoginPage() {
         await unlockOwnerVault(password, data.user.masterKeySaltHex).catch(() => {});
       }
 
-      router.push("/dashboard");
-      router.refresh();
+      window.location.href = "/dashboard";
     } catch (err: any) {
       setError(err.message || "An error occurred");
     } finally {

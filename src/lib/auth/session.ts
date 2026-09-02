@@ -115,13 +115,27 @@ export async function createSessionCookie(user: SessionUser, sessionVersion = 1)
   });
 
   const cookieStore = await cookies();
+  const isProd = process.env.NODE_ENV === "production";
+
+  // Primary cookie
   cookieStore.set(sessionCookieName(), token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: isProd,
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_MAX_AGE_SECONDS,
   });
+
+  // Fallback cookie for reverse-proxy and custom domain resilience
+  if (isProd) {
+    cookieStore.set("blindshare_session", token, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: SESSION_MAX_AGE_SECONDS,
+    });
+  }
 }
 
 export async function clearSessionCookie() {
@@ -164,7 +178,10 @@ export async function clearSessionCookie() {
 export async function getSession(): Promise<SessionUser | null> {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get(sessionCookieName())?.value;
+    const token =
+      cookieStore.get(sessionCookieName())?.value ||
+      cookieStore.get("__Host-blindshare_session")?.value ||
+      cookieStore.get("blindshare_session")?.value;
     if (!token) return null;
 
     const payload = verifyToken(token);

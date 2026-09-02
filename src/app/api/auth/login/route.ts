@@ -40,10 +40,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const cleanEmail = email.trim().toLowerCase();
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(sql`LOWER(${users.email}) = ${cleanEmail}`)
+      .limit(1);
 
     if (!user) {
-      recordFailure(email, ip);
+      recordFailure(cleanEmail, ip);
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
