@@ -9,6 +9,8 @@ import { CryptoInteractiveDemo } from "@/components/landing/crypto-interactive-d
 import { FeaturesShowcase } from "@/components/landing/features-showcase";
 import { StatsCounter } from "@/components/landing/stats-counter";
 import { WorkflowTimeline } from "@/components/landing/workflow-timeline";
+import { CTABanner } from "@/components/landing/cta-banner";
+import { TrustBar } from "@/components/landing/trust-bar";
 import {
   Lock,
   ShieldCheck,
@@ -135,6 +137,9 @@ export default function HomePage() {
           </div>
         </section>
 
+        {/* ── Tech Trust Bar ───────────────────────────────────────────── */}
+        <TrustBar />
+
         {/* ── Stats Counter Strip ─────────────────────────────────────── */}
         <StatsCounter />
 
@@ -249,14 +254,12 @@ export default function HomePage() {
                 },
               ].map((feat, i) => {
                 const Icon = feat.icon;
+                const colors = [
+                  "#f59e0b","#10b981","#a78bfa","#60a5fa","#fb923c","#34d399"
+                ];
+                const col = colors[i % colors.length];
                 return (
-                  <div key={i} className="glass-card rounded-2xl p-6 space-y-3.5">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <h3 className="text-base font-bold text-white">{feat.title}</h3>
-                    <p className="text-xs text-slate-400 leading-relaxed">{feat.desc}</p>
-                  </div>
+                  <FeatureCard key={i} feat={feat} color={col} Icon={Icon} />
                 );
               })}
             </div>
@@ -267,9 +270,83 @@ export default function HomePage() {
         <section className="border-t border-slate-900/80 bg-slate-950/60">
           <FeaturesShowcase />
         </section>
+
+        {/* ── Final CTA Banner ─────────────────────────────────────────── */}
+        <CTABanner />
       </main>
 
       <BrandFooter />
+    </div>
+  );
+}
+
+/* 3D-tilt feature card — inline client component */
+function FeatureCard({
+  feat,
+  color,
+  Icon,
+}: {
+  feat: { title: string; desc: string };
+  color: string;
+  Icon: React.ElementType;
+}) {
+  const [tilt, setTilt] = React.useState({});
+  const [hov,  setHov]  = React.useState(false);
+
+  const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width  - 0.5;
+    const y = (e.clientY - r.top)  / r.height - 0.5;
+    setTilt({ transform: `perspective(600px) rotateX(${-y * 9}deg) rotateY(${x * 11}deg) translateZ(6px) scale(1.01)` });
+  };
+  const onLeave = () => {
+    setTilt({ transform: "perspective(600px) rotateX(0deg) rotateY(0deg) translateZ(0) scale(1)" });
+    setHov(false);
+  };
+
+  return (
+    <div
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+      onMouseEnter={() => setHov(true)}
+      style={{
+        borderRadius: 20,
+        border: `1px solid ${hov ? color + "44" : "rgba(51,65,85,0.4)"}`,
+        background: hov
+          ? `radial-gradient(circle at 30% 20%, ${color}0e, rgba(12,18,38,0.95))`
+          : "rgba(15,23,42,0.7)",
+        backdropFilter: "blur(16px)",
+        padding: "28px 24px",
+        cursor: "default",
+        transition: "border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease",
+        boxShadow: hov
+          ? `0 20px 48px -8px ${color}1a, 0 0 0 1px ${color}22`
+          : "0 4px 16px rgba(0,0,0,0.25)",
+        transformStyle: "preserve-3d",
+        ...tilt,
+      }}
+    >
+      <div style={{
+        width: 44, height: 44, borderRadius: 13,
+        background: `${color}14`,
+        border: `1px solid ${color}30`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        marginBottom: 20,
+        transition: "transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s ease",
+        transform: hov ? "scale(1.1) rotate(6deg)" : "scale(1)",
+        boxShadow: hov ? `0 0 18px ${color}35` : "none",
+      }}>
+        <Icon style={{ width: 20, height: 20, color }} />
+      </div>
+      <h3 style={{
+        fontSize: 15, fontWeight: 800, color: "#f8fafc",
+        letterSpacing: "-0.02em", marginBottom: 10, lineHeight: 1.3,
+      }}>
+        {feat.title}
+      </h3>
+      <p style={{ fontSize: 12.5, color: "#64748b", lineHeight: 1.65 }}>
+        {feat.desc}
+      </p>
     </div>
   );
 }

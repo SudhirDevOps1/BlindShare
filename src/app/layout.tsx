@@ -38,9 +38,11 @@ export const metadata: Metadata = {
     siteName: appName,
     images: [
       {
-        url: "/brand/og-image.png",
+        url: `${siteUrl}/brand/og-image.png`,
+        secureUrl: `${siteUrl}/brand/og-image.png`,
         width: 1200,
         height: 630,
+        type: "image/png",
         alt: `${appName} Zero-Knowledge Document Sharing`,
       },
     ],
@@ -51,7 +53,15 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${appName} - Zero-Knowledge Secure Document Sharing & Analytics`,
     description: "Client-side E2EE document sharing with per-page dwell time tracking, dynamic watermarks, and ₹0 free-tier presets.",
-    images: ["/brand/og-image.png"],
+    images: [
+      {
+        url: `${siteUrl}/brand/og-image.png`,
+        width: 1200,
+        height: 630,
+        type: "image/png",
+        alt: `${appName} Zero-Knowledge Document Sharing`,
+      },
+    ],
     creator: "@BlindShare",
   },
   manifest: "/manifest.webmanifest",
