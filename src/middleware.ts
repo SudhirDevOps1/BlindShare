@@ -90,7 +90,7 @@ export async function middleware(request: NextRequest) {
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set(
     "Permissions-Policy",
-    "camera=(), geolocation=(), microphone=(self), payment=(), usb=(), fullscreen=(self), interest-cohort=()"
+    "camera=(), geolocation=(), microphone=(self), payment=(), usb=(), fullscreen=(self)"
   );
   response.headers.set("Cross-Origin-Resource-Policy", "same-origin");
   response.headers.set("Cross-Origin-Opener-Policy", "same-origin");

@@ -10,11 +10,11 @@ import { Lock, Mail, User, Key, AlertCircle, ArrowRight, ShieldCheck, Sparkles }
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
 import { unlockOwnerVault } from "@/lib/vault/master-vault";
 
-export default function LoginPage() {
+export default function LoginPage({ defaultRegister = false }: { defaultRegister?: boolean }) {
   const router = useRouter();
   const { t, appName } = useI18n();
 
-  const [isRegister, setIsRegister] = useState(false);
+  const [isRegister, setIsRegister] = useState(defaultRegister);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [savedPasswordFor2fa, setSavedPasswordFor2fa] = useState("");
@@ -42,7 +42,7 @@ export default function LoginPage() {
     // Check URL parameters for signup/register
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      if (params.get("register") === "true" || params.get("signup") === "true") {
+      if (params.get("register") === "true" || params.get("signup") === "true" || window.location.pathname.includes("signup")) {
         setIsRegister(true);
       }
     }
@@ -51,7 +51,7 @@ export default function LoginPage() {
       .then((r) => r.json())
       .then((d) => {
         setBootstrap(d);
-        // If database is completely fresh, default directly to Create Account mode
+        // If database is completely fresh and not specified, default to Create Account mode
         if (d.mode === "setup") {
           setIsRegister(true);
         }
@@ -174,9 +174,43 @@ export default function LoginPage() {
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
         <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
           {/* Top Lock Icon */}
-          <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
             <Lock className="h-7 w-7" />
           </div>
+
+          {/* Segmented Sign In / Create Account Switcher */}
+          {!require2fa && (
+            <div className="grid grid-cols-2 p-1 mb-6 rounded-xl bg-slate-950 border border-slate-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegister(false);
+                  setError(null);
+                }}
+                className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                  !isRegister
+                    ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Sign In
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegister(true);
+                  setError(null);
+                }}
+                className={`py-2 text-xs font-bold rounded-lg transition-all ${
+                  isRegister
+                    ? "bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Create Account
+              </button>
+            </div>
+          )}
 
           <div className="text-center mb-6">
             <h2 className="text-xl font-bold text-white mb-1">
