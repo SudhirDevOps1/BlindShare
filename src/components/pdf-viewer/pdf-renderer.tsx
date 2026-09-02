@@ -116,7 +116,7 @@ export function PdfRenderer({
   const [isLiveRoomActive, setIsLiveRoomActive] = useState(false);
   const [followPresenter, setFollowPresenter] = useState(true);
 
-  // Fetch Audio Notes & Questions for this document/link
+  // Live Fetch & Real-Time Polling for In-Doc Questions and Audio Notes
   useEffect(() => {
     let cancelled = false;
 
@@ -128,16 +128,30 @@ export function PdfRenderer({
       })
       .catch(() => {});
 
-    // Load Question Pins
-    fetch(`/api/v/${slug}/questions`)
-      .then((r) => r.json())
-      .then((d) => {
-        if (!cancelled && d.questions) setQuestionPins(d.questions);
-      })
-      .catch(() => {});
+    // Poller function for question pins & founder replies
+    const fetchPins = () => {
+      fetch(`/api/v/${slug}/questions`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (!cancelled && d.questions) {
+            setQuestionPins(d.questions);
+            // Live update currently open question pin popover with founder reply in real time!
+            setActivePin((curr: any) => {
+              if (!curr) return null;
+              const updated = d.questions.find((q: any) => q.id === curr.id);
+              return updated || curr;
+            });
+          }
+        })
+        .catch(() => {});
+    };
+
+    fetchPins();
+    const pinPoller = setInterval(fetchPins, 3000);
 
     return () => {
       cancelled = true;
+      clearInterval(pinPoller);
     };
   }, [docData.id, slug]);
 
@@ -327,22 +341,43 @@ export function PdfRenderer({
           );
         }
 
-        setLoadingStep("Fetching encrypted document ciphertext from blind storage...");
-        const res = await fetch(`/api/v/${slug}/bytes`);
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error || "Failed to download ciphertext bytes");
-        }
+        let pdfBytes: ArrayBuffer | null = null;
 
-        const ciphertextBuffer = await res.arrayBuffer();
+        // 1. Check if decrypted PDF is already cached in this active browser tab
+        try {
+          const cachedHex = sessionStorage.getItem(`blindshare_tab_decrypted_${docData.id}`);
+          if (cachedHex && cachedHex.length > 32) {
+            setLoadingStep("Instant tab cache loaded...");
+            pdfBytes = hexToBuffer(cachedHex).buffer as ArrayBuffer;
+          }
+        } catch {}
 
-        // 2. Decrypt in client browser memory
-        let pdfBytes: ArrayBuffer = ciphertextBuffer;
+        if (!pdfBytes) {
+          setLoadingStep("Fetching encrypted document ciphertext from blind storage...");
+          const res = await fetch(`/api/v/${slug}/bytes`);
+          if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error || "Failed to download ciphertext bytes");
+          }
 
-        if (docData.encryptionMode === "e2ee-fragment" && docKey) {
-          setLoadingStep("Decrypting ciphertext with browser WebCrypto AES-GCM-256...");
-          const iv = docData.ivHex ? hexToBuffer(docData.ivHex) : new Uint8Array(12);
-          pdfBytes = await decryptBytes(ciphertextBuffer, docKey, iv);
+          const ciphertextBuffer = await res.arrayBuffer();
+
+          // 2. Decrypt in client browser memory
+          pdfBytes = ciphertextBuffer;
+
+          if (docData.encryptionMode === "e2ee-fragment" && docKey) {
+            setLoadingStep("Decrypting ciphertext with browser WebCrypto AES-GCM-256...");
+            const iv = docData.ivHex ? hexToBuffer(docData.ivHex) : new Uint8Array(12);
+            pdfBytes = await decryptBytes(ciphertextBuffer, docKey, iv);
+          }
+
+          // Cache in active tab's sessionStorage for instant 0.01s reload on refresh
+          try {
+            if (pdfBytes.byteLength <= 25 * 1024 * 1024) {
+              const hex = bufferToHex(new Uint8Array(pdfBytes));
+              sessionStorage.setItem(`blindshare_tab_decrypted_${docData.id}`, hex);
+            }
+          } catch {}
         }
 
         if (isCancelled) return;
