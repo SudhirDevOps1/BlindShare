@@ -248,6 +248,38 @@ export function PdfRenderer({
   const maxPageReachedRef = useRef(1);
   const totalDwellRef = useRef(0);
 
+  // Mobile Touch Swipe Gesture Detection (Swipe Left for Next, Swipe Right for Prev)
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+    }
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    if (e.changedTouches.length === 1) {
+      const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+      const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+
+      // Ensure horizontal swipe is intentional and exceeds vertical scroll
+      if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
+        if (deltaX < 0) {
+          // Swipe Left -> Next Page
+          setCurrentPage((p) => Math.min(totalPages, p + 1));
+        } else {
+          // Swipe Right -> Prev Page
+          setCurrentPage((p) => Math.max(1, p - 1));
+        }
+      }
+    }
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const textLayerRef = useRef<HTMLDivElement | null>(null);
   const annotationLayerRef = useRef<HTMLDivElement | null>(null);
@@ -609,10 +641,13 @@ export function PdfRenderer({
           const scaleH = maxH / unscaledViewport.height;
           targetScale = Math.min(scaleW, scaleH);
         } else if (typeof window !== "undefined") {
-          // Default optimal reading width (fit to container nicely on desktop & mobile)
-          const containerTargetWidth = Math.min(window.innerWidth * 0.85, 960);
+          // Mobile-first optimal reading width (fits cleanly on 320px mobile to 4K desktop)
+          const isMobile = window.innerWidth < 640;
+          const containerTargetWidth = isMobile
+            ? Math.max(window.innerWidth - 24, 280)
+            : Math.min(window.innerWidth * 0.85, 960);
           const autoFitScale = containerTargetWidth / unscaledViewport.width;
-          targetScale = zoom * Math.max(autoFitScale, 1.25);
+          targetScale = zoom * (isMobile ? autoFitScale : Math.max(autoFitScale, 1.25));
         }
 
         // Render at ultra-high resolution canvas backing store (super-sampled for zero blur)
@@ -1122,7 +1157,11 @@ export function PdfRenderer({
           </div>
         </PresenterModeView>
       ) : (
-        <div className={`flex-1 flex flex-col items-center justify-center p-4 sm:p-8 overflow-auto ${antiLeakActive ? "blur-xl" : ""}`}>
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          className={`flex-1 flex flex-col items-center justify-center p-2.5 sm:p-6 md:p-8 overflow-auto ${antiLeakActive ? "blur-xl" : ""}`}
+        >
           {/* Question Mode Helper Banner */}
           {isAddingPin && (
             <div className="mb-3 flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-950/40 px-3.5 py-1.5 text-xs text-amber-200 animate-pulse">

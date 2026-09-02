@@ -1043,7 +1043,7 @@ export function MediaRenderer({
 
         {/* 5. Images (JPEG, PNG, WebP, GIF, AVIF, BMP) */}
         {format.kind === "image" && objectUrl && (
-          <div className={`flex min-h-[60vh] items-center justify-center p-6 rounded-xl transition ${imageBgDark ? "bg-slate-950" : "bg-slate-100"}`}>
+          <div className={`flex min-h-[50vh] sm:min-h-[60vh] items-center justify-center p-2 sm:p-6 rounded-xl transition ${imageBgDark ? "bg-slate-950" : "bg-slate-100"}`}>
             <img
               src={objectUrl}
               alt={docData.originalFilename}
@@ -1053,14 +1053,14 @@ export function MediaRenderer({
                 imageRendering: "auto",
                 transition: "transform 0.2s ease-out",
               }}
-              className="max-h-[78vh] max-w-full rounded-lg object-contain shadow-2xl select-none"
+              className="max-h-[82vh] max-w-full rounded-lg object-contain shadow-2xl select-none"
             />
           </div>
         )}
 
         {/* 6. Sanitized Vector SVG */}
         {format.kind === "svg" && objectUrl && (
-          <div className={`flex min-h-[60vh] items-center justify-center p-6 rounded-xl transition ${imageBgDark ? "bg-slate-950" : "bg-slate-100"}`}>
+          <div className={`flex min-h-[50vh] sm:min-h-[60vh] items-center justify-center p-2 sm:p-6 rounded-xl transition ${imageBgDark ? "bg-slate-950" : "bg-slate-100"}`}>
             <img
               src={objectUrl}
               alt={docData.originalFilename}
@@ -1069,7 +1069,7 @@ export function MediaRenderer({
                 transformOrigin: "center center",
                 transition: "transform 0.2s ease-out",
               }}
-              className="max-h-[78vh] max-w-full object-contain select-none"
+              className="max-h-[82vh] max-w-full object-contain select-none"
             />
           </div>
         )}
