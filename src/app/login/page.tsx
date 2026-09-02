@@ -8,7 +8,7 @@ import { BrandFooter } from "@/components/brand-footer";
 import { useI18n } from "@/lib/i18n/context";
 import { Lock, Mail, User, Key, AlertCircle, ArrowRight, ShieldCheck, Sparkles } from "lucide-react";
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
-import { unlockOwnerVault } from "@/lib/vault/master-vault";
+import { unlockOwnerVault, syncVaultDocumentKeys } from "@/lib/vault/master-vault";
 
 export default function LoginPage({ defaultRegister = false }: { defaultRegister?: boolean }) {
   const router = useRouter();
@@ -100,10 +100,15 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
 
       if (savedPasswordFor2fa && (data.user?.masterKeySaltHex || savedSaltFor2fa)) {
         await unlockOwnerVault(savedPasswordFor2fa, data.user?.masterKeySaltHex || savedSaltFor2fa).catch(() => {});
+        try {
+          const [resDocs, resLinks] = await Promise.all([fetch("/api/docs"), fetch("/api/links")]);
+          const docsJson = await resDocs.json().catch(() => ({}));
+          const linksJson = await resLinks.json().catch(() => ({}));
+          await syncVaultDocumentKeys(docsJson.documents || [], linksJson.links || []);
+        } catch {}
       }
 
-      router.push("/dashboard");
-      router.refresh();
+      window.location.href = "/dashboard";
     } catch (err: any) {
       setError(err.message || "An error occurred");
     } finally {
@@ -115,8 +120,9 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
     e.preventDefault();
     setError(null);
 
+    // If in Register mode, enforce minimum password policy before submitting
     if (isRegister) {
-      const minLen = Number(process.env.NEXT_PUBLIC_PASSWORD_MIN_LENGTH || "10");
+      const minLen = 8;
       const rules = evaluatePassword(password, minLen);
       const unmet = rules.filter((r) => !r.met);
       if (unmet.length > 0) {
@@ -154,9 +160,15 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
         return;
       }
 
-      // Unlock Zero-Knowledge Master Vault in memory
+      // Unlock Zero-Knowledge Master Vault and auto-unwrap all documents & links like Proton/Bitwarden
       if (data.user?.masterKeySaltHex) {
         await unlockOwnerVault(password, data.user.masterKeySaltHex).catch(() => {});
+        try {
+          const [resDocs, resLinks] = await Promise.all([fetch("/api/docs"), fetch("/api/links")]);
+          const docsJson = await resDocs.json().catch(() => ({}));
+          const linksJson = await resLinks.json().catch(() => ({}));
+          await syncVaultDocumentKeys(docsJson.documents || [], linksJson.links || []);
+        } catch {}
       }
 
       window.location.href = "/dashboard";

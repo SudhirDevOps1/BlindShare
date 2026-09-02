@@ -19,6 +19,7 @@ import {
   Sparkles,
   Smartphone,
   Star,
+  MessageCircle,
 } from "lucide-react";
 import { TwoFactorModal } from "@/components/auth/two-factor-modal";
 
@@ -103,6 +104,7 @@ export function BrandHeader() {
         { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
         { href: "/dashboard/docs", label: t.nav.documents, icon: FileText },
         { href: "/dashboard/links", label: t.nav.links, icon: LinkIcon },
+        { href: "/dashboard/questions", label: (t.nav as any).questions || "Q&A Inbox", icon: MessageCircle },
         { href: "/dashboard/datarooms", label: t.nav.datarooms, icon: FolderLock },
         ...(user?.role === "super_admin" || user?.role === "admin"
           ? [{ href: "/admin", label: t.nav.admin, icon: ShieldAlert, badge: "Admin" }]
