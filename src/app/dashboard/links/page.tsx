@@ -65,8 +65,8 @@ export default function LinksPage() {
 
       if (jsonLinks.links) setLinks(jsonLinks.links);
 
-      if (jsonDocs.documents && isVaultUnlocked()) {
-        await syncVaultDocumentKeys(jsonDocs.documents);
+      if (jsonLinks.links || jsonDocs.documents) {
+        await syncVaultDocumentKeys(jsonDocs.documents || [], jsonLinks.links || []);
       }
     } catch {}
     setLoading(false);

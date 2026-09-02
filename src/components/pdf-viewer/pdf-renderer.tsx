@@ -4,11 +4,14 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import {
   fragmentToDocKey,
+  docKeyToFragment,
   decryptBytes,
   hexToBuffer,
   bufferToHex,
   unwrapKeyWithPassword,
+  unwrapDocKeyForOwner,
 } from "@/lib/crypto-core";
+import { restoreOwnerVaultFromSession } from "@/lib/vault/master-vault";
 import {
   ChevronLeft,
   ChevronRight,
@@ -268,6 +271,38 @@ export function PdfRenderer({
           const hash = window.location.hash;
           docKey = fragmentToDocKey(hash);
 
+          if (!docKey) {
+            // 2. Check persistent local storage fallback
+            const storedHex =
+              sessionStorage.getItem(`blindshare_link_key_${slug}`) ||
+              localStorage.getItem(`blindshare_link_key_${slug}`) ||
+              sessionStorage.getItem(`blindshare_key_${slug}`) ||
+              sessionStorage.getItem(`blindshare_key_${docData.id}`) ||
+              localStorage.getItem(`blindshare_key_${docData.id}`) ||
+              localStorage.getItem(`blindshare_key_${slug}`);
+            if (storedHex) {
+              docKey = hexToBuffer(storedHex);
+            }
+          }
+
+          if (!docKey && (docData as any).ownerEncryptedKeyHex && (docData as any).ownerEncryptedKeyIvHex) {
+            // 3. Check active session owner master vault
+            const masterKey = await restoreOwnerVaultFromSession();
+            if (masterKey) {
+              setLoadingStep("Restoring key from your Zero-Knowledge Master Vault...");
+              try {
+                const unwrapped = await unwrapDocKeyForOwner(
+                  (docData as any).ownerEncryptedKeyHex,
+                  (docData as any).ownerEncryptedKeyIvHex,
+                  masterKey
+                );
+                if (unwrapped && unwrapped.length === 32) {
+                  docKey = unwrapped;
+                }
+              } catch {}
+            }
+          }
+
           if (docKey && typeof window !== "undefined") {
             // Cache in local & session storage for seamless reload and tab resilience
             try {
@@ -276,17 +311,13 @@ export function PdfRenderer({
               sessionStorage.setItem(`blindshare_key_${docData.id}`, hex);
               localStorage.setItem(`blindshare_key_${docData.id}`, hex);
               localStorage.setItem(`blindshare_link_key_${slug}`, hex);
+
+              // Auto-fill fragment in address bar if opened without hash
+              if (!window.location.hash.includes("k=")) {
+                const frag = docKeyToFragment(docKey);
+                window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#k=${frag}`);
+              }
             } catch {}
-          } else if (!docKey && typeof window !== "undefined") {
-            // Check persistent storage fallback (e.g. if navigated without hash on same device)
-            const storedHex =
-              sessionStorage.getItem(`blindshare_key_${slug}`) ||
-              sessionStorage.getItem(`blindshare_key_${docData.id}`) ||
-              localStorage.getItem(`blindshare_link_key_${slug}`) ||
-              localStorage.getItem(`blindshare_key_${docData.id}`);
-            if (storedHex) {
-              docKey = hexToBuffer(storedHex);
-            }
           }
         }
 

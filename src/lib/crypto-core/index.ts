@@ -313,9 +313,6 @@ export async function unwrapKeyWithPassword(
   return new Uint8Array(decryptedKey);
 }
 
-/**
- * Derive 256-bit Owner Master Key using PBKDF2 with SHA-256 (100,000 iterations)
- */
 export async function deriveOwnerMasterKey(
   password: string,
   saltHex: string
@@ -328,7 +325,7 @@ export async function deriveOwnerMasterKey(
     enc.encode(password),
     { name: "PBKDF2" },
     false,
-    ["deriveKey"]
+    ["deriveKey", "deriveBits"]
   );
 
   return await cryptoSubtle.deriveKey(
@@ -340,7 +337,20 @@ export async function deriveOwnerMasterKey(
     },
     baseKey,
     { name: "AES-GCM", length: 256 },
-    false,
+    true,
+    ["encrypt", "decrypt"]
+  );
+}
+
+/**
+ * Import a 256-bit raw AES-GCM Owner Master Key directly from session memory
+ */
+export async function importOwnerMasterKeyFromRaw(rawKey: Uint8Array): Promise<CryptoKey> {
+  return await crypto.subtle.importKey(
+    "raw",
+    rawKey as ArrayBufferView<ArrayBuffer>,
+    { name: "AES-GCM" },
+    true,
     ["encrypt", "decrypt"]
   );
 }

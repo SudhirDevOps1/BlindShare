@@ -36,6 +36,10 @@ export async function GET() {
         createdAt: links.createdAt,
         updatedAt: links.updatedAt,
         docTitle: documents.title,
+        docEncryptionMode: documents.encryptionMode,
+        docIvHex: documents.ivHex,
+        ownerEncryptedKeyHex: documents.ownerEncryptedKeyHex,
+        ownerEncryptedKeyIvHex: documents.ownerEncryptedKeyIvHex,
         dataroomName: datarooms.name,
       })
       .from(links)
