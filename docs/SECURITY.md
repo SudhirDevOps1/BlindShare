@@ -80,5 +80,9 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
   - Automatically stamps multi-layer diagonal matrix watermarks (verified recipient identity, timestamp, custom text, slug) directly into every page stream before export.
 - **Edge Rate Limiting on Public In-Doc Inquiries**:
   - Distributed sliding-window limiter on `/api/v/[slug]/questions` (`15 req/min per IP`) to prevent database spam and DDoS.
+- **ALTCHA Proof-of-Work Bot & DDoS Defense** (`src/lib/security/altcha.ts`):
+  - 100% self-hosted Proof-of-Work (PoW) CAPTCHA alternative with zero third-party tracking, zero cookies, and zero external network dependencies.
+  - Generates SHA-256 challenges with HMAC-SHA256 signatures, verified in constant time (`crypto.timingSafeEqual`) with a 10-minute in-memory replay prevention cache.
+  - Seamlessly protects public document links, investor email gates, founder Q&A question pins, and admin login forms.
 - **Privacy-First Telemetry Architecture (`PrismAnalytics`)**:
   - Optional, self-hosted telemetry engine with zero third-party scripts, zero PII, zero cross-site cookies, and 10s buffered batch beaconing.

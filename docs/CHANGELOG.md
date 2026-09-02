@@ -19,8 +19,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
   - Fast 0.01s (10ms) reloads on browser page refresh (`F5`) utilizing ephemeral tab-level `sessionStorage` buffers that automatically wipe on tab closure.
 - **Interactive Selectable Text Layer & Clickable Hyperlinks:**
   - Full text selection, clipboard extraction (**Copy Text** button), `Ctrl+F` search, and interactive clickable `<a>` hyperlinks over canvas slides.
+- **ALTCHA Proof-of-Work Bot & DDoS Defense (`src/lib/security/altcha.ts`, `src/components/security/altcha-box.tsx`):**
+  - 100% self-hosted Proof-of-Work (PoW) CAPTCHA alternative with zero cookies, zero third-party tracking, and zero external network dependencies.
+  - Generates HMAC-SHA256 signed challenges with constant-time verification (`crypto.timingSafeEqual`) and 10-minute in-memory replay defense.
+  - Inbuilt protection across Public Share Links, Investor Email Gates, Founder Q&A forms, and Admin Sign-In (`/login`).
+- **Dynamic OpenGraph & Social Preview Engine (`src/app/opengraph-image.tsx`, `src/app/twitter-image.tsx`, `public/brand/og-image.png`):**
+  - High-resolution 1200x630 cards with gold lock branding, glowing badges, and feature pills for rich previews on WhatsApp, Telegram, Twitter/X, and LinkedIn.
 - **Horizontal Scrollable Navigation Bar (`src/components/brand-header.tsx`, `src/app/globals.css`):**
   - Added smooth horizontal scrolling (`no-scrollbar`) for center navigation tabs to prevent UI squishing on smaller laptop screens.
+- **24 Automated Enterprise Security Tests (`npm test`):**
+  - 24 comprehensive test suites covering Zero-Knowledge E2EE, ALTCHA PoW, SSRF defense, HMAC tokens, DuckDB analytics, and AI lead scoring.
 
 ### 🛡️ Security Hardening
 - **CodeQL Alert #86 Fixed:** Replaced substring URL matching with strict RFC `URL` hostname and search param verification in `src/db/index.ts` and `src/lib/notifications/webhook-notifier.ts`.
