@@ -115,18 +115,18 @@ export function BrandHeader() {
       ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-950/90 backdrop-blur-md w-full">
+    <header className="sticky top-0 z-40 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-xl w-full shadow-lg shadow-black/20">
       <div className="mx-auto flex max-w-[1600px] items-center justify-between px-3 py-2.5 sm:px-6 gap-2">
         {/* Brand Logo & Name */}
         <Link href={showDashboardNav ? "/dashboard" : "/"} className="flex items-center gap-2.5 group flex-shrink-0">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-700 shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform flex-shrink-0">
-            <Lock className="h-4.5 w-4.5 text-slate-950" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 shadow-md shadow-amber-500/25 group-hover:scale-105 group-hover:rotate-3 transition-all flex-shrink-0">
+            <Lock className="h-4.5 w-4.5 text-slate-950 stroke-[2.5]" />
           </div>
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-bold tracking-tight text-white text-base sm:text-lg">{appName}</span>
-              <span className="inline-flex items-center rounded-full bg-amber-500/10 px-1.5 py-0.2 text-[9px] font-semibold text-amber-400 border border-amber-500/20">
-                E2EE
+              <span className="inline-flex items-center rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-bold text-amber-300 border border-amber-500/30">
+                v1.2.0 E2EE
               </span>
             </div>
             <p className="text-[9px] text-slate-400 hidden 2xl:block">Zero-Knowledge Doc Sharing</p>
@@ -134,7 +134,7 @@ export function BrandHeader() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 flex-shrink">
+        <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5 flex-shrink">
           {navLinks.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
@@ -142,16 +142,16 @@ export function BrandHeader() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-1.5 rounded-lg px-2 xl:px-3 py-1.5 text-xs xl:text-sm font-medium transition-colors whitespace-nowrap ${
+                className={`flex items-center gap-1.5 rounded-xl px-2.5 xl:px-3.5 py-1.5 text-xs xl:text-sm font-medium transition-all whitespace-nowrap ${
                   isActive
-                    ? "bg-slate-800 text-amber-400 border border-amber-500/30 shadow-sm"
-                    : "text-slate-300 hover:bg-slate-900 hover:text-white"
+                    ? "bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm shadow-amber-500/10"
+                    : "text-slate-300 hover:bg-slate-900/80 hover:text-white hover:border-slate-800 border border-transparent"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5 flex-shrink-0" />
                 <span>{item.label}</span>
                 {item.badge && (
-                  <span className="rounded bg-amber-500/20 px-1 py-0.2 text-[9px] font-bold text-amber-300 border border-amber-500/30">
+                  <span className="rounded-full bg-amber-500/20 px-1.5 py-0.2 text-[9px] font-bold text-amber-300 border border-amber-500/30">
                     {item.badge}
                   </span>
                 )}

@@ -245,7 +245,7 @@ export default function LinksPage() {
         </div>
 
         {/* Links Table */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+        <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800/80">
           {loading && links.length === 0 ? (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[700px] text-left text-xs">
@@ -281,55 +281,58 @@ export default function LinksPage() {
               </table>
             </div>
           ) : links.length === 0 ? (
-            <div className="py-12 text-center space-y-3">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-slate-800 text-slate-400">
-                <LinkIcon className="h-6 w-6" />
+            <div className="py-16 text-center space-y-4">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-lg">
+                <LinkIcon className="h-7 w-7" />
               </div>
-              <h3 className="text-sm font-semibold text-white">No share links yet</h3>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                Generate your first share link with watermarks, email capture, or password protection.
-              </p>
+              <div>
+                <h3 className="text-base font-bold text-white">No share links yet</h3>
+                <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1">
+                  Create your first tracked zero-knowledge share link to share your documents securely.
+                </p>
+              </div>
               <button
                 onClick={() => setActiveModal(true)}
-                className="rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400"
+                className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 px-6 py-3 text-xs font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 transition-all hover:scale-105"
               >
-                Create Link
+                <Plus className="h-4 w-4" />
+                <span>Create Your First Link</span>
               </button>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[700px] text-left text-xs">
-                <thead className="border-b border-slate-800 text-slate-400 font-semibold">
+                <thead className="border-b border-slate-800/80 text-slate-400 font-semibold uppercase tracking-wider text-[10px]">
                   <tr>
-                    <th className="pb-3 pl-2">Nickname / Recipient</th>
-                    <th className="pb-3">Target Document</th>
-                    <th className="pb-3">Gates & Security</th>
-                    <th className="pb-3">Views</th>
-                    <th className="pb-3">Status</th>
-                    <th className="pb-3">Created</th>
-                    <th className="pb-3 pr-2 text-right">Actions</th>
+                    <th className="pb-3.5 pl-3">Nickname / Recipient</th>
+                    <th className="pb-3.5">Target Document</th>
+                    <th className="pb-3.5">Gates & Security</th>
+                    <th className="pb-3.5">Views</th>
+                    <th className="pb-3.5">Status</th>
+                    <th className="pb-3.5">Created</th>
+                    <th className="pb-3.5 pr-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
+                <tbody className="divide-y divide-slate-800/50">
                   {links.map((link) => (
-                    <tr key={link.id} className="hover:bg-slate-800/30">
-                      <td className="py-3.5 pl-2 font-medium text-white">
-                        <div className="font-semibold text-white">{link.name}</div>
-                        <div className="font-mono text-[11px] text-amber-400">/v/{link.slug}</div>
+                    <tr key={link.id} className="hover:bg-slate-800/40 transition-colors group">
+                      <td className="py-4 pl-3 font-medium text-white">
+                        <div className="font-bold text-white group-hover:text-amber-300 transition-colors">{link.name}</div>
+                        <div className="font-mono text-[11px] text-amber-400/80 mt-0.5">/v/{link.slug}</div>
                       </td>
 
-                      <td className="py-3.5 text-slate-300">
-                        <div className="max-w-[160px] truncate">
+                      <td className="py-4 text-slate-300">
+                        <div className="max-w-[170px] truncate font-medium">
                           {link.docTitle || link.dataroomName || "Document"}
                         </div>
                       </td>
 
-                      <td className="py-3.5">
+                      <td className="py-4">
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {link.allowDownload && (
                             <span
                               title="Download Permitted"
-                              className="rounded bg-purple-500/20 p-1 text-purple-400 border border-purple-500/30"
+                              className="rounded-lg bg-purple-500/15 p-1.5 text-purple-300 border border-purple-500/30 shadow-sm"
                             >
                               <Download className="h-3 w-3" />
                             </span>
@@ -337,7 +340,7 @@ export default function LinksPage() {
                           {link.hasPassword && (
                             <span
                               title="Password Protected"
-                              className="rounded bg-amber-500/20 p-1 text-amber-400 border border-amber-500/30"
+                              className="rounded-lg bg-amber-500/15 p-1.5 text-amber-300 border border-amber-500/30 shadow-sm"
                             >
                               <Lock className="h-3 w-3" />
                             </span>
@@ -345,7 +348,7 @@ export default function LinksPage() {
                           {link.requiresEmail && (
                             <span
                               title="Email Gate"
-                              className="rounded bg-blue-500/20 p-1 text-blue-400 border border-blue-500/30"
+                              className="rounded-lg bg-blue-500/15 p-1.5 text-blue-300 border border-blue-500/30 shadow-sm"
                             >
                               <Mail className="h-3 w-3" />
                             </span>
@@ -353,7 +356,7 @@ export default function LinksPage() {
                           {link.watermarkEnabled && (
                             <span
                               title="Live Watermark"
-                              className="rounded bg-emerald-500/20 p-1 text-emerald-400 border border-emerald-500/30"
+                              className="rounded-lg bg-emerald-500/15 p-1.5 text-emerald-300 border border-emerald-500/30 shadow-sm"
                             >
                               <Shield className="h-3 w-3" />
                             </span>
@@ -361,31 +364,31 @@ export default function LinksPage() {
                         </div>
                       </td>
 
-                      <td className="py-3.5 font-mono text-slate-300">
+                      <td className="py-4 font-mono font-semibold text-slate-200">
                         {link.viewCount}
-                        {link.maxViews ? ` / ${link.maxViews}` : ""}
+                        {link.maxViews ? <span className="text-slate-500 font-normal"> / {link.maxViews}</span> : ""}
                       </td>
 
-                      <td className="py-3.5">
+                      <td className="py-4">
                         {link.isRevoked ? (
-                          <span className="rounded bg-red-500/20 px-2 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30">
+                          <span className="rounded-full bg-red-500/15 px-2.5 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30 shadow-sm">
                             Revoked
                           </span>
                         ) : (
-                          <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
+                          <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-300 border border-emerald-500/30 shadow-sm">
                             Active
                           </span>
                         )}
                       </td>
 
-                      <td className="py-3.5 text-slate-400 text-[11px]">
+                      <td className="py-4 text-slate-400 text-[11px] font-medium">
                         {new Date(link.createdAt).toLocaleDateString()}
                       </td>
 
-                      <td className="py-3.5 pr-2 text-right space-x-1.5">
+                      <td className="py-4 pr-3 text-right space-x-1.5 whitespace-nowrap">
                         <button
                           onClick={() => handleCopy(link)}
-                          className="rounded-lg bg-slate-800 p-1.5 text-slate-300 hover:bg-slate-700"
+                          className="rounded-xl bg-slate-800/80 p-2 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/60 shadow-sm transition-all hover:scale-105"
                           title="Copy Link"
                         >
                           {copiedId === link.id ? (
@@ -397,7 +400,7 @@ export default function LinksPage() {
 
                         <button
                           onClick={() => handleOpenQr(link)}
-                          className="rounded-lg bg-slate-800 p-1.5 text-slate-300 hover:bg-slate-700"
+                          className="rounded-xl bg-slate-800/80 p-2 text-slate-300 hover:bg-slate-700 hover:text-amber-300 border border-slate-700/60 shadow-sm transition-all hover:scale-105"
                           title="Show QR Code"
                         >
                           <QrCode className="h-4 w-4 text-amber-400" />
@@ -405,7 +408,7 @@ export default function LinksPage() {
 
                         <Link
                           href={`/dashboard/analytics/${link.id}`}
-                          className="inline-flex rounded-lg bg-amber-500/20 p-1.5 text-amber-300 hover:bg-amber-500/30 border border-amber-500/30"
+                          className="inline-flex rounded-xl bg-amber-500/15 p-2 text-amber-300 hover:bg-amber-500/25 border border-amber-500/30 shadow-sm shadow-amber-500/10 transition-all hover:scale-105"
                           title="View Analytics"
                         >
                           <BarChart3 className="h-4 w-4" />
@@ -413,10 +416,10 @@ export default function LinksPage() {
 
                         <button
                           onClick={() => handleToggleRevoke(link.id, link.isRevoked)}
-                          className={`rounded-lg p-1.5 ${
+                          className={`rounded-xl p-2 border transition-all hover:scale-105 shadow-sm ${
                             link.isRevoked
-                              ? "text-emerald-400 hover:bg-emerald-950/40"
-                              : "text-amber-400 hover:bg-amber-950/40"
+                              ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25"
+                              : "bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
                           }`}
                           title={link.isRevoked ? "Activate Link" : "Revoke Link"}
                         >
@@ -425,7 +428,7 @@ export default function LinksPage() {
 
                         <button
                           onClick={() => promptDeleteLink(link.id, link.name)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-950/40 transition"
+                          className="rounded-xl p-2 text-slate-400 hover:text-red-300 hover:bg-red-950/40 hover:border-red-500/30 border border-transparent transition-all hover:scale-105"
                           title="Delete Link"
                         >
                           <Trash2 className="h-4 w-4" />
