@@ -100,6 +100,7 @@ export function PdfRenderer({
   const [rotation, setRotation] = useState(0);
   const [presenterMode, setPresenterMode] = useState(false);
   const [antiLeakActive, setAntiLeakActive] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   // Next-Gen Feature States
   const [audioNotes, setAudioNotes] = useState<any[]>([]);
@@ -749,26 +750,78 @@ export function PdfRenderer({
     };
   }, [pdfDoc, currentPage, zoom, rotation, drawWatermark, presenterMode]);
 
-  // Handle Download (Only if allowDownload is enabled)
-  const handleDownload = () => {
-    if (!linkData.allowDownload || !decryptedDataRef.current) return;
-    const safeTitle = (docData.title || "document").replace(/[^a-zA-Z0-9_\-\.]/g, "_");
-    const filename = safeTitle.toLowerCase().endsWith(".pdf") ? safeTitle : `${safeTitle}.pdf`;
+  // Handle Download (Only if allowDownload is enabled) - Permanently Burns Indelible Watermark
+  const handleDownload = async () => {
+    if (!linkData.allowDownload || !decryptedDataRef.current || downloading) return;
+    setDownloading(true);
 
-    const blob = new Blob([decryptedDataRef.current], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename;
-    a.rel = "noopener noreferrer";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    try {
+      const safeTitle = (docData.title || "document").replace(/[^a-zA-Z0-9_\-\.]/g, "_");
+      const filename = safeTitle.toLowerCase().endsWith(".pdf") ? safeTitle : `${safeTitle}.pdf`;
 
-    // Defer revoke by 60s so browser download managers & PDF renderers have plenty of time
-    setTimeout(() => {
-      URL.revokeObjectURL(url);
-    }, 60000);
+      let outputBytes: ArrayBuffer | Uint8Array = decryptedDataRef.current;
+
+      // If watermark is enabled, permanently burn and stamp diagonal matrix watermark into every page!
+      if (linkData.watermarkEnabled) {
+        try {
+          const { PDFDocument, rgb, degrees, StandardFonts } = await import("pdf-lib");
+          const pdfDoc = await PDFDocument.load(decryptedDataRef.current.slice(0));
+          const pages = pdfDoc.getPages();
+          const font = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+          const timeStr = new Date().toISOString().substring(0, 10);
+          const identityLabel = viewerIdentity || "CONFIDENTIAL";
+          const customLabel = linkData.watermarkText ? `[${linkData.watermarkText}] ` : "";
+          const watermarkString = `${customLabel}${identityLabel} • ${timeStr} • ${slug.substring(0, 8)}`;
+
+          for (const page of pages) {
+            const { width, height } = page.getSize();
+            const fontSize = Math.max(12, Math.min(width, height) / 36);
+
+            // Staggered multi-layer matrix watermark across the page
+            const stepX = width / 2.2;
+            const stepY = height / 3.2;
+
+            for (let x = -width * 0.2; x < width * 1.3; x += stepX) {
+              for (let y = -height * 0.2; y < height * 1.3; y += stepY) {
+                page.drawText(watermarkString, {
+                  x,
+                  y,
+                  size: fontSize,
+                  font,
+                  color: rgb(0.55, 0.55, 0.55),
+                  opacity: 0.25,
+                  rotate: degrees(-32),
+                });
+              }
+            }
+          }
+
+          outputBytes = await pdfDoc.save();
+        } catch (watermarkErr) {
+          console.warn("Watermark embedding fallback:", watermarkErr);
+        }
+      }
+
+      const blob = new Blob([outputBytes as any], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      // Defer revoke by 60s so browser download managers & PDF renderers have plenty of time
+      setTimeout(() => {
+        URL.revokeObjectURL(url);
+      }, 60000);
+    } catch (err: any) {
+      console.error("Download error:", err);
+    } finally {
+      setDownloading(false);
+    }
   };
 
   if (loading) {
@@ -929,11 +982,21 @@ export function PdfRenderer({
           {linkData.allowDownload && (
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10 transition"
-              title="Download Decrypted PDF"
+              disabled={downloading}
+              className="flex items-center gap-1.5 rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10 transition disabled:opacity-50 cursor-pointer"
+              title={linkData.watermarkEnabled ? "Download Watermarked PDF" : "Download Decrypted PDF"}
             >
-              <Download className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Download</span>
+              {downloading ? (
+                <>
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+                  <span className="hidden sm:inline">Stamping...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Download</span>
+                </>
+              )}
             </button>
           )}
 
