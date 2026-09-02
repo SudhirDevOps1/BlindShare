@@ -135,6 +135,7 @@ BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your 
 <summary><strong>🔒 Security & Encryption</strong></summary>
 <br/>
 
+- **Bitwarden-Grade Zero-Knowledge Owner Master Key Vault** — client-side PBKDF2 (100k rounds) + AES-GCM-256 wrapping for seamless cross-device, cache-immune document key persistence
 - **Transparent Client-Side GZIP Compression** — 50–80% storage footprint reduction on B2/R2 with zero server CPU load
 - **Live DNS MX Verification & Temp Email Blocker** — real-time Node.js DNS resolution + 40+ disposable domain blocklist + SSRF private IP filter
 - **Tab-Switch Anti-Spy Privacy Shield** — auto-obfuscates confidential documents when reader switches tabs/windows

@@ -62,6 +62,14 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
   limiting via Upstash Redis REST HTTP API with zero-crash in-memory sliding window fallback.
 - **Resilient Self-Hosted PDF.js**: Local vendor script loading with CDN failover to guarantee 100%
   viewer uptime without single-point supply-chain dependencies.
+- **Bitwarden-Grade Owner Master Key Vault** (`src/lib/vault/master-vault.ts`):
+  - Derives a 256-bit `OwnerMasterKey` in browser memory via WebCrypto `PBKDF2-SHA256` (100,000 rounds) using a per-user 16-byte random salt.
+  - Automatically wraps every document's 32-byte `DocKey` with `AES-GCM-256` before sending metadata to `/api/docs`.
+  - On login or across browser cache clears, the client derives the master key in RAM and decrypts all document keys locally.
+  - **Zero-Knowledge Invariant**: Plaintext master passwords and unencrypted document keys are never transmitted to the server.
+- **Client vs. Server Key Isolation**:
+  - The server `.env` variables (`SESSION_SECRET`, `ADMIN_BOOTSTRAP_INVITE`, `UPSTASH_REDIS_REST_TOKEN`) are strictly isolated for session HMACs, database operations, and edge rate-limiting.
+  - Document decryption keys NEVER exist in `.env` or on the server file system. All document decryption happens exclusively inside viewer and owner browsers using WebCrypto.
 - **CodeQL Advanced SAST Hardening (85/85 Alerts Resolved · 0 Open)**:
   - **CSPRNG Invariant**: Pure WebCrypto `crypto.getRandomValues()` and `crypto.randomUUID()` used everywhere. `Math.random()` completely eliminated.
   - **SVG DOMParser Sanitization**: Native XML DOM parsing and strict URL protocol allowlisting (`http:`, `https:`, `mailto:`, `#`), replacing bypass-vulnerable regexes.

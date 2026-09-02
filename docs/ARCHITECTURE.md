@@ -23,17 +23,28 @@ links 1─* live_rooms
 users 1─* invites · users 1─* push_subscriptions · audit_log · system_settings
 ```
 
-## E2EE & Compression Flow
+## E2EE, Master Vault & Compression Flow
 1. **Client-Side GZIP Compression**: Browser compresses document bytes via native `CompressionStream('gzip')` (50–80% space saving on B2/R2).
 2. `crypto.getRandomValues(32)` → DocKey.
 3. `AES-GCM-256` encrypts compressed bytes with 96-bit IV; IV stored in DB (public, harmless).
-4. Ciphertext uploaded (presigned PUT ≤10 min, or direct blind POST for the local adapter).
-5. Link URL `= /v/<slug>#k=base64url(DocKey)`.
-6. Password mode: DocKey wrapped by `PBKDF2-SHA256(250 000, 16-byte salt)`; server stores
-   `bcrypt(password)` + wrap params only.
-7. Viewer fetches ciphertext, decrypts with WebCrypto AES-GCM, decompresses via `DecompressionStream('gzip')`, renders with pdf.js / media renderer.
+4. **Bitwarden-Grade Owner Master Vault**:
+   - Client derives `OwnerMasterKey = PBKDF2-SHA256(AccountPassword, UserSalt, 100 000 iterations)` in browser RAM.
+   - Client wraps `owner_encrypted_key_hex = AES-GCM(DocKey, OwnerMasterKey)` and stores it in the `documents` table.
+   - On login or across cache clears / new devices, the client derives the master key and automatically unwraps all `DocKeys` in RAM without server knowledge.
+5. Ciphertext uploaded (presigned PUT ≤10 min, or direct blind POST for the local adapter).
+6. Link URL `= /v/<slug>#k=base64url(DocKey)`.
+7. **Password Mode**: DocKey wrapped by `PBKDF2-SHA256(250 000, 16-byte salt)`; server stores `bcrypt(password)` + wrap params only.
+8. Viewer fetches ciphertext, decrypts with WebCrypto AES-GCM, decompresses via `DecompressionStream('gzip')`, renders with pdf.js / media renderer.
 
 **Invariant:** no server file contains `crypto.subtle.decrypt` on document bytes.
+
+## Client-Side Master Key vs. Server `.env` Secrets
+| Dimension | Browser Master Key (Zero-Knowledge) | Server `.env` Secret (e.g. `SESSION_SECRET`) |
+|---|---|---|
+| **Where it lives** | Client browser memory only (never sent to server) | Server environment variables (`.env`) |
+| **Purpose** | Encrypts & decrypts document keys & user files | Signs session cookies (HMAC-SHA256) & authenticates DB/Storage |
+| **Server visibility** | **ZERO Knowledge** (server cannot inspect or decrypt) | Server can use it for system HMAC & token verification |
+| **What happens if in `.env`?** | If a document key is placed on the server, the server is no longer Zero-Knowledge. In BlindShare, master document encryption is strictly client-side. | Required for backend session integrity and edge security. |
 
 ## Event pipeline & AI Intent Scoring
 - **Telemetry Batching**: Viewer buffers per-page dwell in memory → flush every `VIEW_HEARTBEAT_SEC` (10s) as a batched array → `POST /api/v/<slug>/session` writes one aggregate row update + N page_event rows.
@@ -46,6 +57,7 @@ users 1─* invites · users 1─* push_subscriptions · audit_log · system_set
 
 ## Security & Defense Layer
 - **Two-Factor Authentication (2FA / TOTP RFC 6238)**: User-level TOTP engine (`src/lib/auth/totp.ts`) with HMAC-SHA1 30-second windows and 8 single-use hashed recovery backup codes.
+- **Bitwarden-Grade Owner Master Key Vault**: Cross-device, cache-immune Zero-Knowledge key synchronization (`src/lib/vault/master-vault.ts`).
 - **Live DNS MX Verification & Temp Email Filter (`src/lib/validation/email-validator.ts`)**: Live Node.js DNS `resolveMx` checking real mail servers + 40+ disposable domain blocklist + SSRF private IP filter.
 - **SSRF Defense Engine**: Pre-flight outbound request validation (`src/lib/security/ssrf-validator.ts`) blocking RFC-1918 private subnets, loopback, and cloud metadata.
 - **Live Room Owner-Only Authorization**: Strict owner authentication preventing presenter slide hijacking.

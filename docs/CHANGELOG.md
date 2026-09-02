@@ -2,8 +2,11 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/).
 
-## [1.2.0] - 2026-09-01 (17:35 IST)
-### Added
+- **Bitwarden-Grade Zero-Knowledge Owner Master Key Vault (`src/lib/vault/master-vault.ts`):**
+  - Client-side WebCrypto `PBKDF2-SHA256` (100,000 iterations) with 16-byte user-specific salt deriving an `OwnerMasterKey` in browser RAM.
+  - Transparent AES-GCM-256 wrapping of individual 32-byte `DocKey`s before saving metadata to `/api/docs`.
+  - Seamless cross-device and cache-immune document key synchronization without server knowledge.
+  - Interactive Zero-Knowledge Key Recovery dialog in `/dashboard/links` supporting single-click account password or key string unlock.
 - **AI Lead Conviction Intent Scoring Engine (Hot Deal Detector):**
   - Real-time mathematical scoring ($0-100$) analyzing 4 intent vectors: Dwell Time ($35\%$), Slide Completion ($25\%$), Revisit Frequency ($20\%$), and Focus Concentration + NDA Agreement ($20\%$).
   - High-intent badges (`🔥 HOT DEAL (85-100)`, `⚡ WARM INTEREST (60-84)`, `❄️ CASUAL (0-59)`) and actionable behavioral pills in analytics.

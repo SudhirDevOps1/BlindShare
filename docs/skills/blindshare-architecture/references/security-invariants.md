@@ -38,3 +38,11 @@
 ## 6. Brute Force Protection
 - **Rule:** Password-gated links and user login attempts must enforce progressive lockouts.
 - **Thresholds:** 5 failed attempts within 15 minutes trigger a 15-minute IP/account lockout.
+
+## 7. Zero-Knowledge Owner Master Vault Invariant
+- **Rule:** Cross-device document key persistence must NEVER store unencrypted keys on the server or in `.env`.
+- **Implementation:**
+  - Owner Master Key derived in browser RAM via WebCrypto `PBKDF2-SHA256` (100,000 iterations + 16-byte user salt).
+  - Document keys wrapped with `AES-GCM-256` before transit to the database (`owner_encrypted_key_hex`).
+  - Server remains a 100% Blind Courier incapable of decrypting document ciphertext.
+
