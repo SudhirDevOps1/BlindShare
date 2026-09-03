@@ -83,6 +83,11 @@ export function CalendarViewsHeatmap({ sessions = [] }: CalendarViewsHeatmapProp
             <span className="text-[10px] font-mono text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
               {totalViews} views this year
             </span>
+            {sessions.length === 0 && (
+              <span className="text-[9px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
+                Sample Benchmark
+              </span>
+            )}
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
             {t.charts?.calendar?.subtitle || "Daily reading telemetry and view frequency across the year"}

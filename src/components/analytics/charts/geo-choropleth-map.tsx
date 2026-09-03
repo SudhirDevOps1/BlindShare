@@ -12,18 +12,21 @@ export function GeoChoroplethMap({ countryBreakdown = [] }: GeoChoroplethMapProp
   const { t } = useI18n();
 
   // Normalized sample locations if none provided
-  const countries = useMemo(() => {
+  const { countries, isSampleData } = useMemo(() => {
     if (countryBreakdown && countryBreakdown.length > 0) {
-      return countryBreakdown;
+      return { countries: countryBreakdown, isSampleData: false };
     }
-    return [
-      { country: "US", views: 48 },
-      { country: "IN", views: 32 },
-      { country: "GB", views: 19 },
-      { country: "DE", views: 14 },
-      { country: "SG", views: 11 },
-      { country: "CA", views: 8 },
-    ];
+    return {
+      countries: [
+        { country: "US", views: 48 },
+        { country: "IN", views: 32 },
+        { country: "GB", views: 19 },
+        { country: "DE", views: 14 },
+        { country: "SG", views: 11 },
+        { country: "CA", views: 8 },
+      ],
+      isSampleData: true,
+    };
   }, [countryBreakdown]);
 
   const totalViews = countries.reduce((acc, c) => acc + c.views, 0);
@@ -53,6 +56,11 @@ export function GeoChoroplethMap({ countryBreakdown = [] }: GeoChoroplethMapProp
               <Radio className="h-3 w-3 animate-ping" />
               <span>{t.charts?.geoMap?.liveSessions || "Live Active Readers"}</span>
             </span>
+            {isSampleData && (
+              <span className="text-[9px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700">
+                Sample Benchmark
+              </span>
+            )}
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
             {t.charts?.geoMap?.subtitle || "Real-time geographic dwell and anonymous location density"}

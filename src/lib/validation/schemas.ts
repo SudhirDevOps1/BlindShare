@@ -262,6 +262,14 @@ export const pushSubscribeSchema = z.object({
   }),
 });
 
+export const contactSchema = z.object({
+  name: z.string().trim().min(1).max(120).optional(),
+  email: emailSchema,
+  subject: z.string().trim().max(200).optional(),
+  message: z.string().trim().min(5, "Message must be at least 5 characters").max(5000),
+  website: z.string().max(100).optional(), // Honeypot field
+});
+
 /**
  * Formats a ZodError into a compact, user-safe message (first issue) plus the
  * full field-level breakdown for programmatic clients — never leaks stack traces.

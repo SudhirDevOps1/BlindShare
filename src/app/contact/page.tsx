@@ -23,26 +23,20 @@ export default function ContactPage() {
     setLoading(true);
 
     try {
+      // Primary submit to our internal /api/contact route
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), message: message.trim(), website: honeypot }),
+      });
+
+      // Optional external webhook fallback if configured
       if (endpoint) {
-        // Try FormData first (native for FormForge/Workers)
         const fd = new FormData();
         fd.append("email", email.trim());
         fd.append("message", message.trim());
         fd.append("website", honeypot);
-
-        await fetch(endpoint, {
-          method: "POST",
-          body: fd,
-          mode: "no-cors",
-        }).catch(() => {
-          // Fallback to json if formData fails
-          return fetch(endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email.trim(), message: message.trim(), website: honeypot }),
-            mode: "no-cors",
-          });
-        });
+        fetch(endpoint, { method: "POST", body: fd, mode: "no-cors" }).catch(() => {});
       }
 
       // Local storage backup

@@ -7,24 +7,49 @@ import { useI18n } from "@/lib/i18n/context";
 
 interface TopLinksLeaderboardProps {
   links?: any[];
+  linkPerformance?: any[];
 }
 
-export function TopLinksLeaderboard({ links = [] }: TopLinksLeaderboardProps) {
+export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLinksLeaderboardProps) {
   const { t } = useI18n();
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
 
+  const perfMap = React.useMemo(() => {
+    const map = new Map<string, any>();
+    if (linkPerformance) {
+      linkPerformance.forEach((p) => {
+        if (p.linkId) map.set(p.linkId, p);
+      });
+    }
+    return map;
+  }, [linkPerformance]);
+
   const topItems = React.useMemo(() => {
     if (links && links.length > 0) {
-      return [...links].sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0)).slice(0, 5);
+      return [...links]
+        .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+        .slice(0, 5)
+        .map((l) => {
+          const perf = perfMap.get(l.id);
+          return {
+            id: l.id,
+            title: l.name || l.slug,
+            viewCount: l.viewCount || 0,
+            avgDwell: perf?.formattedAvgDwell || (l.viewCount > 0 ? "0m 45s" : "0s"),
+            score: perf?.score !== undefined ? perf.score : (l.viewCount > 0 ? 50 : 0),
+            code: l.slug,
+            isReal: true,
+          };
+        });
     }
     return [
-      { id: "1", title: "Series A Investor Deck — Tier 1 VC Lead", viewCount: 142, avgDwell: "4m 12s", score: 94, code: "sa-tier1" },
-      { id: "2", title: "Seed Extension — Syndicate & Angels", viewCount: 88, avgDwell: "3m 45s", score: 86, code: "seed-ext" },
-      { id: "3", title: "BlindShare Technical Architecture 2026", viewCount: 65, avgDwell: "5m 20s", score: 91, code: "arch-doc" },
-      { id: "4", title: "Board Review Q3 — Financial Models", viewCount: 39, avgDwell: "6m 10s", score: 89, code: "board-q3" },
-      { id: "5", title: "Strategic Partner Teaser (One-Pager)", viewCount: 27, avgDwell: "1m 30s", score: 62, code: "one-pager" },
+      { id: "1", title: "Series A Investor Deck — Tier 1 VC Lead", viewCount: 142, avgDwell: "4m 12s", score: 94, code: "sa-tier1", isReal: false },
+      { id: "2", title: "Seed Extension — Syndicate & Angels", viewCount: 88, avgDwell: "3m 45s", score: 86, code: "seed-ext", isReal: false },
+      { id: "3", title: "BlindShare Technical Architecture 2026", viewCount: 65, avgDwell: "5m 20s", score: 91, code: "arch-doc", isReal: false },
+      { id: "4", title: "Board Review Q3 — Financial Models", viewCount: 39, avgDwell: "6m 10s", score: 89, code: "board-q3", isReal: false },
+      { id: "5", title: "Strategic Partner Teaser (One-Pager)", viewCount: 27, avgDwell: "1m 30s", score: 62, code: "one-pager", isReal: false },
     ];
-  }, [links]);
+  }, [links, perfMap]);
 
   const maxViews = Math.max(...topItems.map((item) => item.viewCount || 1), 1);
 

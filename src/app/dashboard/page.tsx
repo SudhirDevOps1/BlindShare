@@ -32,21 +32,25 @@ export default function DashboardPage() {
 
   const [docs, setDocs] = useState<any[]>([]);
   const [links, setLinks] = useState<any[]>([]);
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeModalDoc, setActiveModalDoc] = useState<any | null>(null);
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [docsRes, linksRes] = await Promise.all([
+      const [docsRes, linksRes, analyticsRes] = await Promise.all([
         fetch("/api/docs"),
         fetch("/api/links"),
+        fetch("/api/analytics/overview"),
       ]);
       const docsJson = await docsRes.json();
       const linksJson = await linksRes.json();
+      const analyticsJson = await analyticsRes.json();
 
       if (docsJson.documents) setDocs(docsJson.documents);
       if (linksJson.links) setLinks(linksJson.links);
+      if (analyticsJson && !analyticsJson.error) setAnalyticsData(analyticsJson);
     } catch (err) {
       console.error("Dashboard fetch error:", err);
     } finally {
@@ -172,20 +176,30 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Executive Weekly KPI Digest */}
-        <WeeklyKpiDigest metrics={{ totalViews, activeNow: links.length }} />
+        {/* Executive Weekly KPI Digest: Real metrics from DuckDB/PostgreSQL viewSessions */}
+        <WeeklyKpiDigest
+          metrics={
+            analyticsData?.metrics || {
+              totalViews,
+              activeNow: 0,
+              avgDwellSeconds: 0,
+            }
+          }
+        />
 
-        {/* 7-Day Velocity Chart & Infrastructure Gauges */}
+        {/* 7-Day Velocity Chart & Infrastructure Gauges with Real Daily Views */}
         <DashboardActivityChart
           docs={docs}
           links={links}
           totalStorageBytes={totalStorageBytes}
+          dailyViews={analyticsData?.dailyViews}
+          dbSizeBytes={analyticsData?.metrics?.dbSizeBytes}
         />
 
         {/* Real-time Pitch Deck Send Time Matrix & Top Decks Velocity Leaderboard */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <HourlyMatrixHeatmap />
-          <TopLinksLeaderboard links={links} />
+          <HourlyMatrixHeatmap sessions={analyticsData?.recentSessions || []} />
+          <TopLinksLeaderboard links={links} linkPerformance={analyticsData?.linkPerformance || []} />
         </div>
 
         {/* Quick Upload Box */}

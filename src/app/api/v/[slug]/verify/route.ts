@@ -9,7 +9,7 @@ import { sendWebhookNotification } from "@/lib/notifications/webhook-notifier";
 import { parseBody } from "@/lib/validation";
 import { verifyLinkSchema } from "@/lib/validation/schemas";
 import { validateEmailWithMx } from "@/lib/validation/email-validator";
-import { checkLockout, recordFailure, recordSuccess } from "@/lib/auth/lockout";
+import { checkLockout, recordFailure, recordSuccess, getFailureCount } from "@/lib/auth/lockout";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
 
@@ -31,6 +31,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const { password, email, ndaAgreed, altcha } = parsed.data;
 
   const ip = clientIp(request);
+  const failures = getFailureCount(`link:${slug}`, ip);
+  const mustRequireAltcha = failures >= 2 || process.env.ALTCHA_REQUIRED === "true";
+
+  if (mustRequireAltcha && !altcha) {
+    return NextResponse.json(
+      { error: "Bot security challenge required. Please complete verification before continuing.", reason: "captcha_required" },
+      { status: 400 }
+    );
+  }
 
   if (altcha) {
     const isAltchaValid = verifyAltchaPayload(altcha);

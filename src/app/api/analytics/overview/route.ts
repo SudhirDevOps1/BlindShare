@@ -169,6 +169,63 @@ export async function GET(request: Request) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 6);
 
+    // 5. 7-Day Real Daily Views Timeline
+    const nowTs = Date.now();
+    const dailyMap: Record<string, number> = {};
+    for (const s of sessions) {
+      if (s.startedAt) {
+        const dStr = new Date(s.startedAt).toISOString().split("T")[0];
+        dailyMap[dStr] = (dailyMap[dStr] || 0) + 1;
+      }
+    }
+    const dailyViews = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(nowTs - (6 - i) * 86400000);
+      const key = d.toISOString().split("T")[0];
+      const label = d.toLocaleDateString("en-US", { weekday: "short" });
+      return {
+        dateStr: key,
+        label,
+        views: dailyMap[key] || 0,
+      };
+    });
+
+    // 6. Per-Link Performance (avgDwell and score calculated from actual sessions)
+    const linkSessionsMap = new Map<string, { totalDwell: number; count: number; maxCompletion: number }>();
+    for (const s of recentSessions) {
+      const cur = linkSessionsMap.get(s.linkId) || { totalDwell: 0, count: 0, maxCompletion: 0 };
+      cur.totalDwell += s.totalDwellSeconds || 0;
+      cur.count += 1;
+      cur.maxCompletion = Math.max(cur.maxCompletion, s.completionRate || 0);
+      linkSessionsMap.set(s.linkId, cur);
+    }
+
+    const linkPerformance = userLinks.map((l) => {
+      const stats = linkSessionsMap.get(l.id);
+      const avgSec = stats && stats.count > 0 ? Math.round(stats.totalDwell / stats.count) : 0;
+      const score = stats && stats.count > 0
+        ? Math.min(100, Math.round((avgSec > 60 ? 50 : (avgSec / 60) * 50) + (stats.maxCompletion * 0.5)))
+        : 0;
+      return {
+        linkId: l.id,
+        avgDwellSeconds: avgSec,
+        formattedAvgDwell: formatDuration(avgSec),
+        score: score > 0 ? score : (l.viewCount > 0 ? 60 : 0),
+      };
+    });
+
+    // 7. DB Size estimation or query
+    let dbSizeBytes: number | null = null;
+    try {
+      const queryRes: any = await db.execute(sql`SELECT pg_database_size(current_database()) as size`);
+      const rows = queryRes?.rows || (Array.isArray(queryRes) ? queryRes : []);
+      if (rows.length > 0 && rows[0]?.size) {
+        dbSizeBytes = Number(rows[0].size);
+      }
+    } catch {
+      // Graceful fallback if pg_database_size is not allowed
+      dbSizeBytes = null;
+    }
+
     return NextResponse.json({
       metrics: {
         totalViews: totalSessions,
@@ -178,11 +235,14 @@ export async function GET(request: Request) {
         activeNow,
         totalLinks: userLinks.length,
         totalDocuments: userDocs.length,
+        dbSizeBytes,
       },
       topDocuments,
       recentSessions: recentSessions.slice(0, 20),
       deviceBreakdown: deviceCounts,
       countryBreakdown,
+      dailyViews,
+      linkPerformance,
     });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to load analytics overview" }, { status: 500 });

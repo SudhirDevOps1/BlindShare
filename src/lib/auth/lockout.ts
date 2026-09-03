@@ -44,6 +44,15 @@ export function checkLockout(identifier: string, ip: string): number {
   return remaining > 0 ? Math.ceil(remaining / 1000) : 0;
 }
 
+/** Returns current number of failed attempts within the window */
+export function getFailureCount(identifier: string, ip: string): number {
+  sweep();
+  const rec = attempts.get(keyFor(identifier, ip));
+  if (!rec) return 0;
+  if (Date.now() - rec.firstAttemptAt > WINDOW_MS) return 0;
+  return rec.count || 0;
+}
+
 export function recordFailure(identifier: string, ip: string): { locked: boolean; remainingTries: number } {
   const k = keyFor(identifier, ip);
   const now = Date.now();

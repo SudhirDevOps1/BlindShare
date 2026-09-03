@@ -8,6 +8,8 @@ interface DashboardActivityChartProps {
   docs: any[];
   links: any[];
   totalStorageBytes: number;
+  dailyViews?: { label: string; views: number; dateStr: string }[];
+  dbSizeBytes?: number | null;
 }
 
 export function DashboardActivityChart({
@@ -16,10 +18,15 @@ export function DashboardActivityChart({
   docs,
   links,
   totalStorageBytes,
+  dailyViews,
+  dbSizeBytes,
 }: DashboardActivityChartProps) {
   const { t } = useI18n();
-  // Generate 7-day activity data based on link view counts and creation dates
+  // Generate 7-day activity data based on real session events, or link estimates fallback
   const weeklyData = useMemo(() => {
+    if (dailyViews && dailyViews.length === 7) {
+      return dailyViews;
+    }
     const days: { label: string; views: number; dateStr: string }[] = [];
     const now = new Date();
 
@@ -29,17 +36,15 @@ export function DashboardActivityChart({
       const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
       const dateStr = d.toISOString().split("T")[0];
 
-      // Aggregate views for links created on or around this day, or proportional estimate
       const totalLinkViews = links.reduce((sum, l) => sum + (l.viewCount || 0), 0);
-      const baseline = Math.max(1, Math.round(totalLinkViews / 7));
-      // Add slight deterministic variation for realistic velocity visual
+      const baseline = Math.max(0, Math.round(totalLinkViews / 7));
       const dayFactor = ((d.getDate() * 7 + i * 13) % 9) / 10;
-      const views = Math.max(0, Math.round(baseline * (0.6 + dayFactor)));
+      const views = totalLinkViews === 0 ? 0 : Math.max(0, Math.round(baseline * (0.6 + dayFactor)));
 
       days.push({ label: dayName, views, dateStr });
     }
     return days;
-  }, [links]);
+  }, [links, dailyViews]);
 
   const maxWeeklyViews = useMemo(() => {
     return Math.max(...weeklyData.map((d) => d.views), 5);
@@ -52,8 +57,11 @@ export function DashboardActivityChart({
   const b2LimitMb = 10240; // 10 GB
   const b2Pct = Math.min(100, Math.max(1, Math.round((usedStorageMb / b2LimitMb) * 100)));
 
-  // Database metadata estimated (tables, indexes, audit events)
-  const estimatedDbMb = Math.max(2.4, (docs.length * 0.15) + (links.length * 0.08));
+  // Database metadata: use real dbSizeBytes if queried, else labeled estimate
+  const estimatedDbMb = dbSizeBytes
+    ? dbSizeBytes / (1024 * 1024)
+    : Math.max(2.4, (docs.length * 0.15) + (links.length * 0.08));
+  const isEstimated = !dbSizeBytes;
   const neonLimitMb = 512;
   const neonPct = Math.min(100, Math.max(1, Math.round((estimatedDbMb / neonLimitMb) * 100)));
 
@@ -219,9 +227,16 @@ export function DashboardActivityChart({
               </div>
             </div>
             <div>
-              <div className="text-[11px] font-bold text-slate-200">Neon Postgres</div>
+              <div className="text-[11px] font-bold text-slate-200 flex items-center justify-center gap-1">
+                <span>Neon Postgres</span>
+                {isEstimated && (
+                  <span className="text-[9px] font-mono px-1 py-0.2 rounded bg-slate-800 text-slate-400" title="Estimated based on table overhead">
+                    est.
+                  </span>
+                )}
+              </div>
               <div className="text-[10px] text-slate-400 font-mono">
-                {estimatedDbMb.toFixed(1)} / 512 MB
+                {isEstimated ? "~" : ""}{estimatedDbMb.toFixed(1)} / 512 MB
               </div>
             </div>
           </div>

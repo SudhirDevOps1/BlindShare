@@ -23,12 +23,14 @@ import {
   Save,
 } from "lucide-react";
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
+import { TwoFactorModal } from "@/components/auth/two-factor-modal";
 
 export default function SettingsPage() {
   const router = useRouter();
   const { t, lang, setLang, appName } = useI18n();
 
   const [user, setUser] = useState<any>(null);
+  const [show2FaModal, setShow2FaModal] = useState(false);
   const [pushState, setPushState] = useState<"unsupported" | "default" | "granted" | "denied">("default");
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
@@ -372,6 +374,53 @@ export default function SettingsPage() {
             </div>
           </form>
         </div>
+
+        {/* 2.5 Two-Factor Authentication (TOTP Authenticator App) */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-white">
+              <ShieldCheck className="h-4 w-4 text-emerald-400" />
+              <span>Two-Factor Authentication (TOTP)</span>
+            </div>
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
+                user?.twoFactorEnabled
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                  : "border-slate-700 bg-slate-800 text-slate-400"
+              }`}
+            >
+              {user?.twoFactorEnabled ? "Active & Enforced ✓" : "Not Configured"}
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <p className="text-xs text-slate-400 max-w-lg">
+              Protect your account using Time-based One-Time Passwords (TOTP) with Google Authenticator, Authy, or 1Password. Required for zero-knowledge vault defense against credential stuffing.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShow2FaModal(true)}
+              className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors shadow-md shadow-amber-500/10 shrink-0"
+            >
+              <ShieldCheck className="h-4 w-4" />
+              <span>{user?.twoFactorEnabled ? "Manage 2FA & Backup Codes" : "Enable 2FA Protection"}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 2FA Modal */}
+        <TwoFactorModal
+          isOpen={show2FaModal}
+          onClose={() => {
+            setShow2FaModal(false);
+            // Refresh user state after modal action
+            fetch("/api/auth/me")
+              .then((r) => r.json())
+              .then((d) => {
+                if (d.user) setUser(d.user);
+              });
+          }}
+        />
 
         {/* 3. Invite Codes & Access Delegation */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">

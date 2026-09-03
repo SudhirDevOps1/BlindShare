@@ -4,7 +4,7 @@ import { users, auditLog } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { verifyPassword } from "@/lib/auth/password";
 import { createSessionCookie, ensureGenesisAdmin, sign2faPreAuthToken } from "@/lib/auth/session";
-import { checkLockout, recordFailure, recordSuccess } from "@/lib/auth/lockout";
+import { checkLockout, recordFailure, recordSuccess, getFailureCount } from "@/lib/auth/lockout";
 import { parseBody } from "@/lib/validation";
 import { loginSchema } from "@/lib/validation/schemas";
 import { genId } from "@/lib/ids";
@@ -29,8 +29,17 @@ export async function POST(request: Request) {
     const { email, password, altcha } = parsed.data;
 
     const ip = clientIp(request);
+    const failures = getFailureCount(email, ip);
+    const mustRequireAltcha = failures >= 2 || process.env.ALTCHA_REQUIRED === "true";
 
-    // Verify ALTCHA if provided or if high failed attempt count
+    if (mustRequireAltcha && !altcha) {
+      return NextResponse.json(
+        { error: "Security challenge verification required due to suspicious activity. Please complete the verification.", reason: "captcha_required" },
+        { status: 400 }
+      );
+    }
+
+    // Verify ALTCHA if provided or if required
     if (altcha) {
       const isValidAltcha = verifyAltchaPayload(altcha);
       if (!isValidAltcha) {
