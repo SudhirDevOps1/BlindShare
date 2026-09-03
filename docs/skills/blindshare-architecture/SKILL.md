@@ -75,7 +75,7 @@ Follow this protocol during any engineering task on BlindShare:
 | **1** | **Zero Content Deletion** | *"Bina kuchh hataye"* — Never delete existing features, documentation, or code paths. Only harden, extend, and improve. |
 | **2** | **Bilingual i18n Parity** | Every UI string must have entries in both `en` and `hi` in `src/lib/i18n/dictionary.ts`. |
 | **3** | **Version Synchronization** | All files (`package.json`, `version/route.ts`, `README.md`, `CHANGELOG.md`) must report `v1.3.0`. |
-| **4** | **Automated Test Invariant** | Always run `npm run typecheck && npm test && npm run lint`. All 18+ security tests must pass with 0 errors. |
+| **4** | **Automated Test Invariant** | Always run `npm run typecheck && npm test && npm run lint`. All 24 security tests must pass with 0 errors. |
 | **5** | **Zero PII Logging** | Never output passwords, keys, viewer emails, or filenames to stdout. Use `logger.info/warn/error`. |
 | **6** | **Git Workspace Isolation** | Keep local AI configs (`.agents/`, `.claude/`, `.gemini/`) untracked via `.gitignore` while maintaining master skill docs in `docs/skills/`. |
 

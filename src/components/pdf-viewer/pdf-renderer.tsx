@@ -486,7 +486,7 @@ export function PdfRenderer({
     };
   }, [slug, initialPassword, wrappedKeyHex, passwordSaltHex, docData]);
 
-  // Page navigation and Dwell Heartbeat Tracker
+  // Page navigation & local storage progress tracker (runs on page change without HTTP flushes)
   useEffect(() => {
     activePageRef.current = currentPage;
     maxPageReachedRef.current = Math.max(maxPageReachedRef.current, currentPage);
@@ -495,8 +495,13 @@ export function PdfRenderer({
     try {
       localStorage.setItem(`blindshare_lastpage_${slug}`, String(currentPage));
     } catch {}
+  }, [currentPage, slug]);
 
-    // Dwell timer (increments current page count every second)
+  // Batched Dwell Telemetry Engine (Runs on steady 25s intervals & beacon flushes, NOT on every slide click)
+  useEffect(() => {
+    if (!sessionId) return;
+
+    // Dwell timer (increments active page dwell in local memory every second)
     const secondTimer = setInterval(() => {
       const page = activePageRef.current;
       pageDwellMap.current[page] = (pageDwellMap.current[page] || 0) + 1;
@@ -504,12 +509,17 @@ export function PdfRenderer({
     }, 1000);
 
     const flushDwellEvents = () => {
-      const events = Object.entries(pageDwellMap.current).map(([pg, dwell]) => ({
-        pageNumber: parseInt(pg, 10),
-        dwellSeconds: dwell,
-      }));
+      const entries = Object.entries(pageDwellMap.current);
+      if (entries.length === 0) return;
 
-      if (events.length > 0 && sessionId) {
+      const events = entries
+        .map(([pg, dwell]) => ({
+          pageNumber: parseInt(pg, 10),
+          dwellSeconds: dwell,
+        }))
+        .filter((e) => e.dwellSeconds > 0);
+
+      if (events.length > 0) {
         pageDwellMap.current = {};
         const payload = JSON.stringify({
           sessionId,
@@ -533,10 +543,10 @@ export function PdfRenderer({
       }
     };
 
-    // Heartbeat batch flusher (every 10 seconds)
+    // Heartbeat batch flusher (Steady 25-second interval instead of rapid per-slide calls)
     const heartbeatTimer = setInterval(() => {
       flushDwellEvents();
-    }, 10000);
+    }, 25000);
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "hidden") {
@@ -554,7 +564,7 @@ export function PdfRenderer({
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       flushDwellEvents();
     };
-  }, [currentPage, slug, sessionId]);
+  }, [slug, sessionId]);
 
   // Draw Dynamic Live Watermark on Overlay Canvas (Staggered Matrix with Zero Collision)
   const drawWatermark = useCallback(

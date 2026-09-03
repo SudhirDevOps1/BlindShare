@@ -130,7 +130,7 @@ export async function GET(
       }
     }
 
-    return NextResponse.json({
+    const res = NextResponse.json({
       link: {
         id: link.id,
         slug: link.slug,
@@ -156,6 +156,15 @@ export async function GET(
       document: docData,
       dataroom: dataroomData,
     });
+
+    // Edge cache public metadata for 15s with 45s stale-while-revalidate to eliminate repeat DB round-trips
+    if (!link.burnAfterReading && link.maxViews === null) {
+      res.headers.set("Cache-Control", "public, s-maxage=15, stale-while-revalidate=45");
+    } else {
+      res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    }
+
+    return res;
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Failed to load link" }, { status: 500 });
   }
