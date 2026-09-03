@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img">
+<title>Question Density Heatmap — Animated</title>
+<rect width="960" height="360" rx="16" fill="#080e1a"/>
+<text x="24" y="28" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="#fff">QUESTION DENSITY • PER PAGE</text>
+<text x="24" y="44" font-family="Inter,sans-serif" font-size="7" fill="#64748b">Which slide sparks Q&amp;A — pin heat • P1 #9</text>
+<text x="936" y="28" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#f59e0b">● 9 PINS</text>
+<g transform="translate(24,56)">
+  <rect width="912" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <g transform="translate(32,20)">
+    <g>
+      <rect x="0" y="40" width="48" height="0" rx="4" fill="#1e293b"><animate attributeName="height" values="0;18;18" dur="0.5s" fill="freeze"/><animate attributeName="y" values="58;40;40" dur="0.5s" fill="freeze"/></rect>
+      <rect x="56" y="40" width="48" height="0" rx="4" fill="#1e293b"><animate attributeName="height" values="0;12;12" dur="0.5s" begin="0.1s" fill="freeze"/><animate attributeName="y" values="58;46;46" dur="0.5s" begin="0.1s" fill="freeze"/></rect>
+      <rect x="112" y="40" width="48" height="0" rx="4" fill="#334155"><animate attributeName="height" values="0;28;28" dur="0.5s" begin="0.2s" fill="freeze"/><animate attributeName="y" values="58;30;30" dur="0.5s" begin="0.2s" fill="freeze"/></rect>
+      <rect x="168" y="40" width="48" height="0" rx="4" fill="#f59e0b" opacity="0.85"><animate attributeName="height" values="0;56;56" dur="0.5s" begin="0.3s" fill="freeze"/><animate attributeName="y" values="58;2;2" dur="0.5s" begin="0.3s" fill="freeze"/></rect>
+      <rect x="224" y="40" width="48" height="0" rx="4" fill="#f59e0b"><animate attributeName="height" values="0;42;42" dur="0.5s" begin="0.4s" fill="freeze"/><animate attributeName="y" values="58;16;16" dur="0.5s" begin="0.4s" fill="freeze"/></rect>
+      <rect x="280" y="40" width="48" height="0" rx="4" fill="#334155"><animate attributeName="height" values="0;22;22" dur="0.5s" begin="0.5s" fill="freeze"/><animate attributeName="y" values="58;36;36" dur="0.5s" begin="0.5s" fill="freeze"/></rect>
+      <rect x="336" y="40" width="48" height="0" rx="4" fill="#1e293b"><animate attributeName="height" values="0;8;8" dur="0.5s" begin="0.6s" fill="freeze"/><animate attributeName="y" values="58;50;50" dur="0.5s" begin="0.6s" fill="freeze"/></rect>
+      <g font-family="Inter,sans-serif" font-size="6" fill="#94a3b8" text-anchor="middle"><text x="24" y="70">P1</text><text x="80" y="70">P2</text><text x="136" y="70">P3</text><text x="192" y="70" fill="#f59e0b">P7 ★</text><text x="248" y="70">P8</text><text x="304" y="70">P10</text><text x="360" y="70">P14</text></g>
+      <g font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#fff" text-anchor="middle"><text x="192" y="16">5</text><text x="248" y="30">3</text><text x="136" y="44">2</text></g>
+      <!-- pins -->
+      <g transform="translate(192,2)"><circle r="6" fill="#f59e0b" stroke="#fff" stroke-width="1.2"/><text y="2" text-anchor="middle" font-family="Inter,sans-serif" font-size="5" font-weight="800" fill="#080e1a">?</text><circle r="9" fill="none" stroke="#f59e0b" stroke-opacity="0.22" stroke-width="1"><animate attributeName="r" values="9;13;9" dur="1s" repeatCount="indefinite"/></circle></g>
+    </g>
+  </g>
+  <g transform="translate(460,20)">
+    <rect width="400" height="140" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+    <text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#f59e0b">P7 is hot — 5 pins, “What’s the moat?”</text><text x="12" y="28" font-family="Inter,sans-serif" font-size="6.5" fill="#94a3b8">→ Fix that slide: add moat diagram, traction proof</text>
+    <g transform="translate(12,36)"><rect width="376" height="28" rx="8" fill="#f59e0b" stroke="#fbbf24" stroke-width="1"/><text x="12" y="18" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#080e1a">Top Q: “TAM size? — P8” • “Moat — P7” • “CAC — P10”</text></g>
+    <text x="12" y="78" font-family="Inter,sans-serif" font-size="6.5" fill="#475569">Data: questions[].pageNumber → count per page — no new capture</text>
+    <text x="12" y="90" font-family="Inter,sans-serif" font-size="6.5" fill="#10b981">● Founder inbox already has this — just visualize heat</text>
+  </g>
+</g>
+<g transform="translate(24,290)"><rect width="912" height="46" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="16" y="18" font-family="Inter,sans-serif" font-size="7.5" font-weight="700" fill="#f59e0b">P1 #9 • Count pins per page — hottest slide = most confusion / interest</text><text x="16" y="32" font-family="monospace" font-size="6.5" fill="#64748b">Uses questions[] already fetched for inbox — just aggregate by pageNumber</text></g>
+</svg>

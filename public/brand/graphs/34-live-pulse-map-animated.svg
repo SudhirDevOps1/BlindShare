@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img">
+<title>Live Active Pulse Map — Animated</title>
+<rect width="960" height="360" rx="16" fill="#080e1a"/>
+<text x="24" y="28" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="#fff">LIVE ACTIVE PULSE MAP</text>
+<text x="24" y="44" font-family="Inter,sans-serif" font-size="7" fill="#64748b">Who is reading right now — green pulse per country • P0 #5</text>
+<text x="936" y="28" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#10b981">● 3 READING NOW</text>
+<g transform="translate(24,56)">
+  <rect width="600" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <rect width="600" height="220" rx="12" fill="#020617" opacity="0.35"/>
+  <!-- simplified world dots -->
+  <g transform="translate(300,110)">
+    <ellipse rx="220" ry="72" fill="none" stroke="#1e293b" stroke-width="1" opacity="0.5"/>
+    <g fill="#1e293b" opacity="0.6">
+      <circle cx="-120" cy="-10" r="1.2"/><circle cx="-100" cy="-14" r="1"/><circle cx="80" cy="-8" r="1"/><circle cx="110" cy="10" r="1.2"/><circle cx="-40" cy="20" r="1"/>
+    </g>
+    <!-- live dots -->
+    <g>
+      <circle cx="-88" cy="-6" r="4" fill="#f59e0b"/><circle cx="-88" cy="-6" r="9" fill="none" stroke="#f59e0b" stroke-opacity="0.28" stroke-width="1.2"><animate attributeName="r" values="9;16;9" dur="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.28;0;0.28" dur="1.2s" repeatCount="indefinite"/></circle><text x="-88" y="16" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="700" fill="#f59e0b">US • 2</text>
+    </g>
+    <g>
+      <circle cx="42" cy="18" r="4" fill="#10b981"/><circle cx="42" cy="18" r="9" fill="none" stroke="#10b981" stroke-opacity="0.28" stroke-width="1.2"><animate attributeName="r" values="9;16;9" dur="1.2s" begin="0.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.28;0;0.28" dur="1.2s" begin="0.4s" repeatCount="indefinite"/></circle><text x="42" y="40" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="700" fill="#10b981">IN • 1</text>
+    </g>
+    <g>
+      <circle cx="-12" cy="-22" r="3" fill="#3b82f6" opacity="0.9"/><circle cx="-12" cy="-22" r="7" fill="none" stroke="#3b82f6" stroke-opacity="0.2" stroke-width="1"><animate attributeName="r" values="7;12;7" dur="1.4s" repeatCount="indefinite"/></circle><text x="-12" y="-30" text-anchor="middle" font-family="Inter,sans-serif" font-size="5.5" fill="#3b82f6">DE • 1</text>
+    </g>
+  </g>
+  <text x="16" y="206" font-family="monospace" font-size="6.5" fill="#475569">sessions.isLive + country — already in API, just animate • zero PII (hashed IP)</text>
+</g>
+<g transform="translate(648,56)">
+  <rect width="288" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <text x="16" y="20" font-family="Inter,sans-serif" font-size="8" font-weight="800" fill="#e2e8f0">LIVE NOW (3)</text>
+  <g transform="translate(16,32)">
+    <rect width="256" height="44" rx="8" fill="#080e1a" stroke="#10b981" stroke-opacity="0.22" stroke-width="1"/>
+    <circle cx="16" cy="22" r="4" fill="#10b981"><animate attributeName="opacity" values="1;0.35;1" dur="0.9s" repeatCount="indefinite"/></circle><text x="28" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#fff">investor@a16z.com</text><text x="28" y="26" font-family="Inter,sans-serif" font-size="6.5" fill="#94a3b8">US • P7 • 42s • 🔥 84</text><text x="28" y="36" font-family="monospace" font-size="6" fill="#10b981">● reading now • 10s heartbeat</text>
+  </g>
+  <g transform="translate(16,84)">
+    <rect width="256" height="36" rx="8" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+    <circle cx="16" cy="18" r="4" fill="#f59e0b"/><text x="28" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">founder@sequoia.com</text><text x="28" y="26" font-family="Inter,sans-serif" font-size="6.5" fill="#94a3b8">IN • P3 • 12s</text>
+  </g>
+  <g transform="translate(16,128)"><rect width="256" height="28" rx="14" fill="#f59e0b"/><text x="128" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">→ Kill switch if needed</text></g>
+</g>
+<g transform="translate(24,290)"><rect width="912" height="46" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="16" y="18" font-family="Inter,sans-serif" font-size="7.5" font-weight="700" fill="#10b981">NEW: charts/live-pulse-map.tsx</text><text x="16" y="32" font-family="monospace" font-size="6.5" fill="#64748b">Mini world dots (no mapbox) + live list • uses already-present isLive + country</text></g>
+</svg>

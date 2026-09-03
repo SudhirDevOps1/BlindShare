@@ -125,11 +125,18 @@ export function BrandHeader() {
         {/* Brand Logo & Name */}
         <Link href={showDashboardNav ? "/dashboard" : "/"} className="flex items-center gap-2.5 group flex-shrink-0">
           <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-slate-900 to-slate-950 border border-amber-500/40 shadow-md shadow-amber-500/20 group-hover:scale-105 group-hover:border-amber-400 transition-all p-1 flex-shrink-0">
-            <img
-              src="/brand/02-favicon.svg"
-              alt="BlindShare Logo"
-              className="h-full w-full object-contain"
-            />
+            <object
+              data="/brand/02-favicon.svg"
+              type="image/svg+xml"
+              className="h-full w-full object-contain pointer-events-none"
+              aria-label="BlindShare Logo"
+            >
+              <img
+                src="/brand/02-favicon.svg"
+                alt="BlindShare Logo"
+                className="h-full w-full object-contain"
+              />
+            </object>
           </div>
           <div>
             <div className="flex items-center gap-1.5">

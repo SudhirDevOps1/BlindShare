@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img">
+<title>Dwell Histogram — Animated</title>
+<rect width="960" height="360" rx="16" fill="#080e1a"/>
+<text x="24" y="28" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="#fff">DWELL DISTRIBUTION HISTOGRAM</text>
+<text x="24" y="44" font-family="Inter,sans-serif" font-size="7" fill="#64748b">How long do viewers actually read — skim vs deep • P1 #6</text>
+<g transform="translate(24,56)">
+  <rect width="600" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <g transform="translate(32,20)">
+    <g stroke="#1e293b" stroke-width="0.7" opacity="0.9"><path d="M0 44 H536"/><path d="M0 88 H536"/><path d="M0 132 H536"/></g>
+    <g>
+      <rect x="0" y="132" width="72" height="0" rx="4" fill="#334155"><animate attributeName="height" values="0;34;34" dur="0.8s" fill="freeze"/><animate attributeName="y" values="132;98;98" dur="0.8s" fill="freeze"/></rect>
+      <rect x="80" y="132" width="72" height="0" rx="4" fill="#64748b"><animate attributeName="height" values="0;56;56" dur="0.8s" begin="0.15s" fill="freeze"/><animate attributeName="y" values="132;76;76" dur="0.8s" begin="0.15s" fill="freeze"/></rect>
+      <rect x="160" y="132" width="72" height="0" rx="4" fill="#f59e0b"><animate attributeName="height" values="0;88;88" dur="0.8s" begin="0.3s" fill="freeze"/><animate attributeName="y" values="132;44;44" dur="0.8s" begin="0.3s" fill="freeze"/></rect>
+      <rect x="240" y="132" width="72" height="0" rx="4" fill="#f59e0b" opacity="0.85"><animate attributeName="height" values="0;62;62" dur="0.8s" begin="0.45s" fill="freeze"/><animate attributeName="y" values="132;70;70" dur="0.8s" begin="0.45s" fill="freeze"/></rect>
+      <rect x="320" y="132" width="72" height="0" rx="4" fill="#10b981"><animate attributeName="height" values="0;40;40" dur="0.8s" begin="0.6s" fill="freeze"/><animate attributeName="y" values="132;92;92" dur="0.8s" begin="0.6s" fill="freeze"/></rect>
+      <rect x="400" y="132" width="72" height="0" rx="4" fill="#10b981" opacity="0.6"><animate attributeName="height" values="0;22;22" dur="0.8s" begin="0.75s" fill="freeze"/><animate attributeName="y" values="132;110;110" dur="0.8s" begin="0.75s" fill="freeze"/></rect>
+      <rect x="480" y="132" width="56" height="14" rx="4" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+    </g>
+    <g font-family="Inter,sans-serif" font-size="6" font-weight="600" fill="#94a3b8" text-anchor="middle"><text x="36" y="148">0-30s</text><text x="116" y="148">30-60s</text><text x="196" y="148" fill="#f59e0b">1-2m ★</text><text x="276" y="148">2-4m</text><text x="356" y="148">4-8m</text><text x="436" y="148">8m+</text></g>
+    <g font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#fff" text-anchor="middle"><text x="36" y="92">8</text><text x="116" y="70">14</text><text x="196" y="38">22</text><text x="276" y="64">16</text><text x="356" y="86">10</text><text x="436" y="104">6</text></g>
+  </g>
+  <text x="16" y="206" font-family="Inter,sans-serif" font-size="6.5" fill="#475569">Insight: 1-2m peak = most actually read, 0-30s = bounced (fix cover)</text>
+</g>
+<g transform="translate(648,56)">
+  <rect width="288" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <text x="16" y="20" font-family="Inter,sans-serif" font-size="8" font-weight="800" fill="#e2e8f0">BREAKDOWN</text>
+  <g transform="translate(16,32)">
+    <rect width="256" height="36" rx="8" fill="#f59e0b" stroke="#fbbf24" stroke-width="1"/><text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">1-2m • 22 sessions • 29% • ENGAGED</text><text x="12" y="26" font-family="Inter,sans-serif" font-size="6.5" fill="#080e1a" opacity="0.7">↳ retarget these first</text>
+    <rect y="44" width="256" height="36" rx="8" fill="#080e1a" stroke="#1e293b" stroke-width="1"/><text x="12" y="60" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">0-30s • 8 bounced • 11%</text><text x="12" y="70" font-family="Inter,sans-serif" font-size="6.5" fill="#ef4444">↳ cover too dense?</text>
+    <rect y="88" width="256" height="36" rx="8" fill="#080e1a" stroke="#10b981" stroke-opacity="0.18" stroke-width="1"/><text x="12" y="104" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#6ee7b7">4m+ • 16 deep • 21% • HOT</text><text x="12" y="114" font-family="Inter,sans-serif" font-size="6.5" fill="#94a3b8">↳ 84% intent in this bucket</text>
+  </g>
+</g>
+<g transform="translate(24,290)"><rect width="912" height="46" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="16" y="18" font-family="Inter,sans-serif" font-size="7.5" font-weight="700" fill="#f59e0b">NEW: charts/dwell-histogram.tsx</text><text x="16" y="32" font-family="monospace" font-size="6.5" fill="#64748b">Bucket sessions by dwellSeconds — no new capture, just client-side bucket</text></g>
+</svg>

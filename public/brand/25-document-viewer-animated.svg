@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="960" height="560" role="img">
+<title>Animated — Document Viewer Showcase</title>
+
+  <style>
+    @keyframes ultraShimmer{0%{transform:translateX(-220px)}100%{transform:translateX(860px)}}
+    @keyframes ultraPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.18)}}
+    @keyframes ultraFlow{0%{stroke-dashoffset:700}100%{stroke-dashoffset:0}}
+    @keyframes ultraFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  </style>
+<rect width="960" height="560" rx="24" fill="#080e1a"/>
+<text x="480" y="40" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="800" letter-spacing="3" fill="#fff">VIEWER <tspan fill="#f59e0b">SHOWCASE</tspan> • 300 DPI • LASER • FULLSCREEN</text>
+<text x="480" y="60" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="500" letter-spacing="1.6" fill="#64748b">pdf.js • pdf-lib • INTERACTIVE TEXT LAYER • PRESENTER MODE • TAB CACHE 10ms</text>
+<g opacity="0.95">
+  <rect x="-220" y="82" width="220" height="3" rx="1.5" fill="#f59e0b" opacity="0.95" style="animation: ultraShimmer 1.8s linear infinite"/>
+  <circle cx="10" cy="10" r="5" fill="#f59e0b" style="animation: ultraPulse 0.9s ease-in-out infinite"/>
+</g>
+<g transform="translate(48,88)">
+  <rect width="600" height="400" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <rect width="600" height="32" rx="14" fill="#1e293b"/><rect y="16" width="600" height="16" fill="#1e293b"/>
+  <text x="14" y="20" font-family="Inter,sans-serif" font-size="8" font-weight="600" fill="#e2e8f0">pitch-deck-q4-2026.pdf • 14 pages • 4.2 MB • 300 DPI</text>
+  <g transform="translate(540,8)"><rect width="48" height="16" rx="8" fill="#10b981"/><text x="24" y="11" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="800" fill="white">✓ E2EE</text></g>
+  <!-- canvas -->
+  <g transform="translate(14,44)">
+    <rect width="420" height="280" rx="10" fill="#fff"/>
+    <rect x="14" y="14" width="180" height="7" rx="3.5" fill="#0f172a"/><rect x="14" y="26" width="120" height="4" rx="2" fill="#64748b"/>
+    <!-- scan shimmer -->
+    <rect x="0" y="0" width="420" height="280" rx="10" fill="none" stroke="#f59e0b" stroke-opacity="0.0" stroke-width="1.2"><animate attributeName="stroke-opacity" values="0;0.22;0" dur="2s" repeatCount="indefinite"/></rect>
+    <rect x="14" y="44" width="392" height="3" rx="1.5" fill="#e2e8f0"/><rect x="14" y="52" width="392" height="3" rx="1.5" fill="#e2e8f0"/>
+    <rect x="14" y="72" width="180" height="90" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-opacity="0.15" stroke-width="1"/>
+    <rect x="212" y="72" width="180" height="90" rx="8" fill="#f0fdf4" stroke="#10b981" stroke-opacity="0.15" stroke-width="1"/>
+    <!-- interactive text layer hint -->
+    <rect x="14" y="44" width="100" height="8" rx="2" fill="#3b82f6" opacity="0.12"><animate attributeName="opacity" values="0.12;0.28;0.12" dur="1.4s" repeatCount="indefinite"/></rect>
+    <text x="14" y="212" font-family="Inter,sans-serif" font-size="6" fill="#3b82f6" opacity="0.9">Selectable text • Ctrl+F • hyperlinks</text>
+    <!-- laser pointer moving -->
+    <g>
+      <circle r="6" fill="#ef4444" opacity="0.88"/><circle r="10" fill="none" stroke="#ef4444" stroke-opacity="0.32" stroke-width="1.5"><animate attributeName="r" values="10;14;10" dur="0.8s" repeatCount="indefinite"/></circle>
+      <animateTransform attributeName="transform" type="translate" values="50 100; 340 150; 120 190; 350 90; 50 100" dur="6s" repeatCount="indefinite"/>
+    </g>
+    <!-- watermark -->
+    <text x="210" y="260" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#f59e0b" opacity="0.07" transform="rotate(-12 210 260)">viewer@email.com • 2026-09-03 • bln.sh/x7f3</text>
+  </g>
+  <!-- controls -->
+  <g transform="translate(448,44)">
+    <rect width="138" height="280" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+    <text x="12" y="20" font-family="Inter,sans-serif" font-size="7" font-weight="800" letter-spacing="1" fill="#94a3b8">CONTROLS</text>
+    <g transform="translate(12,28)">
+      <rect width="114" height="28" rx="14" fill="#f59e0b"/><text x="57" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">⛶ Fullscreen • L</text>
+    </g>
+    <g transform="translate(12,64)">
+      <text font-family="Inter,sans-serif" font-size="6.5" font-weight="700" letter-spacing="1" fill="#475569">PAGES</text>
+      <g transform="translate(0,10)">
+        <rect width="114" height="6" rx="3" fill="#1e293b"/><rect width="0" height="6" rx="3" fill="#f59e0b"><animate attributeName="width" values="0;62;62;0" dur="4s" repeatCount="indefinite"/></rect>
+        <text x="0" y="20" font-family="monospace" font-size="6" fill="#94a3b8">7 / 14 • 50%</text>
+      </g>
+    </g>
+    <g transform="translate(12,102)">
+      <rect width="114" height="44" rx="10" fill="#1e293b" stroke="#1e293b" stroke-width="1"/>
+      <text x="10" y="16" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#e2e8f0">10ms Tab Cache</text><text x="10" y="26" font-family="Inter,sans-serif" font-size="6" fill="#10b981">● sessionStorage</text>
+      <circle cx="100" cy="18" r="4" fill="#10b981"><animate attributeName="opacity" values="1;0.4;1" dur="0.9s" repeatCount="indefinite"/></circle>
+    </g>
+    <g transform="translate(12,156)">
+      <rect width="114" height="44" rx="10" fill="#1e293b"/>
+      <text x="10" y="16" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#e2e8f0">Laser Pointer</text><text x="10" y="26" font-family="Inter,sans-serif" font-size="6" fill="#ef4444">● Hold L + drag</text>
+      <circle cx="100" cy="18" r="4" fill="#ef4444"><animate attributeName="opacity" values="1;0.45;1" dur="0.6s" repeatCount="indefinite"/></circle>
+    </g>
+    <g transform="translate(12,210)"><rect width="114" height="28" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="57" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#94a3b8">Resume: P7</text></g>
+  </g>
+  <g transform="translate(14,336)"><rect width="572" height="20" rx="10" fill="#1e293b"/><text x="12" y="14" font-family="monospace" font-size="6.5" fill="#64748b">Space / Arrows • Esc • L laser • 300 DPI Retina • GZIP • ALTCHA PoW 250ms</text><circle cx="560" cy="10" r="3" fill="#10b981"/></g>
+</g>
+<!-- Right feature stack -->
+<g transform="translate(672,88)">
+  <rect width="240" height="400" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <text x="16" y="24" font-family="Inter,sans-serif" font-size="8" font-weight="800" fill="#fff">FEATURES</text>
+  <g transform="translate(16,36)">
+    <g><rect width="208" height="48" rx="10" fill="#080e1a" stroke="#10b981" stroke-opacity="0.18" stroke-width="1"/><text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#6ee7b7">✓ Indelible Watermark</text><text x="12" y="26" font-family="Inter,sans-serif" font-size="6.5" fill="#94a3b8">pdf-lib burns on download</text><text x="12" y="36" font-family="monospace" font-size="6" fill="#475569">viewer@email.com • P7</text></g>
+    <g transform="translate(0,56)"><rect width="208" height="48" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/><text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#e2e8f0">Voice Walkthrough</text><text x="12" y="26" font-family="Inter,sans-serif" font-size="6.5" fill="#94a3b8">Founder audio per slide</text><g transform="translate(12,34)"><rect width="184" height="4" rx="2" fill="#1e293b"/><rect width="0" height="4" rx="2" fill="#f59e0b"><animate attributeName="width" values="0;84;84;0" dur="2.5s" repeatCount="indefinite"/></rect><circle cx="0" cy="2" r="3" fill="#f59e0b"><animateTransform attributeName="transform" type="translate" values="0 0;84 0;84 0;0 0" dur="2.5s" repeatCount="indefinite"/></circle></g></g>
+    <g transform="translate(0,112)"><rect width="208" height="48" rx="10" fill="#080e1a" stroke="#3b82f6" stroke-opacity="0.18" stroke-width="1"/><text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#93c5fd">Co-Browsing Room</text><text x="12" y="26" font-family="Inter,sans-serif" font-size="6.5" fill="#94a3b8">Slide sync • laser • audio</text><circle cx="190" cy="16" r="4" fill="#3b82f6"><animate attributeName="opacity" values="1;0.35;1" dur="0.8s" repeatCount="indefinite"/></circle></g>
+    <g transform="translate(0,168)"><rect width="208" height="48" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/><text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">Tab Privacy Shield</text><text x="12" y="26" font-family="Inter,sans-serif" font-size="6.5" fill="#94a3b8">auto-obfuscate on tab switch</text><rect x="150" y="12" width="32" height="14" rx="7" fill="#10b981" opacity="0.18"/><text x="166" y="22" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="700" fill="#10b981">ON</text></g>
+    <g transform="translate(0,224)"><rect width="208" height="48" rx="10" fill="#080e1a" stroke="#f59e0b" stroke-opacity="0.18" stroke-width="1"/><text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#fbbf24">Self-Healing PDF.js</text><text x="12" y="26" font-family="Inter,sans-serif" font-size="6.5" fill="#94a3b8">self-hosted + CDN fallback</text><text x="12" y="36" font-family="monospace" font-size="6" fill="#10b981">● 0 single point failure</text></g>
+  </g>
+</g>
+</svg>

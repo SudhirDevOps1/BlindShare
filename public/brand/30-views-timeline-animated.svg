@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img">
+<title>30-Day Views Timeline — Animated Area</title>
+<defs>
+  <linearGradient id="grad30" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#f59e0b" stop-opacity="0.32"/><stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/></linearGradient>
+  <linearGradient id="line30" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
+</defs>
+<rect width="960" height="360" rx="16" fill="#080e1a"/>
+<text x="24" y="28" font-family="Inter,sans-serif" font-size="11" font-weight="800" letter-spacing="1" fill="#fff">30-DAY VIEWS TIMELINE</text>
+<text x="24" y="44" font-family="Inter,sans-serif" font-size="7" fill="#64748b">Daily views • area + gradient • vs 7-day current — P0 #1</text>
+<text x="936" y="28" text-anchor="end" font-family="monospace" font-size="7" fill="#f59e0b">● LIVE • 30 points</text>
+<g transform="translate(24,52)">
+  <rect width="912" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <g transform="translate(32,20)">
+    <g stroke="#1e293b" stroke-width="0.7" opacity="0.9"><path d="M0 44 H848"/><path d="M0 88 H848"/><path d="M0 132 H848"/></g>
+    <!-- Area fill -->
+    <path d="M0 148 L28 132 L56 140 L84 102 L112 118 L140 84 L168 92 L196 64 L224 78 L252 42 L280 56 L308 38 L336 52 L364 32 L392 48 L420 22 L448 36 L476 28 L504 18 L532 32 L560 24 L588 38 L616 18 L644 28 L672 42 L700 36 L728 52 L756 38 L784 48 L812 32 L848 42 L848 176 L0 176 Z" fill="url(#grad30)"/>
+    <path d="M0 148 L28 132 L56 140 L84 102 L112 118 L140 84 L168 92 L196 64 L224 78 L252 42 L280 56 L308 38 L336 52 L364 32 L392 48 L420 22 L448 36 L476 28 L504 18 L532 32 L560 24 L588 38 L616 18 L644 28 L672 42 L700 36 L728 52 L756 38 L784 48 L812 32 L848 42" fill="none" stroke="url(#line30)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="900" stroke-dashoffset="900"><animate attributeName="stroke-dashoffset" values="900;0;0;900" dur="4s" repeatCount="indefinite"/></path>
+    <g fill="#f59e0b" stroke="#080e1a" stroke-width="1.4">
+      <circle cx="252" cy="42" r="3.5"><animate attributeName="opacity" values="0;1;1;0" dur="4s" repeatCount="indefinite"/></circle>
+      <circle cx="420" cy="22" r="3.5"><animate attributeName="opacity" values="0;0;1;1;0" dur="4s" repeatCount="indefinite"/></circle>
+      <circle cx="504" cy="18" r="3.5"><animate attributeName="opacity" values="0;0;0;1;1;0" dur="4s" repeatCount="indefinite"/></circle>
+    </g>
+    <g font-family="Inter,sans-serif" font-size="6" fill="#475569" text-anchor="middle"><text x="0" y="190">1</text><text x="142" y="190">7</text><text x="282" y="190">14</text><text x="424" y="190" fill="#f59e0b">18 ★</text><text x="566" y="190">22</text><text x="708" y="190">26</text><text x="848" y="190">30</text></g>
+    <!-- sweep -->
+    <rect x="-40" y="0" width="40" height="176" fill="#f59e0b" opacity="0.08"><animateTransform attributeName="transform" type="translate" values="-40 0;848 0;-40 0" dur="3s" repeatCount="indefinite"/></rect>
+  </g>
+  <text x="16" y="290" font-family="Inter,sans-serif" font-size="6.5" fill="#64748b">Aggregate from <tspan font-family="monospace" fill="#94a3b8">sessions.startedAt</tspan> — extends current 7-day velocity (dashboard-activity-chart.tsx) to 30</text>
+  <text x="16" y="302" font-family="Inter,sans-serif" font-size="6.5" fill="#475569">Peak 18th • 42 views • amber gradient fill • no new backend needed (fallback baseline like current)</text>
+</g>
+<g transform="translate(24,290)"><rect width="912" height="46" rx="10" fill="#f59e0b"/><text x="456" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" font-weight="800" fill="#080e1a">ADD as src/components/analytics/charts/views-timeline-area.tsx — no delete, just new file</text><text x="456" y="32" text-anchor="middle" font-family="monospace" font-size="6.5" fill="#080e1a" opacity="0.7">daily views 30 pts • uses links[].viewCount same as weeklyData</text></g>
+</svg>

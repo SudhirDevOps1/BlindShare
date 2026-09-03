@@ -25,7 +25,14 @@ export function BrandFooter() {
           <div className="space-y-4 md:col-span-2">
             <div className="flex flex-wrap items-center gap-2.5">
               <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 border border-amber-500/40 shadow-md shadow-amber-500/15 p-1">
-                <img src="/brand/02-favicon.svg" alt="BlindShare" className="h-full w-full object-contain" />
+                <object
+                  data="/brand/02-favicon.svg"
+                  type="image/svg+xml"
+                  className="h-full w-full object-contain pointer-events-none"
+                  aria-label="BlindShare Logo"
+                >
+                  <Lock className="h-4 w-4 stroke-[2.5]" />
+                </object>
               </div>
               <span className="font-bold text-white text-base tracking-tight">{appName}</span>
               <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 shadow-sm">

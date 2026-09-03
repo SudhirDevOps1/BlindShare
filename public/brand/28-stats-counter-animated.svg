@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img">
+<title>Animated — Stats Counter Showcase</title>
+
+  <style>
+    @keyframes ultraShimmer{0%{transform:translateX(-220px)}100%{transform:translateX(860px)}}
+    @keyframes ultraPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.18)}}
+    @keyframes ultraFlow{0%{stroke-dashoffset:700}100%{stroke-dashoffset:0}}
+    @keyframes ultraFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  </style>
+<rect width="960" height="360" rx="24" fill="#080e1a"/>
+<text x="480" y="36" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="800" letter-spacing="3" fill="#64748b">SHOWCASE STATS • ANIMATED COUNTERS</text>
+<g transform="translate(32,64)">
+  <g>
+    <rect width="212" height="112" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <text x="16" y="28" font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1.2" fill="#94a3b8">ENCRYPTED DOCS</text>
+<g opacity="0.95">
+  <rect x="-220" y="82" width="220" height="3" rx="1.5" fill="#f59e0b" opacity="0.95" style="animation: ultraShimmer 1.8s linear infinite"/>
+  <circle cx="10" cy="10" r="5" fill="#f59e0b" style="animation: ultraPulse 0.9s ease-in-out infinite"/>
+</g>
+    <text x="16" y="68" font-family="Inter,sans-serif" font-size="36" font-weight="800" fill="#fff">5k<tspan font-size="16" fill="#64748b">+</tspan><animate attributeName="opacity" values="1;1;1" dur="1s" fill="freeze"/></text>
+    <text x="16" y="84" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#f59e0b">→ 10k on free tier</text>
+    <rect x="16" y="96" width="180" height="4" rx="2" fill="#1e293b"/><rect x="16" y="96" width="0" height="4" rx="2" fill="#f59e0b"><animate attributeName="width" values="0;112;112" dur="2s" fill="freeze"/></rect>
+  </g>
+  <g transform="translate(260,0)">
+    <rect width="212" height="112" rx="16" fill="#0f172a" stroke="#10b981" stroke-opacity="0.22" stroke-width="1.2"/>
+    <text x="16" y="28" font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1.2" fill="#10b981">ZERO-KNOWLEDGE</text>
+    <text x="16" y="68" font-family="Inter,sans-serif" font-size="36" font-weight="800" fill="#fff">100<tspan font-size="16" fill="#10b981">%</tspan></text>
+    <text x="16" y="84" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#6ee7b7">server sees 0 bytes</text>
+    <circle cx="188" cy="28" r="4" fill="#10b981"><animate attributeName="opacity" values="1;0.3;1" dur="0.8s" repeatCount="indefinite"/></circle>
+  </g>
+  <g transform="translate(488,0)">
+    <rect width="212" height="112" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <text x="16" y="28" font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1.2" fill="#94a3b8">AVG VIEW TIME</text>
+    <text x="16" y="68" font-family="Inter,sans-serif" font-size="36" font-weight="800" fill="#fff">4<tspan font-size="16" fill="#f59e0b">m 22s</tspan></text>
+    <text x="16" y="84" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#f59e0b">▲ +38% vs avg</text>
+    <g transform="translate(16,96)"><rect width="60" height="4" rx="2" fill="#f59e0b"/><rect x="70" width="50" height="4" rx="2" fill="#1e293b"/><animateTransform attributeName="transform" type="translate" values="0 0; 12 0; 0 0" dur="1.2s" repeatCount="indefinite"/></g>
+  </g>
+  <g transform="translate(716,0)">
+    <rect width="212" height="112" rx="16" fill="#0f172a" stroke="#3b82f6" stroke-opacity="0.22" stroke-width="1.2"/>
+    <text x="16" y="28" font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1.2" fill="#3b82f6">SECURITY TESTS</text>
+    <text x="16" y="68" font-family="Inter,sans-serif" font-size="36" font-weight="800" fill="#fff">24<tspan font-size="16" fill="#3b82f6">/24</tspan></text>
+    <text x="16" y="84" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#93c5fd">CodeQL 0 alerts</text>
+    <circle cx="188" cy="28" r="4" fill="#3b82f6"><animate attributeName="r" values="4;6;4" dur="1s" repeatCount="indefinite"/></circle>
+  </g>
+  <g transform="translate(0,132)">
+    <rect width="928" height="96" rx="16" fill="#f59e0b" stroke="#fbbf24" stroke-width="1"/>
+    <text x="24" y="36" font-family="Inter,sans-serif" font-size="14" font-weight="800" fill="#080e1a">BlindShare v1.4.0 — Self-Hosted • ₹0 Free-Tier • MIT Open Source</text>
+    <text x="24" y="56" font-family="Inter,sans-serif" font-size="9" font-weight="600" fill="#080e1a" opacity="0.8">The only document sharing platform where the server is mathematically incapable of reading your files.</text>
+    <g transform="translate(24,68)">
+      <rect width="132" height="18" rx="9" fill="#080e1a"/><text x="66" y="12" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#f59e0b">● E2EE ACTIVE</text>
+      <rect x="144" width="132" height="18" rx="9" fill="#080e1a"/><text x="210" y="12" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#3b82f6">▲ Vercel • Neon • B2</text>
+      <rect x="288" width="132" height="18" rx="9" fill="#080e1a"/><text x="354" y="12" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#10b981">✓ 100% Self-Hostable</text>
+    </g>
+  </g>
+</g>
+</svg>

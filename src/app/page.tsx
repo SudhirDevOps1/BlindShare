@@ -145,11 +145,19 @@ export default function HomePage() {
                     {t.heroExtras?.fragmentOnly || "#k=fragment client-only"}
                   </span>
                 </div>
-                <img
-                  src="/brand/03-hero-zero-knowledge-flow.svg"
-                  alt="BlindShare Zero-Knowledge Encryption Flow Diagram"
-                  className="w-full h-auto max-h-[380px] object-contain rounded-xl"
-                />
+                <object
+                  data="/brand/17-hero-animated-encryption.svg"
+                  type="image/svg+xml"
+                  className="w-full h-auto max-h-[380px] object-contain rounded-xl pointer-events-none"
+                  aria-label="BlindShare Zero-Knowledge Encryption Flow Diagram"
+                >
+                  <img
+                    src="/brand/03-hero-zero-knowledge-flow.svg"
+                    alt="BlindShare Zero-Knowledge Encryption Flow Diagram"
+                    className="w-full h-auto max-h-[380px] object-contain rounded-xl"
+                    loading="lazy"
+                  />
+                </object>
               </div>
             </div>
 

@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" role="img">
+<title>OG Image — Animated — BlindShare 1.4.0</title>
+<defs>
+  <linearGradient id="goldOG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient>
+  <linearGradient id="bgOG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#080e1a"/></linearGradient>
+
+  <style>
+    @keyframes ultraShimmer{0%{transform:translateX(-220px)}100%{transform:translateX(860px)}}
+    @keyframes ultraPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.18)}}
+    @keyframes ultraFlow{0%{stroke-dashoffset:700}100%{stroke-dashoffset:0}}
+    @keyframes ultraFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  </style>
+</defs>
+<rect width="1200" height="630" rx="0" fill="url(#bgOG)"/>
+<ellipse cx="600" cy="315" rx="560" ry="260" fill="#f59e0b" opacity="0.06"/>
+<g opacity="0.04" stroke="#1e293b" stroke-width="1"><path d="M0 210 H1200 M0 420 H1200"/><path d="M300 0 V630 M600 0 V630 M900 0 V630"/></g>
+<!-- Left brand -->
+<g transform="translate(72,96)">
+  <rect width="120" height="120" rx="28" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <g transform="translate(60,60)">
+    <path d="M0 -32 L28 -18 V12 C28 24 14 32 0 38 C-14 32 -28 24 -28 12 V-18 Z" fill="none" stroke="url(#goldOG)" stroke-width="3.2" stroke-linejoin="round"/>
+    <path d="M -14 -4 L 14 -4" fill="none" stroke="#fbbf24" stroke-width="1.8" stroke-linecap="round"/><path d="M -14 -4 H 14" fill="none" stroke="#f59e0b" stroke-width="1.8" stroke-linecap="round"/>
+    <circle cx="0" cy="10" r="8" fill="url(#goldOG)" stroke="#080e1a" stroke-width="1"/><circle cx="0" cy="28" r="3" fill="#10b981"/><circle cx="0" cy="28" r="7" fill="none" stroke="#10b981" stroke-opacity="0.22" stroke-width="1"><animate attributeName="r" values="7;11;7" dur="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.22;0;0.22" dur="1.2s" repeatCount="indefinite"/></circle>
+  </g>
+  <text x="152" y="48" font-family="Inter,sans-serif" font-size="42" font-weight="800" letter-spacing="2" fill="#fff">BLIND<tspan fill="url(#goldOG)">SHARE</tspan></text>
+  <text x="152" y="72" font-family="Inter,sans-serif" font-size="12" font-weight="600" letter-spacing="4" fill="#64748b">ZERO-KNOWLEDGE • SELF-HOSTED • E2EE</text>
+<g opacity="0.95">
+  <rect x="-220" y="82" width="220" height="3" rx="1.5" fill="#f59e0b" opacity="0.95" style="animation: ultraShimmer 1.8s linear infinite"/>
+  <circle cx="10" cy="10" r="5" fill="#f59e0b" style="animation: ultraPulse 0.9s ease-in-out infinite"/>
+</g>
+  <text x="152" y="92" font-family="Inter,sans-serif" font-size="11" font-weight="500" fill="#94a3b8">The server never sees your files — ever. Not once. Not ever.</text>
+  <g transform="translate(152,108)">
+    <rect width="86" height="18" rx="9" fill="#10b981"/><text x="43" y="12" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="white">✓ E2EE ACTIVE</text>
+    <rect x="96" width="86" height="18" rx="9" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="139" y="12" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#f59e0b">v1.4.0</text>
+    <rect x="192" width="92" height="18" rx="9" fill="#f59e0b"/><text x="238" y="12" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">₹0 Free-Tier</text>
+  </g>
+</g>
+<!-- Right proof card -->
+<g transform="translate(672,96)">
+  <rect width="456" height="438" rx="20" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <rect width="456" height="52" rx="20" fill="#1e293b"/><rect y="26" width="456" height="26" fill="#1e293b"/>
+  <text x="20" y="32" font-family="Inter,sans-serif" font-size="10" font-weight="800" letter-spacing="1" fill="#e2e8f0">ZERO-KNOWLEDGE PROOF • LIVE</text>
+  <circle cx="432" cy="26" r="6" fill="#10b981"><animate attributeName="opacity" values="1;0.35;1" dur="0.9s" repeatCount="indefinite"/></circle>
+  <g transform="translate(20,64)">
+    <rect width="416" height="88" rx="12" fill="#080e1a" stroke="#f59e0b" stroke-opacity="0.14" stroke-width="1"/>
+    <text x="16" y="20" font-family="Inter,sans-serif" font-size="8" font-weight="800" fill="#f59e0b">DOCUMENT → AES-GCM-256 → CIPHERTEXT → DECRYPT</text>
+    <g transform="translate(16,32)">
+      <rect width="80" height="36" rx="8" fill="#fff"/><rect x="8" y="8" width="32" height="3" rx="1.5" fill="#f59e0b"/>
+      <rect x="96" y="12" width="48" height="2" fill="#f59e0b"/><path d="M144 6 L152 13 L144 20 Z" fill="#f59e0b"/>
+      <rect x="160" y="4" width="56" height="28" rx="6" fill="url(#goldOG)"/><text x="188" y="22" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">LOCK</text>
+      <rect x="232" y="12" width="48" height="2" fill="#475569"/><path d="M280 6 L288 13 L280 20 Z" fill="#475569"/>
+      <rect x="296" y="4" width="56" height="28" rx="6" fill="#1e293b"/><text x="324" y="16" text-anchor="middle" font-family="monospace" font-size="6" font-weight="700" fill="#64748b">a7 f3</text><text x="324" y="24" text-anchor="middle" font-family="monospace" font-size="5" fill="#475569">cipher</text>
+      <rect x="368" y="12" width="32" height="2" fill="#10b981"/><path d="M400 6 L408 13 L400 20 Z" fill="#10b981"/>
+    </g>
+    <!-- flowing dot -->
+    <circle r="2.5" fill="#f59e0b"><animateTransform attributeName="transform" type="translate" values="112 50; 308 50" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/></circle>
+  </g>
+  <g transform="translate(20,164)">
+    <rect width="200" height="64" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+    <text x="12" y="18" font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1" fill="#475569">SERVER SEES</text><text x="12" y="36" font-family="Inter,sans-serif" font-size="18" font-weight="800" fill="#ef4444">0 BYTES</text><text x="12" y="48" font-family="Inter,sans-serif" font-size="7" fill="#fca5a5">mathematically blind</text>
+    <rect x="216" width="200" height="64" rx="10" fill="#080e1a" stroke="#10b981" stroke-opacity="0.22" stroke-width="1"/>
+    <text x="228" y="18" font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1" fill="#10b981">CLIENT VAULT</text><text x="228" y="36" font-family="Inter,sans-serif" font-size="18" font-weight="800" fill="#10b981">100% E2EE</text><text x="228" y="48" font-family="Inter,sans-serif" font-size="7" fill="#6ee7b7">keys in RAM only</text>
+  </g>
+  <g transform="translate(20,240)">
+    <rect width="416" height="52" rx="10" fill="#f59e0b"/><text x="208" y="22" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="#080e1a">Self-Hosted • ₹0 Free-Tier • MIT Open Source</text><text x="208" y="36" text-anchor="middle" font-family="monospace" font-size="7" fill="#080e1a" opacity="0.75">Vercel / Docker / Cloudflare • Neon / B2 / R2</text>
+  </g>
+  <g transform="translate(20,304)">
+    <text font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1" fill="#475569">TRUSTED FOR</text>
+    <text y="16" font-family="Inter,sans-serif" font-size="8" font-weight="700" fill="#e2e8f0">Founders • Lawyers • Creators • Enterprise</text>
+    <g transform="translate(0,28)"><circle r="4" fill="#f59e0b"/><text x="10" y="4" font-family="Inter,sans-serif" font-size="7" fill="#94a3b8">github.com/SudhirDevOps1/BlindShare • v1.4.0</text></g>
+  </g>
+</g>
+<g transform="translate(72,560)" text-anchor="middle"><rect x="0" y="0" width="528" height="24" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="264" y="16" font-family="monospace" font-size="7" fill="#475569">og-image.png • 1200×630 • X/Twitter • LinkedIn • WhatsApp</text></g>
+</svg>

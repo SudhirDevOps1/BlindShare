@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 200" width="960" height="200" role="img">
+<title>ULTRA DEMO — Gold Sweep + Pulse — Proof Animations Work</title>
+<defs>
+  <linearGradient id="gGold" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
+  <style>
+    @keyframes sweep{0%{transform:translateX(-240px)}100%{transform:translateX(960px)}}
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.25);opacity:0.55}}
+    @keyframes barGrow{0%{width:0}100%{width:180px}}
+  </style>
+</defs>
+<rect width="960" height="200" rx="16" fill="#080e1a" stroke="#1e293b" stroke-width="1.2"/>
+<text x="480" y="36" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" letter-spacing="3" fill="#fff">ANIMATION <tspan fill="#f59e0b">PROOF</tspan> — 60FPS • CSS + SMIL • LOOP</text>
+<text x="480" y="56" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="600" fill="#64748b">Agar ye gold bar move kar raha hai → animations ON hain. PNG me nahi chalega, SVG me chalega.</text>
+<!-- Sweep bar ultra visible -->
+<rect x="0" y="78" width="960" height="2" fill="#1e293b" opacity="0.35"/>
+<rect x="-240" y="78" width="240" height="2" fill="url(#gGold)" style="animation:sweep 1.2s linear infinite"/>
+<!-- Pulsing dots ultra visible -->
+<g transform="translate(480,110)">
+  <circle r="12" fill="#f59e0b" style="animation:pulse 0.8s ease-in-out infinite"/>
+  <circle r="22" fill="none" stroke="#f59e0b" stroke-opacity="0.28" stroke-width="2" style="animation:pulse 0.8s ease-in-out infinite 0.15s"/>
+  <circle r="32" fill="none" stroke="#f59e0b" stroke-opacity="0.12" stroke-width="1.5" style="animation:pulse 0.8s ease-in-out infinite 0.3s"/>
+</g>
+<g transform="translate(24,140)">
+  <text font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1" fill="#475569">SMIL + CSS • Chrome/Edge/Firefox me test kiya • &lt;object&gt; ya direct SVG open karo</text>
+  <rect y="10" width="180" height="6" rx="3" fill="#1e293b"/><rect y="10" width="0" height="6" rx="3" fill="#f59e0b" style="animation:barGrow 1.6s ease-in-out infinite alternate"/>
+</g>
+<g transform="translate(760,140)">
+  <circle r="3" fill="#10b981" style="animation:pulse 0.9s ease-in-out infinite"/><text x="10" y="4" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#10b981">LIVE • ANIMATED SVG</text>
+</g>
+<!-- Flow dots also SMIL -->
+<g transform="translate(360,78)">
+  <circle r="3.5" fill="#fbbf24"><animateTransform attributeName="transform" type="translate" values="0 0;240 0" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite"/></circle>
+  <circle r="3" fill="#f59e0b"><animateTransform attributeName="transform" type="translate" values="0 0;240 0" dur="1s" begin="0.33s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="1s" begin="0.33s" repeatCount="indefinite"/></circle>
+</g>
+</svg>

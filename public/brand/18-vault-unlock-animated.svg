@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520" role="img">
+<title>Animated — Auto Vault Unlock (Bitwarden Model)</title>
+<defs>
+  <linearGradient id="goldV" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient>
+  <style>
+    @keyframes pbkdf{0%{width:0%}100%{width:100%}}
+    @keyframes unwrap{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:translateY(0)}}
+    @keyframes tickPop{0%{transform:scale(0)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
+    @keyframes vaultGlow{0%,100%{opacity:0.18}50%{opacity:0.36}}
+  </style>
+
+  <style>
+    @keyframes ultraShimmer{0%{transform:translateX(-220px)}100%{transform:translateX(860px)}}
+    @keyframes ultraPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.18)}}
+    @keyframes ultraFlow{0%{stroke-dashoffset:700}100%{stroke-dashoffset:0}}
+    @keyframes ultraFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  </style>
+</defs>
+<rect width="960" height="520" rx="24" fill="#080e1a"/>
+<text x="480" y="44" text-anchor="middle" font-family="Inter,sans-serif" font-size="15" font-weight="800" letter-spacing="3" fill="#fff">AUTO VAULT <tspan fill="#f59e0b">UNLOCK</tspan> ON LOGIN</text>
+<text x="480" y="64" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="600" letter-spacing="2" fill="#64748b">BITWARDEN MODEL • PBKDF2 100,000 ROUNDS • IN BROWSER RAM • 0.1s</text>
+<g opacity="0.95">
+  <rect x="-220" y="82" width="220" height="3" rx="1.5" fill="#f59e0b" opacity="0.95" style="animation: ultraShimmer 1.8s linear infinite"/>
+  <circle cx="10" cy="10" r="5" fill="#f59e0b" style="animation: ultraPulse 0.9s ease-in-out infinite"/>
+</g>
+
+<g transform="translate(48,96)">
+  <!-- Left: Login -->
+  <rect width="280" height="360" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <text x="24" y="32" font-family="Inter,sans-serif" font-size="10" font-weight="800" letter-spacing="1" fill="#e2e8f0">LOGIN</text>
+  <text x="256" y="32" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#10b981">● LIVE</text>
+  <g transform="translate(24,48)">
+    <rect width="232" height="40" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+    <text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#64748b">EMAIL</text>
+    <text x="12" y="28" font-family="Inter,sans-serif" font-size="8" font-weight="600" fill="#e2e8f0">founder@startup.com</text>
+    <circle cx="212" cy="20" r="6" fill="#10b981" opacity="0.15"/><path d="M208 20 L211 23 L216 17" fill="none" stroke="#10b981" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(24,96)">
+    <rect width="232" height="40" rx="10" fill="#080e1a" stroke="#f59e0b" stroke-opacity="0.45" stroke-width="1.4"/>
+    <text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#f59e0b">PASSWORD</text>
+    <text x="12" y="28" font-family="monospace" font-size="10" fill="#fff">••••••••••••••</text>
+    <circle cx="212" cy="20" r="10" fill="url(#goldV)"><animate attributeName="opacity" values="1;0.65;1" dur="0.9s" repeatCount="indefinite"/></circle>
+    <text x="212" y="24" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="800" fill="#080e1a">→</text>
+  </g>
+  <!-- PBKDF2 progress -->
+  <g transform="translate(24,158)">
+    <text font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1" fill="#475569">PBKDF2-SHA256 • 100,000 ROUNDS</text>
+    <rect y="10" width="232" height="8" rx="4" fill="#1e293b"/>
+    <rect y="10" height="8" rx="4" fill="url(#goldV)" width="0">
+      <animate attributeName="width" values="0;232;0" dur="3s" repeatCount="indefinite"/>
+    </rect>
+    <text y="30" font-family="monospace" font-size="6.5" fill="#f59e0b">derive → OwnerMasterKey (RAM only) <tspan fill="#64748b">• 0.1s</tspan></text>
+    <g transform="translate(0,38)">
+      <rect width="232" height="46" rx="10" fill="#080e1a" stroke="#10b981" stroke-opacity="0.22" stroke-width="1"/>
+      <circle cx="16" cy="16" r="8" fill="#10b981" opacity="0.15"/><path d="M12 16 L15 19 L20 12" fill="none" stroke="#10b981" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="32" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#6ee7b7">VAULT UNWRAPPED</text>
+      <text x="32" y="26" font-family="monospace" font-size="6" fill="#64748b">32-byte DocKeys • in-memory only</text>
+      <g transform="translate(192,12)"><circle r="6" fill="#10b981"><animate attributeName="r" values="6;8;6" dur="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0.55;1" dur="1.2s" repeatCount="indefinite"/></circle><circle r="10" fill="none" stroke="#10b981" stroke-opacity="0.22" stroke-width="1"><animate attributeName="r" values="10;14;10" dur="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.22;0;0.22" dur="1.2s" repeatCount="indefinite"/></circle></g>
+    </g>
+  </g>
+  <text x="140" y="340" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#475569">keys never leave device • cache-immune</text>
+</g>
+
+<!-- Center vault -->
+<g transform="translate(352,96)">
+  <rect width="256" height="360" rx="16" fill="#0f172a" stroke="#f59e0b" stroke-opacity="0.22" stroke-width="1.2"/>
+  <rect width="256" height="360" rx="16" fill="none" stroke="#f59e0b" stroke-opacity="0.06" stroke-width="12"/>
+  <g transform="translate(128,86)">
+    <rect x="-48" y="-34" width="96" height="68" rx="14" fill="url(#goldV)" stroke="#fbbf24" stroke-width="1.2"/>
+    <rect x="-48" y="-34" width="96" height="16" rx="14" fill="#fbbf24"/><rect x="-48" y="-22" width="96" height="6" fill="#fbbf24"/>
+    <path d="M -14 -14 V -22 A14 14 0 0 1 14 -22 V -14" fill="none" stroke="#fbbf24" stroke-width="4.5" stroke-linecap="round"/>
+    <circle cx="0" cy="8" r="10" fill="#080e1a" opacity="0.92"/><rect x="-2.8" y="8" width="5.6" height="12" rx="2.8" fill="#080e1a"/><circle cx="0" cy="4.5" r="2.8" fill="#f59e0b"/>
+    <!-- glow -->
+    <ellipse cx="0" cy="28" rx="48" ry="14" fill="#f59e0b" opacity="0.18"><animate attributeName="opacity" values="0.18;0.36;0.18" dur="1.6s" repeatCount="indefinite"/></ellipse>
+  </g>
+  <text x="128" y="156" text-anchor="middle" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="#fff">MASTER VAULT</text>
+  <text x="128" y="170" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#f59e0b">256-bit OwnerMasterKey</text>
+  <!-- Keys unwrapping animation -->
+  <g transform="translate(16,192)">
+    <g opacity="0">
+      <rect width="224" height="36" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <circle cx="16" cy="18" r="6" fill="#f59e0b"/><text x="32" y="16" font-family="monospace" font-size="7" font-weight="700" fill="#e2e8f0">DocKey #a7f3… unwrapped ✓</text><text x="32" y="26" font-family="Inter,sans-serif" font-size="6" fill="#10b981">→ #k= in URL fragment</text>
+      <animate attributeName="opacity" values="0;1;1;0" dur="3s" begin="0.6s" repeatCount="indefinite"/>
+    </g>
+    <g opacity="0">
+      <rect y="44" width="224" height="36" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <circle cx="16" cy="62" r="6" fill="#f59e0b"/><text x="32" y="60" font-family="monospace" font-size="7" font-weight="700" fill="#e2e8f0">DocKey #4d8b… unwrapped ✓</text><text x="32" y="70" font-family="Inter,sans-serif" font-size="6" fill="#10b981">→ #k= in URL fragment</text>
+      <animate attributeName="opacity" values="0;0;1;1;0" dur="3s" begin="1s" repeatCount="indefinite"/>
+    </g>
+    <g opacity="0">
+      <rect y="88" width="224" height="36" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <circle cx="16" cy="106" r="6" fill="#f59e0b"/><text x="32" y="104" font-family="monospace" font-size="7" font-weight="700" fill="#e2e8f0">DocKey #9c1e… unwrapped ✓</text><text x="32" y="114" font-family="Inter,sans-serif" font-size="6" fill="#10b981">→ #k= in URL fragment</text>
+      <animate attributeName="opacity" values="0;0;0;1;1;0" dur="3s" begin="1.4s" repeatCount="indefinite"/>
+    </g>
+  </g>
+  <g transform="translate(16,332)"><rect width="224" height="14" rx="7" fill="#1e293b"/><rect width="224" height="14" rx="7" fill="#10b981" opacity="0.9"><animate attributeName="width" values="0;224;224;0" dur="3s" repeatCount="indefinite"/></rect><text x="112" y="24" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#10b981">ALL LINKS RESTORED • 0.1s • ZERO-KNOWLEDGE</text></g>
+</g>
+
+<!-- Right restored links -->
+<g transform="translate(632,96)">
+  <rect width="280" height="360" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <text x="24" y="32" font-family="Inter,sans-serif" font-size="10" font-weight="800" fill="#e2e8f0">LINKS RESTORED</text>
+  <text x="256" y="32" text-anchor="end" font-family="monospace" font-size="6.5" fill="#475569">after cache clear</text>
+  <g transform="translate(24,48)">
+    <g>
+      <rect width="232" height="52" rx="10" fill="#080e1a" stroke="#10b981" stroke-opacity="0.22" stroke-width="1"/>
+      <text x="12" y="16" font-family="Inter,sans-serif" font-size="7.5" font-weight="700" fill="#fff">Series-A Deck.pdf</text><text x="12" y="26" font-family="monospace" font-size="6.5" fill="#3b82f6">bln.sh/x7f3#k=••••</text><text x="12" y="38" font-family="Inter,sans-serif" font-size="6" fill="#10b981">● READY TO SHARE</text>
+      <circle cx="212" cy="26" r="8" fill="#10b981"><animateTransform attributeName="transform" type="scale" values="1;1.12;1" dur="1.2s" repeatCount="indefinite" additive="sum"/></circle><path d="M208 26 L211 29 L216 22" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g transform="translate(0,60)">
+      <rect width="232" height="52" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <text x="12" y="16" font-family="Inter,sans-serif" font-size="7.5" font-weight="600" fill="#e2e8f0">M&amp;A Terms.pdf</text><text x="12" y="26" font-family="monospace" font-size="6.5" fill="#3b82f6">bln.sh/lgl#k=••••</text><text x="12" y="38" font-family="Inter,sans-serif" font-size="6" fill="#10b981">● READY</text>
+      <animate attributeName="opacity" values="1;0.72;1" dur="2s" repeatCount="indefinite"/>
+    </g>
+    <g transform="translate(0,120)">
+      <rect width="232" height="52" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <text x="12" y="16" font-family="Inter,sans-serif" font-size="7.5" font-weight="600" fill="#e2e8f0">Lookbook-2026.pdf</text><text x="12" y="26" font-family="monospace" font-size="6.5" fill="#3b82f6">bln.sh/crt#k=••••</text><text x="12" y="38" font-family="Inter,sans-serif" font-size="6" fill="#10b981">● READY</text>
+      <animate attributeName="opacity" values="1;0.82;1" dur="2s" begin="0.6s" repeatCount="indefinite"/>
+    </g>
+  </g>
+  <g transform="translate(24,248)"><rect width="232" height="28" rx="14" fill="#10b981"/><text x="116" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="7.5" font-weight="800" fill="#080e1a">→ Dashboard Live</text></g>
+  <text x="140" y="300" text-anchor="middle" font-family="monospace" font-size="6.5" fill="#475569">wrapped keys only in DB • unwrapped in RAM</text>
+  <text x="140" y="312" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#f59e0b">CACHE-CLEAR PROOF</text>
+</g>
+</svg>

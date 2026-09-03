@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img">
+<title>Viewer Journey Sankey — Animated</title>
+<rect width="960" height="360" rx="16" fill="#080e1a"/>
+<text x="24" y="28" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="#fff">VIEWER JOURNEY SANKEY</text>
+<text x="24" y="44" font-family="Inter,sans-serif" font-size="7" fill="#64748b">Where do viewers drop — P1 → Mid → End flow • P1 #8</text>
+<g transform="translate(24,56)">
+  <rect width="912" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <g transform="translate(32,20)">
+    <!-- Nodes -->
+    <rect x="0" y="40" width="88" height="56" rx="10" fill="#3b82f6" stroke="#60a5fa" stroke-width="1"/><text x="44" y="64" text-anchor="middle" font-family="Inter,sans-serif" font-size="18" font-weight="800" fill="white">42</text><text x="44" y="78" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="white">Opened P1</text><text x="44" y="88" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" fill="#dbeafe">100%</text>
+    <rect x="280" y="20" width="88" height="56" rx="10" fill="#f59e0b" stroke="#fbbf24" stroke-width="1"/><text x="324" y="44" text-anchor="middle" font-family="Inter,sans-serif" font-size="18" font-weight="800" fill="#080e1a">28</text><text x="324" y="58" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#080e1a">Reached Mid</text><text x="324" y="68" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" fill="#080e1a">67%</text>
+    <rect x="280" y="120" width="88" height="36" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/><text x="324" y="138" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="800" fill="#94a3b8">14</text><text x="324" y="148" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" fill="#475569">Dropped 33%</text>
+    <rect x="560" y="40" width="88" height="56" rx="10" fill="#10b981" stroke="#34d399" stroke-width="1"/><text x="604" y="64" text-anchor="middle" font-family="Inter,sans-serif" font-size="18" font-weight="800" fill="white">18</text><text x="604" y="78" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="white">Completed</text><text x="604" y="88" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" fill="#d1fae5">43%</text>
+    <rect x="560" y="120" width="88" height="36" rx="10" fill="#1e293b" stroke="#334155" stroke-width="1"/><text x="604" y="138" text-anchor="middle" font-family="Inter,sans-serif" font-size="12" font-weight="800" fill="#94a3b8">10</text><text x="604" y="148" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" fill="#475569">Dropped 36%</text>
+    <rect x="740" y="40" width="88" height="56" rx="10" fill="#8b5cf6" stroke="#a78bfa" stroke-width="1"/><text x="784" y="64" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="800" fill="white">Q&amp;A 9</text><text x="784" y="78" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" fill="#ede9fe">asked</text>
+    <!-- Flows -->
+    <path d="M88 68 C 160 68 200 48 280 48" fill="none" stroke="#f59e0b" stroke-width="10" stroke-opacity="0.32" stroke-linecap="round"><animate attributeName="stroke-opacity" values="0.32;0.52;0.32" dur="1.6s" repeatCount="indefinite"/></path>
+    <path d="M88 68 C 160 68 200 138 280 138" fill="none" stroke="#334155" stroke-width="6" stroke-linecap="round" opacity="0.5"/>
+    <path d="M368 48 C 440 48 480 68 560 68" fill="none" stroke="#10b981" stroke-width="8" stroke-opacity="0.32" stroke-linecap="round"><animate attributeName="stroke-opacity" values="0.32;0.5;0.32" dur="1.6s" begin="0.4s" repeatCount="indefinite"/></path>
+    <path d="M368 48 C 420 48 500 138 560 138" fill="none" stroke="#334155" stroke-width="4" stroke-linecap="round" opacity="0.4"/>
+    <path d="M604 68 C 660 68 700 68 740 68" fill="none" stroke="#8b5cf6" stroke-width="4" stroke-opacity="0.32" stroke-dasharray="4 4"><animate attributeName="stroke-dashoffset" values="0;8" dur="0.6s" repeatCount="indefinite"/></path>
+    <!-- moving dots -->
+    <circle r="3" fill="#f59e0b"><animateMotion path="M88 68 C160 68 200 48 280 48" dur="1.6s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="1.6s" repeatCount="indefinite"/></circle>
+    <circle r="3" fill="#10b981"><animateMotion path="M368 48 C440 48 480 68 560 68" dur="1.6s" begin="0.8s" repeatCount="indefinite"/></circle>
+  </g>
+</g>
+<g transform="translate(24,290)"><rect width="912" height="46" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="16" y="18" font-family="Inter,sans-serif" font-size="7.5" font-weight="700" fill="#f59e0b">NEW: charts/journey-sankey.tsx</text><text x="16" y="32" font-family="monospace" font-size="6.5" fill="#64748b">Extends funnel 3-step → visual flow, uses maxPageReached already computed</text></g>
+</svg>

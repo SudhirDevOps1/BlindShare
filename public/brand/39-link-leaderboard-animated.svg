@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img">
+<title>Link Leaderboard — Animated</title>
+<rect width="960" height="360" rx="16" fill="#080e1a"/>
+<text x="24" y="28" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="#fff">LINK LEADERBOARD • TOP 5</text>
+<text x="24" y="44" font-family="Inter,sans-serif" font-size="7" fill="#64748b">Which deck wins — ranked by views + dwell • P2 #11</text>
+<text x="936" y="28" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#f59e0b">● RANKED</text>
+<g transform="translate(24,56)">
+  <rect width="912" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <g transform="translate(16,16)">
+    <g>
+      <rect width="880" height="36" rx="8" fill="#f59e0b" stroke="#fbbf24" stroke-width="1"/>
+      <text x="12" y="14" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#080e1a">#1</text><text x="32" y="14" font-family="Inter,sans-serif" font-size="7.5" font-weight="800" fill="#080e1a">Series-A Deck • bln.sh/x7f3</text><text x="32" y="26" font-family="monospace" font-size="6" fill="#080e1a" opacity="0.7">42 views • 4m22s avg • 🔥 84</text>
+      <rect x="520" y="10" width="0" height="6" rx="3" fill="#080e1a" opacity="0.9"><animate attributeName="width" values="0;280;280" dur="0.8s" fill="freeze"/></rect>
+      <text x="820" y="22" text-anchor="end" font-family="Inter,sans-serif" font-size="8" font-weight="800" fill="#080e1a">42</text>
+    </g>
+    <g transform="translate(0,44)">
+      <rect width="880" height="32" rx="8" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <text x="12" y="14" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#94a3b8">#2</text><text x="32" y="14" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">M&amp;A Terms • bln.sh/lgl</text><text x="32" y="24" font-family="monospace" font-size="6" fill="#64748b">28 views • 2m18s • ⚡ 71</text>
+      <rect x="520" y="10" width="0" height="6" rx="3" fill="#3b82f6"><animate attributeName="width" values="0;186;186" dur="0.8s" begin="0.2s" fill="freeze"/></rect>
+      <text x="820" y="20" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#94a3b8">28</text>
+    </g>
+    <g transform="translate(0,84)">
+      <rect width="880" height="32" rx="8" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <text x="12" y="14" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#94a3b8">#3</text><text x="32" y="14" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">Lookbook 2026 • bln.sh/crt</text><text x="32" y="24" font-family="monospace" font-size="6" fill="#64748b">19 views • 3m04s • 58</text>
+      <rect x="520" y="10" width="0" height="6" rx="3" fill="#10b981"><animate attributeName="width" values="0;126;126" dur="0.8s" begin="0.4s" fill="freeze"/></rect>
+    </g>
+    <g transform="translate(0,124)">
+      <rect width="880" height="32" rx="8" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <text x="12" y="14" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#94a3b8">#4</text><text x="32" y="14" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">NDA v2 • bln.sh/nda</text><text x="32" y="24" font-family="monospace" font-size="6" fill="#64748b">12 views • 1m12s</text>
+      <rect x="520" y="10" width="0" height="6" rx="3" fill="#64748b"><animate attributeName="width" values="0;80;80" dur="0.8s" begin="0.6s" fill="freeze"/></rect>
+    </g>
+  </g>
+</g>
+<g transform="translate(24,290)"><rect width="912" height="46" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="16" y="18" font-family="Inter,sans-serif" font-size="7.5" font-weight="700" fill="#f59e0b">P2 #11 • Uses links[].viewCount + avg dwell — no new capture</text><text x="16" y="32" font-family="monospace" font-size="6.5" fill="#64748b">Replaces recent links list with ranked — shows winner instantly</text></g>
+</svg>

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img">
+<title>Storage by File Type — Animated Donut</title>
+<rect width="960" height="360" rx="16" fill="#080e1a"/>
+<text x="24" y="28" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="#fff">STORAGE BY FILE TYPE</text>
+<text x="24" y="44" font-family="Inter,sans-serif" font-size="7" fill="#64748b">Where is your 10GB B2 going — PDF vs Image vs Video • P0 #4</text>
+<g transform="translate(24,60)">
+  <rect width="440" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <g transform="translate(120,110)">
+    <circle r="64" fill="#080e1a" stroke="#1e293b" stroke-width="10"/>
+    <circle r="64" fill="none" stroke="#ef4444" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 402" transform="rotate(-90)"><animate attributeName="stroke-dasharray" values="0 402; 161 402;161 402" dur="1s" fill="freeze"/></circle>
+    <circle r="64" fill="none" stroke="#f59e0b" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 402" transform="rotate(54)"><animate attributeName="stroke-dasharray" values="0 402; 100 402;100 402" dur="1s" begin="0.25s" fill="freeze"/></circle>
+    <circle r="64" fill="none" stroke="#3b82f6" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 402" transform="rotate(144)"><animate attributeName="stroke-dasharray" values="0 402; 60 402;60 402" dur="1s" begin="0.5s" fill="freeze"/></circle>
+    <circle r="64" fill="none" stroke="#10b981" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 402" transform="rotate(198)"><animate attributeName="stroke-dasharray" values="0 402; 40 402;40 402" dur="1s" begin="0.75s" fill="freeze"/></circle>
+    <text y="-4" text-anchor="middle" font-family="Inter,sans-serif" font-size="18" font-weight="800" fill="#fff">4.2<tspan font-size="10" fill="#64748b"> GB</tspan></text><text y="12" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" fill="#475569">of 10 GB</text>
+  </g>
+  <g transform="translate(240,32)" font-family="Inter,sans-serif" font-size="7" font-weight="600">
+    <g><rect width="10" height="10" rx="2" fill="#ef4444"/><text x="16" y="9" fill="#e2e8f0">PDF 40% • 1.7 GB • 1,240 files</text></g>
+    <g transform="translate(0,16)"><rect width="10" height="10" rx="2" fill="#f59e0b"/><text x="16" y="9" fill="#e2e8f0">Image 25% • 1.0 GB</text></g>
+    <g transform="translate(0,32)"><rect width="10" height="10" rx="2" fill="#3b82f6"/><text x="16" y="9" fill="#e2e8f0">Video 15% • 0.6 GB</text></g>
+    <g transform="translate(0,48)"><rect width="10" height="10" rx="2" fill="#10b981"/><text x="16" y="9" fill="#e2e8f0">Other 10% • 0.4 GB • ZIP/Audio</text></g>
+    <g transform="translate(0,64)"><rect width="10" height="10" rx="2" fill="#334155"/><text x="16" y="9" fill="#94a3b8">Free 58% • 5.8 GB left</text></g>
+  </g>
+</g>
+<g transform="translate(496,60)">
+  <rect width="440" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <text x="16" y="20" font-family="Inter,sans-serif" font-size="8" font-weight="800" fill="#e2e8f0">COST INSIGHT</text>
+  <g transform="translate(16,32)">
+    <rect width="408" height="42" rx="8" fill="#080e1a" stroke="#f59e0b" stroke-opacity="0.18" stroke-width="1"/>
+    <text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#f59e0b">PDFs dominate cost — compress?</text><text x="12" y="28" font-family="Inter,sans-serif" font-size="6.5" fill="#94a3b8">GZIP 50-80% already saves 2.1 GB • video is 15% but only 12 files</text>
+  </g>
+  <g transform="translate(16,84)">
+    <rect width="408" height="42" rx="8" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+    <text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">Orphan sweeper would free 0.3 GB</text><text x="12" y="28" font-family="Inter,sans-serif" font-size="6.5" fill="#10b981">Admin → Orphan Object Sweeper • 18 blobs</text>
+    <rect x="360" y="12" width="32" height="18" rx="9" fill="#f59e0b"/><text x="376" y="24" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="800" fill="#080e1a">FREE</text>
+  </g>
+  <g transform="translate(16,136)"><rect width="408" height="36" rx="8" fill="#f59e0b"/><text x="204" y="22" text-anchor="middle" font-family="Inter,sans-serif" font-size="7.5" font-weight="800" fill="#080e1a">Tip: Video → compress before upload saves 0.4 GB</text></g>
+</g>
+<g transform="translate(24,290)"><rect width="912" height="46" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="16" y="18" font-family="Inter,sans-serif" font-size="7.5" font-weight="700" fill="#ef4444">NEW: charts/storage-by-type.tsx</text><text x="16" y="32" font-family="monospace" font-size="6.5" fill="#64748b">Expand dashboard storage card — groupBy docs[].format → donut 6 slices, no new capture</text></g>
+</svg>

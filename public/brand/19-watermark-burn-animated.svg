@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520" role="img">
+<title>Animated — Permanent Indelible Watermark Burn</title>
+<defs>
+  <linearGradient id="goldW" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient>
+  <pattern id="diagWm" width="120" height="24" patternTransform="rotate(-28)" patternUnits="userSpaceOnUse">
+    <text x="0" y="16" font-family="Inter,sans-serif" font-size="10" font-weight="800" fill="#f59e0b" opacity="0.14">viewer@email.com • 2026-09-03 • bln.sh/x7f3</text>
+  </pattern>
+
+  <style>
+    @keyframes ultraShimmer{0%{transform:translateX(-220px)}100%{transform:translateX(860px)}}
+    @keyframes ultraPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.18)}}
+    @keyframes ultraFlow{0%{stroke-dashoffset:700}100%{stroke-dashoffset:0}}
+    @keyframes ultraFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  </style>
+</defs>
+<rect width="960" height="520" rx="24" fill="#080e1a"/>
+<text x="480" y="42" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="800" letter-spacing="3" fill="#fff">PERMANENT <tspan fill="#f59e0b">INDELIBLE</tspan> WATERMARK</text>
+<g opacity="0.95">
+  <rect x="-220" y="82" width="220" height="3" rx="1.5" fill="#f59e0b" opacity="0.95" style="animation: ultraShimmer 1.8s linear infinite"/>
+  <circle cx="10" cy="10" r="5" fill="#f59e0b" style="animation: ultraPulse 0.9s ease-in-out infinite"/>
+</g>
+<text x="480" y="62" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="500" letter-spacing="1.8" fill="#64748b">ON DOWNLOAD • BURNED INTO PDF STREAM • pdf-lib • TAMPER-EVIDENT</text>
+
+<g transform="translate(48,96)">
+  <!-- Before -->
+  <g>
+    <rect width="260" height="360" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <text x="20" y="28" font-family="Inter,sans-serif" font-size="9" font-weight="800" letter-spacing="1" fill="#475569">BEFORE DOWNLOAD</text>
+    <g transform="translate(20,44)">
+      <rect width="220" height="280" rx="10" fill="#fff"/>
+      <rect x="16" y="16" width="188" height="8" rx="4" fill="#0f172a"/><rect x="16" y="30" width="120" height="5" rx="2.5" fill="#64748b"/>
+      <rect x="16" y="46" width="188" height="4" rx="2" fill="#e2f0f3"/><rect x="16" y="54" width="188" height="4" rx="2" fill="#e2f0f3"/><rect x="16" y="62" width="140" height="4" rx="2" fill="#e2f0f3"/>
+      <rect x="16" y="82" width="92" height="62" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-opacity="0.15" stroke-width="1"/><rect x="24" y="92" width="60" height="5" rx="2.5" fill="#f59e0b"/>
+      <rect x="112" y="82" width="92" height="62" rx="8" fill="#f0fdf4" stroke="#10b981" stroke-opacity="0.15" stroke-width="1"/>
+      <!-- viewport watermark live (dynamic) -->
+      <text x="110" y="148" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" font-weight="800" fill="#f59e0b" opacity="0.10" transform="rotate(-12 110 148)">viewer@email.com • LIVE VIEW</text>
+    </g>
+    <g transform="translate(20,336)"><rect width="220" height="14" rx="7" fill="#334155" opacity="0.35"/><text x="110" y="10" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#94a3b8">VIEW ONLY • DYNAMIC OVERLAY</text></g>
+  </g>
+
+  <!-- Arrow burn -->
+  <g transform="translate(308,244)">
+    <rect x="0" y="-1" width="68" height="2" fill="url(#goldW)"/><path d="M68 -7 L82 0 L68 7 Z" fill="#f59e0b"/>
+    <g transform="translate(34,-18)"><rect x="-26" y="-10" width="52" height="20" rx="10" fill="#f59e0b"/><text x="0" y="4" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" fill="#080e1a">BURN</text><animate attributeName="opacity" values="1;0.62;1" dur="0.9s" repeatCount="indefinite"/></g>
+    <circle r="2.5" fill="#f59e0b"><animateTransform attributeName="transform" type="translate" values="0 0; 68 0" dur="1s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="1s" repeatCount="indefinite"/></circle>
+  </g>
+
+  <!-- After -->
+  <g transform="translate(390,96)">
+    <rect width="260" height="360" rx="14" fill="#0f172a" stroke="#f59e0b" stroke-opacity="0.22" stroke-width="1.2"/>
+    <rect width="260" height="360" rx="14" fill="none" stroke="#f59e0b" stroke-opacity="0.06" stroke-width="10"/>
+    <text x="20" y="28" font-family="Inter,sans-serif" font-size="9" font-weight="800" letter-spacing="1" fill="#f59e0b">AFTER DOWNLOAD — BURNED</text>
+    <g transform="translate(20,44)">
+      <rect width="220" height="280" rx="10" fill="#fff"/>
+      <rect x="16" y="16" width="188" height="8" rx="4" fill="#0f172a"/><rect x="16" y="30" width="120" height="5" rx="2.5" fill="#64748b"/>
+      <rect x="16" y="46" width="188" height="4" rx="2" fill="#e2f0f3"/><rect x="16" y="54" width="188" height="4" rx="2" fill="#e2f0f3"/><rect x="16" y="62" width="140" height="4" rx="2" fill="#e2f0f3"/>
+      <rect x="16" y="82" width="92" height="62" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-opacity="0.15" stroke-width="1"/><rect x="112" y="82" width="92" height="62" rx="8" fill="#f0fdf4" stroke="#10b981" stroke-opacity="0.15" stroke-width="1"/>
+      <!-- burned watermark pattern -->
+      <rect x="0" y="0" width="220" height="280" rx="10" fill="url(#diagWm)" opacity="0"><animate attributeName="opacity" values="0;0.95;0.95;0" dur="4s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="translate" values="0 0; -12 -4; 0 0" dur="4s" repeatCount="indefinite" additive="sum"/></rect>
+      <!-- laser burn line -->
+      <rect x="0" y="0" width="220" height="2" fill="#ef4444" opacity="0.85"><animate attributeName="y" values="0;280;0" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;0.85;0" dur="4s" repeatCount="indefinite"/></rect>
+    </g>
+    <g transform="translate(20,336)"><rect width="220" height="14" rx="7" fill="#f59e0b"/><text x="110" y="10" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" fill="#080e1a">INDELIBLE • IN PDF STREAM</text></g>
+  </g>
+
+  <!-- Right proof -->
+  <g transform="translate(674,96)">
+    <rect width="238" height="360" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <text x="16" y="28" font-family="Inter,sans-serif" font-size="9" font-weight="800" fill="#e2e8f0">TAMPER PROOF</text>
+    <g transform="translate(16,44)">
+      <g>
+        <rect width="206" height="64" rx="10" fill="#080e1a" stroke="#10b981" stroke-opacity="0.22" stroke-width="1"/>
+        <circle cx="16" cy="18" r="8" fill="#10b981" opacity="0.15"/><path d="M12 18 L15 21 L20 13" fill="none" stroke="#10b981" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><text x="32" y="16" font-family="Inter,sans-serif" font-size="7.5" font-weight="800" fill="#6ee7b7">BURNED ON EVERY PAGE</text><text x="32" y="26" font-family="Inter,sans-serif" font-size="6.5" fill="#94a3b8">before export • pdf-lib</text>
+        <text x="12" y="44" font-family="monospace" font-size="6" fill="#475569">viewer@email.com • 2026-09-03T14:22Z • bln.sh/x7f3</text>
+      </g>
+      <g transform="translate(0,76)">
+        <rect width="206" height="54" rx="10" fill="#080e1a" stroke="#ef4444" stroke-opacity="0.18" stroke-width="1"/>
+        <text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#fca5a5">TRY TO REMOVE → CORRUPTED</text><text x="12" y="28" font-family="Inter,sans-serif" font-size="6.5" fill="#64748b">Watermark is in content stream,</text><text x="12" y="36" font-family="Inter,sans-serif" font-size="6.5" fill="#64748b">not an overlay. Screenshot ≠ clean.</text>
+        <animate attributeName="opacity" values="1;0.88;1" dur="1.8s" repeatCount="indefinite"/>
+      </g>
+      <g transform="translate(0,142)">
+        <rect width="206" height="44" rx="10" fill="#f59e0b" stroke="#fbbf24" stroke-width="1"/>
+        <text x="103" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">HONEST NOTE: DETERRENT, NOT DRM</text><text x="103" y="30" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" fill="#080e1a" opacity="0.8">screenshot still possible • trace remains</text>
+      </g>
+      <g transform="translate(0,200)">
+        <text font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1" fill="#475569">EXPORTS</text>
+        <g transform="translate(0,10)">
+          <rect width="98" height="28" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="49" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#e2e8f0">PDF + Watermark</text>
+          <rect x="108" width="98" height="28" rx="14" fill="#080e1a" stroke="#1e293b" stroke-width="1"/><text x="157" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#94a3b8">ZIP Bundle</text>
+        </g>
+      </g>
+    </g>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img">
+<title>Hourly Heatmap 24×7 — Animated</title>
+<rect width="960" height="360" rx="16" fill="#080e1a"/>
+<text x="24" y="28" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="#fff">HOURLY HEATMAP • 24×7</text>
+<text x="24" y="44" font-family="Inter,sans-serif" font-size="7" fill="#64748b">Best time to send deck — hour × day • P0 #2</text>
+<text x="936" y="28" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#f59e0b">● GOLD INTENSITY</text>
+<g transform="translate(24,56)">
+  <rect width="912" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <g transform="translate(56,16)">
+    <g font-family="Inter,sans-serif" font-size="6" fill="#475569" text-anchor="middle">
+      <text x="0" y="0">12a</text><text x="70" y="0">6a</text><text x="140" y="0">12p</text><text x="210" y="0">6p</text><text x="280" y="0">12a</text>
+    </g>
+    <g transform="translate(0,8)">
+      <!-- 7 rows x 24 cols mock -->
+      <g opacity="0.95">
+        <rect x="0" y="0" width="11" height="11" rx="2" fill="#1e293b"/><rect x="12" y="0" width="11" height="11" rx="2" fill="#1e293b"/><rect x="24" y="0" width="11" height="11" rx="2" fill="#334155"/><rect x="36" y="0" width="11" height="11" rx="2" fill="#f59e0b" opacity="0.45"><animate attributeName="opacity" values="0.45;0.85;0.45" dur="1.6s" repeatCount="indefinite"/></rect>
+        <rect x="48" y="0" width="11" height="11" rx="2" fill="#f59e0b" opacity="0.85"><animate attributeName="opacity" values="0.85;0.45;0.85" dur="1.6s" repeatCount="indefinite"/></rect><rect x="60" y="0" width="11" height="11" rx="2" fill="#fbbf24" opacity="0.95"/><rect x="72" y="0" width="11" height="11" rx="2" fill="#f59e0b" opacity="0.6"/>
+        <rect x="0" y="13" width="11" height="11" rx="2" fill="#1e293b"/><rect x="36" y="13" width="11" height="11" rx="2" fill="#f59e0b" opacity="0.72"/><rect x="60" y="13" width="11" height="11" rx="2" fill="#f59e0b" opacity="0.92"><animate attributeName="opacity" values="0.92;0.52;0.92" dur="1.8s" repeatCount="indefinite"/></rect>
+        <rect x="0" y="26" width="11" height="11" rx="2" fill="#1e293b"/><rect x="48" y="26" width="11" height="11" rx="2" fill="#fbbf24" opacity="0.88"/>
+        <rect x="0" y="39" width="11" height="11" rx="2" fill="#1e293b"/><rect x="60" y="39" width="11" height="11" rx="2" fill="#f59e0b" opacity="0.95"/>
+        <rect x="0" y="52" width="11" height="11" rx="2" fill="#334155"/><rect x="36" y="52" width="11" height="11" rx="2" fill="#f59e0b" opacity="0.5"/>
+        <rect x="0" y="65" width="11" height="11" rx="2" fill="#1e293b"/><rect x="24" y="65" width="11" height="11" rx="2" fill="#334155"/>
+        <rect x="0" y="78" width="11" height="11" rx="2" fill="#1e293b"/><rect x="60" y="78" width="11" height="11" rx="2" fill="#334155"/>
+      </g>
+      <g font-family="Inter,sans-serif" font-size="6" fill="#475569" text-anchor="end"><text x="-8" y="8">Mon</text><text x="-8" y="21">Tue</text><text x="-8" y="34">Wed</text><text x="-8" y="47">Thu</text><text x="-8" y="60">Fri</text><text x="-8" y="73">Sat</text><text x="-8" y="86">Sun</text></g>
+      <rect x="320" y="0" width="38" height="94" rx="8" fill="#f59e0b" stroke="#fbbf24" stroke-width="1"/><text x="339" y="28" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="800" fill="#080e1a">10am</text><text x="339" y="42" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#080e1a">PEAK</text><text x="339" y="54" text-anchor="middle" font-family="monospace" font-size="6" fill="#080e1a">42 views</text><circle cx="339" cy="78" r="3" fill="#080e1a" opacity="0.35"><animate attributeName="opacity" values="0.35;0.85;0.35" dur="1s" repeatCount="indefinite"/></circle>
+    </g>
+    <text x="0" y="124" font-family="Inter,sans-serif" font-size="6.5" fill="#64748b">Data: <tspan font-family="monospace" fill="#94a3b8">sessions.startedAt → hourOfDay × dayOfWeek</tspan> • no new capture needed</text>
+    <text x="0" y="136" font-family="Inter,sans-serif" font-size="6.5" fill="#475569">Insight: Tue 10am is golden hour for investors — schedule sends then.</text>
+  </g>
+</g>
+<g transform="translate(24,290)"><rect width="912" height="46" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="16" y="18" font-family="Inter,sans-serif" font-size="7.5" font-weight="700" fill="#f59e0b">NEW: charts/hourly-heatmap.tsx</text><text x="16" y="32" font-family="monospace" font-size="6.5" fill="#64748b">7 rows (Mon-Sun) × 24 cols (12a-11p) • gold intensity • tooltip: 42 views Tue 10am</text><text x="896" y="20" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#f59e0b">ADD, not replace</text></g>
+</svg>

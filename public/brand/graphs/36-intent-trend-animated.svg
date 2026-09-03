@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img">
+<title>Intent Trend Line — Animated</title>
+<rect width="960" height="360" rx="16" fill="#080e1a"/>
+<text x="24" y="28" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="#fff">AI INTENT TREND • 30 DAYS</text>
+<text x="24" y="44" font-family="Inter,sans-serif" font-size="7" fill="#64748b">Are leads getting hotter over time — avg conviction per day • P1 #7</text>
+<text x="936" y="28" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#f59e0b">● GOLD TREND</text>
+<g transform="translate(24,56)">
+  <rect width="912" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <g transform="translate(32,20)">
+    <g stroke="#1e293b" stroke-width="0.7" opacity="0.9"><path d="M0 44 H848"/><path d="M0 88 H848"/><path d="M0 132 H848"/></g>
+    <text x="0" y="10" font-family="Inter,sans-serif" font-size="6" fill="#475569">100</text><text x="0" y="98" font-family="Inter,sans-serif" font-size="6" fill="#475569">0</text>
+    <path d="M0 96 L28 92 L56 88 L84 84 L112 78 L140 74 L168 68 L196 64 L224 58 L252 52 L280 56 L308 48 L336 42 L364 38 L392 32 L420 36 L448 28 L476 32 L504 28 L532 22 L560 26 L588 32 L616 42 L644 36 L672 42 L700 48 L728 52 L756 48 L784 52 L812 48 L848 52" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="900" stroke-dashoffset="900"><animate attributeName="stroke-dashoffset" values="900;0;0;900" dur="4s" repeatCount="indefinite"/></path>
+    <path d="M0 96 L848 52 L848 132 L0 132 Z" fill="#f59e0b" opacity="0.06"/>
+    <circle cx="532" cy="22" r="3.5" fill="#f59e0b" stroke="#080e1a" stroke-width="1.2"><animate attributeName="r" values="3.5;5;3.5" dur="1.2s" repeatCount="indefinite"/></circle>
+    <g transform="translate(532,0)"><rect x="-34" y="-16" width="68" height="14" rx="7" fill="#f59e0b"/><text x="0" y="-6" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="800" fill="#080e1a">+18% ▲</text></g>
+    <text x="848" y="148" text-anchor="end" font-family="Inter,sans-serif" font-size="6" fill="#475569">Day 30</text>
+  </g>
+  <text x="16" y="206" font-family="Inter,sans-serif" font-size="6.5" fill="#10b981">▲ Trending up — last 7 days avg 84 vs first 7 days 66</text>
+</g>
+<g transform="translate(24,290)"><rect width="912" height="46" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="16" y="18" font-family="Inter,sans-serif" font-size="7.5" font-weight="700" fill="#f59e0b">NEW: charts/intent-trend.tsx</text><text x="16" y="32" font-family="monospace" font-size="6.5" fill="#64748b">Daily avg intentScore — uses already-computed intentScore per session</text></g>
+</svg>

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520" role="img">
+<title>Animated — In-Doc Q&amp;A Live Pins</title>
+<defs>
+  <linearGradient id="goldQ" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
+  <style>
+    @keyframes pinPop{0%{transform:scale(0)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+    @keyframes typing{0%,60%,100%{opacity:0.25}30%{opacity:1}}
+  </style>
+
+  <style>
+    @keyframes ultraShimmer{0%{transform:translateX(-220px)}100%{transform:translateX(860px)}}
+    @keyframes ultraPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.18)}}
+    @keyframes ultraFlow{0%{stroke-dashoffset:700}100%{stroke-dashoffset:0}}
+    @keyframes ultraFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  </style>
+</defs>
+<rect width="960" height="520" rx="24" fill="#080e1a"/>
+<text x="480" y="40" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="800" letter-spacing="3" fill="#fff">IN-DOC <tspan fill="#f59e0b">Q&amp;A</tspan> • LIVE PINS</text>
+<text x="480" y="60" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="500" letter-spacing="1.8" fill="#64748b">CLICK-TO-PIN • 3s WATCHDOG SYNC • FOUNDER REPLY • NO RELOAD</text>
+<g opacity="0.95">
+  <rect x="-220" y="82" width="220" height="3" rx="1.5" fill="#f59e0b" opacity="0.95" style="animation: ultraShimmer 1.8s linear infinite"/>
+  <circle cx="10" cy="10" r="5" fill="#f59e0b" style="animation: ultraPulse 0.9s ease-in-out infinite"/>
+</g>
+
+<g transform="translate(48,88)">
+  <!-- Document -->
+  <rect width="560" height="360" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <rect width="560" height="36" rx="14" fill="#1e293b"/><rect y="18" width="560" height="18" fill="#1e293b"/>
+  <text x="16" y="23" font-family="Inter,sans-serif" font-size="8" font-weight="600" fill="#e2e8f0">pitch-deck-q4-2026.pdf • P7 / 14 • Presenter Mode</text>
+  <circle cx="532" cy="18" r="6" fill="#10b981"/><circle cx="532" cy="18" r="10" fill="none" stroke="#10b981" stroke-opacity="0.22" stroke-width="1"><animate attributeName="r" values="10;14;10" dur="1.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.22;0;0.22" dur="1.4s" repeatCount="indefinite"/></circle>
+  <g transform="translate(16,48)">
+    <rect width="528" height="296" rx="10" fill="#fff"/>
+    <rect x="14" y="14" width="240" height="8" rx="4" fill="#0f172a"/><rect x="14" y="28" width="160" height="5" rx="2.5" fill="#64748b"/>
+    <rect x="14" y="44" width="500" height="4" rx="2" fill="#e2e8f0"/><rect x="14" y="52" width="500" height="4" rx="2" fill="#e2e8f0"/><rect x="14" y="60" width="360" height="4" rx="2" fill="#e2e8f0"/>
+    <rect x="14" y="80" width="240" height="110" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-opacity="0.18" stroke-width="1"/>
+    <rect x="268" y="80" width="240" height="110" rx="8" fill="#f0fdf4" stroke="#10b981" stroke-opacity="0.18" stroke-width="1"/>
+    <!-- Pin 1 -->
+    <g transform="translate(78,118)" style="animation: pinPop 0.45s ease-out">
+      <circle r="14" fill="url(#goldQ)" stroke="#fff" stroke-width="2"/><text y="4" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="800" fill="#080e1a">?</text>
+      <circle r="18" fill="none" stroke="#f59e0b" stroke-opacity="0.22" stroke-width="1.4"><animate attributeName="r" values="18;24;18" dur="1.2s" repeatCount="indefinite"/><animate attributeName="opacity" values="0.22;0;0.22" dur="1.2s" repeatCount="indefinite"/></circle>
+      <g transform="translate(16,-16)"><rect x="0" y="-14" width="132" height="28" rx="14" fill="#0f172a" stroke="#f59e0b" stroke-width="1"/><text x="10" y="0" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#fff">What’s the moat?</text><circle cx="116" cy="-4" r="4" fill="#10b981"/></g>
+    </g>
+    <!-- Pin 2 -->
+    <g transform="translate(382,118)" style="animation: pinPop 0.45s ease-out 0.6s both">
+      <circle r="14" fill="#3b82f6" stroke="#fff" stroke-width="2"/><text y="4" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="800" fill="#fff">?</text>
+      <circle r="18" fill="none" stroke="#3b82f6" stroke-opacity="0.22" stroke-width="1.4"><animate attributeName="r" values="18;24;18" dur="1.2s" begin="0.6s" repeatCount="indefinite"/></circle>
+      <g transform="translate(16,-16)"><rect x="0" y="-14" width="124" height="28" rx="14" fill="#0f172a" stroke="#3b82f6" stroke-width="1"/><text x="10" y="0" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#fff">TAM size?</text><circle cx="108" cy="-4" r="4" fill="#f59e0b"/></g>
+    </g>
+    <!-- Pin 3 tail -->
+    <g transform="translate(190,208)" opacity="0"><circle r="10" fill="#10b981" stroke="#fff" stroke-width="1.6"/><text y="3" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#fff">✓</text><animate attributeName="opacity" values="0;1;1;0" dur="3s" begin="1.8s" repeatCount="indefinite"/></g>
+  </g>
+  <g transform="translate(16,412)"><rect width="528" height="24" rx="12" fill="#080e1a" stroke="#1e293b" stroke-width="1"/><circle cx="14" cy="12" r="4" fill="#f59e0b"/><text x="24" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">Click anywhere on slide to pin a question — founder gets instant inbox</text><rect x="470" y="6" width="44" height="12" rx="6" fill="#10b981" opacity="0.9"><animate attributeName="opacity" values="0.9;0.55;0.9" dur="1s" repeatCount="indefinite"/></rect><text x="492" y="15" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="800" fill="#080e1a">LIVE</text></g>
+</g>
+
+<!-- Right inbox -->
+<g transform="translate(632,88)">
+  <rect width="280" height="360" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <text x="16" y="28" font-family="Inter,sans-serif" font-size="10" font-weight="800" fill="#fff">Q&amp;A INBOX</text>
+  <text x="264" y="28" text-anchor="end" font-family="monospace" font-size="7" fill="#10b981">3s sync</text>
+  <g transform="translate(16,44)">
+    <g>
+      <rect width="248" height="72" rx="10" fill="#f59e0b" stroke="#fbbf24" stroke-width="1"/>
+      <text x="12" y="16" font-family="Inter,sans-serif" font-size="7.5" font-weight="800" fill="#080e1a">investor@a16z.com • P7</text><text x="12" y="28" font-family="Inter,sans-serif" font-size="7" fill="#080e1a" opacity="0.85">“What’s the moat vs incumbents?”</text>
+      <rect x="12" y="36" width="224" height="24" rx="8" fill="#080e1a" opacity="0.92"/><text x="20" y="51" font-family="Inter,sans-serif" font-size="6.5" fill="#f59e0b">Founder reply: Network effects + 2yr data —</text>
+      <!-- typing dots -->
+      <g transform="translate(172,52)"><circle r="1.6" fill="#f59e0b" opacity="0.25"><animate attributeName="opacity" values="0.25;1;0.25" dur="0.9s" repeatCount="indefinite"/></circle><circle cx="6" r="1.6" fill="#f59e0b" opacity="0.25"><animate attributeName="opacity" values="0.25;1;0.25" dur="0.9s" begin="0.15s" repeatCount="indefinite"/></circle><circle cx="12" r="1.6" fill="#f59e0b" opacity="0.25"><animate attributeName="opacity" values="0.25;1;0.25" dur="0.9s" begin="0.3s" repeatCount="indefinite"/></circle></g>
+      <circle cx="224" cy="14" r="4" fill="#080e1a" opacity="0.18"/><text x="224" y="17" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="800" fill="#080e1a">2m</text>
+    </g>
+    <g transform="translate(0,80)">
+      <rect width="248" height="52" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">sequoia@firm.com • P7</text><text x="12" y="28" font-family="Inter,sans-serif" font-size="7" fill="#94a3b8">“TAM size? CAC?” — pending</text>
+      <rect x="168" y="10" width="48" height="14" rx="7" fill="#f59e0b" opacity="0.18"/><text x="192" y="20" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="700" fill="#f59e0b">pending</text>
+    </g>
+    <g transform="translate(0,140)">
+      <rect width="248" height="52" rx="10" fill="#080e1a" stroke="#10b981" stroke-opacity="0.18" stroke-width="1"/>
+      <text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">you@startup.com • reply</text><text x="12" y="28" font-family="Inter,sans-serif" font-size="7" fill="#10b981">“Moat is data + contracts ✓” — sent</text>
+      <circle cx="224" cy="16" r="6" fill="#10b981"/><text x="224" y="19" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="white">✓</text>
+    </g>
+    <g transform="translate(0,204)"><rect width="248" height="32" rx="16" fill="#f59e0b"/><text x="124" y="20" text-anchor="middle" font-family="Inter,sans-serif" font-size="7.5" font-weight="800" fill="#080e1a">→ Open Inbox • 3 live</text></g>
+  </g>
+  <text x="140" y="348" text-anchor="middle" font-family="monospace" font-size="6.5" fill="#475569">ALTCHA PoW 250ms • no reload • watchdog 3s</text>
+</g>
+</svg>

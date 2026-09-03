@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="960" height="560" role="img">
+<title>Animated — AI Lead Conviction Live</title>
+<defs>
+  <linearGradient id="goldL" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
+
+  <style>
+    @keyframes ultraShimmer{0%{transform:translateX(-220px)}100%{transform:translateX(860px)}}
+    @keyframes ultraPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.45;transform:scale(1.18)}}
+    @keyframes ultraFlow{0%{stroke-dashoffset:700}100%{stroke-dashoffset:0}}
+    @keyframes ultraFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  </style>
+</defs>
+<rect width="960" height="560" rx="24" fill="#080e1a"/>
+<text x="480" y="40" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="800" letter-spacing="3" fill="#fff">AI LEAD <tspan fill="#f59e0b">CONVICTION</tspan> • LIVE</text>
+<text x="480" y="60" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="500" letter-spacing="1.6" fill="#64748b">0–100 • HOT/WARM/CASUAL • DWELL + REPLAY + Q&amp;A SENTIMENT • ANIMATED</text>
+<g opacity="0.95">
+  <rect x="-220" y="82" width="220" height="3" rx="1.5" fill="#f59e0b" opacity="0.95" style="animation: ultraShimmer 1.8s linear infinite"/>
+  <circle cx="10" cy="10" r="5" fill="#f59e0b" style="animation: ultraPulse 0.9s ease-in-out infinite"/>
+</g>
+
+<g transform="translate(32,96)">
+  <!-- Gauge -->
+  <rect width="300" height="340" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <text x="20" y="28" font-family="Inter,sans-serif" font-size="9" font-weight="800" fill="#e2e8f0">CONVICTION SCORE</text>
+  <circle cx="276" cy="28" r="4" fill="#10b981"><animate attributeName="opacity" values="1;0.35;1" dur="0.9s" repeatCount="indefinite"/></circle>
+  <g transform="translate(150,150)">
+    <circle r="82" fill="#080e1a" stroke="#1e293b" stroke-width="10"/>
+    <circle r="82" fill="none" stroke="#334155" stroke-width="10" stroke-linecap="round" stroke-dasharray="260 515" transform="rotate(-90)"/>
+    <circle r="82" fill="none" stroke="url(#goldL)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 515" transform="rotate(-90)"><animate attributeName="stroke-dasharray" values="0 515; 218 515; 218 515; 0 515" dur="4s" repeatCount="indefinite"/></circle>
+    <text y="-6" text-anchor="middle" font-family="Inter,sans-serif" font-size="42" font-weight="800" fill="#fff">84<tspan font-size="20" fill="#f59e0b">%</tspan><animate attributeName="opacity" values="1;1;1;0.85" dur="4s" repeatCount="indefinite"/></text>
+    <text y="16" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1.8" fill="#f59e0b">HIGH INTENT</text>
+    <text y="28" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" fill="#64748b">▲ +12% vs avg</text>
+    <circle r="5" fill="#f59e0b" stroke="#080e1a" stroke-width="2"/>
+  </g>
+  <g transform="translate(24,252)">
+    <text font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1" fill="#475569">VIEW DEPTH</text><text x="180" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#3b82f6">92%</text>
+    <rect y="10" width="180" height="6" rx="3" fill="#1e293b"/><rect y="10" width="0" height="6" rx="3" fill="#3b82f6"><animate attributeName="width" values="0;165;165;0" dur="3s" repeatCount="indefinite"/></rect>
+  </g>
+  <g transform="translate(24,286)">
+    <text font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1" fill="#475569">REPLAY RATE</text><text x="180" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#f59e0b">3.2×</text>
+    <rect y="10" width="180" height="6" rx="3" fill="#1e293b"/><rect y="10" width="0" height="6" rx="3" fill="#f59e0b"><animate attributeName="width" values="0;126;126;0" dur="3s" begin="0.3s" repeatCount="indefinite"/></rect>
+  </g>
+  <g transform="translate(24,320)">
+    <text font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1" fill="#475569">Q&amp;A SENTIMENT</text><text x="180" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#10b981">+0.78</text>
+    <rect y="10" width="180" height="6" rx="3" fill="#1e293b"/><rect y="10" width="0" height="6" rx="3" fill="#10b981"><animate attributeName="width" values="0;148;148;0" dur="3s" begin="0.6s" repeatCount="indefinite"/></rect>
+  </g>
+</g>
+
+<g transform="translate(356,96)">
+  <rect width="408" height="340" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <text x="20" y="28" font-family="Inter,sans-serif" font-size="9" font-weight="800" fill="#e2e8f0">ENGAGEMENT WAVEFORM</text>
+  <text x="20" y="42" font-family="Inter,sans-serif" font-size="7" fill="#64748b">per-page dwell • replay hotspots • 14 pages • LIVE DRAW</text>
+  <g transform="translate(20,60)">
+    <rect width="368" height="180" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+    <g stroke="#1e293b" stroke-width="0.7" opacity="0.9"><path d="M0 45 H368"/><path d="M0 90 H368"/><path d="M0 135 H368"/></g>
+    <!-- area -->
+    <path d="M0 130 L24 110 L52 124 L76 92 L100 78 L128 102 L152 42 L176 68 L200 58 L228 28 L252 52 L276 36 L300 74 L324 46 L348 62 L368 54 L368 180 L0 180 Z" fill="#f59e0b" opacity="0.10"/>
+    <!-- waveform draw animation via stroke-dasharray -->
+    <path d="M0 130 L24 110 L52 124 L76 92 L100 78 L128 102 L152 42 L176 68 L200 58 L228 28 L252 52 L276 36 L300 74 L324 46 L348 62 L368 54" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="700" stroke-dashoffset="700"><animate attributeName="stroke-dashoffset" values="700;0;0;700" dur="4s" repeatCount="indefinite"/></path>
+    <circle cx="152" cy="42" r="4.5" fill="#f59e0b" stroke="#080e1a" stroke-width="1.6"><animate attributeName="opacity" values="0;1;1;0" dur="4s" repeatCount="indefinite"/></circle>
+    <circle cx="228" cy="28" r="4.5" fill="#f59e0b" stroke="#080e1a" stroke-width="1.6"><animate attributeName="opacity" values="0;0;1;1;0" dur="4s" repeatCount="indefinite"/></circle>
+    <g transform="translate(228,0)" opacity="0"><rect x="-44" y="-6" width="88" height="18" rx="9" fill="#f59e0b"/><text x="0" y="6" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="800" fill="#080e1a">P11 • 4m 22s • 3× replay</text><animate attributeName="opacity" values="0;1;1;0" dur="4s" begin="1.6s" repeatCount="indefinite"/></g>
+  </g>
+  <g transform="translate(20,268)">
+    <rect width="120" height="46" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/><text x="12" y="16" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#64748b">TOTAL VIEW</text><text x="12" y="32" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#fff">4m 22s</text>
+    <rect x="128" width="120" height="46" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/><text x="140" y="16" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#64748b">Q&amp;A REPLIES</text><text x="140" y="32" font-family="Inter,sans-serif" font-size="13" font-weight="800" fill="#fff">4</text>
+    <rect x="256" width="132" height="46" rx="10" fill="#f59e0b"/><text x="272" y="16" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" fill="#080e1a">WATERMARK READ</text><text x="272" y="32" font-family="Inter,sans-serif" font-size="10" font-weight="800" fill="#080e1a">viewer@email.com ✓</text>
+  </g>
+</g>
+
+<g transform="translate(788,96)">
+  <rect width="140" height="340" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <text x="14" y="28" font-family="Inter,sans-serif" font-size="8" font-weight="800" fill="#e2e8f0">TOP LEADS</text>
+  <g transform="translate(14,44)">
+    <rect width="112" height="72" rx="10" fill="#f59e0b"><circle cx="16" cy="16" r="8" fill="#080e1a" opacity="0.18"/><text x="16" y="20" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">A</text><text x="32" y="14" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">a16z • Sarah</text><text x="32" y="24" font-family="Inter,sans-serif" font-size="6" fill="#080e1a">84% • 3 replays</text><text x="12" y="44" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">● HOT — Reach out</text><animate attributeName="opacity" values="1;0.92;1" dur="1.2s" repeatCount="indefinite"/></rect>
+    <rect y="80" width="112" height="44" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/><text x="14" y="20" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#94a3b8">S</text><text x="32" y="14" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#e2e8f0">Sequoia</text><text x="32" y="24" font-family="Inter,sans-serif" font-size="6" fill="#64748b">71% • Warm</text>
+  </g>
+</g>
+</svg>

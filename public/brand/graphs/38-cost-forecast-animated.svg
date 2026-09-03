@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 360" width="960" height="360" role="img">
+<title>Cost Burn-down Forecast — Animated</title>
+<rect width="960" height="360" rx="16" fill="#080e1a"/>
+<text x="24" y="28" font-family="Inter,sans-serif" font-size="11" font-weight="800" fill="#fff">COST BURN-DOWN FORECAST</text>
+<text x="24" y="44" font-family="Inter,sans-serif" font-size="7" fill="#64748b">B2 10GB + Neon 512MB — kab full hoga • P1 #10</text>
+<text x="936" y="28" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#ef4444">● 22 DAYS LEFT</text>
+<g transform="translate(24,56)">
+  <rect width="560" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <g transform="translate(32,16)">
+    <rect width="496" height="8" rx="4" fill="#1e293b"/><rect width="0" height="8" rx="4" fill="#f59e0b"><animate attributeName="width" values="0;208;208" dur="1.2s" fill="freeze"/></rect>
+    <text x="0" y="28" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">B2 • 4.2 / 10 GB (42%)</text><text x="496" y="28" text-anchor="end" font-family="monospace" font-size="6.5" fill="#f59e0b">used • 5.8 free</text>
+    <g transform="translate(0,40)">
+      <rect width="496" height="100" rx="8" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <g stroke="#1e293b" stroke-width="0.7"><path d="M0 50 H496"/></g>
+      <path d="M0 80 L 70 76 L140 70 L210 62 L280 54 L350 42 L420 30 L496 18" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="600" stroke-dashoffset="600"><animate attributeName="stroke-dashoffset" values="600;0" dur="1.4s" fill="freeze"/></path>
+      <path d="M280 54 L360 36 L496 8" fill="none" stroke="#ef4444" stroke-width="1.6" stroke-dasharray="6 4" opacity="0.9"><animate attributeName="stroke-dashoffset" values="0;10" dur="0.6s" repeatCount="indefinite"/></path>
+      <circle cx="280" cy="54" r="4" fill="#f59e0b" stroke="#080e1a" stroke-width="1.2"/><text x="280" y="40" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="800" fill="#f59e0b">TODAY • 42%</text>
+      <circle cx="496" cy="8" r="4" fill="#ef4444" stroke="#fff" stroke-width="1.2"><animate attributeName="r" values="4;6;4" dur="0.9s" repeatCount="indefinite"/></circle><text x="496" y="28" text-anchor="end" font-family="Inter,sans-serif" font-size="6" font-weight="700" fill="#ef4444">FULL in 22d →</text>
+    </g>
+    <text x="0" y="168" font-family="Inter,sans-serif" font-size="6.5" fill="#10b981">▲ +0.18 GB/day → forecast linear, GZIP saves 2.1 GB already</text>
+  </g>
+</g>
+<g transform="translate(608,56)">
+  <rect width="328" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <text x="16" y="20" font-family="Inter,sans-serif" font-size="8" font-weight="800" fill="#e2e8f0">INSIGHT</text>
+  <g transform="translate(16,32)">
+    <rect width="296" height="42" rx="8" fill="#ef4444" fill-opacity="0.1" stroke="#ef4444" stroke-opacity="0.18" stroke-width="1"/><text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#fca5a5">Action: Video compress karo — saves 0.4 GB</text><text x="12" y="28" font-family="Inter,sans-serif" font-size="6.5" fill="#94a3b8">12 video files = 15% but 0.6 GB</text>
+    <rect y="52" width="296" height="42" rx="8" fill="#080e1a" stroke="#10b981" stroke-opacity="0.18" stroke-width="1"/><text x="12" y="68" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#6ee7b7">Neon DB • 18 / 512 MB (3.5%) • safe 140d</text><text x="12" y="80" font-family="monospace" font-size="6" fill="#475569">estimated 0.15 MB/doc + 0.08/link</text>
+    <rect y="104" width="296" height="36" rx="8" fill="#f59e0b"/><text x="148" y="20" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">Run Orphan Sweeper → free 0.3 GB</text>
+  </g>
+</g>
+<g transform="translate(24,290)"><rect width="912" height="46" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/><text x="16" y="18" font-family="Inter,sans-serif" font-size="7.5" font-weight="700" fill="#ef4444">P1 #10 • Forecast from totalStorageMb trend — no new backend</text><text x="16" y="32" font-family="monospace" font-size="6.5" fill="#64748b">Uses already-computed B2 % + daily delta → projects full date</text></g>
+</svg>

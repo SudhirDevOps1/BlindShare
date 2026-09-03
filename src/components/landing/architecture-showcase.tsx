@@ -1,12 +1,28 @@
 "use client";
 
 import React, { useState } from "react";
-import { Sparkles, ExternalLink, CheckCircle2 } from "lucide-react";
+import { Sparkles, ExternalLink, CheckCircle2, ChevronRight, BarChart3, Activity } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 
 export function ArchitectureShowcase() {
   const { t } = useI18n();
   const [activeTab, setActiveTab] = useState("zkFlow");
+  const [selectedGraphNum, setSelectedGraphNum] = useState(30);
+
+  const graphList = [
+    { num: 30, file: "30-views-timeline-animated.svg", label: t.charts?.graphItems?.g30?.title || "30-Day Timeline", tag: "Area" },
+    { num: 31, file: "31-hourly-heatmap-animated.svg", label: t.charts?.graphItems?.g31?.title || "24×7 Heatmap", tag: "Matrix" },
+    { num: 32, file: "32-source-donut-animated.svg", label: t.charts?.graphItems?.g32?.title || "UTM Source", tag: "Donut" },
+    { num: 33, file: "33-storage-by-type-animated.svg", label: t.charts?.graphItems?.g33?.title || "Storage Type", tag: "Donut" },
+    { num: 34, file: "34-live-pulse-map-animated.svg", label: t.charts?.graphItems?.g34?.title || "Live Pulse Map", tag: "Map" },
+    { num: 35, file: "35-dwell-histogram-animated.svg", label: t.charts?.graphItems?.g35?.title || "Dwell Histogram", tag: "Histogram" },
+    { num: 36, file: "36-intent-trend-animated.svg", label: t.charts?.graphItems?.g36?.title || "Intent Spline", tag: "Spline" },
+    { num: 37, file: "37-journey-sankey-animated.svg", label: t.charts?.graphItems?.g37?.title || "Journey Funnel", tag: "Sankey" },
+    { num: 38, file: "38-cost-forecast-animated.svg", label: t.charts?.graphItems?.g38?.title || "$0 Cost Gauge", tag: "Gauge" },
+    { num: 39, file: "39-link-leaderboard-animated.svg", label: t.charts?.graphItems?.g39?.title || "Leaderboard", tag: "Ranked" },
+    { num: 40, file: "40-question-density-animated.svg", label: t.charts?.graphItems?.g40?.title || "Question Density", tag: "Density" },
+    { num: 41, file: "41-weekly-digest-animated.svg", label: t.charts?.graphItems?.g41?.title || "Weekly Digest", tag: "Card KPI" },
+  ];
 
   const showcaseData: Record<
     string,
@@ -45,10 +61,33 @@ export function ArchitectureShowcase() {
       svgPath: "/brand/07-document-sharing-mockup.svg",
       ...t.architectureShowcase.tabs.mockup,
     },
+    liveAnalytics: {
+      id: "liveAnalytics",
+      svgPath: "/brand/22-analytics-live-animated.svg",
+      ...t.architectureShowcase.tabs.liveAnalytics,
+    },
+    allDataGraphs: {
+      id: "allDataGraphs",
+      svgPath: `/brand/graphs/${graphList.find((g) => g.num === selectedGraphNum)?.file || "30-views-timeline-animated.svg"}`,
+      ...t.architectureShowcase.tabs.allDataGraphs,
+    },
   };
 
   const currentItem = showcaseData[activeTab] || showcaseData.zkFlow;
-  const tabKeys = ["zkFlow", "blindCourier", "dataFlow", "leadScoring", "mockup"] as const;
+  const tabKeys = [
+    "zkFlow",
+    "blindCourier",
+    "dataFlow",
+    "leadScoring",
+    "mockup",
+    "liveAnalytics",
+    "allDataGraphs",
+  ] as const;
+
+  const currentSvgUrl =
+    activeTab === "allDataGraphs"
+      ? `/brand/graphs/${graphList.find((g) => g.num === selectedGraphNum)?.file || "30-views-timeline-animated.svg"}`
+      : currentItem.svgPath;
 
   return (
     <section className="relative border-t border-slate-900/80 bg-slate-950/80 py-24 px-4 sm:px-6">
@@ -71,7 +110,7 @@ export function ArchitectureShowcase() {
           </p>
         </div>
 
-        {/* Navigation Tabs */}
+        {/* 7 Navigation Tabs */}
         <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto no-scrollbar py-2 px-1">
           {tabKeys.map((key) => {
             const item = showcaseData[key];
@@ -92,21 +131,64 @@ export function ArchitectureShowcase() {
           })}
         </div>
 
+        {/* All Data Graphs Interactive Carousel / Pill Selector (when tab is active) */}
+        {activeTab === "allDataGraphs" && (
+          <div className="p-4 rounded-2xl border border-amber-500/30 bg-slate-900/80 backdrop-blur-xl space-y-3 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-300 pb-1 border-b border-slate-800">
+              <span className="flex items-center gap-2 text-amber-400">
+                <BarChart3 className="h-4 w-4" />
+                <span>12-Graph Vector Showcase (SVGs 30–41)</span>
+              </span>
+              <span className="font-mono text-[11px] text-slate-400">
+                Selected: #{selectedGraphNum} • {graphList.find((g) => g.num === selectedGraphNum)?.label}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              {graphList.map((g) => (
+                <button
+                  key={g.num}
+                  type="button"
+                  onClick={() => setSelectedGraphNum(g.num)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    selectedGraphNum === g.num
+                      ? "bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20 scale-105"
+                      : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
+                  }`}
+                >
+                  <span className="font-mono opacity-60">#{g.num}</span>
+                  <span>{g.label}</span>
+                  <span className="text-[9px] uppercase px-1 py-0.2 rounded bg-slate-800 text-slate-300">
+                    {g.tag}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Featured Showcase Display Card */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl">
-          {/* Left / Top: High-Resolution Scalable SVG Diagram Display */}
+          {/* Left / Top: High-Resolution Scalable SVG Diagram Display with <object> + <img> fallback */}
           <div className="lg:col-span-7 relative group">
-            <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-3 shadow-inner flex items-center justify-center">
-              <img
-                src={currentItem.svgPath}
-                alt={currentItem.title}
-                className="w-full h-auto max-h-[460px] object-contain rounded-xl transition-transform duration-500 group-hover:scale-[1.01]"
-              />
+            <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-3 shadow-inner flex items-center justify-center min-h-[340px]">
+              <object
+                data={currentSvgUrl}
+                type="image/svg+xml"
+                className="w-full h-auto max-h-[460px] object-contain rounded-xl pointer-events-none"
+                aria-label={currentItem.title}
+              >
+                <img
+                  src={currentSvgUrl}
+                  alt={currentItem.title}
+                  className="w-full h-auto max-h-[460px] object-contain rounded-xl transition-transform duration-500 group-hover:scale-[1.01]"
+                />
+              </object>
               <a
-                href={currentItem.svgPath}
+                href={currentSvgUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 px-2.5 py-1 text-[11px] font-semibold text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition shadow-md"
+                className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 px-2.5 py-1 text-[11px] font-semibold text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition shadow-md z-10"
                 title={t.architectureShowcase.enlargeVector}
               >
                 <ExternalLink className="h-3 w-3" />

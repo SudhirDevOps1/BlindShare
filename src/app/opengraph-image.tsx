@@ -52,17 +52,15 @@ export default async function Image() {
               }}
             >
               <svg
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
+                width="34"
+                height="34"
+                viewBox="0 0 32 32"
                 fill="none"
-                stroke="#1e293b"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
               >
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2" fill="#1e293b" />
-                <path d="M7 11V7a5 5 0 0 1 10 0v4" stroke="#1e293b" />
+                <path d="M16 3L6 7v8c0 7.5 4.3 12.5 10 14 5.7-1.5 10-6.5 10-14V7L16 3z" fill="#0f172a" stroke="#020617" strokeWidth="1.5" />
+                <path d="M16 9c-4 0-7 3-7 6s3 6 7 6 7-3 7-6-3-6-7-6zm0 9a3 3 0 1 1 0-6 3 3 0 0 1 0 6z" fill="#fbbf24" />
+                <circle cx="16" cy="15" r="1.5" fill="#0f172a" />
+                <path d="M11 20l10-10" stroke="#fbbf24" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </div>
             <span
