@@ -6,6 +6,7 @@ import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { DocUploader } from "@/components/upload/doc-uploader";
 import { CreateLinkModal } from "@/components/link-studio/create-link-modal";
+import { DashboardActivityChart } from "@/components/dashboard/dashboard-activity-chart";
 import { useI18n } from "@/lib/i18n/context";
 import {
   FileText,
@@ -149,6 +150,13 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* 7-Day Velocity Chart & Infrastructure Gauges */}
+        <DashboardActivityChart
+          docs={docs}
+          links={links}
+          totalStorageBytes={totalStorageBytes}
+        />
 
         {/* Quick Upload Box */}
         <div>

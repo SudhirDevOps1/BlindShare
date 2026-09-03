@@ -33,6 +33,10 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import { DwellSplineChart } from "./charts/dwell-spline-chart";
+import { RetentionSurvivalChart } from "./charts/retention-survival-chart";
+import { DeviceDonutChart } from "./charts/device-donut-chart";
+import { LeadTemperatureMeter } from "./charts/lead-temperature-meter";
 
 interface LinkAnalyticsViewProps {
   linkId: string;
@@ -357,6 +361,12 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
         </div>
       </div>
 
+      {/* Reader Retention Survival Curve (Drop-off & Churn Analysis) */}
+      <RetentionSurvivalChart sessions={sessions} totalPages={totalPages} />
+
+      {/* Interactive Spline Dwell Velocity Chart */}
+      <DwellSplineChart pageStats={pageStats} totalPages={totalPages} />
+
       {/* Per-Page Reading Dwell Time Chart (Papermark Heatmap Style) */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
         <div className="flex items-center justify-between">
@@ -410,61 +420,59 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
         )}
       </div>
 
-      {/* 2-Column Middle Row: Devices & Countries */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Device breakdown */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-3">
-          <h4 className="text-xs font-bold text-white flex items-center gap-2">
-            <Monitor className="h-4 w-4 text-blue-400" />
-            <span>Viewer Devices</span>
-          </h4>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-300">Desktop</span>
-              <span className="font-mono text-slate-400">{desktopPct}%</span>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
-              <div className="h-full bg-blue-500" style={{ width: `${desktopPct}%` }} />
-            </div>
-
-            <div className="flex items-center justify-between text-xs pt-1">
-              <span className="text-slate-300">Mobile</span>
-              <span className="font-mono text-slate-400">{mobilePct}%</span>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
-              <div className="h-full bg-emerald-500" style={{ width: `${mobilePct}%` }} />
-            </div>
-
-            <div className="flex items-center justify-between text-xs pt-1">
-              <span className="text-slate-300">Tablet</span>
-              <span className="font-mono text-slate-400">{tabletPct}%</span>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
-              <div className="h-full bg-purple-500" style={{ width: `${tabletPct}%` }} />
-            </div>
-          </div>
-        </div>
+      {/* 2-Column Middle Row: Interactive Device Donut & Countries */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Interactive Device Donut Chart */}
+        <DeviceDonutChart
+          deviceCounts={deviceBreakdown || { desktop: 0, mobile: 0, tablet: 0 }}
+          totalSessions={metrics.totalSessions}
+        />
 
         {/* Top Locations */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-3">
-          <h4 className="text-xs font-bold text-white flex items-center gap-2">
-            <Globe className="h-4 w-4 text-emerald-400" />
-            <span>Top Reader Locations</span>
-          </h4>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4 backdrop-blur-xl shadow-xl flex flex-col justify-between">
+          <div>
+            <h4 className="text-xs font-bold text-white flex items-center gap-2">
+              <Globe className="h-4 w-4 text-emerald-400" />
+              <span>Top Reader Locations</span>
+            </h4>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Geographic reader distribution across countries
+            </p>
+          </div>
           {countryBreakdown?.length === 0 ? (
-            <div className="text-xs text-slate-500 py-2">No location data yet</div>
+            <div className="text-xs text-slate-500 py-6 text-center">No location data yet</div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-3">
               {countryBreakdown?.map((c: any) => (
-                <div key={c.country} className="flex items-center justify-between text-xs">
-                  <span className="text-slate-300 truncate">{c.country}</span>
-                  <span className="font-mono text-slate-400">{c.count} views ({c.percentage}%)</span>
+                <div key={c.country} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium truncate">{c.country}</span>
+                    <span className="font-mono text-slate-400 text-[11px]">
+                      {c.count} view{c.count === 1 ? "" : "s"} ({c.percentage}%)
+                    </span>
+                  </div>
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-slate-950 border border-slate-800">
+                    <div
+                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
+                      style={{ width: `${Math.max(c.percentage, 4)}%` }}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
           )}
+          <div className="text-[10px] text-slate-500 border-t border-slate-800/80 pt-2">
+            Anonymously aggregated IP geolocation (zero PII storage)
+          </div>
         </div>
       </div>
+
+      {/* AI Lead Temperature & Score Matrix */}
+      <LeadTemperatureMeter
+        sessions={sessions || []}
+        currentFilter={intentFilter}
+        onFilterChange={setIntentFilter}
+      />
 
       {/* Viewer Session Logs Table (Interactive with Intent Filter & Page Breakdown) */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
