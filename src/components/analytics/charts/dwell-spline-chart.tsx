@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from "react";
 import { formatDuration } from "@/lib/analytics";
 import { TrendingUp, Flame, Sparkles } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 
 interface PageStat {
   pageNumber: number;
@@ -16,6 +17,7 @@ interface DwellSplineChartProps {
 }
 
 export function DwellSplineChart({ pageStats, totalPages }: DwellSplineChartProps) {
+  const { t } = useI18n();
   const [chartType, setChartType] = useState<"spline" | "bars">("spline");
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
@@ -108,7 +110,7 @@ export function DwellSplineChart({ pageStats, totalPages }: DwellSplineChartProp
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-amber-400" />
             <h3 className="text-sm font-bold text-white tracking-tight">
-              Page-by-Page Reading Dwell & Velocity Curve
+              {t.charts?.dwell?.title || "Page-by-Page Reading Dwell & Velocity Curve"}
             </h3>
             {peakPage && (
               <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-400 shadow-sm">
@@ -118,7 +120,7 @@ export function DwellSplineChart({ pageStats, totalPages }: DwellSplineChartProp
             )}
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
-            Real-time attention distribution across all pitch deck slides
+            {t.charts?.dwell?.subtitle || "Real-time attention distribution across all pitch deck slides"}
           </p>
         </div>
 
@@ -373,7 +375,7 @@ export function DwellSplineChart({ pageStats, totalPages }: DwellSplineChartProp
               </span>
             </div>
             <div className="text-[10px] text-slate-400">
-              {Math.round((activePoint.data.dwellSeconds / maxDwell) * 100)}% of peak interest
+              {Math.round((activePoint.data.dwellSeconds / maxDwell) * 100)}% {t.charts?.dwell?.ofPeak || "of peak interest"}
             </div>
           </div>
         )}

@@ -59,7 +59,7 @@ export default function HomePage() {
               <Sparkles className="h-3.5 w-3.5 text-amber-400" />
               <span>{t.hero.badge}</span>
               <span className="text-amber-500">•</span>
-              <span className="text-slate-300">₹0 Free Tier</span>
+              <span className="text-slate-300">{t.heroExtras?.freeTier || "₹0 Free Tier"}</span>
               <span className="text-amber-500">•</span>
               <a
                 href="https://github.com/SudhirDevOps1/BlindShare/blob/main/LICENSE"
@@ -67,7 +67,7 @@ export default function HomePage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-amber-400 hover:underline"
               >
-                <span>⭐ Open Source on GitHub (MIT)</span>
+                <span>{t.heroExtras?.openSource || "⭐ Open Source on GitHub (MIT)"}</span>
               </a>
             </div>
 
@@ -96,7 +96,7 @@ export default function HomePage() {
                 className="flex items-center gap-2 rounded-2xl border border-slate-700/80 bg-slate-900/80 px-7 py-4 text-sm font-semibold text-slate-200 hover:bg-slate-800/90 hover:border-slate-600 transition-all backdrop-blur-xl hover:-translate-y-0.5 shadow-lg"
               >
                 <Lock className="h-4 w-4 text-amber-400" />
-                <span>Sign In / Genesis Admin</span>
+                <span>{t.heroExtras?.signInAdmin || "Sign In / Genesis Admin"}</span>
               </Link>
               <a
                 href="https://github.com/SudhirDevOps1/BlindShare"
@@ -104,17 +104,17 @@ export default function HomePage() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-6 py-4 text-sm font-semibold text-amber-300 hover:bg-amber-500/20 hover:border-amber-500/50 transition-all backdrop-blur-xl hover:-translate-y-0.5"
               >
-                <span className="flex items-center gap-1.5">⭐ Star on GitHub</span>
+                <span className="flex items-center gap-1.5">{t.heroExtras?.starOnGitHub || "⭐ Star on GitHub"}</span>
               </a>
             </div>
 
             {/* Invariant Highlights */}
             <div className="pt-8 grid grid-cols-2 md:grid-cols-4 gap-3.5 text-left">
               {[
-                { title: t.hero.bullet1, desc: "WebCrypto in-browser", icon: Lock },
-                { title: t.hero.bullet2, desc: "10s buffered flushes", icon: BarChart3 },
-                { title: t.hero.bullet3, desc: "Server is blind courier", icon: ServerOff },
-                { title: t.hero.bullet4, desc: "Rebrandable via ENV", icon: Globe },
+                { title: t.hero.bullet1, desc: t.heroExtras?.bullet1Desc || "WebCrypto in-browser", icon: Lock },
+                { title: t.hero.bullet2, desc: t.heroExtras?.bullet2Desc || "10s buffered flushes", icon: BarChart3 },
+                { title: t.hero.bullet3, desc: t.heroExtras?.bullet3Desc || "Server is blind courier", icon: ServerOff },
+                { title: t.hero.bullet4, desc: t.heroExtras?.bullet4Desc || "Rebrandable via ENV", icon: Globe },
               ].map((item, i) => {
                 const Icon = item.icon;
                 return (
@@ -138,11 +138,11 @@ export default function HomePage() {
                   <div className="flex items-center gap-2">
                     <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="text-xs font-bold text-white tracking-wide">
-                      RFC 3986 Zero-Knowledge Architecture
+                      {t.heroExtras?.zkBlueprint || "RFC 3986 Zero-Knowledge Architecture"}
                     </span>
                   </div>
                   <span className="text-[10px] font-mono text-amber-400 font-semibold bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
-                    #k=fragment client-only
+                    {t.heroExtras?.fragmentOnly || "#k=fragment client-only"}
                   </span>
                 </div>
                 <img
@@ -172,11 +172,11 @@ export default function HomePage() {
             <div className="text-center space-y-3">
               <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-300">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                <span>Zero-Knowledge Guarantee</span>
+                <span>{t.securitySteps?.badge || "Zero-Knowledge Guarantee"}</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-white">How Zero-Knowledge Document Sharing Works</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white">{t.securitySteps?.title || "How Zero-Knowledge Document Sharing Works"}</h2>
               <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto">
-                Unlike ordinary document sharing platforms which store plaintext PDFs on their servers, BlindShare encrypts your document with WebCrypto AES-GCM before it ever leaves your browser.
+                {t.securitySteps?.subtitle || "Unlike ordinary document sharing platforms which store plaintext PDFs on their servers, BlindShare encrypts your document with WebCrypto AES-GCM before it ever leaves your browser."}
               </p>
             </div>
 
@@ -186,9 +186,9 @@ export default function HomePage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 font-bold text-sm">
                   1
                 </div>
-                <h3 className="text-base font-bold text-white">Client-Side Encryption</h3>
+                <h3 className="text-base font-bold text-white">{t.securitySteps?.step1Title || "Client-Side Encryption"}</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  Your browser creates a random 256-bit AES-GCM DocKey. The PDF ArrayBuffer is encrypted locally. Only ciphertext is sent to the server.
+                  {t.securitySteps?.step1Desc || "Your browser creates a random 256-bit AES-GCM DocKey. The PDF ArrayBuffer is encrypted locally. Only ciphertext is sent to the server."}
                 </p>
                 <div className="rounded-xl bg-slate-950/80 p-3 font-mono text-[11px] text-amber-300 border border-slate-800">
                   AES-GCM-256 (IV: 96-bit)
@@ -200,9 +200,9 @@ export default function HomePage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/20 text-blue-400 font-bold text-sm">
                   2
                 </div>
-                <h3 className="text-base font-bold text-white">The Fragment Key (#k=...)</h3>
+                <h3 className="text-base font-bold text-white">{t.securitySteps?.step2Title || "Zero-Knowledge Courier"}</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  The generated link embeds the key in the URL fragment <code className="text-amber-400 font-mono">#k=...</code>. By web standard RFC 3986, browsers NEVER transmit fragments over HTTP requests.
+                  {t.securitySteps?.step2Desc || "The server and database store ciphertext chunks and metadata. It never receives the decryption key (#k=...) which lives only in the client URL fragment."}
                 </p>
                 <div className="rounded-xl bg-slate-950/80 p-3 font-mono text-[11px] text-blue-300 border border-slate-800">
                   /v/code#k=base64url(Key)
@@ -214,9 +214,9 @@ export default function HomePage() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-400 font-bold text-sm">
                   3
                 </div>
-                <h3 className="text-base font-bold text-white">In-Browser Decryption</h3>
+                <h3 className="text-base font-bold text-white">{t.securitySteps?.step3Title || "Recipient Browser Decryption"}</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">
-                  The viewer's browser pulls ciphertext from storage and decrypts it directly in memory, rendering via Mozilla PDF.js with live watermark overlays.
+                  {t.securitySteps?.step3Desc || "The recipient loads the page. Their browser extracts #k= from the URL fragment and decrypts the document directly in WebCrypto memory."}
                 </p>
                 <div className="rounded-xl bg-slate-950/80 p-3 font-mono text-[11px] text-emerald-300 border border-slate-800">
                   pdf.js + Dynamic Watermark
@@ -238,11 +238,11 @@ export default function HomePage() {
             <div className="text-center space-y-3">
               <div className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3.5 py-1 text-xs font-semibold text-amber-300">
                 <Zap className="h-3.5 w-3.5" />
-                <span>Enterprise Suite</span>
+                <span>{t.enterpriseFeatures?.badge || "Enterprise Suite"}</span>
               </div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-white">Enterprise Power-Sharing Features</h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-white">{t.enterpriseFeatures?.title || "Enterprise Power-Sharing Features"}</h2>
               <p className="text-xs sm:text-sm text-slate-400 max-w-2xl mx-auto">
-                All the enterprise security gates and analytics, without subscription fees or brand lock-in.
+                {t.enterpriseFeatures?.subtitle || "All the enterprise security gates and analytics, without subscription fees or brand lock-in."}
               </p>
             </div>
 
@@ -250,22 +250,22 @@ export default function HomePage() {
               {[
                 {
                   icon: BarChart3,
-                  title: "Per-Page Dwell Sparklines",
-                  desc: "Track exact seconds spent on each page, scroll depth, and completion rate with batch buffered heartbeats.",
+                  title: t.enterpriseFeatures?.sparklinesTitle || "Per-Page Dwell Sparklines",
+                  desc: t.enterpriseFeatures?.sparklinesDesc || "Track exact seconds spent on each page, scroll depth, and completion rate with batch buffered heartbeats.",
                 },
                 {
                   icon: ShieldCheck,
-                  title: "Dynamic Live Watermark",
-                  desc: "Overlay viewer email, timestamp, and unique link token diagonally across pages as an anti-leak deterrent.",
+                  title: t.enterpriseFeatures?.watermarkTitle || "Dynamic Live Watermark",
+                  desc: t.enterpriseFeatures?.watermarkDesc || "Overlay viewer email, timestamp, and unique link token diagonally across pages as an anti-leak deterrent.",
                 },
                 {
                   icon: Key,
-                  title: "PBKDF2 Password Wrap",
-                  desc: "Double crypto-gate: 250k PBKDF2 iterations wrap the DocKey so even server admins cannot inspect documents.",
+                  title: t.enterpriseFeatures?.passwordWrapTitle || "PBKDF2 Password Wrap",
+                  desc: t.enterpriseFeatures?.passwordWrapDesc || "Double crypto-gate: 250k PBKDF2 iterations wrap the DocKey so even server admins cannot inspect documents.",
                 },
                 {
                   icon: FolderLock,
-                  title: "Curated Datarooms",
+                  title: t.nav?.datarooms || "Curated Datarooms",
                   desc: "Bundle multi-document pitch packs with custom NDAs, permission matrix, and consolidated analytics.",
                 },
                 {
@@ -275,8 +275,8 @@ export default function HomePage() {
                 },
                 {
                   icon: Zap,
-                  title: "Real-time Push Notifications",
-                  desc: "Receive instant Web Push alerts the moment an investor or client opens your link.",
+                  title: t.enterpriseFeatures?.notificationsTitle || "Real-time Push Notifications",
+                  desc: t.enterpriseFeatures?.notificationsDesc || "Receive instant Web Push alerts the moment an investor or client opens your link.",
                 },
               ].map((feat, i) => {
                 const Icon = feat.icon;

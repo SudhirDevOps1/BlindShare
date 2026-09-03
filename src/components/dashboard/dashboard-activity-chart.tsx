@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { BarChart3, HardDrive, Database, TrendingUp, Sparkles, ShieldCheck } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 
 interface DashboardActivityChartProps {
   docs: any[];
@@ -10,10 +11,13 @@ interface DashboardActivityChartProps {
 }
 
 export function DashboardActivityChart({
+  // i18n hook
+
   docs,
   links,
   totalStorageBytes,
 }: DashboardActivityChartProps) {
+  const { t } = useI18n();
   // Generate 7-day activity data based on link view counts and creation dates
   const weeklyData = useMemo(() => {
     const days: { label: string; views: number; dateStr: string }[] = [];

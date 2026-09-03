@@ -2,6 +2,7 @@
 
 import React, { useMemo } from "react";
 import { TrendingDown, AlertTriangle, CheckCircle, Users } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 
 interface SessionData {
   id: string;
@@ -14,6 +15,7 @@ interface RetentionSurvivalChartProps {
 }
 
 export function RetentionSurvivalChart({ sessions, totalPages }: RetentionSurvivalChartProps) {
+  const { t } = useI18n();
   const totalSessions = Math.max(sessions.length, 1);
 
   // Compute how many sessions reached each page (1 to totalPages)

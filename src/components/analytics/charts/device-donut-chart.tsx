@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Monitor, Smartphone, Tablet } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 
 interface DeviceBreakdown {
   desktop: number;
@@ -15,6 +16,7 @@ interface DeviceDonutChartProps {
 }
 
 export function DeviceDonutChart({ deviceCounts, totalSessions }: DeviceDonutChartProps) {
+  const { t } = useI18n();
   const [hoveredSegment, setHoveredSegment] = useState<"desktop" | "mobile" | "tablet" | null>(null);
 
   const total = Math.max(totalSessions, 1);

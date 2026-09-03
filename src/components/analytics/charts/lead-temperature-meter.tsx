@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Flame, Zap, Snowflake, Users } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
 
 interface LeadTemperatureMeterProps {
   sessions: any[];
@@ -14,11 +15,12 @@ export function LeadTemperatureMeter({
   currentFilter,
   onFilterChange,
 }: LeadTemperatureMeterProps) {
+  const { t } = useI18n();
   const total = Math.max(sessions.length, 1);
 
   const hotCount = sessions.filter((s) => s.intent === "high").length;
   const warmCount = sessions.filter((s) => s.intent === "medium").length;
-  const coldCount = sessions.filter((s) => s.intent === "low").length;
+  const coldCount = sessions.filter((s) => s.intent === "low" || !s.intent).length;
 
   const hotPct = Math.round((hotCount / total) * 100);
   const warmPct = Math.round((warmCount / total) * 100);
@@ -29,10 +31,10 @@ export function LeadTemperatureMeter({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Flame className="h-4 w-4 text-amber-500 animate-pulse" />
-          <h4 className="text-xs font-bold text-white">AI Deal Temperature & Intent Matrix</h4>
+          <h4 className="text-xs font-bold text-white">{t.charts?.lead?.title || "AI Deal Temperature & Intent Matrix"}</h4>
         </div>
         <span className="text-[10px] text-slate-400 font-mono">
-          {sessions.length} Evaluated Readers
+          {sessions.length} {t.charts?.device?.totalSessions || "Evaluated Readers"}
         </span>
       </div>
 
