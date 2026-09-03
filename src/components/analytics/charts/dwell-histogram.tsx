@@ -30,11 +30,12 @@ export function DwellHistogram({ sessions = [] }: DwellHistogramProps) {
         else counts.diligence++;
       });
     } else {
-      counts.bounce = 12;
-      counts.skim = 28;
-      counts.engaged = 45;
-      counts.deep = 31;
-      counts.diligence = 18;
+      // Clean zero counts for new links
+      counts.bounce = 0;
+      counts.skim = 0;
+      counts.engaged = 0;
+      counts.deep = 0;
+      counts.diligence = 0;
     }
 
     const total = Math.max(Object.values(counts).reduce((a, b) => a + b, 0), 1);

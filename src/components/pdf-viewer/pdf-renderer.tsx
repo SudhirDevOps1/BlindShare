@@ -106,6 +106,11 @@ export function PdfRenderer({
   const [presenterMode, setPresenterMode] = useState(false);
   const [antiLeakActive, setAntiLeakActive] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  // Missing / Lost Key Recovery UI State (resilience against cache clear)
+  const [keyRecoveryInput, setKeyRecoveryInput] = useState("");
+  const [keyRecoveryError, setKeyRecoveryError] = useState<string | null>(null);
+  const [recoveringKey, setRecoveringKey] = useState(false);
+  const [reloadTrigger, setReloadTrigger] = useState(0);
 
   // Next-Gen Feature States
   const [audioNotes, setAudioNotes] = useState<any[]>([]);
@@ -984,14 +989,115 @@ export function PdfRenderer({
   }
 
   if (error) {
+    const isMissingKey = error.toLowerCase().includes("missing decryption key") || error.toLowerCase().includes("#k=");
+
+    const handleApplyRecoveryKey = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!keyRecoveryInput.trim()) return;
+      setKeyRecoveryError(null);
+      setRecoveringKey(true);
+
+      try {
+        const raw = keyRecoveryInput.trim();
+        let derivedKey: Uint8Array | null = null;
+
+        if (raw.includes("#k=")) {
+          derivedKey = fragmentToDocKey(raw.substring(raw.indexOf("#k=")));
+        } else if (raw.includes("/v/")) {
+          const hashPos = raw.indexOf("#");
+          if (hashPos !== -1) derivedKey = fragmentToDocKey(raw.substring(hashPos));
+        } else if (raw.startsWith("k=")) {
+          derivedKey = fragmentToDocKey("#" + raw);
+        } else if (raw.length === 64 && /^[0-9a-fA-F]+$/.test(raw)) {
+          derivedKey = hexToBuffer(raw);
+        } else {
+          try {
+            const meRes = await fetch("/api/auth/me");
+            const meJson = await meRes.json().catch(() => ({}));
+            if (meJson.user?.masterKeySaltHex) {
+              const { unlockOwnerVault } = await import("@/lib/vault/master-vault");
+              const master = await unlockOwnerVault(raw, meJson.user.masterKeySaltHex);
+              const docsRes = await fetch("/api/docs");
+              const docsJson = await docsRes.json().catch(() => ({}));
+              const myDoc = docsJson?.documents?.find((d: any) => d.id === docData.id);
+              if (myDoc?.ownerEncryptedKeyHex && myDoc?.ownerEncryptedKeyIvHex) {
+                derivedKey = await unwrapDocKeyForOwner(myDoc.ownerEncryptedKeyHex, myDoc.ownerEncryptedKeyIvHex, master);
+              }
+            }
+          } catch {}
+          if (!derivedKey) {
+            derivedKey = fragmentToDocKey("#k=" + raw);
+          }
+        }
+
+        if (!derivedKey || derivedKey.length < 16) {
+          setKeyRecoveryError("Invalid decryption key or password. Please provide the complete link or #k= fragment.");
+          return;
+        }
+
+        const hex = bufferToHex(derivedKey);
+        sessionStorage.setItem("blindshare_key_" + slug, hex);
+        sessionStorage.setItem("blindshare_key_" + docData.id, hex);
+        localStorage.setItem("blindshare_key_" + docData.id, hex);
+        localStorage.setItem("blindshare_link_key_" + slug, hex);
+
+        const frag = docKeyToFragment(derivedKey);
+        window.history.replaceState(null, "", window.location.pathname + window.location.search + "#k=" + frag);
+
+        setError(null);
+        setReloadTrigger((v) => v + 1);
+      } catch (err: any) {
+        setKeyRecoveryError(err.message || "Failed to parse key");
+      } finally {
+        setRecoveringKey(false);
+      }
+    };
+
     return (
       <div className="mx-auto max-w-xl p-6">
-        <div className="rounded-2xl border border-red-500/30 bg-red-950/20 p-6 text-center backdrop-blur-md">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-500/20 text-red-400">
+        <div className="rounded-2xl border border-red-500/30 bg-red-950/20 p-6 text-center backdrop-blur-md space-y-4">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-500/20 text-red-400">
             <AlertCircle className="h-6 w-6" />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">{t.viewer.notFoundTitle}</h3>
-          <p className="text-sm text-slate-300 mb-6 leading-relaxed">{error}</p>
+          <h3 className="text-lg font-bold text-white mb-1">{t.viewer.notFoundTitle}</h3>
+          <p className="text-sm text-slate-300 leading-relaxed">{error}</p>
+
+          {isMissingKey && (
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-5 text-left space-y-3">
+              <div className="flex items-center gap-2 text-xs font-bold text-amber-400">
+                <Lock className="h-4 w-4" />
+                <span>Recover Document Access</span>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                If your browser cache was cleared or the link was copied without the <code className="text-amber-300">#k=...</code> fragment, enter your key or full link below to decrypt immediately:
+              </p>
+
+              {keyRecoveryError && (
+                <div className="rounded-xl border border-red-500/30 bg-red-950/50 p-2.5 text-[11px] text-red-300">
+                  {keyRecoveryError}
+                </div>
+              )}
+
+              <form onSubmit={handleApplyRecoveryKey} className="space-y-3">
+                <input
+                  type="text"
+                  value={keyRecoveryInput}
+                  onChange={(e) => setKeyRecoveryInput(e.target.value)}
+                  placeholder="Paste #k=... fragment, full share URL, or owner password"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                  autoFocus
+                />
+                <button
+                  type="submit"
+                  disabled={recoveringKey || !keyRecoveryInput.trim()}
+                  className="w-full rounded-xl bg-amber-500 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition disabled:opacity-50"
+                >
+                  {recoveringKey ? "Unwrapping & Decrypting..." : "Decrypt & Unlock Document"}
+                </button>
+              </form>
+            </div>
+          )}
+
           <div className="rounded-xl bg-slate-950/80 p-4 border border-slate-800 text-left text-xs text-slate-400 space-y-2">
             <div className="font-semibold text-slate-300">Why am I seeing this?</div>
             <div>

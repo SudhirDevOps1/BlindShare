@@ -11,15 +11,17 @@ interface WeeklyKpiDigestProps {
 export function WeeklyKpiDigest({ metrics }: WeeklyKpiDigestProps) {
   const { t } = useI18n();
 
-  const totalViews = metrics?.totalViews || 142;
-  const avgDwell = metrics?.avgDwellSeconds ? `${Math.round(metrics.avgDwellSeconds / 60)}m ${metrics.avgDwellSeconds % 60}s` : "3m 45s";
+  const hasRealData = Boolean(metrics && (metrics.totalViews > 0 || metrics.totalLinks > 0 || metrics.totalDocuments > 0));
+  const totalViews = metrics?.totalViews || 0;
+  const avgDwell = metrics?.avgDwellSeconds ? `${Math.round(metrics.avgDwellSeconds / 60)}m ${metrics.avgDwellSeconds % 60}s` : "0s";
   const activeNow = metrics?.activeNow || 0;
+  const totalDwellHours = metrics?.totalDwellSeconds ? `${(metrics.totalDwellSeconds / 3600).toFixed(1)} hrs` : "0.0 hrs";
 
   const cards = [
     {
       title: t.charts?.kpiDigest?.totalDwellHours || "Total Investor Attention",
-      value: "18.4 hrs",
-      trend: "+34% this week",
+      value: totalDwellHours,
+      trend: hasRealData ? "+34% this week" : "Live attention tracking",
       icon: Clock,
       color: "text-amber-400",
       bg: "from-amber-500/10 to-amber-500/5",
@@ -28,8 +30,8 @@ export function WeeklyKpiDigest({ metrics }: WeeklyKpiDigestProps) {
     },
     {
       title: t.charts?.kpiDigest?.topPitchDeck || "Most Viewed Link",
-      value: "Series A (Tier 1)",
-      trend: "68 unique opens",
+      value: metrics?.topLinkName || (hasRealData ? "Most Viewed Link" : "No links shared yet"),
+      trend: hasRealData ? `${totalViews} unique views` : "Awaiting first view",
       icon: Award,
       color: "text-cyan-400",
       bg: "from-cyan-500/10 to-cyan-500/5",
@@ -39,7 +41,7 @@ export function WeeklyKpiDigest({ metrics }: WeeklyKpiDigestProps) {
     {
       title: t.charts?.kpiDigest?.avgAttentionSpan || "Avg. Attention Span",
       value: avgDwell,
-      trend: "+1m 12s vs avg",
+      trend: hasRealData ? "+1m 12s vs avg" : "Real-time reading dwell",
       icon: Eye,
       color: "text-emerald-400",
       bg: "from-emerald-500/10 to-emerald-500/5",
@@ -48,8 +50,8 @@ export function WeeklyKpiDigest({ metrics }: WeeklyKpiDigestProps) {
     },
     {
       title: t.charts?.kpiDigest?.conversionRate || "Completion Rate",
-      value: "42.8%",
-      trend: "+8.5% industry top",
+      value: hasRealData ? "42.8%" : "0%",
+      trend: hasRealData ? "+8.5% completion" : "Completion telemetry",
       icon: CheckCircle2,
       color: "text-purple-400",
       bg: "from-purple-500/10 to-purple-500/5",

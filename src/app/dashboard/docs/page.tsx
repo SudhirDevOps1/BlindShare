@@ -122,18 +122,11 @@ export default function DocsPage() {
               <span className="text-[10px] font-mono text-slate-400">Backblaze B2 + Neon</span>
             </div>
             <div className="flex items-center justify-center min-h-[220px]">
-              <object
-                data="/brand/graphs/33-storage-by-type-animated.svg"
-                type="image/svg+xml"
+              <img
+                src="/brand/graphs/33-storage-by-type-animated.svg"
+                alt="Storage Allocation Donut"
                 className="w-full h-auto max-h-[240px] object-contain pointer-events-none"
-                aria-label="Storage Allocation Donut"
-              >
-                <img
-                  src="/brand/graphs/33-storage-by-type-animated.svg"
-                  alt="Storage Allocation Donut"
-                  className="w-full h-auto max-h-[240px] object-contain"
-                />
-              </object>
+              />
             </div>
           </div>
 
@@ -146,18 +139,11 @@ export default function DocsPage() {
               <span className="text-[10px] font-mono text-emerald-400">Always $0 Free Tier</span>
             </div>
             <div className="flex items-center justify-center min-h-[220px]">
-              <object
-                data="/brand/graphs/38-cost-forecast-animated.svg"
-                type="image/svg+xml"
+              <img
+                src="/brand/graphs/38-cost-forecast-animated.svg"
+                alt="Cost & Quota Gauge"
                 className="w-full h-auto max-h-[240px] object-contain pointer-events-none"
-                aria-label="Cost & Quota Gauge"
-              >
-                <img
-                  src="/brand/graphs/38-cost-forecast-animated.svg"
-                  alt="Cost & Quota Gauge"
-                  className="w-full h-auto max-h-[240px] object-contain"
-                />
-              </object>
+              />
             </div>
           </div>
         </div>

@@ -269,18 +269,11 @@ export default function LinksPage() {
               <span className="text-[10px] font-mono text-amber-400">Campaigns</span>
             </div>
             <div className="flex items-center justify-center min-h-[200px] my-auto">
-              <object
-                data="/brand/graphs/32-source-donut-animated.svg"
-                type="image/svg+xml"
+              <img
+                src="/brand/graphs/32-source-donut-animated.svg"
+                alt="Traffic Source Donut"
                 className="w-full h-auto max-h-[220px] object-contain pointer-events-none"
-                aria-label="Traffic Source Donut"
-              >
-                <img
-                  src="/brand/graphs/32-source-donut-animated.svg"
-                  alt="Traffic Source Donut"
-                  className="w-full h-auto max-h-[220px] object-contain"
-                />
-              </object>
+              />
             </div>
             <p className="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-800/60">
               Direct Pitch (48%) • LinkedIn (26%) • Syndicate (18%) • Email (8%)

@@ -42,13 +42,7 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
           };
         });
     }
-    return [
-      { id: "1", title: "Series A Investor Deck — Tier 1 VC Lead", viewCount: 142, avgDwell: "4m 12s", score: 94, code: "sa-tier1", isReal: false },
-      { id: "2", title: "Seed Extension — Syndicate & Angels", viewCount: 88, avgDwell: "3m 45s", score: 86, code: "seed-ext", isReal: false },
-      { id: "3", title: "BlindShare Technical Architecture 2026", viewCount: 65, avgDwell: "5m 20s", score: 91, code: "arch-doc", isReal: false },
-      { id: "4", title: "Board Review Q3 — Financial Models", viewCount: 39, avgDwell: "6m 10s", score: 89, code: "board-q3", isReal: false },
-      { id: "5", title: "Strategic Partner Teaser (One-Pager)", viewCount: 27, avgDwell: "1m 30s", score: 62, code: "one-pager", isReal: false },
-    ];
+    return [];
   }, [links, perfMap]);
 
   const maxViews = Math.max(...topItems.map((item) => item.viewCount || 1), 1);
@@ -80,7 +74,18 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
       </div>
 
       {/* Leaderboard Rows */}
-      <div className="space-y-3">
+      {topItems.length === 0 ? (
+        <div className="rounded-xl border border-slate-800/80 bg-slate-950/40 p-8 text-center space-y-2">
+          <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <Trophy className="h-5 w-5" />
+          </div>
+          <div className="text-xs font-bold text-white">No share links yet</div>
+          <p className="text-[11px] text-slate-400 max-w-sm mx-auto">
+            Generate your first tracked link to see real investor velocity and engagement rankings here.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
         {topItems.map((item, index) => {
           const ratio = (item.viewCount || 0) / maxViews;
           const rankColors = ["text-amber-400", "text-slate-300", "text-amber-600", "text-slate-500", "text-slate-600"];
@@ -142,6 +147,7 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
           );
         })}
       </div>
+      )}
     </div>
   );
 }

@@ -17,15 +17,8 @@ export function GeoChoroplethMap({ countryBreakdown = [] }: GeoChoroplethMapProp
       return { countries: countryBreakdown, isSampleData: false };
     }
     return {
-      countries: [
-        { country: "US", views: 48 },
-        { country: "IN", views: 32 },
-        { country: "GB", views: 19 },
-        { country: "DE", views: 14 },
-        { country: "SG", views: 11 },
-        { country: "CA", views: 8 },
-      ],
-      isSampleData: true,
+      countries: [],
+      isSampleData: false,
     };
   }, [countryBreakdown]);
 
@@ -115,7 +108,7 @@ export function GeoChoroplethMap({ countryBreakdown = [] }: GeoChoroplethMapProp
             <line x1="400" y1="0" x2="400" y2="350" stroke="#1e293b" strokeDasharray="3,3" strokeWidth="1" />
 
             {/* Pulsing Active Investor Beacons */}
-            {pulseBeacons.map((beacon, idx) => (
+            {countries.length > 0 && pulseBeacons.map((beacon, idx) => (
               <g key={idx} className="cursor-pointer">
                 {/* Ping wave */}
                 <circle cx={beacon.x} cy={beacon.y} r="14" fill="url(#radarGlow)">
@@ -148,27 +141,33 @@ export function GeoChoroplethMap({ countryBreakdown = [] }: GeoChoroplethMapProp
           </div>
 
           <div className="space-y-2">
-            {countries.slice(0, 6).map((c) => {
-              const pct = Math.round((c.views / Math.max(totalViews, 1)) * 100);
-              return (
-                <div key={c.country} className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-semibold text-slate-200">
-                      {c.country.toUpperCase()}
-                    </span>
-                    <span className="font-mono text-slate-400 text-[11px]">
-                      {c.views} ({pct}%)
-                    </span>
+            {countries.length === 0 ? (
+              <div className="py-6 text-center text-xs text-slate-500">
+                No international geo data recorded yet
+              </div>
+            ) : (
+              countries.slice(0, 6).map((c) => {
+                const pct = Math.round((c.views / Math.max(totalViews, 1)) * 100);
+                return (
+                  <div key={c.country} className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="font-semibold text-slate-200">
+                        {c.country.toUpperCase()}
+                      </span>
+                      <span className="font-mono text-slate-400 text-[11px]">
+                        {c.views} ({pct}%)
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-300"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="h-1.5 w-full rounded-full bg-slate-950 overflow-hidden border border-slate-800">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-amber-500 to-amber-300 transition-all duration-300"
-                      style={{ width: `${pct}%` }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       </div>

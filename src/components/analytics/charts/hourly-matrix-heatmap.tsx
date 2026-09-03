@@ -31,24 +31,7 @@ export function HourlyMatrixHeatmap({ sessions = [] }: HourlyMatrixHeatmapProps)
         }
       });
     } else {
-      // Realistic simulation data if brand new link
-      const seed = [
-        [0,0,0,0,1,2,5,12,18,24,20,15,14,16,19,18,14,10,6,4,2,1,0,0], // Mon
-        [0,0,0,0,1,3,7,16,28,34,26,19,17,21,24,22,17,11,7,5,3,1,0,0], // Tue (Peak)
-        [0,0,0,0,1,2,6,14,22,29,23,17,15,18,21,20,15,10,6,4,2,1,0,0], // Wed
-        [0,0,0,0,1,2,5,13,20,27,21,16,14,17,19,17,13,9,5,3,2,1,0,0],  // Thu
-        [0,0,0,0,1,2,4,10,16,21,17,13,11,13,14,12,9,6,4,2,1,0,0,0],   // Fri
-        [0,0,0,0,0,1,2,4,6,8,9,8,7,7,8,6,5,4,3,2,1,0,0,0],           // Sat
-        [0,0,0,0,0,1,2,3,5,9,11,10,9,9,10,8,7,5,4,3,2,1,0,0],        // Sun
-      ];
-      for (let d = 0; d < 7; d++) {
-        for (let h = 0; h < 24; h++) {
-          grid[d][h] = seed[d][h];
-          if (grid[d][h] > peak.count) {
-            peak = { day: d, hour: h, count: grid[d][h] };
-          }
-        }
-      }
+      // Clean zero state if brand new link
     }
 
     let max = 1;

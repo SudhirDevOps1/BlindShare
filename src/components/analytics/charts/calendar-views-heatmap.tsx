@@ -42,12 +42,6 @@ export function CalendarViewsHeatmap({ sessions = [] }: CalendarViewsHeatmapProp
       
       // If real sessions exist use map, otherwise synthesize light realistic pattern
       let count = map.get(key) || 0;
-      if (sessions.length === 0) {
-        const dow = curr.getDay();
-        // Weekdays have higher view traffic
-        const noise = (Math.sin(i * 0.1) + 1) * 2;
-        count = dow > 0 && dow < 6 ? Math.floor(noise * 3) : Math.floor(noise * 0.5);
-      }
 
       tot += count;
       if (count > max) max = count;
