@@ -1,6 +1,6 @@
-import { BrandIcon } from "@/components/brand-icon";
 "use client";
 
+import { BrandIcon } from "@/components/brand-icon";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { BrandHeader } from "@/components/brand-header";

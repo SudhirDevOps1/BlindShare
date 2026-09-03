@@ -1,6 +1,6 @@
-import { BrandIcon } from "./brand-icon";
 "use client";
 
+import { BrandIcon } from "@/components/brand-icon";
 import React, { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";

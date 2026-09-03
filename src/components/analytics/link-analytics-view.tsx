@@ -1,6 +1,6 @@
-import { BrandIcon } from "@/components/brand-icon";
 "use client";
 
+import { BrandIcon } from "@/components/brand-icon";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { formatDuration } from "@/lib/analytics";
