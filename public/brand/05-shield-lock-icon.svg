@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img">
+<title>Shield Lock Icon — Glassmorphic</title>
+<rect width="400" height="400" rx="32" fill="#080e1a"/>
+<defs>
+  <linearGradient id="goldG5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient>
+  <radialGradient id="radGold5" cx="50%" cy="35%" r="70%"><stop offset="0%" stop-color="#f59e0b" stop-opacity="0.14"/><stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/></radialGradient>
+</defs>
+<ellipse cx="200" cy="200" rx="170" ry="170" fill="url(#radGold5)"/>
+<!-- Glow -->
+<ellipse cx="200" cy="200" rx="140" ry="140" fill="#f59e0b" opacity="0.06"/>
+<!-- Card -->
+<rect x="56" y="56" width="288" height="288" rx="28" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+<rect x="56" y="56" width="288" height="288" rx="28" fill="none" stroke="#f59e0b" stroke-opacity="0.18" stroke-width="1.2"/>
+<!-- Glass shine -->
+<path d="M56 84 Q56 56 84 56 H316 Q344 56 344 84 V112 Q280 96 200 96 Q120 96 56 112 Z" fill="white" opacity="0.04"/>
+<!-- Shield -->
+<g transform="translate(200,188)">
+  <path d="M0 -84 L78 -52 V16 C78 50 42 78 0 96 C-42 78 -78 50 -78 16 V-52 Z" fill="#080e1a" stroke="url(#goldG5)" stroke-width="3.6" stroke-linejoin="round"/>
+  <path d="M0 -78 L72 -48 V16 C72 46 38 72 0 89 C-38 72 -72 46 -72 16 V-48 Z" fill="none" stroke="#fbbf24" stroke-opacity="0.15" stroke-width="1"/>
+  <!-- Inner gold gradient suggestion -->
+  <path d="M0 -74 L68 -44 V16 C68 42 36 66 0 82 C-36 66 -68 42 -68 16 V-44 Z" fill="#f59e0b" opacity="0.07"/>
+  <!-- Lock -->
+  <g transform="translate(0,16)">
+    <rect x="-26" y="-8" width="52" height="42" rx="8" fill="#f59e0b" stroke="#fbbf24" stroke-width="1"/>
+    <path d="M -16 -8 V -22 A 16 16 0 0 1 16 -22 V -8" fill="none" stroke="#fbbf24" stroke-width="5.2" stroke-linecap="round"/>
+    <circle cx="0" cy="10" r="7.5" fill="#080e1a" opacity="0.92"/>
+    <rect x="-2.6" y="10" width="5.2" height="12" rx="2.6" fill="#080e1a"/>
+    <circle cx="0" cy="7.5" r="2.8" fill="#f59e0b"/>
+  </g>
+  <!-- Encrypted particles orbiting -->
+  <g opacity="0.95">
+    <circle cx="-52" cy="-12" r="3" fill="#3b82f6"/>
+    <circle cx="52" cy="-12" r="3" fill="#3b82f6"/>
+    <circle cx="-60" cy="14" r="2" fill="#10b981"/>
+    <circle cx="60" cy="14" r="2" fill="#10b981"/>
+    <circle cx="0" cy="-58" r="2.2" fill="#f59e0b"/>
+  </g>
+  <!-- Orbit rings dashed -->
+  <ellipse cx="0" cy="10" rx="92" ry="58" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="5 5" opacity="0.9"/>
+  <ellipse cx="0" cy="10" rx="108" ry="70" fill="none" stroke="#1e293b" stroke-width="1" stroke-dasharray="3 6" opacity="0.5"/>
+</g>
+<!-- Label -->
+<g transform="translate(200,332)" text-anchor="middle">
+  <text font-family="Inter,sans-serif" font-size="13" font-weight="800" letter-spacing="3" fill="#ffffff">E2EE SHIELD</text>
+  <text y="16" font-family="Inter,sans-serif" font-size="8" font-weight="600" letter-spacing="2" fill="#64748b">CLIENT-SIDE • ZERO-KNOWLEDGE</text>
+</g>
+<!-- Corner badge -->
+<g transform="translate(280,72)">
+  <rect width="48" height="18" rx="9" fill="#10b981"/>
+  <circle cx="10" cy="9" r="3" fill="white"/>
+  <text x="17" y="12" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" letter-spacing="0.6" fill="white">LOCKED</text>
+</g>
+</svg>

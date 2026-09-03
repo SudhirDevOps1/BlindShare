@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 620" width="960" height="620" role="img">
+<title>Document Sharing UI Mockup — E2EE Badge</title>
+<rect width="960" height="620" rx="24" fill="#080e1a"/>
+<defs>
+  <linearGradient id="goldG7" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
+  <filter id="soft7" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000" flood-opacity="0.45"/></filter>
+</defs>
+<!-- Browser chrome -->
+<g transform="translate(40,30)">
+  <rect width="880" height="560" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <!-- Topbar -->
+  <rect width="880" height="48" rx="16" fill="#0f172a"/>
+  <rect y="48" width="880" height="1" fill="#1e293b"/>
+  <g transform="translate(16,16)">
+    <circle r="6" fill="#ef4444" opacity="0.9"/>
+    <circle cx="20" r="6" fill="#f59e0b" opacity="0.9"/>
+    <circle cx="40" r="6" fill="#10b981" opacity="0.9"/>
+  </g>
+  <text x="440" y="30" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="600" letter-spacing="2" fill="#475569">app.blindshare — vault • pitch-deck-q4-2026.pdf</text>
+  <g transform="translate(820,14)">
+    <rect width="44" height="20" rx="10" fill="#10b981" opacity="0.15" stroke="#10b981" stroke-opacity="0.22" stroke-width="1"/>
+    <circle cx="10" cy="10" r="3" fill="#10b981"/>
+    <text x="17" y="14" font-family="Inter,sans-serif" font-size="6" font-weight="800" fill="#10b981">E2EE</text>
+  </g>
+
+  <!-- Sidebar -->
+  <rect x="0" y="48" width="220" height="512" rx="0" fill="#080e1a" opacity="0.92"/>
+  <rect x="220" y="48" width="1" height="512" fill="#1e293b"/>
+  <g transform="translate(18,68)" font-family="Inter,sans-serif">
+    <rect width="184" height="32" rx="8" fill="url(#goldG7)" />
+    <text x="92" y="20" text-anchor="middle" font-size="9" font-weight="800" letter-spacing="0.8" fill="#080e1a">＋ New Vault Link</text>
+    <g transform="translate(0,52)">
+      <text font-size="7" font-weight="700" letter-spacing="1.6" fill="#475569">VAULT</text>
+      <g transform="translate(0,18)">
+        <rect width="184" height="28" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+        <circle cx="14" cy="14" r="5" fill="#f59e0b"/>
+        <text x="26" y="18" font-size="8" font-weight="600" fill="#e2e8f0">Pitch Decks</text>
+        <text x="164" y="18" text-anchor="middle" font-size="7" font-weight="700" fill="#94a3b8">12</text>
+      </g>
+      <g transform="translate(0,52)">
+        <rect width="184" height="28" rx="8" fill="transparent"/>
+        <circle cx="14" cy="14" r="5" fill="#1e293b"/>
+        <text x="26" y="18" font-size="8" font-weight="500" fill="#94a3b8">Legal Vault</text>
+      </g>
+      <g transform="translate(0,80)">
+        <rect width="184" height="28" rx="8" fill="transparent"/>
+        <circle cx="14" cy="14" r="5" fill="#1e293b"/>
+        <text x="26" y="18" font-size="8" font-weight="500" fill="#94a3b8">Creator Drops</text>
+      </g>
+    </g>
+    <g transform="translate(0,202)">
+      <text font-size="7" font-weight="700" letter-spacing="1.6" fill="#475569">RECENT LINKS</text>
+      <g transform="translate(0,14)">
+        <rect width="184" height="44" rx="8" fill="#0f172a" stroke="#f59e0b" stroke-opacity="0.22" stroke-width="1"/>
+        <text x="10" y="16" font-size="7.5" font-weight="600" fill="#e2e8f0">Series-A Deck.pdf</text>
+        <text x="10" y="28" font-size="6.5" font-weight="500" fill="#64748b">bln.sh/x7f3… • 2h ago</text>
+        <circle cx="168" cy="16" r="4" fill="#10b981"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- Main -->
+  <g transform="translate(240,68)">
+    <!-- Document preview -->
+    <rect width="420" height="320" rx="14" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+    <!-- PDF header -->
+    <rect width="420" height="40" rx="14" fill="#1e293b"/>
+    <rect y="22" width="420" height="18" fill="#1e293b"/>
+    <g transform="translate(14,12)">
+      <rect width="28" height="16" rx="4" fill="#ef4444"/>
+      <text x="14" y="11" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="800" fill="white">PDF</text>
+      <text x="40" y="11" font-family="Inter,sans-serif" font-size="8" font-weight="600" fill="#e2e8f0">pitch-deck-q4-2026.pdf</text>
+      <text x="40" y="21" font-family="Inter,sans-serif" font-size="6.5" font-weight="500" fill="#94a3b8">14 pages • 4.2 MB • watermark on download</text>
+    </g>
+    <g transform="translate(360,10)">
+      <rect width="46" height="20" rx="10" fill="#10b981"/>
+      <text x="23" y="13" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" fill="white">✓ E2EE</text>
+    </g>
+    <!-- Doc content mock -->
+    <g transform="translate(22,58)">
+      <rect width="376" height="148" rx="10" fill="#ffffff"/>
+      <rect x="16" y="14" width="344" height="8" rx="4" fill="#080e1a"/>
+      <rect x="16" y="28" width="200" height="6" rx="3" fill="#64748b"/>
+      <rect x="16" y="44" width="344" height="5" rx="2.5" fill="#e2e8f0"/>
+      <rect x="16" y="54" width="344" height="5" rx="2.5" fill="#e2e8f0"/>
+      <rect x="16" y="64" width="280" height="5" rx="2.5" fill="#e2e8f0"/>
+      <rect x="16" y="82" width="160" height="48" rx="8" fill="#fef3c7" stroke="#f59e0b" stroke-opacity="0.2" stroke-width="1"/>
+      <rect x="24" y="90" width="80" height="5" rx="2.5" fill="#f59e0b"/>
+      <rect x="24" y="100" width="120" height="4" rx="2" fill="#d97706" opacity="0.5"/>
+      <rect x="24" y="110" width="60" height="12" rx="6" fill="#f59e0b"/>
+      <rect x="190" y="82" width="160" height="48" rx="8" fill="#f0fdf4" stroke="#10b981" stroke-opacity="0.2" stroke-width="1"/>
+      <rect x="198" y="90" width="70" height="5" rx="2.5" fill="#10b981"/>
+      <rect x="198" y="100" width="110" height="4" rx="2" fill="#6ee7b7"/>
+      <!-- Watermark preview -->
+      <text x="188" y="148" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="800" fill="#f59e0b" opacity="0.08" transform="rotate(-12 188 148)">CONFIDENTIAL • viewer@email.com • 2026-09-03</text>
+    </g>
+    <!-- Badges -->
+    <g transform="translate(22,226)">
+      <rect width="124" height="22" rx="11" fill="#10b981" opacity="0.12" stroke="#10b981" stroke-opacity="0.22" stroke-width="1"/>
+      <circle cx="11" cy="11" r="3.5" fill="#10b981"/>
+      <text x="20" y="14.5" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" letter-spacing="0.6" fill="#10b981">WATERMARK ACTIVE</text>
+      <rect x="132" width="118" height="22" rx="11" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <circle cx="143" cy="11" r="3.5" fill="#f59e0b"/>
+      <text x="152" y="14.5" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" letter-spacing="0.6" fill="#e2e8f0">VIEWS: 18 • Q&amp;A: 4</text>
+    </g>
+    <!-- Share link card -->
+    <g transform="translate(22,258)">
+      <rect width="376" height="44" rx="10" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="12" y="16" font-family="Inter,sans-serif" font-size="6" font-weight="700" letter-spacing="1.2" fill="#64748b">SHARE LINK • REVOCABLE • EXPIRES IN 7 DAYS</text>
+      <text x="12" y="30" font-family="monospace" font-size="8" font-weight="700" fill="#3b82f6">https://bln.sh/x7f3-k9p2-q4</text>
+      <g transform="translate(310,10)">
+        <rect width="54" height="24" rx="12" fill="#f59e0b"/>
+        <text x="27" y="15" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">Copy</text>
+      </g>
+    </g>
+
+    <!-- Right panel — analytics preview -->
+    <g transform="translate(438,0)">
+      <rect width="222" height="320" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <text x="14" y="22" font-family="Inter,sans-serif" font-size="8" font-weight="800" letter-spacing="1" fill="#e2e8f0">ANALYTICS • LIVE</text>
+      <circle cx="198" cy="16" r="4" fill="#10b981"/>
+      <rect x="14" y="30" width="194" height="64" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <text x="24" y="48" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#94a3b8">Lead Conviction</text>
+      <text x="24" y="68" font-family="Inter,sans-serif" font-size="22" font-weight="800" fill="#f59e0b">84<tspan font-size="12" fill="#fbbf24">%</tspan></text>
+      <text x="74" y="68" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#10b981">▲ +12% vs avg</text>
+      <!-- mini waveform -->
+      <path d="M 120 66 L126 52 L132 62 L138 38 L144 58 L150 44 L156 60 L162 46 L168 62 L174 50 L180 58 L186 42" fill="none" stroke="#f59e0b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      <g transform="translate(14,104)">
+        <text font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1" fill="#475569">ENGAGEMENT</text>
+        <rect y="12" width="194" height="6" rx="3" fill="#1e293b"/>
+        <rect y="12" width="142" height="6" rx="3" fill="#3b82f6"/>
+        <text y="28" font-family="Inter,sans-serif" font-size="6.5" font-weight="600" fill="#94a3b8">Avg. view 4m 22s • 3 replays • Q&amp;A 4</text>
+        <rect y="38" width="194" height="36" rx="8" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+        <text x="10" y="54" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">“ What’s the moat? ” — founder reply in 2m</text>
+        <text x="10" y="64" font-family="Inter,sans-serif" font-size="6" fill="#64748b">Real-time in-doc Q&amp;A • investor@email.com</text>
+        <circle cx="182" cy="56" r="6" fill="#f59e0b"/>
+        <text x="182" y="59" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">›</text>
+      </g>
+      <g transform="translate(14,268)">
+        <rect width="94" height="28" rx="14" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+        <text x="47" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#ef4444">Revoke Link</text>
+        <rect x="102" width="92" height="28" rx="14" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+        <text x="148" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#94a3b8">Settings</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Bottom status bar -->
+  <g transform="translate(0,528)">
+    <rect width="880" height="32" rx="0" fill="#080e1a"/>
+    <rect width="880" height="1" y="0" fill="#1e293b"/>
+    <text x="16" y="20" font-family="monospace" font-size="6.5" fill="#475569">vault: pitch-deck • AES-GCM-256 • auto-unlock on login • Bitwarden model • self-hosted</text>
+    <text x="864" y="20" text-anchor="end" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" letter-spacing="1" fill="#f59e0b">BLINDSHARE — ZERO-KNOWLEDGE</text>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 520" width="520" height="520" role="img">
+<title>E2EE Pulse Animation Frame</title>
+<rect width="520" height="520" rx="32" fill="#080e1a"/>
+<ellipse cx="260" cy="260" rx="200" ry="200" fill="#10b981" opacity="0.05"/>
+<g opacity="0.45"><circle cx="260" cy="260" r="158" fill="none" stroke="#10b981" stroke-width="0.6" stroke-dasharray="3 7"/></g>
+<!-- Card -->
+<rect x="40" y="40" width="440" height="440" rx="24" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+<text x="260" y="88" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="800" letter-spacing="3" fill="#64748b">E2EE ACTIVE • PULSE FRAME</text>
+<!-- Pulse concentric -->
+<g transform="translate(260,260)">
+  <!-- Outermost faint -->
+  <circle r="128" fill="none" stroke="#10b981" stroke-opacity="0.06" stroke-width="1.5"/>
+  <circle r="108" fill="none" stroke="#10b981" stroke-opacity="0.09" stroke-width="1.2"/>
+  <circle r="88" fill="none" stroke="#10b981" stroke-opacity="0.13" stroke-width="1"/>
+  <!-- Animated rings -->
+  <circle r="64" fill="none" stroke="#10b981" stroke-opacity="0.22" stroke-width="1.4" stroke-dasharray="3 5"/>
+  <circle r="46" fill="none" stroke="#10b981" stroke-opacity="0.32" stroke-width="1.6"/>
+  <!-- Core glow -->
+  <circle r="32" fill="#10b981" opacity="0.12"/>
+  <circle r="20" fill="#10b981" opacity="0.18"/>
+  <circle r="12" fill="#10b981"/>
+  <circle r="12" fill="none" stroke="white" stroke-opacity="0.22" stroke-width="1"/>
+  <!-- Pulse dot emitter -->
+  <g opacity="0.95">
+    <circle r="4" fill="white"/>
+    <circle r="4.5" fill="none" stroke="white" stroke-opacity="0.35" stroke-width="1"/>
+  </g>
+  <!-- Orbiting particle -->
+  <g transform="rotate(28)">
+    <circle cx="64" cy="0" r="3.2" fill="#10b981" stroke="#0f172a" stroke-width="1"/>
+    <circle cx="64" cy="0" r="5.5" fill="none" stroke="#10b981" stroke-opacity="0.22" stroke-width="1"/>
+  </g>
+  <g transform="rotate(-42)">
+    <circle cx="88" cy="0" r="2.4" fill="#34d399" opacity="0.85"/>
+  </g>
+  <g transform="rotate(142)">
+    <circle cx="46" cy="0" r="2" fill="#6ee7b7" opacity="0.9"/>
+  </g>
+</g>
+<!-- Bottom badge -->
+<g transform="translate(260,412)" text-anchor="middle">
+  <rect x="-112" y="-14" width="224" height="28" rx="14" fill="#10b981"/>
+  <circle cx="-92" cy="0" r="4" fill="white"/>
+  <circle cx="-92" cy="0" r="8" fill="none" stroke="white" stroke-opacity="0.35" stroke-width="1.2"/>
+  <text y="4" font-family="Inter,sans-serif" font-size="9" font-weight="800" letter-spacing="1.6" fill="white">● E2EE ACTIVE • AES-GCM-256</text>
+</g>
+<g transform="translate(260,448)" text-anchor="middle">
+  <text font-family="monospace" font-size="7" fill="#475569" letter-spacing="1.2">FRAME 1/60 • 1.6s PULSE • WebCrypto RAM • ZERO-KNOWLEDGE</text>
+  <text y="12" font-family="Inter,sans-serif" font-size="6.5" font-weight="600" letter-spacing="1" fill="#334155">use CSS: animate pulse 1.6s ease-out infinite • opacity 0.28 → 0</text>
+</g>
+</svg>

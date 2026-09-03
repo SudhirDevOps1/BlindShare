@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 520" width="960" height="520" role="img">
+<title>Built for Founders, Lawyers, Creators</title>
+<rect width="960" height="520" rx="24" fill="#080e1a"/>
+<defs>
+  <linearGradient id="gold13" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
+</defs>
+<text x="480" y="54" text-anchor="middle" font-family="Inter,sans-serif" font-size="16" font-weight="800" letter-spacing="3.5" fill="#ffffff">BUILT FOR <tspan fill="#f59e0b">FOUNDERS</tspan> • LAWYERS • CREATORS</text>
+<text x="480" y="74" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="500" letter-spacing="2" fill="#64748b">PRIVACY-FIRST • ENTERPRISE GRADE • ZERO-KNOWLEDGE</text>
+
+<g transform="translate(48,112)">
+  <!-- Founders -->
+  <g>
+    <rect width="272" height="340" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <rect width="272" height="4" rx="2" fill="url(#gold13)" opacity="0.95"/>
+    <g transform="translate(136,72)">
+      <circle r="42" fill="#f59e0b" opacity="0.12" stroke="#f59e0b" stroke-opacity="0.28" stroke-width="1.2"/>
+      <circle r="28" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <text y="8" text-anchor="middle" font-size="22">🚀</text>
+    </g>
+    <text x="136" y="142" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="800" fill="#ffffff">FOUNDERS</text>
+    <text x="136" y="158" text-anchor="middle" font-family="Inter,sans-serif" font-size="7.5" font-weight="600" letter-spacing="1" fill="#f59e0b">PITCH DECKS • CAP TABLE</text>
+    <g transform="translate(24,176)" font-family="Inter,sans-serif" font-size="7.5" font-weight="500" fill="#94a3b8">
+      <g><circle cx="6" cy="6" r="3" fill="#f59e0b"/><text x="16" y="9" fill="#cbd5e1">Share deck without trusting server</text></g>
+      <g transform="translate(0,22)"><circle cx="6" cy="6" r="3" fill="#f59e0b"/><text x="16" y="9" fill="#cbd5e1">Real-time Q&amp;A with investors</text></g>
+      <g transform="translate(0,44)"><circle cx="6" cy="6" r="3" fill="#10b981"/><text x="16" y="9" fill="#cbd5e1">AI conviction scoring • who’s hot</text></g>
+      <g transform="translate(0,66)"><circle cx="6" cy="6" r="3" fill="#3b82f6"/><text x="16" y="9" fill="#cbd5e1">Revoke link instantly • watermark</text></g>
+    </g>
+    <g transform="translate(24,272)">
+      <rect width="224" height="42" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <rect x="10" y="10" width="36" height="22" rx="6" fill="#f59e0b"/>
+      <text x="28" y="24" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">DECK</text>
+      <text x="54" y="18" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">Series-A.pdf • 4.2 MB</text>
+      <text x="54" y="28" font-family="monospace" font-size="6" fill="#64748b">bln.sh/x7f3… • E2EE ✓</text>
+      <circle cx="208" cy="21" r="6" fill="#10b981" opacity="0.15"/>
+      <path d="M204 21 L207 24 L212 17" fill="none" stroke="#10b981" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+  </g>
+
+  <!-- Lawyers -->
+  <g transform="translate(344,0)">
+    <rect width="272" height="340" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <rect width="272" height="4" rx="2" fill="#3b82f6" opacity="0.9"/>
+    <g transform="translate(136,72)">
+      <circle r="42" fill="#3b82f6" opacity="0.10" stroke="#3b82f6" stroke-opacity="0.28" stroke-width="1.2"/>
+      <circle r="28" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <text y="8" text-anchor="middle" font-size="22">⚖️</text>
+    </g>
+    <text x="136" y="142" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="800" fill="#ffffff">LAWYERS</text>
+    <text x="136" y="158" text-anchor="middle" font-family="Inter,sans-serif" font-size="7.5" font-weight="600" letter-spacing="1" fill="#3b82f6">NDA • CONTRACTS • EVIDENCE</text>
+    <g transform="translate(24,176)" font-family="Inter,sans-serif" font-size="7.5" font-weight="500" fill="#94a3b8">
+      <g><circle cx="6" cy="6" r="3" fill="#3b82f6"/><text x="16" y="9" fill="#cbd5e1">Client privilege • zero-knowledge</text></g>
+      <g transform="translate(0,22)"><circle cx="6" cy="6" r="3" fill="#3b82f6"/><text x="16" y="9" fill="#cbd5e1">Self-hosted vault • on-prem</text></g>
+      <g transform="translate(0,44)"><circle cx="6" cy="6" r="3" fill="#f59e0b"/><text x="16" y="9" fill="#cbd5e1">Indelible PDF watermark</text></g>
+      <g transform="translate(0,66)"><circle cx="6" cy="6" r="3" fill="#10b981"/><text x="16" y="9" fill="#cbd5e1">Auto vault unlock • Bitwarden</text></g>
+    </g>
+    <g transform="translate(24,272)">
+      <rect width="224" height="42" rx="10" fill="#080e1a" stroke="#3b82f6" stroke-opacity="0.18" stroke-width="1"/>
+      <rect x="10" y="10" width="36" height="22" rx="6" fill="#3b82f6"/>
+      <text x="28" y="24" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" fill="white">NDA</text>
+      <text x="54" y="18" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">M&amp;A-terms.pdf • Privileged</text>
+      <text x="54" y="28" font-family="monospace" font-size="6" fill="#64748b">bln.sh/lgl-… • E2EE ✓</text>
+    </g>
+  </g>
+
+  <!-- Creators -->
+  <g transform="translate(640,0)">
+    <rect width="272" height="340" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <rect width="272" height="4" rx="2" fill="#10b981" opacity="0.9"/>
+    <g transform="translate(136,72)">
+      <circle r="42" fill="#10b981" opacity="0.10" stroke="#10b981" stroke-opacity="0.28" stroke-width="1.2"/>
+      <circle r="28" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <text y="8" text-anchor="middle" font-size="22">🎨</text>
+    </g>
+    <text x="136" y="142" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="800" fill="#ffffff">CREATORS</text>
+    <text x="136" y="158" text-anchor="middle" font-family="Inter,sans-serif" font-size="7.5" font-weight="600" letter-spacing="1" fill="#10b981">PORTFOLIO • DROPS • IP</text>
+    <g transform="translate(24,176)" font-family="Inter,sans-serif" font-size="7.5" font-weight="500" fill="#94a3b8">
+      <g><circle cx="6" cy="6" r="3" fill="#10b981"/><text x="16" y="9" fill="#cbd5e1">Own your distribution • no platform</text></g>
+      <g transform="translate(0,22)"><circle cx="6" cy="6" r="3" fill="#f59e0b"/><text x="16" y="9" fill="#cbd5e1">Encrypt before upload • ever</text></g>
+      <g transform="translate(0,44)"><circle cx="6" cy="6" r="3" fill="#f59e0b"/><text x="16" y="9" fill="#cbd5e1">Track who viewed • intent scoring</text></g>
+      <g transform="translate(0,66)"><circle cx="6" cy="6" r="3" fill="#3b82f6"/><text x="16" y="9" fill="#cbd5e1">₹0 free-tier • open source</text></g>
+    </g>
+    <g transform="translate(24,272)">
+      <rect width="224" height="42" rx="10" fill="#080e1a" stroke="#10b981" stroke-opacity="0.18" stroke-width="1"/>
+      <rect x="10" y="10" width="36" height="22" rx="6" fill="#10b981"/>
+      <text x="28" y="24" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" fill="white">DROP</text>
+      <text x="54" y="18" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#e2e8f0">Lookbook-2026.pdf</text>
+      <text x="54" y="28" font-family="monospace" font-size="6" fill="#64748b">bln.sh/crt-… • E2EE ✓</text>
+    </g>
+  </g>
+</g>
+
+<!-- Central shield connector -->
+<g transform="translate(480,424)">
+  <rect x="-110" y="0" width="220" height="36" rx="18" fill="#f59e0b" stroke="#fbbf24" stroke-width="1"/>
+  <g transform="translate(-84,18)">
+    <path d="M0 -8 L6 -4 V4 C6 7 3 10 0 12 C-3 10 -6 7 -6 4 V-4 Z" fill="none" stroke="#080e1a" stroke-width="1.4" stroke-linejoin="round"/>
+    <circle cx="0" cy="2" r="1.5" fill="#080e1a"/>
+  </g>
+  <text x="8" y="22" font-family="Inter,sans-serif" font-size="8" font-weight="800" letter-spacing="1.4" fill="#080e1a">ONE SHIELD • THREE WORLDS</text>
+</g>
+</svg>

@@ -9,6 +9,7 @@ import { CryptoInteractiveDemo } from "@/components/landing/crypto-interactive-d
 import { FeaturesShowcase } from "@/components/landing/features-showcase";
 import { StatsCounter } from "@/components/landing/stats-counter";
 import { WorkflowTimeline } from "@/components/landing/workflow-timeline";
+import { ArchitectureShowcase } from "@/components/landing/architecture-showcase";
 import { CTABanner } from "@/components/landing/cta-banner";
 import { TrustBar } from "@/components/landing/trust-bar";
 import {
@@ -130,8 +131,30 @@ export default function HomePage() {
               })}
             </div>
 
+            {/* Visual Zero-Knowledge Flow Blueprint */}
+            <div className="pt-8 max-w-4xl mx-auto">
+              <div className="relative overflow-hidden rounded-3xl border border-amber-500/30 bg-slate-900/60 p-3 sm:p-5 backdrop-blur-2xl shadow-2xl shadow-amber-500/10">
+                <div className="flex items-center justify-between pb-2.5 mb-2 border-b border-slate-800/80 px-1">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-xs font-bold text-white tracking-wide">
+                      RFC 3986 Zero-Knowledge Architecture
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-amber-400 font-semibold bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20">
+                    #k=fragment client-only
+                  </span>
+                </div>
+                <img
+                  src="/brand/03-hero-zero-knowledge-flow.svg"
+                  alt="BlindShare Zero-Knowledge Encryption Flow Diagram"
+                  className="w-full h-auto max-h-[380px] object-contain rounded-xl"
+                />
+              </div>
+            </div>
+
             {/* Live Interactive Zero-Knowledge Simulator */}
-            <div className="pt-10">
+            <div className="pt-6">
               <CryptoInteractiveDemo />
             </div>
           </div>
@@ -205,6 +228,9 @@ export default function HomePage() {
 
         {/* ── 7-Step Workflow Timeline ─────────────────────────────────── */}
         <WorkflowTimeline />
+
+        {/* ── Zero-Knowledge Architecture & Visual Brand Showcase ──────── */}
+        <ArchitectureShowcase />
 
         {/* Features Grid */}
         <section id="features" className="py-24 px-4 sm:px-6 border-t border-slate-900">

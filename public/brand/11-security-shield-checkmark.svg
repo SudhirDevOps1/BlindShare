@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" width="480" height="480" role="img">
+<title>Verified Secure — E2EE Active</title>
+<rect width="480" height="480" rx="32" fill="#080e1a"/>
+<defs>
+  <radialGradient id="rad11" cx="50%" cy="30%" r="70%"><stop offset="0%" stop-color="#10b981" stop-opacity="0.14"/><stop offset="100%" stop-color="#10b981" stop-opacity="0"/></radialGradient>
+</defs>
+<ellipse cx="240" cy="240" rx="190" ry="190" fill="url(#rad11)"/>
+<ellipse cx="240" cy="240" rx="180" ry="180" fill="#10b981" opacity="0.06"/>
+<rect x="48" y="48" width="384" height="384" rx="28" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+<rect x="48" y="48" width="384" height="384" rx="28" fill="none" stroke="#10b981" stroke-opacity="0.14" stroke-width="1.2"/>
+<g transform="translate(240,210)">
+  <!-- Shield -->
+  <path d="M0 -96 L84 -58 V28 C84 62 44 92 0 112 C-44 92 -84 62 -84 28 V-58 Z" fill="#080e1a" stroke="#10b981" stroke-width="3.6" stroke-linejoin="round"/>
+  <path d="M0 -88 L76 -52 V28 C76 58 40 86 0 103 C-40 86 -76 58 -76 28 V-52 Z" fill="none" stroke="#10b981" stroke-opacity="0.12" stroke-width="1"/>
+  <!-- Check badge -->
+  <g transform="translate(0,22)">
+    <circle r="42" fill="#10b981"/>
+    <circle r="42" fill="none" stroke="#34d399" stroke-width="2" opacity="0.9"/>
+    <circle r="54" fill="none" stroke="#10b981" stroke-opacity="0.18" stroke-width="8"/>
+    <path d="M -18 4 L -4 18 L 18 -12" fill="none" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <!-- Top shine -->
+  <path d="M -64 -72 Q 0 -88 64 -72" fill="none" stroke="white" stroke-opacity="0.06" stroke-width="2" stroke-linecap="round"/>
+</g>
+<g transform="translate(240,360)" text-anchor="middle">
+  <g transform="translate(0,-8)">
+    <rect x="-72" y="-14" width="144" height="20" rx="10" fill="#10b981"/>
+    <text y="0" font-family="Inter,sans-serif" font-size="7.5" font-weight="800" letter-spacing="1.4" fill="white">✓ VERIFIED SECURE</text>
+  </g>
+  <text y="22" font-family="Inter,sans-serif" font-size="16" font-weight="800" letter-spacing="1.2" fill="#ffffff">E2EE ACTIVE</text>
+  <text y="38" font-family="Inter,sans-serif" font-size="8" font-weight="600" letter-spacing="1.6" fill="#64748b">AES-GCM-256 • ZERO-KNOWLEDGE • SELF-HOSTED</text>
+  <g transform="translate(-78,48)">
+    <circle r="3" fill="#10b981"/><text x="8" y="4" font-family="monospace" font-size="6.5" fill="#475569">keys in RAM only</text>
+  </g>
+  <g transform="translate(58,48)">
+    <circle r="3" fill="#f59e0b"/><text x="8" y="4" font-family="monospace" font-size="6.5" fill="#475569">tamper-evident watermark</text>
+  </g>
+</g>
+</svg>

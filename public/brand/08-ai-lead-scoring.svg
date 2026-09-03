@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 560" width="960" height="560" role="img">
+<title>AI Lead Conviction Scoring — Dashboard</title>
+<rect width="960" height="560" rx="24" fill="#080e1a"/>
+<defs>
+  <linearGradient id="goldG8" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
+</defs>
+<text x="480" y="48" text-anchor="middle" font-family="Inter,sans-serif" font-size="14" font-weight="800" letter-spacing="3.2" fill="#ffffff">LEAD CONVICTION <tspan fill="#f59e0b">INTENT</tspan> SCORING</text>
+<text x="480" y="68" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="500" letter-spacing="2" fill="#64748b">AI • VIEW DEPTH • REPLAY • Q&amp;A SENTIMENT • WATERMARK READ</text>
+
+<!-- Main grid -->
+<g transform="translate(32,96)">
+  <!-- Left gauge -->
+  <g>
+    <rect width="300" height="340" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <text x="24" y="32" font-family="Inter,sans-serif" font-size="9" font-weight="800" letter-spacing="1.6" fill="#e2e8f0">CONVICTION SCORE</text>
+    <text x="276" y="32" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1" fill="#10b981">● LIVE AI</text>
+    <!-- Gauge -->
+    <g transform="translate(150,150)">
+      <circle r="82" fill="#080e1a" stroke="#1e293b" stroke-width="10"/>
+      <circle r="82" fill="none" stroke="#334155" stroke-width="10" stroke-linecap="round" stroke-dasharray="260 515" transform="rotate(-90)"/>
+      <circle r="82" fill="none" stroke="#f59e0b" stroke-width="10" stroke-linecap="round" stroke-dasharray="218 515" transform="rotate(-90)" />
+      <circle r="82" fill="none" stroke="#fbbf24" stroke-width="2" stroke-opacity="0.35" stroke-linecap="round" stroke-dasharray="218 515" transform="rotate(-90)"/>
+      <text y="-6" text-anchor="middle" font-family="Inter,sans-serif" font-size="42" font-weight="800" fill="#ffffff">84<tspan font-size="20" fill="#f59e0b">%</tspan></text>
+      <text y="16" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1.8" fill="#f59e0b">HIGH INTENT</text>
+      <text y="28" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="500" fill="#64748b">▲ +12% vs cohort avg 72%</text>
+      <!-- Needle dot -->
+      <circle r="5" fill="#f59e0b" stroke="#080e1a" stroke-width="2"/>
+    </g>
+    <!-- Metrics -->
+    <g transform="translate(24,252)" font-family="Inter,sans-serif">
+      <g>
+        <text font-size="7" font-weight="700" letter-spacing="1" fill="#475569">VIEW DEPTH</text>
+        <text x="180" text-anchor="end" font-size="7" font-weight="800" fill="#3b82f6">92%</text>
+        <rect y="10" width="180" height="6" rx="3" fill="#1e293b"/><rect y="10" width="165" height="6" rx="3" fill="#3b82f6"/>
+      </g>
+      <g transform="translate(0,34)">
+        <text font-size="7" font-weight="700" letter-spacing="1" fill="#475569">REPLAY RATE</text>
+        <text x="180" text-anchor="end" font-size="7" font-weight="800" fill="#f59e0b">3.2×</text>
+        <rect y="10" width="180" height="6" rx="3" fill="#1e293b"/><rect y="10" width="126" height="6" rx="3" fill="#f59e0b"/>
+      </g>
+      <g transform="translate(0,68)">
+        <text font-size="7" font-weight="700" letter-spacing="1" fill="#475569">Q&amp;A SENTIMENT</text>
+        <text x="180" text-anchor="end" font-size="7" font-weight="800" fill="#10b981">+0.78</text>
+        <rect y="10" width="180" height="6" rx="3" fill="#1e293b"/><rect y="10" width="148" height="6" rx="3" fill="#10b981"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- Middle chart -->
+  <g transform="translate(324,0)">
+    <rect width="408" height="340" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <text x="20" y="32" font-family="Inter,sans-serif" font-size="9" font-weight="800" letter-spacing="1.6" fill="#e2e8f0">ENGAGEMENT WAVEFORM</text>
+    <text x="20" y="46" font-family="Inter,sans-serif" font-size="7" font-weight="500" fill="#64748b">per-page dwell • replay hotspots • 14 pages</text>
+    <g transform="translate(388,24)">
+      <rect width="68" height="20" rx="10" fill="#f59e0b"/>
+      <text x="34" y="14" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" fill="#080e1a">Gold Hotspots</text>
+    </g>
+    <!-- Chart area -->
+    <g transform="translate(20,64)">
+      <rect width="368" height="180" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+      <!-- Grid lines -->
+      <g stroke="#1e293b" stroke-width="0.7" opacity="0.9">
+        <path d="M0 45 H368"/><path d="M0 90 H368"/><path d="M0 135 H368"/>
+      </g>
+      <!-- Area fill -->
+      <path d="M0 130 L24 110 L52 124 L76 92 L100 78 L128 102 L152 42 L176 68 L200 58 L228 28 L252 52 L276 36 L300 74 L324 46 L348 62 L368 54 L368 180 L0 180 Z" fill="#f59e0b" opacity="0.10"/>
+      <!-- Waveform -->
+      <path d="M0 130 L24 110 L52 124 L76 92 L100 78 L128 102 L152 42 L176 68 L200 58 L228 28 L252 52 L276 36 L300 74 L324 46 L348 62 L368 54" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Glow second line -->
+      <path d="M0 130 L24 110 L52 124 L76 92 L100 78 L128 102 L152 42 L176 68 L200 58 L228 28 L252 52 L276 36 L300 74 L324 46 L348 62 L368 54" fill="none" stroke="#fbbf24" stroke-width="0.9" stroke-opacity="0.35" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Dots peak -->
+      <g fill="#f59e0b" stroke="#080e1a" stroke-width="1.6">
+        <circle cx="152" cy="42" r="4.5"/><circle cx="228" cy="28" r="4.5"/><circle cx="276" cy="36" r="3.5"/>
+      </g>
+      <!-- Labels -->
+      <g font-family="Inter,sans-serif" font-size="6" font-weight="700" fill="#475569" text-anchor="middle">
+        <text x="0" y="196">P1</text><text x="52" y="196">P3</text><text x="104" y="196">P5</text><text x="156" y="196" fill="#f59e0b">P7 ★</text><text x="208" y="196">P9</text><text x="260" y="196" fill="#f59e0b">P11 ★</text><text x="312" y="196">P13</text><text x="364" y="196">P14</text>
+      </g>
+      <!-- Tooltip -->
+      <g transform="translate(228,0)">
+        <rect x="-44" y="-6" width="88" height="18" rx="9" fill="#f59e0b"/>
+        <text x="0" y="6" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" font-weight="800" fill="#080e1a">P11 • 4m 22s • 3× replay</text>
+        <path d="M -4 12 L0 18 L4 12 Z" fill="#f59e0b"/>
+      </g>
+    </g>
+    <!-- Bottom stats -->
+    <g transform="translate(20,272)" font-family="Inter,sans-serif">
+      <g>
+        <rect width="120" height="46" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+        <text x="12" y="16" font-size="6.5" font-weight="700" letter-spacing="1" fill="#64748b">TOTAL VIEW</text>
+        <text x="12" y="32" font-size="13" font-weight="800" fill="#ffffff">4m 22s</text>
+        <text x="74" y="32" font-size="7" font-weight="700" fill="#10b981">▲ Hot</text>
+      </g>
+      <g transform="translate(128,0)">
+        <rect width="120" height="46" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+        <text x="12" y="16" font-size="6.5" font-weight="700" letter-spacing="1" fill="#64748b">Q&amp;A REPLIES</text>
+        <text x="12" y="32" font-size="13" font-weight="800" fill="#ffffff">4</text>
+        <text x="28" y="32" font-size="7" font-weight="600" fill="#94a3b8">/ founder in 2m</text>
+      </g>
+      <g transform="translate(256,0)">
+        <rect width="132" height="46" rx="10" fill="#f59e0b" />
+        <text x="16" y="16" font-size="6.5" font-weight="800" letter-spacing="1" fill="#080e1a">WATERMARK READ</text>
+        <text x="16" y="32" font-size="11" font-weight="800" fill="#080e1a">viewer@email.com ✓</text>
+      </g>
+    </g>
+  </g>
+
+  <!-- Right lead list -->
+  <g transform="translate(756,0)">
+    <rect width="172" height="340" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <text x="14" y="28" font-family="Inter,sans-serif" font-size="8" font-weight="800" letter-spacing="1.2" fill="#e2e8f0">TOP LEADS</text>
+    <text x="14" y="40" font-family="Inter,sans-serif" font-size="6.5" font-weight="600" fill="#64748b">AI ranked • intent →</text>
+    <g transform="translate(14,54)">
+      <g>
+        <rect width="144" height="48" rx="10" fill="#f59e0b" stroke="#f59e0b" stroke-width="1"/>
+        <circle cx="14" cy="18" r="8" fill="#080e1a" opacity="0.18"/>
+        <text x="14" y="22" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#080e1a">A</text>
+        <text x="30" y="16" font-family="Inter,sans-serif" font-size="7.5" font-weight="800" fill="#080e1a">a16z • Sarah</text>
+        <text x="30" y="26" font-family="Inter,sans-serif" font-size="6" font-weight="600" fill="#080e1a" opacity="0.75">84% • 3 replays • Q&amp;A 2</text>
+        <text x="30" y="38" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" fill="#080e1a">● HOT — Reach out</text>
+      </g>
+      <g transform="translate(0,56)">
+        <rect width="144" height="44" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+        <circle cx="14" cy="16" r="8" fill="#1e293b"/>
+        <text x="14" y="19" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#94a3b8">S</text>
+        <text x="30" y="14" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#e2e8f0">Sequoia • Mark</text>
+        <text x="30" y="24" font-family="Inter,sans-serif" font-size="6" fill="#64748b">71% • 2 replays • Q&amp;A 1</text>
+        <text x="30" y="36" font-family="Inter,sans-serif" font-size="6" font-weight="700" fill="#f59e0b">○ WARM</text>
+      </g>
+      <g transform="translate(0,108)">
+        <rect width="144" height="44" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+        <circle cx="14" cy="16" r="8" fill="#1e293b"/>
+        <text x="14" y="19" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#94a3b8">Y</text>
+        <text x="30" y="14" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#e2e8f0">YC • Daniel</text>
+        <text x="30" y="24" font-family="Inter,sans-serif" font-size="6" fill="#64748b">58% • 1 replay</text>
+        <text x="30" y="36" font-family="Inter,sans-serif" font-size="6" font-weight="700" fill="#475569">○ WATCH</text>
+      </g>
+      <g transform="translate(0,160)">
+        <rect width="144" height="32" rx="8" fill="#0f172a" stroke="#1e293b" stroke-width="1" stroke-dasharray="4 3"/>
+        <text x="72" y="20" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#475569">+ 9 more leads</text>
+      </g>
+    </g>
+    <g transform="translate(14,262)">
+      <rect width="144" height="62" rx="10" fill="#10b981" opacity="0.09" stroke="#10b981" stroke-opacity="0.22" stroke-width="1"/>
+      <text x="72" y="18" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="800" fill="#10b981">E2EE ANALYTICS</text>
+      <text x="72" y="30" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="500" fill="#94a3b8">privacy-safe • aggregated •</text>
+      <text x="72" y="40" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="500" fill="#94a3b8">no plaintext on server</text>
+      <text x="72" y="54" text-anchor="middle" font-family="monospace" font-size="6" fill="#475569">bln.sh/analytics</text>
+    </g>
+  </g>
+</g>
+
+<!-- Bottom footnote -->
+<g transform="translate(480,472)" text-anchor="middle">
+  <rect x="-320" y="0" width="640" height="52" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <text y="18" font-family="Inter,sans-serif" font-size="7.5" font-weight="700" letter-spacing="1.4" fill="#64748b">IN-DOC REAL-TIME Q&amp;A • FOUNDER REPLIES IN <tspan fill="#10b981">~2 MIN</tspan> • AI SUMMARIZES INTENT WITHOUT READING FILE CONTENT</text>
+  <text y="32" font-family="monospace" font-size="6.5" fill="#334155">telemetry is derived from interaction metadata (dwell, replay, scroll) — never from decrypted bytes</text>
+  <text y="45" font-family="Inter,sans-serif" font-size="6" font-weight="600" letter-spacing="1" fill="#475569">Gold waveform = high conviction moment • Blue = depth • Green = sentiment</text>
+</g>
+</svg>

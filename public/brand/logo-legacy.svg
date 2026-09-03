@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#1e293b" />
+      <stop offset="100%" stop-color="#090d16" />
+    </radialGradient>
+    <linearGradient id="goldLinear" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="50%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <linearGradient id="goldBody" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fde68a" />
+      <stop offset="10%" stop-color="#f59e0b" />
+      <stop offset="90%" stop-color="#d97706" />
+      <stop offset="100%" stop-color="#b45309" />
+    </linearGradient>
+    <filter id="goldGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="6" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Squircle Base Container -->
+  <rect width="512" height="512" rx="120" fill="url(#bgGrad)" />
+  <rect x="2" y="2" width="508" height="508" rx="118" fill="none" stroke="#334155" stroke-width="3" stroke-opacity="0.5" />
+
+  <!-- Cyber Circuit Traces & Binary Bits Background -->
+  <g stroke="#0ea5e9" stroke-width="2" stroke-opacity="0.18" stroke-linecap="round">
+    <path d="M120 420 L120 360 L180 300" />
+    <path d="M160 440 L220 380 L220 340" />
+    <path d="M390 420 L390 360 L330 300" />
+    <path d="M350 440 L290 380 L290 340" />
+    <circle cx="120" cy="420" r="4" fill="#0ea5e9" fill-opacity="0.4" />
+    <circle cx="390" cy="420" r="4" fill="#0ea5e9" fill-opacity="0.4" />
+  </g>
+
+  <!-- Document Outline (Rounded with Folded Corner) -->
+  <path
+    d="M176 140 H300 L356 196 V376 C356 394 342 408 324 408 H176 C158 408 144 394 144 376 V172 C144 154 158 140 176 140 Z"
+    fill="#0f172a"
+    stroke="url(#goldLinear)"
+    stroke-width="16"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M300 140 V196 H356"
+    fill="none"
+    stroke="url(#goldLinear)"
+    stroke-width="16"
+    stroke-linejoin="round"
+  />
+
+  <!-- Document Horizontal Text Lines -->
+  <line x1="180" y1="364" x2="280" y2="364" stroke="url(#goldLinear)" stroke-width="14" stroke-linecap="round" />
+
+  <!-- Big Gold Security Padlock (Centered Foreground) -->
+  <!-- Lock Shackle -->
+  <path
+    d="M216 230 V186 C216 164 234 146 256 146 C278 146 296 164 296 186 V230"
+    fill="none"
+    stroke="url(#goldBody)"
+    stroke-width="28"
+    stroke-linecap="round"
+    filter="url(#goldGlow)"
+  />
+
+  <!-- Lock Body Box -->
+  <rect
+    x="180"
+    y="220"
+    width="152"
+    height="124"
+    rx="28"
+    fill="url(#goldBody)"
+    stroke="#fef08a"
+    stroke-width="4"
+    filter="url(#goldGlow)"
+  />
+
+  <!-- Shield Shape inside Lock Body -->
+  <path
+    d="M256 244 L288 256 V284 C288 304 256 320 256 320 C256 320 224 304 224 284 V256 Z"
+    fill="#0f172a"
+  />
+
+  <!-- Keyhole in Shield -->
+  <circle cx="256" cy="272" r="7" fill="url(#goldLinear)" />
+  <polygon points="253,272 259,272 261,292 251,292" fill="url(#goldLinear)" />
+</svg>

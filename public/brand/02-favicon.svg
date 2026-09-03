@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img">
+<title>BlindShare Favicon — Premium</title>
+<defs>
+  <linearGradient id="gf" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient>
+</defs>
+<rect width="32" height="32" rx="7" fill="#080e1a"/>
+<rect width="32" height="32" rx="7" fill="none" stroke="white" stroke-opacity="0.06" stroke-width="0.9"/>
+<path d="M16 4.5 L26.2 9.2 V17.2 C26.2 22.4 21.5 26.8 16 29 C10.5 26.8 5.8 22.4 5.8 17.2 V9.2 L16 4.5 Z" fill="#0f172a" stroke="url(#gf)" stroke-width="1.65" stroke-linejoin="round"/>
+<path d="M9.5 15.2 Q16 10.2 22.5 15.2" fill="none" stroke="#fbbf24" stroke-width="1.28" stroke-linecap="round"/>
+<path d="M9.5 15.2 H22.5" fill="none" stroke="#f59e0b" stroke-width="1.28" stroke-linecap="round"/>
+<g stroke="#f59e0b" stroke-width="0.88" stroke-linecap="round">
+  <path d="M11.5 12.8 L10.8 11"/><path d="M14 11.5 L13.6 9.8"/><path d="M16 11.1 L16 9.3"/><path d="M18 11.5 L18.4 9.8"/><path d="M20.5 12.8 L21.2 11"/>
+</g>
+<circle cx="16" cy="19.2" r="2.4" fill="url(#gf)" stroke="#080e1a" stroke-width="0.6"/>
+<rect x="14.6" y="18.25" width="2.8" height="2.2" rx="0.55" fill="#080e1a" opacity="0.96"/>
+<circle cx="16" cy="19.4" r="0.48" fill="#f59e0b"/>
+<circle cx="16" cy="26.7" r="1.05" fill="#10b981"/>
+<circle cx="16" cy="26.7" r="2.6" fill="none" stroke="#10b981" stroke-opacity="0.20" stroke-width="0.9"/>
+</svg>

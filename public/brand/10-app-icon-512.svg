@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img">
+<title>BlindShare App Icon — 512</title>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#0f172a"/>
+    <stop offset="100%" stop-color="#080e1a"/>
+  </linearGradient>
+  <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#fbbf24"/>
+    <stop offset="100%" stop-color="#f59e0b"/>
+  </linearGradient>
+</defs>
+<rect width="512" height="512" rx="112" fill="url(#bg)" stroke="#1e293b" stroke-width="1.2"/>
+<!-- Subtle inner border -->
+<rect x="1" y="1" width="510" height="510" rx="111" fill="none" stroke="white" stroke-opacity="0.05" stroke-width="1"/>
+<ellipse cx="256" cy="180" rx="160" ry="90" fill="white" opacity="0.04"/>
+<!-- Glow -->
+<ellipse cx="256" cy="256" rx="220" ry="220" fill="#f59e0b" opacity="0.05"/>
+<!-- Icon centered -->
+<g transform="translate(256,252)">
+  <!-- Shield -->
+  <path d="M0 -132 L128 -84 V36 C128 86 66 128 0 156 C-66 128 -128 86 -128 36 V-84 Z" fill="#020617" stroke="url(#gold)" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M0 -120 L116 -76 V36 C116 78 60 116 0 142 C-60 116 -116 78 -116 36 V-76 Z" fill="none" stroke="#f59e0b" stroke-opacity="0.14" stroke-width="2"/>
+  <!-- Monogram B subtle -->
+  <text y="86" text-anchor="middle" font-family="Inter,sans-serif" font-size="78" font-weight="800" fill="#f59e0b" opacity="0.08" letter-spacing="-2">B</text>
+  <!-- Closed Eye -->
+  <g transform="translate(0,-18)">
+    <path d="M -72 -10 Q 0 -52 72 -10" fill="none" stroke="#fbbf24" stroke-width="6.5" stroke-linecap="round"/>
+    <path d="M -72 -10 H 72" fill="none" stroke="#f59e0b" stroke-width="6.5" stroke-linecap="round"/>
+    <g stroke="#f59e0b" stroke-width="4.2" stroke-linecap="round" opacity="0.96">
+      <path d="M -54 -26 L -57 -40"/>
+      <path d="M -28 -34 L -30 -48"/>
+      <path d="M 0 -38 L 0 -52"/>
+      <path d="M 28 -34 L 30 -48"/>
+      <path d="M 54 -26 L 57 -40"/>
+    </g>
+    <g stroke="#f59e0b" stroke-width="3.8" stroke-linecap="round" opacity="0.9">
+      <path d="M -36 -10 L -39 -2"/><path d="M 0 -10 L 0 -2"/><path d="M 36 -10 L 39 -2"/>
+    </g>
+  </g>
+  <!-- Center node + lock -->
+  <g transform="translate(0,42)">
+    <circle r="18" fill="#f59e0b" stroke="#080e1a" stroke-width="2.5"/>
+    <rect x="-10" y="-6" width="20" height="16" rx="2.5" fill="#080e1a" opacity="0.92"/>
+    <circle cx="0" cy="2" r="2.6" fill="#f59e0b"/>
+    <rect x="-1.6" y="2" width="3.2" height="5" rx="1.6" fill="#f59e0b"/>
+  </g>
+  <!-- Share nodes -->
+  <g transform="translate(0,42)">
+    <path d="M0 0 L -46 22 L 0 44 L 46 22 Z" fill="none" stroke="#f59e0b" stroke-opacity="0.55" stroke-width="2.2" stroke-linejoin="round"/>
+    <circle cx="-46" cy="22" r="10" fill="#0f172a" stroke="#fbbf24" stroke-width="2.2"/>
+    <circle cx="46" cy="22" r="10" fill="#0f172a" stroke="#fbbf24" stroke-width="2.2"/>
+    <circle cx="0" cy="44" r="10" fill="#0f172a" stroke="#3b82f6" stroke-width="2.2"/>
+    <circle cx="-46" cy="22" r="2.5" fill="#f59e0b"/>
+    <circle cx="46" cy="22" r="2.5" fill="#f59e0b"/>
+    <circle cx="0" cy="44" r="2.5" fill="#3b82f6"/>
+  </g>
+  <!-- E2EE pulse bottom -->
+  <g transform="translate(0,132)">
+    <circle r="7" fill="#10b981"/>
+    <circle r="13" fill="none" stroke="#10b981" stroke-opacity="0.22" stroke-width="2"/>
+    <circle r="19" fill="none" stroke="#10b981" stroke-opacity="0.12" stroke-width="1.4"/>
+  </g>
+</g>
+<!-- Bottom label -->
+<g transform="translate(256,456)" text-anchor="middle">
+  <text font-family="Inter,sans-serif" font-size="10" font-weight="800" letter-spacing="8" fill="#ffffff" opacity="0.92">BLINDSHARE</text>
+  <text y="12" font-family="Inter,sans-serif" font-size="6.5" font-weight="600" letter-spacing="3" fill="#64748b">512 • ZERO-KNOWLEDGE</text>
+</g>
+</svg>

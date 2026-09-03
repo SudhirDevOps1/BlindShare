@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" role="img">
+<title>Encrypted Data Flow Diagram</title>
+<rect width="1200" height="420" rx="24" fill="#080e1a"/>
+<defs>
+  <linearGradient id="gold12" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#fbbf24"/></linearGradient>
+</defs>
+<text x="600" y="44" text-anchor="middle" font-family="Inter,sans-serif" font-size="13" font-weight="800" letter-spacing="3.5" fill="#94a3b8">ENCRYPTED DATA FLOW • <tspan fill="#f59e0b">TECHNICAL</tspan> DIAGRAM</text>
+
+<g transform="translate(60,96)">
+  <!-- Sender -->
+  <g>
+    <rect width="180" height="180" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <g transform="translate(90,56)">
+      <circle r="28" fill="#1e293b" stroke="#334155" stroke-width="1.2"/>
+      <path d="M -10 -8 Q 0 -14 10 -8" fill="none" stroke="#e2e8f0" stroke-width="1.2" stroke-linecap="round"/>
+      <circle cx="-6" cy="-3" r="1.5" fill="#e2e8f0"/><circle cx="6" cy="-3" r="1.5" fill="#e2e8f0"/>
+      <text y="4" text-anchor="middle" font-family="Inter,sans-serif" font-size="16">👩‍💼</text>
+    </g>
+    <text x="90" y="114" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="800" fill="#ffffff">SENDER</text>
+    <text x="90" y="126" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#94a3b8">founder • browser</text>
+    <g transform="translate(18,140)">
+      <rect width="144" height="26" rx="13" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+      <rect x="10" y="8" width="28" height="10" rx="3" fill="white" opacity="0.95"/>
+      <text x="44" y="16" font-family="Inter,sans-serif" font-size="6.5" font-weight="600" fill="#64748b">pitch.pdf (plaintext)</text>
+    </g>
+  </g>
+  <!-- Arrow 1 Encrypt -->
+  <g transform="translate(180,90)">
+    <rect x="0" y="-1" width="134" height="2" fill="#f59e0b"/>
+    <path d="M134 -7 L148 0 L134 7 Z" fill="#f59e0b"/>
+    <g transform="translate(67,-18)">
+      <rect x="-34" y="-10" width="68" height="20" rx="10" fill="#f59e0b"/>
+      <text x="0" y="4" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" fill="#080e1a">ENCRYPT</text>
+    </g>
+    <text x="67" y="22" text-anchor="middle" font-family="monospace" font-size="6" fill="#f59e0b">AES-GCM-256 • WebCrypto</text>
+  </g>
+
+  <!-- Encrypt node -->
+  <g transform="translate(314,12)">
+    <rect width="156" height="180" rx="16" fill="#f59e0b" stroke="#fbbf24" stroke-width="1"/>
+    <g transform="translate(78,62)">
+      <rect x="-22" y="-8" width="44" height="32" rx="6" fill="#080e1a"/>
+      <path d="M -12 -8 V -16 A 12 12 0 0 1 12 -16 V -8" fill="none" stroke="#080e1a" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="0" cy="6" r="4.5" fill="#f59e0b"/>
+    </g>
+    <text x="78" y="112" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="800" fill="#080e1a">BROWSER ENCRYPT</text>
+    <text x="78" y="124" text-anchor="middle" font-family="monospace" font-size="6.5" font-weight="700" fill="#080e1a" opacity="0.7">keys • RAM only • never sent</text>
+    <g transform="translate(20,138)">
+      <rect width="116" height="24" rx="12" fill="#080e1a"/>
+      <circle cx="12" cy="12" r="4" fill="#10b981"/>
+      <text x="20" y="15.5" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" fill="#10b981">PLAINTEXT → CIPHERTEXT</text>
+    </g>
+  </g>
+
+  <!-- Arrow 2 ciphertext -->
+  <g transform="translate(470,90)">
+    <rect x="0" y="-1" width="120" height="2" fill="#334155"/>
+    <path d="M120 -7 L134 0 L120 7 Z" fill="#334155"/>
+    <g transform="translate(60,-14)">
+      <rect x="-42" y="-8" width="84" height="18" rx="9" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+      <text x="0" y="4" text-anchor="middle" font-family="monospace" font-size="6" font-weight="700" fill="#94a3b8">101010… ciphertext</text>
+    </g>
+  </g>
+
+  <!-- Cloud -->
+  <g transform="translate(590,12)">
+    <rect width="180" height="180" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+    <g transform="translate(90,70)">
+      <ellipse cx="0" cy="10" rx="56" ry="22" fill="#1e293b"/>
+      <ellipse cx="-22" cy="2" rx="28" ry="24" fill="#1e293b"/>
+      <ellipse cx="16" cy="-8" rx="32" ry="28" fill="#1e293b"/>
+      <rect x="-34" y="-4" width="68" height="10" rx="5" fill="#080e1a" stroke="#334155" stroke-width="1"/>
+      <text x="0" y="3" text-anchor="middle" font-family="Inter,sans-serif" font-size="5.5" font-weight="800" fill="#64748b">BLIND</text>
+    </g>
+    <text x="90" y="114" text-anchor="middle" font-family="Inter,sans-serif" font-size="9" font-weight="800" fill="#e2e8f0">CLOUD</text>
+    <text x="90" y="124" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="600" fill="#ef4444">cannot decode • blind courier</text>
+    <g transform="translate(14,138)">
+      <rect width="152" height="28" rx="14" fill="#ef4444" opacity="0.10" stroke="#ef4444" stroke-opacity="0.18" stroke-width="1"/>
+      <text x="76" y="12" text-anchor="middle" font-family="monospace" font-size="6.5" font-weight="700" fill="#fca5a5">a7 f3 9c • random bytes</text>
+      <text x="76" y="20" text-anchor="middle" font-family="Inter,sans-serif" font-size="6" fill="#475569">0 keys • 0 plaintext</text>
+    </g>
+  </g>
+
+  <!-- Arrow 3 decrypt -->
+  <g transform="translate(770,90)">
+    <rect x="0" y="-1" width="120" height="2" fill="#10b981"/>
+    <path d="M120 -7 L134 0 L120 7 Z" fill="#10b981"/>
+    <g transform="translate(60,-18)">
+      <rect x="-34" y="-10" width="68" height="20" rx="10" fill="#10b981"/>
+      <text x="0" y="4" text-anchor="middle" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" fill="white">DECRYPT</text>
+    </g>
+    <text x="60" y="22" text-anchor="middle" font-family="monospace" font-size="6" fill="#10b981">with recipient key</text>
+  </g>
+
+  <!-- Recipient -->
+  <g transform="translate(890,12)">
+    <rect width="180" height="180" rx="16" fill="#0f172a" stroke="#10b981" stroke-opacity="0.28" stroke-width="1.2"/>
+    <g transform="translate(90,56)">
+      <circle r="28" fill="#10b981" opacity="0.12" stroke="#10b981" stroke-opacity="0.35" stroke-width="1.2"/>
+      <circle r="28" fill="#1e293b" stroke="#10b981" stroke-opacity="0.3" stroke-width="1.2"/>
+      <text y="5" text-anchor="middle" font-family="Inter,sans-serif" font-size="18">👨‍💻</text>
+    </g>
+    <text x="90" y="114" text-anchor="middle" font-family="Inter,sans-serif" font-size="10" font-weight="800" fill="#ffffff">RECIPIENT</text>
+    <text x="90" y="126" text-anchor="middle" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#6ee7b7">investor • browser decrypt</text>
+    <g transform="translate(18,140)">
+      <rect width="144" height="26" rx="13" fill="#10b981"/>
+      <circle cx="12" cy="13" r="4" fill="white"/>
+      <text x="20" y="17" font-family="Inter,sans-serif" font-size="6.5" font-weight="800" fill="white">✓ Decrypted • Watermarked</text>
+    </g>
+  </g>
+</g>
+
+<!-- Bottom legend -->
+<g transform="translate(600,328)" text-anchor="middle">
+  <rect x="-480" y="0" width="960" height="52" rx="16" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
+  <g font-family="Inter,sans-serif" font-size="7" font-weight="700" letter-spacing="1">
+    <g transform="translate(-360,22)">
+      <rect width="12" height="12" rx="3" fill="#f59e0b"/><text x="18" y="10" fill="#e2e8f0">ENCRYPTED FLOW</text>
+    </g>
+    <g transform="translate(-180,22)">
+      <rect width="12" height="12" rx="3" fill="#1e293b" stroke="#334155" stroke-width="1"/><text x="18" y="10" fill="#94a3b8">CIPHERTEXT ONLY</text>
+    </g>
+    <g transform="translate(20,22)">
+      <rect width="12" height="12" rx="3" fill="#10b981"/><text x="18" y="10" fill="#6ee7b7">DECRYPTED AT EDGE</text>
+    </g>
+    <g transform="translate(200,22)">
+      <rect width="12" height="12" rx="6" fill="#ef4444" opacity="0.15" stroke="#ef4444" stroke-width="1"/><text x="18" y="10" fill="#fca5a5">SERVER = BLIND</text>
+    </g>
+  </g>
+  <text y="44" font-family="monospace" font-size="6.5" fill="#334155">“The server never sees your files — ever. Not once. Not ever.” — keys live in WebCrypto RAM, die on tab close</text>
+</g>
+</svg>

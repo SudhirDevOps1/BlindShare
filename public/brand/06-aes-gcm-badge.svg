@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 280" width="640" height="280" role="img">
+<title>AES-GCM-256 Badge — Active</title>
+<rect width="640" height="280" rx="20" fill="#080e1a"/>
+<defs>
+  <linearGradient id="goldG6" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient>
+</defs>
+<!-- Badge Card -->
+<g transform="translate(80,40)">
+  <rect width="480" height="200" rx="20" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
+  <rect width="480" height="200" rx="20" fill="none" stroke="#10b981" stroke-opacity="0.14" stroke-width="1"/>
+  <!-- Left: icon -->
+  <g transform="translate(28,28)">
+    <rect width="144" height="144" rx="16" fill="#080e1a" stroke="#1e293b" stroke-width="1"/>
+    <!-- Shield mini -->
+    <g transform="translate(72,62)">
+      <path d="M0 -34 L28 -20 V12 C28 24 15 34 0 40 C-15 34 -28 24 -28 12 V-20 Z" fill="none" stroke="#f59e0b" stroke-width="2.4" stroke-linejoin="round"/>
+      <g transform="translate(0,8)">
+        <rect x="-10" y="-4" width="20" height="16" rx="3.5" fill="#f59e0b"/>
+        <path d="M -6 -4 V -9 A 6 6 0 0 1 6 -9 V -4" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round"/>
+      </g>
+    </g>
+    <text x="72" y="118" text-anchor="middle" font-family="Inter,sans-serif" font-size="8" font-weight="800" letter-spacing="1.8" fill="#f59e0b">AES-GCM</text>
+    <text x="72" y="130" text-anchor="middle" font-family="monospace" font-size="7" font-weight="700" fill="#64748b">256-BIT</text>
+  </g>
+  <!-- Middle divider -->
+  <rect x="192" y="28" width="1" height="144" fill="#1e293b"/>
+  <!-- Right content -->
+  <g transform="translate(214,32)">
+    <text font-family="Inter,sans-serif" font-size="10" font-weight="700" letter-spacing="3" fill="#64748b">ENCRYPTION STANDARD</text>
+    <text y="30" font-family="Inter,sans-serif" font-size="30" font-weight="800" letter-spacing="1" fill="#ffffff">AES-GCM-<tspan fill="#f59e0b">256</tspan></text>
+    <text y="50" font-family="Inter,sans-serif" font-size="9" font-weight="500" letter-spacing="1.4" fill="#94a3b8">WebCrypto API • Authenticated • RAM-Only Keys</text>
+    <!-- Active pill -->
+    <g transform="translate(0,68)">
+      <rect width="238" height="36" rx="18" fill="#10b981" opacity="0.12" stroke="#10b981" stroke-opacity="0.28" stroke-width="1"/>
+      <g transform="translate(14,18)">
+        <circle r="6" fill="#10b981"/>
+        <circle r="10" fill="none" stroke="#10b981" stroke-opacity="0.28" stroke-width="1.4">
+          <animate attributeName="r" values="10;14;10" dur="1.6s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" values="0.28;0;0.28" dur="1.6s" repeatCount="indefinite"/>
+        </circle>
+        <circle r="14" fill="none" stroke="#10b981" stroke-opacity="0.15" stroke-width="1">
+          <animate attributeName="r" values="14;18;14" dur="1.6s" repeatCount="indefinite" begin="0.3s"/>
+          <animate attributeName="opacity" values="0.15;0;0.15" dur="1.6s" repeatCount="indefinite" begin="0.3s"/>
+        </circle>
+      </g>
+      <text x="34" y="22" font-family="Inter,sans-serif" font-size="11" font-weight="800" letter-spacing="1.6" fill="#10b981">ACTIVE</text>
+      <text x="98" y="22" font-family="monospace" font-size="8" font-weight="600" letter-spacing="1" fill="#6ee7b7">• E2EE VERIFIED</text>
+      <g transform="translate(216,18)">
+        <path d="M -5 -3 L 0 3 L 5 -5" fill="none" stroke="#10b981" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+    </g>
+    <!-- Bottom specs -->
+    <g transform="translate(0,118)" font-family="monospace" font-size="6.5" font-weight="600" letter-spacing="0.8" fill="#475569">
+      <text y="0">NONCE: 96-bit • TAG: 128-bit • KEYS: EPHEMERAL</text>
+      <text y="10" fill="#1e293b">──────────────────────────────────────────</text>
+      <text y="20" fill="#334155">client-side WebCrypto • server holds 0 keys • zero-knowledge proof</text>
+    </g>
+  </g>
+  <!-- Top right integrity -->
+  <g transform="translate(430,16)">
+    <rect width="36" height="14" rx="7" fill="#f59e0b"/>
+    <text x="18" y="10" text-anchor="middle" font-family="Inter,sans-serif" font-size="5.5" font-weight="800" letter-spacing="0.6" fill="#080e1a">FIPS 140-2</text>
+  </g>
+</g>
+</svg>
