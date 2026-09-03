@@ -920,9 +920,11 @@ All deep technical references, security specifications, and operational runbooks
 | Document | Description |
 |---|---|
 | 🏗️ [Architecture Overview](./docs/ARCHITECTURE.md) | Multi-adapter core, client-side GZIP + WebCrypto AES-GCM-256 pipeline, data model & telemetry batching |
+| 🎨 [Visual Architecture Blueprint](./visual.md) | End-to-end architectural diagrams, crypto courier pipeline, and UI layout maps |
 | 🛡️ [Security Policy](./docs/SECURITY.md) | Vulnerability disclosure, cryptographic invariants, 2FA, SSRF defense & headers |
 | 🎯 [Threat Model & Attack Surface](./docs/THREAT-MODEL.md) | Threat modeling across sender, viewer, server, bucket, and network layers |
 | 📋 [Changelog](./docs/CHANGELOG.md) | Chronological release history, timestamps, bug fixes, and feature additions |
+| 📦 [Release Process & Cadence](./docs/RELEASES.md) | SemVer release management, verification protocols, and changelog maintenance |
 | 📄 [Supported File Formats](./docs/FORMATS.md) | PDF, Image, SVG, Markdown, Code, CSV, Video, Audio and presentation specs |
 | 📖 [Operations Runbook](./docs/RUNBOOK.md) | Deployment guides, DB schema migrations, health checks, and troubleshooting |
 | 🔑 [Secrets & Environment Reference](./docs/SECRETS.md) | Complete list of all mandatory and optional environment keys |
@@ -931,6 +933,7 @@ All deep technical references, security specifications, and operational runbooks
 | 🔒 [Privacy Policy](./docs/PRIVACY-POLICY.md) | Zero-knowledge architecture, no-log privacy commitments, and GDPR-lite rights |
 | ⚖️ [Terms of Service](./docs/TERMS.md) | Platform usage terms, open-source conditions, and liability disclaimers |
 | 🌊 [Zero-Cost Litestream Guide](./docs/LITESTREAM-SELFHOSTING.md) | Self-hosting with SQLite, Litestream streaming WAL to Backblaze B2 ($0 DB cost) |
+| 🧠 [AI Architecture Skill Specification](./docs/skills/blindshare-architecture/SKILL.md) | Definitive agent standard, zero-knowledge invariants, and audit checklist |
 | 🚀 [Enterprise Upgrade Prompt](./docs/ENTERPRISE-UPGRADE-PROMPT.txt) | 1-click copy-paste master AI prompt for full free-tier enterprise production upgrade |
 | 🤝 [Contribution Guide](./docs/CONTRIBUTING.md) | Local setup, commit linting, pull request rules, and coding standards |
 | 👥 [Code of Conduct](./docs/CODE_OF_CONDUCT.md) | Community pledge and standards of respectful collaboration |

@@ -214,3 +214,23 @@ stateDiagram-v2
 | INVARIANT 5: Automated 24/24 enterprise security tests pass on every build.           |
 +---------------------------------------------------------------------------------------+
 ```
+
+---
+
+## 📚 Related Documentation & Knowledge Base
+
+- 🏠 **[Project Root & Overview](./README.md)** — Core mission, feature list, and deployment presets.
+- 🏗️ **[Architecture Core](./docs/ARCHITECTURE.md)** — Multi-cloud adapter specs, WebCrypto encryption flow, and data models.
+- 🛡️ **[Security Policy](./docs/SECURITY.md)** — Vulnerability disclosure, cryptographic invariants, and security headers.
+- 🎯 **[Threat Model & Attack Surface](./docs/THREAT-MODEL.md)** — Attack surface and honest residual risks.
+- 📄 **[Supported File Formats](./docs/FORMATS.md)** — File format handling, client-side renderers, and size caps.
+- 📖 **[Operations Runbook](./docs/RUNBOOK.md)** — Production migrations, health checks, and debugging procedures.
+- 🔑 **[Secrets Reference](./docs/SECRETS.md)** — Comprehensive list of required and optional environment keys.
+- 🧹 **[Data Retention Policy](./docs/DATA-RETENTION.md)** — Free-tier retention policies and cleanup sweeps.
+- 🚨 **[Incident Response Plan](./docs/INCIDENT-RESPONSE.md)** — Compromise triage, key rotation, and containment runbooks.
+- 🌊 **[Litestream Self-Hosting](./docs/LITESTREAM-SELFHOSTING.md)** — Zero-cost SQLite continuous WAL streaming to B2.
+- 📋 **[Changelog & Patch Logs](./docs/CHANGELOG.md)** — Chronological release history and version tracking.
+- 📦 **[Release Process](./docs/RELEASES.md)** — SemVer versioning and tagging protocol.
+- 🔒 **[Privacy Policy](./docs/PRIVACY-POLICY.md)** & ⚖️ **[Terms of Service](./docs/TERMS.md)** — Privacy commitments and legal terms.
+- 🤝 **[Contributing Guide](./docs/CONTRIBUTING.md)** & 👥 **[Code of Conduct](./docs/CODE_OF_CONDUCT.md)** — Community development pledge.
+- 🧠 **[Architecture Skill](./docs/skills/blindshare-architecture/SKILL.md)** — Definitive agent standards and verification checklist.
