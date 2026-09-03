@@ -214,9 +214,10 @@ export function DocUploader({ onUploadSuccess }: DocUploaderProps) {
   return (
     <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-xl border border-slate-800/80">
       {/* Zero-Knowledge Badge */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 shadow-sm shadow-amber-500/5">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-300 shadow-inner">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent p-4 shadow-sm shadow-amber-500/5 relative overflow-hidden">
+        <div className="absolute top-0 right-0 h-full w-48 bg-radial from-amber-500/10 to-transparent pointer-events-none blur-xl" />
+        <div className="flex items-center gap-3 relative z-10">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 shadow-inner">
             <ShieldCheck className="h-5 w-5" />
           </div>
           <div>
@@ -224,8 +225,9 @@ export function DocUploader({ onUploadSuccess }: DocUploaderProps) {
             <div className="text-[11px] text-slate-300 max-w-xl leading-relaxed">{t.upload.e2eeDesc}</div>
           </div>
         </div>
-        <div className="rounded-full bg-slate-950/80 px-3 py-1 text-[10px] font-mono text-amber-300 border border-amber-500/30 shadow-sm">
-          AES-GCM-256
+        <div className="flex items-center gap-1.5 rounded-full bg-slate-950/90 px-3 py-1 text-[10px] font-mono text-amber-300 border border-amber-500/30 shadow-sm relative z-10">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span>AES-GCM-256</span>
         </div>
       </div>
 
@@ -247,10 +249,10 @@ export function DocUploader({ onUploadSuccess }: DocUploaderProps) {
             onDragLeave={() => setDragActive(false)}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`group flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed p-10 text-center transition-all ${
+            className={`group flex cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed p-10 text-center transition-all duration-300 ${
               dragActive
-                ? "border-amber-400 bg-amber-500/15 scale-[0.99] shadow-2xl shadow-amber-500/20"
-                : "border-slate-700/80 bg-slate-950/70 hover:border-amber-500/50 hover:bg-slate-900/90 shadow-inner"
+                ? "border-amber-400 bg-amber-500/15 scale-[0.99] shadow-2xl shadow-amber-500/20 ring-4 ring-amber-500/20"
+                : "border-slate-700/80 bg-slate-950/70 hover:border-amber-500/50 hover:bg-slate-900/90 hover:shadow-xl hover:shadow-amber-500/5 shadow-inner"
             }`}
           >
             <input
@@ -260,7 +262,7 @@ export function DocUploader({ onUploadSuccess }: DocUploaderProps) {
               onChange={(e) => e.target.files?.[0] && handleFiles(e.target.files[0])}
               className="hidden"
             />
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 group-hover:scale-110 group-hover:bg-amber-500/20 transition-all shadow-md">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 group-hover:scale-110 group-hover:-translate-y-1 group-hover:bg-amber-500/20 group-hover:border-amber-400/40 transition-all duration-300 shadow-md">
               <UploadCloud className="h-7 w-7" />
             </div>
             <h4 className="text-base font-bold text-white mb-1.5">{t.upload.dragDropTitle}</h4>
