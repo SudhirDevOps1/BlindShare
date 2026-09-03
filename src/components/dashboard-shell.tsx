@@ -74,18 +74,19 @@ export function DashboardShell({ children }: DashboardShellProps) {
         <div className="fixed inset-0 z-50 lg:hidden flex">
           {/* Backdrop */}
           <button
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
             onClick={() => setMobileSidebarOpen(false)}
             aria-label="Close sidebar"
           />
           {/* Sidebar panel */}
-          <div className="relative z-10 flex h-full">
+          <div className="relative z-10 flex h-full animate-in slide-in-from-left duration-300 shadow-2xl">
             <DashboardSidebar user={user} onLogout={handleLogout} />
           </div>
           {/* Close button */}
           <button
             onClick={() => setMobileSidebarOpen(false)}
-            className="absolute top-4 right-4 z-20 flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:text-white"
+            className="absolute top-4 right-4 z-20 flex h-10 w-10 items-center justify-center rounded-xl bg-slate-800/90 border border-slate-700 text-slate-300 hover:text-white shadow-xl active:scale-95 transition-all"
+            aria-label="Close navigation"
           >
             <X className="h-5 w-5" />
           </button>
@@ -95,20 +96,23 @@ export function DashboardShell({ children }: DashboardShellProps) {
       {/* ── Main Content ──────────────────────────────────── */}
       <div className="flex flex-1 flex-col min-w-0" style={{ overflow: "hidden" }}>
         {/* Mobile topbar */}
-        <div className="flex lg:hidden items-center gap-3 px-4 py-3 border-b border-slate-800/80 bg-slate-950/95 backdrop-blur-xl flex-shrink-0">
-          <button
-            onClick={() => setMobileSidebarOpen(true)}
-            className="rounded-xl p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors border border-slate-800"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-md shadow-amber-500/25">
-              <Lock className="h-4 w-4 text-slate-950 stroke-[2.5]" />
+        <div className="flex lg:hidden items-center justify-between px-3.5 sm:px-4 py-2.5 sm:py-3 border-b border-slate-800/80 bg-slate-950/95 backdrop-blur-xl flex-shrink-0 z-20">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setMobileSidebarOpen(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors border border-slate-800 active:scale-95"
+              aria-label="Open menu"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-md shadow-amber-500/25">
+                <Lock className="h-4 w-4 text-slate-950 stroke-[2.5]" />
+              </div>
+              <span className="text-sm font-bold text-white tracking-tight">BlindShare</span>
             </div>
-            <span className="text-sm font-bold text-white tracking-tight">BlindShare</span>
           </div>
-          <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[9px] font-bold text-amber-300 border border-amber-500/25">
+          <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[9px] font-bold text-amber-300 border border-amber-500/25">
             v1.3.0 E2EE
           </span>
         </div>

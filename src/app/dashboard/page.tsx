@@ -59,14 +59,14 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-col text-slate-100">
 
-      <main className="flex-1 mx-auto max-w-7xl w-full px-4 py-8 sm:px-6 space-y-8 relative">
+      <main className="flex-1 mx-auto max-w-7xl w-full px-3.5 sm:px-6 py-5 sm:py-8 space-y-6 sm:space-y-8 relative">
         {/* Ambient Top Glow Effect */}
         <div className="absolute top-4 right-1/4 -z-10 h-72 w-96 rounded-full bg-amber-500/5 blur-[120px] pointer-events-none" />
 
         {/* Welcome Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
           <div>
-            <h1 className="text-2xl font-extrabold text-white tracking-tight">{t.dashboard.welcome}</h1>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{t.dashboard.welcome}</h1>
             <p className="text-xs text-slate-400 mt-1 flex items-center gap-2">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>Zero-Knowledge Client-Side Encrypted Workspace</span>
@@ -74,7 +74,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/dashboard/docs"
-            className="group flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2.5 text-xs font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 hover:scale-[1.02] active:scale-95 transition-all duration-200"
+            className="group flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 px-4 py-2.5 text-xs font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 hover:scale-[1.02] active:scale-95 transition-all duration-200 w-full sm:w-auto shrink-0"
           >
             <Plus className="h-4 w-4 group-hover:rotate-90 transition-transform duration-300" />
             <span>Upload New Document</span>
@@ -82,9 +82,9 @@ export default function DashboardPage() {
         </div>
 
         {/* 4 Summary Stat Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {/* Card 1: Total Docs */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/50 p-5 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-amber-500/40 hover:shadow-xl hover:shadow-amber-500/10 hover:-translate-y-1 group cursor-default">
+          <div className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/50 p-4 sm:p-5 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-amber-500/40 hover:shadow-xl hover:shadow-amber-500/10 hover:-translate-y-1 group cursor-default">
             <div className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-amber-500/10 blur-2xl group-hover:bg-amber-500/25 transition-all duration-500 pointer-events-none" />
             <div className="flex items-center justify-between text-slate-400 mb-2">
               <span className="text-xs font-semibold text-slate-300">{t.dashboard.totalDocs}</span>
@@ -92,7 +92,7 @@ export default function DashboardPage() {
                 <FileText className="h-4 w-4" />
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-white tracking-tight">{docs.length}</div>
+            <div className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{docs.length}</div>
             <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
               <span>Client-side encrypted</span>
@@ -100,7 +100,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 2: Active Links */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/50 p-5 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 group cursor-default">
+          <div className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/50 p-4 sm:p-5 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-blue-500/40 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1 group cursor-default">
             <div className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-blue-500/10 blur-2xl group-hover:bg-blue-500/25 transition-all duration-500 pointer-events-none" />
             <div className="flex items-center justify-between text-slate-400 mb-2">
               <span className="text-xs font-semibold text-slate-300">{t.dashboard.activeLinks}</span>
@@ -108,7 +108,7 @@ export default function DashboardPage() {
                 <LinkIcon className="h-4 w-4" />
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-white tracking-tight">
+            <div className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
               {links.filter((l) => l.isActive && !l.isRevoked).length}
             </div>
             <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
@@ -118,7 +118,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 3: Total Page Views */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/50 p-5 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 group cursor-default">
+          <div className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/50 p-4 sm:p-5 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-emerald-500/40 hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 group cursor-default">
             <div className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-emerald-500/10 blur-2xl group-hover:bg-emerald-500/25 transition-all duration-500 pointer-events-none" />
             <div className="flex items-center justify-between text-slate-400 mb-2">
               <span className="text-xs font-semibold text-slate-300">{t.dashboard.totalViews}</span>
@@ -126,7 +126,7 @@ export default function DashboardPage() {
                 <BarChart3 className="h-4 w-4" />
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-white tracking-tight">{totalViews}</div>
+            <div className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{totalViews}</div>
             <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>Across all share links</span>
@@ -134,7 +134,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Card 4: Encrypted Storage */}
-          <div className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/50 p-5 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-purple-500/40 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-1 group cursor-default">
+          <div className="relative overflow-hidden rounded-2xl border border-slate-800/80 bg-slate-900/50 p-4 sm:p-5 backdrop-blur-xl shadow-lg transition-all duration-300 hover:border-purple-500/40 hover:shadow-xl hover:shadow-purple-500/10 hover:-translate-y-1 group cursor-default">
             <div className="absolute -top-10 -right-10 h-24 w-24 rounded-full bg-purple-500/10 blur-2xl group-hover:bg-purple-500/25 transition-all duration-500 pointer-events-none" />
             <div className="flex items-center justify-between text-slate-400 mb-2">
               <span className="text-xs font-semibold text-slate-300">{t.dashboard.storageUsage}</span>
@@ -142,7 +142,7 @@ export default function DashboardPage() {
                 <HardDrive className="h-4 w-4" />
               </div>
             </div>
-            <div className="text-3xl font-extrabold text-white tracking-tight">{totalStorageMb} MB</div>
+            <div className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{totalStorageMb} MB</div>
             <div className="text-[11px] text-slate-400 mt-1 flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-purple-400" />
               <span>₹0 Free Tier Budget</span>
