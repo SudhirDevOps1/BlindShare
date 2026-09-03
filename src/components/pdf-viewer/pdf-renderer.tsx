@@ -19,6 +19,9 @@ import {
   ZoomOut,
   RotateCw,
   Maximize,
+  Minimize,
+  Sun,
+  Moon,
   Download,
   Shield,
   Lock,
@@ -118,6 +121,36 @@ export function PdfRenderer({
   // Live Presenter Room Sync
   const [isLiveRoomActive, setIsLiveRoomActive] = useState(false);
   const [followPresenter, setFollowPresenter] = useState(true);
+
+  // High-Smoothness Presentation & Reading Ergonomics
+  const [readingComfort, setReadingComfort] = useState<"natural" | "dark" | "sepia">("natural");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const viewerContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Native HTML5 Fullscreen toggle
+  const toggleFullscreen = useCallback(() => {
+    if (!document.fullscreenElement) {
+      const el = viewerContainerRef.current || document.documentElement;
+      if (el.requestFullscreen) {
+        el.requestFullscreen().catch(() => {});
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+  }, []);
+
+  // Listen to external fullscreen changes (Esc key, browser shortcuts)
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFsChange);
+    return () => document.removeEventListener("fullscreenchange", handleFsChange);
+  }, []);
 
   // Live Fetch & Real-Time Polling for In-Doc Questions and Audio Notes
   useEffect(() => {
@@ -219,7 +252,7 @@ export function PdfRenderer({
     return cleanup;
   }, [linkData.antiLeakBlurEnabled]);
 
-  // Keyboard Navigation (Arrow Keys / PageUp / PageDown)
+  // Keyboard Navigation (Arrow Keys / PageUp / PageDown / F for Fullscreen / Space)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
@@ -235,12 +268,15 @@ export function PdfRenderer({
       } else if (e.key === "End") {
         e.preventDefault();
         setCurrentPage(totalPages);
+      } else if (e.key === "f" || e.key === "F") {
+        e.preventDefault();
+        toggleFullscreen();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [totalPages]);
+  }, [totalPages, toggleFullscreen]);
 
   // Resume reading hint
   const [resumePrompt, setResumePrompt] = useState<{ page: number; total: number } | null>(null);
@@ -251,7 +287,7 @@ export function PdfRenderer({
   const maxPageReachedRef = useRef(1);
   const totalDwellRef = useRef(0);
 
-  // Mobile Touch Swipe Gesture Detection (Swipe Left for Next, Swipe Right for Prev)
+  // Mobile Touch Swipe Gesture Detection with Spring Velocity
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
 
@@ -259,6 +295,24 @@ export function PdfRenderer({
     if (e.touches.length === 1) {
       touchStartX.current = e.touches[0].clientX;
       touchStartY.current = e.touches[0].clientY;
+      setIsSwiping(false);
+      setSwipeOffset(0);
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    if (e.touches.length === 1) {
+      const deltaX = e.touches[0].clientX - touchStartX.current;
+      const deltaY = e.touches[0].clientY - touchStartY.current;
+      // If movement is predominantly horizontal, engage buttery-smooth spring drag
+      if (Math.abs(deltaX) > Math.abs(deltaY) * 0.8) {
+        setIsSwiping(true);
+        const isAtFirst = currentPage === 1 && deltaX > 0;
+        const isAtLast = currentPage === totalPages && deltaX < 0;
+        const resistance = isAtFirst || isAtLast ? 0.35 : 0.85;
+        setSwipeOffset(deltaX * resistance);
+      }
     }
   };
 
@@ -269,16 +323,28 @@ export function PdfRenderer({
       const deltaY = e.changedTouches[0].clientY - touchStartY.current;
 
       // Ensure horizontal swipe is intentional and exceeds vertical scroll
-      if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.4) {
+      if (Math.abs(deltaX) > 45 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3) {
         if (deltaX < 0) {
           // Swipe Left -> Next Page
-          setCurrentPage((p) => Math.min(totalPages, p + 1));
+          if (currentPage < totalPages) {
+            setCurrentPage((p) => p + 1);
+            if (typeof navigator !== "undefined" && navigator.vibrate) {
+              try { navigator.vibrate(10); } catch {}
+            }
+          }
         } else {
           // Swipe Right -> Prev Page
-          setCurrentPage((p) => Math.max(1, p - 1));
+          if (currentPage > 1) {
+            setCurrentPage((p) => p - 1);
+            if (typeof navigator !== "undefined" && navigator.vibrate) {
+              try { navigator.vibrate(10); } catch {}
+            }
+          }
         }
       }
     }
+    setIsSwiping(false);
+    setSwipeOffset(0);
     touchStartX.current = null;
     touchStartY.current = null;
   };
@@ -797,6 +863,16 @@ export function PdfRenderer({
           } catch (annotErr) {
             console.warn("PDF annotations warning:", annotErr);
           }
+
+          // Predictive 0ms Pre-Caching for Adjacent Slides
+          if (pdfDoc && !isCancelled) {
+            if (currentPage < totalPages) {
+              pdfDoc.getPage(currentPage + 1).catch(() => {});
+            }
+            if (currentPage > 1) {
+              pdfDoc.getPage(currentPage - 1).catch(() => {});
+            }
+          }
         }
       } catch (err: any) {
         if (err?.name !== "RenderingCancelledException") {
@@ -928,7 +1004,7 @@ export function PdfRenderer({
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-950 select-none">
+    <div ref={viewerContainerRef} className="flex flex-col min-h-screen bg-slate-950 select-none">
       {/* Top Floating Control Toolbar */}
       <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 bg-slate-950/90 px-4 py-2.5 backdrop-blur-md">
         {/* Document Title & Brand */}
@@ -1065,6 +1141,42 @@ export function PdfRenderer({
             </button>
           )}
 
+          {/* Investor Reading Comfort Mode Toggle */}
+          <button
+            onClick={() => {
+              setReadingComfort((curr) =>
+                curr === "natural" ? "dark" : curr === "dark" ? "sepia" : "natural"
+              );
+            }}
+            className={`flex items-center gap-1.5 p-1.5 rounded-lg border transition ${
+              readingComfort === "dark"
+                ? "bg-indigo-950/60 border-indigo-500/40 text-indigo-300"
+                : readingComfort === "sepia"
+                ? "bg-amber-950/60 border-amber-600/40 text-amber-300"
+                : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+            }`}
+            title={`${t.viewer.readingComfort}: ${
+              readingComfort === "natural"
+                ? t.viewer.naturalMode
+                : readingComfort === "dark"
+                ? t.viewer.darkMode
+                : t.viewer.sepiaMode
+            }`}
+          >
+            {readingComfort === "natural" && <Sun className="h-4 w-4 text-amber-400" />}
+            {readingComfort === "dark" && <Moon className="h-4 w-4 text-indigo-400" />}
+            {readingComfort === "sepia" && <BookOpen className="h-4 w-4 text-amber-300" />}
+          </button>
+
+          {/* Fullscreen Cinema Presentation Mode (Hotkey F) */}
+          <button
+            onClick={toggleFullscreen}
+            className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-900 rounded-lg border border-slate-800"
+            title={isFullscreen ? t.viewer.exitFullscreen : `${t.viewer.fullscreen} (F)`}
+          >
+            {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+          </button>
+
           {/* Language Switcher */}
           <button
             onClick={() => setLang(lang === "en" ? "hi" : "en")}
@@ -1173,7 +1285,17 @@ export function PdfRenderer({
           brandAccentColor={linkData.brandAccentColor}
           watermarkText={linkData.watermarkEnabled ? (linkData.watermarkText || viewerIdentity || "CONFIDENTIAL") : null}
         >
-          <div className="relative flex items-center justify-center">
+          <div
+            style={{
+              filter:
+                readingComfort === "dark"
+                  ? "invert(0.9) hue-rotate(180deg) contrast(1.05)"
+                  : readingComfort === "sepia"
+                  ? "sepia(0.35) contrast(0.95) brightness(0.97)"
+                  : "none",
+            }}
+            className="relative flex items-center justify-center"
+          >
             <canvas ref={canvasRef} className="block max-h-[85vh] max-w-[90vw] object-contain shadow-2xl rounded-md" />
             {linkData.watermarkEnabled && (
               <canvas
@@ -1186,6 +1308,7 @@ export function PdfRenderer({
       ) : (
         <div
           onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           className={`flex-1 flex flex-col items-center justify-center p-2.5 sm:p-6 md:p-8 overflow-auto ${antiLeakActive ? "blur-xl" : ""}`}
         >
@@ -1204,6 +1327,16 @@ export function PdfRenderer({
           )}
 
           <div
+            style={{
+              transform: isSwiping ? `translate3d(${swipeOffset}px, 0, 0)` : "translate3d(0, 0, 0)",
+              transition: isSwiping ? "none" : "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
+              filter:
+                readingComfort === "dark"
+                  ? "invert(0.9) hue-rotate(180deg) contrast(1.05)"
+                  : readingComfort === "sepia"
+                  ? "sepia(0.35) contrast(0.95) brightness(0.97)"
+                  : "none",
+            }}
             className={`relative shadow-2xl rounded-lg overflow-hidden border border-slate-800 bg-slate-900 ${
               isAddingPin ? "cursor-crosshair ring-2 ring-amber-500/50" : ""
             }`}
