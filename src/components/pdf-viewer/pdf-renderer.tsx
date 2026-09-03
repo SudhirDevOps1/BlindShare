@@ -616,6 +616,20 @@ export function PdfRenderer({
         rowIndex++;
       }
       ctx.restore();
+
+      // Tamper-Evident Anti-Photo Forensic Security Stamp (Bottom-Right Corner)
+      ctx.save();
+      const forensicToken = (slug + (viewerIdentity || "PUBLIC") + timeStr)
+        .split("")
+        .reduce((acc, c) => ((acc << 5) - acc) + c.charCodeAt(0) | 0, 0)
+        .toString(16)
+        .toUpperCase();
+      ctx.font = "bold 9px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace";
+      ctx.fillStyle = "rgba(148, 163, 184, 0.28)";
+      ctx.textAlign = "right";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(`🔒 FORENSIC TRACE #${forensicToken} • ${identityLabel} • ${timeStr}`, canvasWidth - 14, canvasHeight - 10);
+      ctx.restore();
     },
     [linkData.watermarkEnabled, linkData.watermarkText, viewerIdentity, slug]
   );

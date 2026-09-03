@@ -20,7 +20,9 @@ export function VoiceNotePlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [totalDuration, setTotalDuration] = useState(durationSec || 0);
   const [isMuted, setIsMuted] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const progressTrackRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     // Reset audio state on page transition
@@ -30,8 +32,9 @@ export function VoiceNotePlayer({
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
+      audioRef.current.playbackRate = playbackSpeed;
     }
-  }, [pageNumber, audioDataUrl, durationSec]);
+  }, [pageNumber, audioDataUrl, durationSec, playbackSpeed]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -41,6 +44,25 @@ export function VoiceNotePlayer({
     } else {
       audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
     }
+  };
+
+  const handleSpeedCycle = () => {
+    const speeds = [1, 1.25, 1.5, 2];
+    const nextIdx = (speeds.indexOf(playbackSpeed) + 1) % speeds.length;
+    const nextSpeed = speeds[nextIdx];
+    setPlaybackSpeed(nextSpeed);
+    if (audioRef.current) {
+      audioRef.current.playbackRate = nextSpeed;
+    }
+  };
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!progressTrackRef.current || !audioRef.current || totalDuration <= 0) return;
+    const rect = progressTrackRef.current.getBoundingClientRect();
+    const clickX = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const newTime = (clickX / rect.width) * totalDuration;
+    audioRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
   };
 
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLAudioElement>) => {
@@ -80,9 +102,18 @@ export function VoiceNotePlayer({
         muted={isMuted}
       />
 
-      {/* Mic Badge */}
-      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400">
-        <Mic className="h-4 w-4" />
+      {/* Mic Badge & Interactive Waveform Animation */}
+      <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-purple-500/20 text-purple-400 relative overflow-hidden">
+        {isPlaying ? (
+          <div className="flex items-end justify-center gap-0.5 h-3.5 w-full px-1">
+            <span className="w-0.5 bg-purple-400 rounded-full animate-pulse h-3" />
+            <span className="w-0.5 bg-purple-300 rounded-full animate-bounce h-2" style={{ animationDelay: "150ms" }} />
+            <span className="w-0.5 bg-purple-400 rounded-full animate-pulse h-3.5" style={{ animationDelay: "300ms" }} />
+            <span className="w-0.5 bg-purple-300 rounded-full animate-bounce h-2" style={{ animationDelay: "75ms" }} />
+          </div>
+        ) : (
+          <Mic className="h-4 w-4" />
+        )}
       </div>
 
       <div className="flex flex-col min-w-[140px] max-w-[200px]">
@@ -90,9 +121,15 @@ export function VoiceNotePlayer({
           <span className="truncate">{title || `Founder Note — Slide ${pageNumber}`}</span>
         </div>
         <div className="flex items-center gap-2 mt-1">
-          <div className="relative h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+          {/* Clickable / Seekable Progress Bar */}
+          <div
+            ref={progressTrackRef}
+            onClick={handleSeek}
+            className="relative h-1.5 w-full rounded-full bg-slate-800 overflow-hidden cursor-pointer hover:h-2 transition-all"
+            title="Click to seek"
+          >
             <div
-              className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all"
+              className="h-full bg-gradient-to-r from-purple-500 to-indigo-500 transition-all pointer-events-none"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -109,6 +146,15 @@ export function VoiceNotePlayer({
         title={isPlaying ? "Pause audio walkthrough" : "Listen to founder walkthrough"}
       >
         {isPlaying ? <Pause className="h-4 w-4 fill-current" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
+      </button>
+
+      {/* Speed Multiplier Button (1x / 1.25x / 1.5x / 2x) */}
+      <button
+        onClick={handleSpeedCycle}
+        className="px-1.5 py-1 rounded-lg border border-purple-500/30 bg-purple-950/40 text-[10px] font-mono font-bold text-purple-300 hover:text-white hover:border-purple-400 transition"
+        title="Playback Speed"
+      >
+        {playbackSpeed}x
       </button>
 
       {/* Mute Toggle */}
