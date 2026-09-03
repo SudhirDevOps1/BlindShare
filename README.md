@@ -2,7 +2,7 @@
 
 <br />
 
-<img alt="BlindShare" src="public/brand/icon.png" width="128" height="128" style="border-radius: 28px;" />
+<img alt="BlindShare Brand Logo" src="public/brand/02-favicon.svg" width="120" height="120" style="filter: drop-shadow(0 12px 24px rgba(245, 158, 11, 0.35));" />
 
 <h1>🔏 BlindShare</h1>
 

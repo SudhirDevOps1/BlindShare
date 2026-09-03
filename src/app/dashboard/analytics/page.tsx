@@ -103,24 +103,40 @@ export default function GlobalAnalyticsPage() {
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 space-y-6">
         {/* Top Header & Live Pulse Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-white tracking-tight">Analytics & Live Tracking</h1>
-              {metrics.activeNow > 0 ? (
-                <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/30 animate-pulse">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
-                  {metrics.activeNow} Live {metrics.activeNow === 1 ? "Reader" : "Readers"}
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 rounded-full bg-slate-800/80 px-2.5 py-0.5 text-xs text-slate-400 border border-slate-700">
-                  <Radio className="h-3 w-3 text-slate-500" />
-                  Ready
-                </span>
-              )}
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 border border-amber-500/40 p-1.5 shadow-md shadow-amber-500/20 shrink-0">
+              <object
+                data="/brand/02-favicon.svg"
+                type="image/svg+xml"
+                className="h-full w-full object-contain pointer-events-none"
+                aria-label="BlindShare Logo"
+              >
+                <img
+                  src="/brand/02-favicon.svg"
+                  alt="BlindShare"
+                  className="h-full w-full object-contain"
+                />
+              </object>
             </div>
-            <p className="text-xs text-slate-400 mt-1">
-              Real-time Papermark-grade viewer dwell, lead scoring & document heatmaps
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-white tracking-tight">Analytics & Live Tracking</h1>
+                {metrics.activeNow > 0 ? (
+                  <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/30 animate-pulse">
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                    {metrics.activeNow} Live {metrics.activeNow === 1 ? "Reader" : "Readers"}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 rounded-full bg-slate-800/80 px-2.5 py-0.5 text-xs text-slate-400 border border-slate-700">
+                    <Radio className="h-3 w-3 text-slate-500" />
+                    Real-time Radar Idle
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Mathematical investor dwell times, Catmull-Rom retention curves, and deal conviction intelligence.
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">

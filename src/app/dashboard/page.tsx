@@ -7,6 +7,11 @@ import { BrandFooter } from "@/components/brand-footer";
 import { DocUploader } from "@/components/upload/doc-uploader";
 import { CreateLinkModal } from "@/components/link-studio/create-link-modal";
 import { DashboardActivityChart } from "@/components/dashboard/dashboard-activity-chart";
+import {
+  WeeklyKpiDigest,
+  HourlyMatrixHeatmap,
+  TopLinksLeaderboard,
+} from "@/components/analytics/charts";
 import { useI18n } from "@/lib/i18n/context";
 import {
   FileText,
@@ -167,12 +172,21 @@ export default function DashboardPage() {
           </div>
         </div>
 
+        {/* Executive Weekly KPI Digest */}
+        <WeeklyKpiDigest metrics={{ totalViews, activeNow: links.length }} />
+
         {/* 7-Day Velocity Chart & Infrastructure Gauges */}
         <DashboardActivityChart
           docs={docs}
           links={links}
           totalStorageBytes={totalStorageBytes}
         />
+
+        {/* Real-time Pitch Deck Send Time Matrix & Top Decks Velocity Leaderboard */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <HourlyMatrixHeatmap />
+          <TopLinksLeaderboard links={links} />
+        </div>
 
         {/* Quick Upload Box */}
         <div>

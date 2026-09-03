@@ -222,11 +222,27 @@ export default function SettingsPage() {
     <div className="flex flex-col text-slate-100">
 
       <main className="mx-auto w-full max-w-4xl flex-1 space-y-6 px-4 py-8 sm:px-6">
-        <div className="border-b border-slate-800 pb-4">
-          <h1 className="text-2xl font-bold tracking-tight text-white">Account & Security Settings</h1>
-          <p className="mt-1 text-xs text-slate-400">
-            Manage your credentials, change password, rotate invite keys, and customize security policies.
-          </p>
+        <div className="flex items-center gap-3 border-b border-slate-800 pb-4">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 border border-amber-500/40 p-1.5 shadow-md shadow-amber-500/20 shrink-0">
+            <object
+              data="/brand/02-favicon.svg"
+              type="image/svg+xml"
+              className="h-full w-full object-contain pointer-events-none"
+              aria-label="BlindShare Logo"
+            >
+              <img
+                src="/brand/02-favicon.svg"
+                alt="BlindShare"
+                className="h-full w-full object-contain"
+              />
+            </object>
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-white">Account & Security Settings</h1>
+            <p className="mt-0.5 text-xs text-slate-400">
+              Manage your credentials, change password, rotate invite keys, and customize security policies.
+            </p>
+          </div>
         </div>
 
         {message && (

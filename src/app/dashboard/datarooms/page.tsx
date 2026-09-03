@@ -96,11 +96,27 @@ export default function DataroomsPage() {
 
       <main className="mx-auto w-full max-w-7xl flex-1 space-y-6 px-4 py-8 sm:px-6">
         <div className="flex flex-col items-start justify-between gap-4 border-b border-slate-800 pb-4 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white">Secure Datarooms</h1>
-            <p className="mt-1 text-xs text-slate-400">
-              Bundle multiple encrypted documents behind a single gated link with clickwrap NDA support.
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 border border-amber-500/40 p-1.5 shadow-md shadow-amber-500/20 shrink-0">
+              <object
+                data="/brand/02-favicon.svg"
+                type="image/svg+xml"
+                className="h-full w-full object-contain pointer-events-none"
+                aria-label="BlindShare Logo"
+              >
+                <img
+                  src="/brand/02-favicon.svg"
+                  alt="BlindShare"
+                  className="h-full w-full object-contain"
+                />
+              </object>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-white">Secure Datarooms</h1>
+              <p className="mt-0.5 text-xs text-slate-400">
+                Bundle multiple encrypted documents behind a single gated link with clickwrap NDA support.
+              </p>
+            </div>
           </div>
           <button
             onClick={() => setShowCreate(!showCreate)}
@@ -109,6 +125,38 @@ export default function DataroomsPage() {
             <Plus className="h-4 w-4" />
             <span>New Dataroom</span>
           </button>
+        </div>
+
+        {/* Visual Due Diligence Pipeline / Reader Journey (37) */}
+        <div className="rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 backdrop-blur-xl shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                <span>Investor Diligence & Journey Pipeline (37)</span>
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Conversion flow across dataroom entry, NDA execution, financial models, and full term sheet review.
+              </p>
+            </div>
+            <span className="text-[11px] font-mono text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2.5 py-1 rounded-full">
+              Sankey Flow
+            </span>
+          </div>
+          <div className="flex items-center justify-center min-h-[260px] py-2">
+            <object
+              data="/brand/graphs/37-journey-sankey-animated.svg"
+              type="image/svg+xml"
+              className="w-full h-auto max-h-[300px] object-contain pointer-events-none"
+              aria-label="Investor Journey Sankey Funnel"
+            >
+              <img
+                src="/brand/graphs/37-journey-sankey-animated.svg"
+                alt="Investor Journey Sankey Funnel"
+                className="w-full h-auto max-h-[300px] object-contain"
+              />
+            </object>
+          </div>
         </div>
 
         {showCreate && (

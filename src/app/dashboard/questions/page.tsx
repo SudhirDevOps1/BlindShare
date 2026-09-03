@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
+import { QuestionDensityHeatmap } from "@/components/analytics/charts/question-density-heatmap";
 import { useI18n } from "@/lib/i18n/context";
 import {
   MessageCircle,
@@ -139,16 +140,27 @@ export default function QuestionsPage() {
       <main className="flex-1 px-4 py-8 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
         {/* Top Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-800/80 pb-6 mb-8">
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
-                <MessageCircle className="h-5 w-5" />
-              </div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">In-Doc Q&A & Reader Inquiries</h1>
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 border border-amber-500/40 p-1.5 shadow-md shadow-amber-500/20 shrink-0">
+              <object
+                data="/brand/02-favicon.svg"
+                type="image/svg+xml"
+                className="h-full w-full object-contain pointer-events-none"
+                aria-label="BlindShare Logo"
+              >
+                <img
+                  src="/brand/02-favicon.svg"
+                  alt="BlindShare"
+                  className="h-full w-full object-contain"
+                />
+              </object>
             </div>
-            <p className="mt-1 text-sm text-slate-400">
-              Manage real-time slide question pins, investor inquiries, and publish official founder replies.
-            </p>
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">In-Doc Q&A & Reader Inquiries</h1>
+              <p className="mt-0.5 text-xs text-slate-400">
+                Manage real-time slide question pins, investor inquiries, and publish official founder replies.
+              </p>
+            </div>
           </div>
 
           {/* Stat Badges */}
@@ -166,6 +178,11 @@ export default function QuestionsPage() {
               <span className="text-lg font-bold text-emerald-300">{resolvedCount}</span>
             </div>
           </div>
+        </div>
+
+        {/* Slide Question Density Heatmap (40) */}
+        <div className="mb-8">
+          <QuestionDensityHeatmap questions={questions} totalPages={10} />
         </div>
 
         {/* Filter & Search Bar */}

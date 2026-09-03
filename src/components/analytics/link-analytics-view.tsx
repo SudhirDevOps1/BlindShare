@@ -188,44 +188,60 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
     <div className="space-y-6">
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <Link
-              href="/dashboard/links"
-              className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-400 transition"
+        <div className="flex items-center gap-3">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 border border-amber-500/40 p-1.5 shadow-md shadow-amber-500/20 shrink-0">
+            <object
+              data="/brand/02-favicon.svg"
+              type="image/svg+xml"
+              className="h-full w-full object-contain pointer-events-none"
+              aria-label="BlindShare Logo"
             >
-              <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Back to Links</span>
-            </Link>
-            <span className="text-slate-600">•</span>
-            <Link
-              href="/dashboard/analytics"
-              className="text-xs text-slate-400 hover:text-amber-400 transition"
-            >
-              All Analytics Hub
-            </Link>
+              <img
+                src="/brand/02-favicon.svg"
+                alt="BlindShare"
+                className="h-full w-full object-contain"
+              />
+            </object>
           </div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <span>{link.name}</span>
-            {link.isRevoked ? (
-              <span className="rounded-full bg-red-500/20 px-2.5 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30">
-                Link Revoked (Kill Switch Active)
-              </span>
-            ) : metrics.activeNow > 0 ? (
-              <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 animate-pulse">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-                {metrics.activeNow} Reading Right Now
-              </span>
-            ) : (
-              <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-400 border border-emerald-500/20">
-                Active
-              </span>
-            )}
-          </h2>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Slug: <code className="text-amber-400 font-mono">/v/{link.slug}</code> • Target:{" "}
-            <span className="text-slate-200 font-medium">{docInfo?.title || "Document"}</span> ({totalPages} pages)
-          </p>
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Link
+                href="/dashboard/links"
+                className="flex items-center gap-1 text-xs text-slate-400 hover:text-amber-400 transition"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>Back to Links</span>
+              </Link>
+              <span className="text-slate-600">•</span>
+              <Link
+                href="/dashboard/analytics"
+                className="text-xs text-slate-400 hover:text-amber-400 transition"
+              >
+                All Analytics Hub
+              </Link>
+            </div>
+            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+              <span>{link.name}</span>
+              {link.isRevoked ? (
+                <span className="rounded-full bg-red-500/20 px-2.5 py-0.5 text-[10px] font-bold text-red-400 border border-red-500/30">
+                  Link Revoked (Kill Switch Active)
+                </span>
+              ) : metrics.activeNow > 0 ? (
+                <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 animate-pulse">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                  {metrics.activeNow} Reading Right Now
+                </span>
+              ) : (
+                <span className="rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[10px] font-medium text-emerald-400 border border-emerald-500/20">
+                  Active
+                </span>
+              )}
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Slug: <code className="text-amber-400 font-mono">/v/{link.slug}</code> • Target:{" "}
+              <span className="text-slate-200 font-medium">{docInfo?.title || "Document"}</span> ({totalPages} pages)
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">

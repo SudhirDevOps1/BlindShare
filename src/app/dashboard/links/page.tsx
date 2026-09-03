@@ -6,6 +6,7 @@ import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { CreateLinkModal } from "@/components/link-studio/create-link-modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { TopLinksLeaderboard } from "@/components/analytics/charts/top-links-leaderboard";
 import { useI18n } from "@/lib/i18n/context";
 import {
   Link as LinkIcon,
@@ -234,11 +235,27 @@ export default function LinksPage() {
 
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 py-8 sm:px-6 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Share Links</h1>
-            <p className="text-xs text-slate-400 mt-1">
-              Generate tracked, zero-knowledge links with email capture and dynamic watermarks.
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 border border-amber-500/40 p-1.5 shadow-md shadow-amber-500/20 shrink-0">
+              <object
+                data="/brand/02-favicon.svg"
+                type="image/svg+xml"
+                className="h-full w-full object-contain pointer-events-none"
+                aria-label="BlindShare Logo"
+              >
+                <img
+                  src="/brand/02-favicon.svg"
+                  alt="BlindShare"
+                  className="h-full w-full object-contain"
+                />
+              </object>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">Share Links</h1>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Generate tracked, zero-knowledge links with email capture and dynamic watermarks.
+              </p>
+            </div>
           </div>
 
           <button
@@ -248,6 +265,39 @@ export default function LinksPage() {
             <Plus className="h-4 w-4" />
             <span>Create New Link</span>
           </button>
+        </div>
+
+        {/* Visual Link Performance: Top Leaderboard & Traffic Source UTM Donut (32) */}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+          <div className="xl:col-span-8">
+            <TopLinksLeaderboard links={links} />
+          </div>
+          <div className="xl:col-span-4 rounded-3xl border border-slate-800/80 bg-slate-900/50 p-5 backdrop-blur-xl shadow-xl flex flex-col justify-between">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2 mb-2">
+              <span className="text-xs font-bold text-white flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                <span>Traffic Source & UTM Breakdown (32)</span>
+              </span>
+              <span className="text-[10px] font-mono text-amber-400">Campaigns</span>
+            </div>
+            <div className="flex items-center justify-center min-h-[200px] my-auto">
+              <object
+                data="/brand/graphs/32-source-donut-animated.svg"
+                type="image/svg+xml"
+                className="w-full h-auto max-h-[220px] object-contain pointer-events-none"
+                aria-label="Traffic Source Donut"
+              >
+                <img
+                  src="/brand/graphs/32-source-donut-animated.svg"
+                  alt="Traffic Source Donut"
+                  className="w-full h-auto max-h-[220px] object-contain"
+                />
+              </object>
+            </div>
+            <p className="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-800/60">
+              Direct Pitch (48%) • LinkedIn (26%) • Syndicate (18%) • Email (8%)
+            </p>
+          </div>
         </div>
 
         {/* Links Table */}

@@ -91,11 +91,27 @@ export default function DocsPage() {
 
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 py-8 sm:px-6 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">Encrypted Documents</h1>
-            <p className="text-xs text-slate-400 mt-1">
-              Zero-Knowledge ciphertext stored at rest. Server cannot inspect file bytes.
-            </p>
+          <div className="flex items-center gap-3">
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 border border-amber-500/40 p-1.5 shadow-md shadow-amber-500/20 shrink-0">
+              <object
+                data="/brand/02-favicon.svg"
+                type="image/svg+xml"
+                className="h-full w-full object-contain pointer-events-none"
+                aria-label="BlindShare Logo"
+              >
+                <img
+                  src="/brand/02-favicon.svg"
+                  alt="BlindShare"
+                  className="h-full w-full object-contain"
+                />
+              </object>
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">Encrypted Documents</h1>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Zero-Knowledge ciphertext stored at rest. Server cannot inspect file bytes.
+              </p>
+            </div>
           </div>
 
           <button
@@ -105,6 +121,57 @@ export default function DocsPage() {
             <Plus className="h-4 w-4" />
             <span>Upload Document</span>
           </button>
+        </div>
+
+        {/* Visual Storage Allocation & Cost Forecast Gauges */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-3xl border border-slate-800/80 bg-slate-900/50 p-5 backdrop-blur-xl shadow-xl space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span className="text-xs font-bold text-white flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-blue-400 animate-pulse" />
+                <span>Encrypted Storage by Type (33)</span>
+              </span>
+              <span className="text-[10px] font-mono text-slate-400">Backblaze B2 + Neon</span>
+            </div>
+            <div className="flex items-center justify-center min-h-[220px]">
+              <object
+                data="/brand/graphs/33-storage-by-type-animated.svg"
+                type="image/svg+xml"
+                className="w-full h-auto max-h-[240px] object-contain pointer-events-none"
+                aria-label="Storage Allocation Donut"
+              >
+                <img
+                  src="/brand/graphs/33-storage-by-type-animated.svg"
+                  alt="Storage Allocation Donut"
+                  className="w-full h-auto max-h-[240px] object-contain"
+                />
+              </object>
+            </div>
+          </div>
+
+          <div className="rounded-3xl border border-slate-800/80 bg-slate-900/50 p-5 backdrop-blur-xl shadow-xl space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+              <span className="text-xs font-bold text-white flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Zero-Dollar Infrastructure Budget & Quota (38)</span>
+              </span>
+              <span className="text-[10px] font-mono text-emerald-400">Always $0 Free Tier</span>
+            </div>
+            <div className="flex items-center justify-center min-h-[220px]">
+              <object
+                data="/brand/graphs/38-cost-forecast-animated.svg"
+                type="image/svg+xml"
+                className="w-full h-auto max-h-[240px] object-contain pointer-events-none"
+                aria-label="Cost & Quota Gauge"
+              >
+                <img
+                  src="/brand/graphs/38-cost-forecast-animated.svg"
+                  alt="Cost & Quota Gauge"
+                  className="w-full h-auto max-h-[240px] object-contain"
+                />
+              </object>
+            </div>
+          </div>
         </div>
 
         {/* Upload Modal / Collapsible Section */}
