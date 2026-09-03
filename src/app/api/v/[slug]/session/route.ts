@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { viewSessions, pageEvents } from "@/db/schema";
+import { viewSessions, pageEvents, links } from "@/db/schema";
+import { and } from "drizzle-orm";
 import { eq, sql } from "drizzle-orm";
 import { parseBody } from "@/lib/validation";
 import { sessionHeartbeatSchema } from "@/lib/validation/schemas";
@@ -8,12 +9,27 @@ import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const parsed = await parseBody(request, sessionHeartbeatSchema);
   if ("errorResponse" in parsed) return parsed.errorResponse;
   const { sessionId, events, maxPageReached, completedPages, totalDwellSeconds } = parsed.data;
 
   try {
-    const [session] = await db.select().from(viewSessions).where(eq(viewSessions.id, sessionId)).limit(1);
+    const [link] = await db
+      .select({ id: links.id, isActive: links.isActive, isRevoked: links.isRevoked })
+      .from(links)
+      .where(eq(links.slug, slug))
+      .limit(1);
+
+    if (!link || !link.isActive || link.isRevoked) {
+      return NextResponse.json({ error: "Link not found or inactive" }, { status: 404 });
+    }
+
+    const [session] = await db
+      .select()
+      .from(viewSessions)
+      .where(and(eq(viewSessions.id, sessionId), eq(viewSessions.linkId, link.id)))
+      .limit(1);
 
     if (!session) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });

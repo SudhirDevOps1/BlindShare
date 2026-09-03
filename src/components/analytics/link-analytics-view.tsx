@@ -451,7 +451,7 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
       {/* Dwell Time Distribution Buckets & Metric Correlation Matrix */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <DwellHistogram sessions={sessions || []} />
-        <MetricCorrelationMatrix />
+        <MetricCorrelationMatrix sessions={sessions || []} />
       </div>
 
       {/* Viewer Session Logs Table (Interactive with Intent Filter & Page Breakdown) */}

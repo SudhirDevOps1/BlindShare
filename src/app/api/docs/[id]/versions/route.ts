@@ -16,6 +16,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
 
   try {
+    const [doc] = await db
+      .select({ id: documents.id })
+      .from(documents)
+      .where(and(eq(documents.id, id), eq(documents.ownerId, auth.user.id)))
+      .limit(1);
+
+    if (!doc) {
+      return NextResponse.json({ error: "Document not found" }, { status: 404 });
+    }
+
     const versions = await db
       .select()
       .from(docVersions)

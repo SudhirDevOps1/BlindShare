@@ -911,7 +911,7 @@ export function MediaRenderer({
                 <iframe
                   srcDoc={textContent}
                   title="HTML Preview"
-                  sandbox="allow-scripts"
+                  sandbox="allow-same-origin"
                   className="w-full h-full border-0"
                 />
               </div>

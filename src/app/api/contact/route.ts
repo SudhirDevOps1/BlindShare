@@ -57,6 +57,7 @@ export async function POST(request: Request) {
         }),
       });
     } catch (dbErr) {
+      recordFailure(`contact:${ip}`, ip);
       logger.error("Failed to write contact message to auditLog", { error: String(dbErr) });
     }
 
