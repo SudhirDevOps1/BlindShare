@@ -176,7 +176,7 @@ export function DashboardSidebar({ user, onLogout }: DashboardSidebarProps) {
                       fontSize: 9, fontWeight: 700, color: "#fbbf24", whiteSpace: "nowrap",
                     }}>
                       <Zap style={{ width: 8, height: 8, fill: "#fbbf24" }} />
-                      v1.3.0 E2EE
+                      v1.4.0 E2EE
                     </span>
                   </div>
                 </div>

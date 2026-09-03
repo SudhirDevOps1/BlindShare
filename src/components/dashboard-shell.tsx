@@ -113,7 +113,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
             </div>
           </div>
           <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[9px] font-bold text-amber-300 border border-amber-500/25">
-            v1.3.0 E2EE
+            v1.4.0 E2EE
           </span>
         </div>
 

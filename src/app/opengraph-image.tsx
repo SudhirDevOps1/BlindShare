@@ -106,7 +106,7 @@ export default async function Image() {
                 letterSpacing: "0.04em",
               }}
             >
-              v1.3.0 E2EE • ₹0 FREE TIER • 100% ZK
+              v1.4.0 E2EE • ₹0 FREE TIER • 100% ZK
             </span>
           </div>
         </div>

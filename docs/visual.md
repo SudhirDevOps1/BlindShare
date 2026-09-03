@@ -1,4 +1,4 @@
-# 🎨 BlindShare Architecture & Security Visual Blueprint (`v1.3.0`)
+# 🎨 BlindShare Architecture & Security Visual Blueprint (`v1.4.0`)
 
 > **Zero-Knowledge Secure Document Sharing, Digital Data Room & Pitch Deck Analytics Platform**
 

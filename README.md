@@ -12,8 +12,8 @@
 </p>
 
 <p>
-  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v1.3.0">
-    <img src="https://img.shields.io/badge/version-v1.3.0-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v1.3.0" />
+  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v1.4.0">
+    <img src="https://img.shields.io/badge/version-v1.4.0-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v1.4.0" />
   </a>
   <a href="./LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-3b82f6?style=for-the-badge" alt="MIT License" />
@@ -696,14 +696,14 @@ BlindShare/
 │   │   │   ├── auth/                      # login · logout · logout-all · me · register · 2fa · bootstrap
 │   │   │   ├── datarooms/[id]/            # Dataroom CRUD
 │   │   │   ├── docs/[id]/                 # doc CRUD · audio · download · questions · versions
-│   │   │   ├── health/                    # Health check + diagnostics (v1.3.0)
+│   │   │   ├── health/                    # Health check + diagnostics (v1.4.0)
 │   │   │   ├── links/[id]/analytics/      # Link analytics
 │   │   │   ├── push/subscribe/            # VAPID push subscription
 │   │   │   ├── questions/                 # Founder Q&A inbox (reply, filter)
 │   │   │   ├── storage/                   # local-upload · local-download
 │   │   │   ├── user/                      # profile · 2fa · delete · export
 │   │   │   ├── v/[slug]/                  # bytes · questions · room · session · sign · verify
-│   │   │   └── version/                   # Platform version endpoint (1.3.0)
+│   │   │   └── version/                   # Platform version endpoint (1.4.0)
 │   │   ├── contact/                       # Contact form page
 │   │   ├── dashboard/
 │   │   │   ├── analytics/[id]/            # Per-link analytics view
@@ -741,7 +741,7 @@ BlindShare/
 │   │   │   ├── signature-pad-modal.tsx    # In-app NDA digital signature
 │   │   │   └── voice-note-player.tsx      # Founder audio pitch player
 │   │   ├── brand-footer.tsx               # Footer
-│   │   └── brand-header.tsx               # Scrollable nav tabs + v1.3.0 badge
+│   │   └── brand-header.tsx               # Scrollable nav tabs + v1.4.0 badge
 │   │
 │   ├── db/
 │   │   ├── index.ts                       # pg pool (RFC URL hostname validation)
@@ -809,7 +809,7 @@ BlindShare/
 │
 ├── docs/
 │   ├── ARCHITECTURE.md                    # Adapter model, data ER, crypto pipeline
-│   ├── CHANGELOG.md                       # Keep-a-Changelog (v1.3.0 current)
+│   ├── CHANGELOG.md                       # Keep-a-Changelog (v1.4.0 current)
 │   ├── CODE_OF_CONDUCT.md
 │   ├── CONTRIBUTING.md
 │   ├── DATA-RETENTION.md

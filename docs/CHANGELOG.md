@@ -2,6 +2,32 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/).
 
+## [1.4.0] - 2026-09-03
+
+### 🚀 Added & Enhanced
+- **Glassmorphic Cyber UI & Micro-Animations (`src/app/dashboard/page.tsx`, `src/components/upload/doc-uploader.tsx`):**
+  - Upgraded dashboard stat cards with glassmorphic depth (`backdrop-blur-xl`, `bg-slate-900/50`, `border-slate-800/80`).
+  - Interactive hover elevation (`hover:-translate-y-1`), animated corner glows (amber, blue, emerald, purple), and micro-scaling icon containers (`group-hover:scale-110`).
+  - Pulsing live status dot, 90-degree rotating Plus upload trigger, cyber drag-drop hover ring (`ring-4 ring-amber-500/20`), and bouncing cloud upload animation.
+- **Full Responsive Experience (Mobile, Tablet & PC First):**
+  - Adaptive responsive grid (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`) for all screen form factors.
+  - Mobile thumb-tapping optimization with full-width action buttons (`w-full sm:w-auto`) and native slide-in navigation drawer.
+  - Minimum 44x44px touch targets compliant with WCAG accessibility standards.
+- **Enterprise SEO & Crawler Privacy Shield (`src/app/sitemap.ts`, `src/app/robots.ts`, `src/app/v/[slug]/layout.tsx`):**
+  - Dynamic XML sitemap generator with priority routing for public landing and auth pages (`/`, `/login`, `/signup`).
+  - Smart robots engine blocking bots and AI crawlers from internal APIs, admin panels, and private viewer routes (`/v/`).
+  - Dedicated `noindex, nofollow, noimageindex` viewer layout guaranteeing confidential investor pitch decks are never indexed.
+  - High-intent search keywords and rich Schema.org `SoftwareApplication` JSON-LD structured data.
+- **Repository Documentation Inter-Linking (`README.md`, `docs/*.md`, `visual.md`):**
+  - Cross-linked complete knowledge base across all 18 tracked documentation guides with unified navigation matrices.
+- **Competitive Flaws & High-Smoothness Research Roadmap (`next-patch.md`):**
+  - Strict competitive analysis benchmarking DocSend, Papermark, and Digify user complaints and failure points.
+  - v1.4.0 execution plan for GPU-accelerated touch swiping, 0ms slide pre-caching, and reading comfort modes.
+
+### 🛡️ Security Hardening
+- **Automated SIEM CEF 1.4.0 Synchronization:** Upgraded Common Event Format string generation and verified SIEM test suites.
+- **Crawler Document Isolation:** Strict prevention of search engine spidering across private link slugs.
+
 ## [1.3.0] - 2026-09-02
 
 ### 🚀 Added & Enhanced
