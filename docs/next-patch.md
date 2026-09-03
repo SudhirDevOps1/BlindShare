@@ -648,3 +648,12 @@ await db.insert(auditLog).values({...}); recordFailure(contact:)
 **Verify:** 
 pm run typecheck 0, 
 pm test 24/24, git status only M on 3-4 files — no D.
+
+
+---
+
+## Part F: Viewer Resilience & Fresh Account Real Data Hardening (v1.4.0)
+
+- **[F-1] Interactive Decryption Key Recovery:** Added an in-place recovery card to `src/components/pdf-viewer/pdf-renderer.tsx` and `src/components/viewer/media-renderer.tsx` allowing users whose browser cache was cleared or links copied without the `#k=...` fragment to paste their key/URL or enter their account password to decrypt immediately without a dead error screen. — ✅ [IMPLEMENTED & VERIFIED]
+- **[F-2] Fresh Account Honest Zero States:** Converted `WeeklyKpiDigest.tsx`, `top-links-leaderboard.tsx`, `calendar-views-heatmap.tsx`, `dwell-histogram.tsx`, `hourly-matrix-heatmap.tsx`, and `geo-choropleth-map.tsx` to show honest 0 metrics and clean empty states for new accounts instead of synthetic mathematical noise and hardcoded mock decks. — ✅ [IMPLEMENTED & VERIFIED]
+- **[F-3] CSP Compliance for Brand Visuals:** Replaced `<object>` tags in `src/app/dashboard/links/page.tsx` and `src/app/dashboard/docs/page.tsx` with standard `<img>` tags, fully satisfying the CSP `object-src 'none'` directive and eliminating browser console violations. — ✅ [IMPLEMENTED & VERIFIED]
