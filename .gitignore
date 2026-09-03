@@ -41,6 +41,9 @@ Thumbs.db
 .skills/
 .cursor/
 .antigravity/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
 
 # Internal Engineering Roadmaps & Next Patch Drafts
 next-patch.md

@@ -196,8 +196,18 @@ Before completing any task or pushing commits, verify each item:
 `
 };
 
-for (const [relPath, content] of Object.entries(files)) {
-  const fullPath = path.join(baseDir, relPath);
-  fs.writeFileSync(fullPath, content.trim() + '\n', 'utf8');
-  console.log('✅ Generated:', fullPath);
+const targetDirs = [
+  path.join(__dirname, '..', 'docs', 'skills', 'blindshare-architecture'),
+  path.join(__dirname, '..', '.agents', 'skills', 'blindshare-architecture'),
+  path.join(__dirname, '..', '.skills', 'blindshare-architecture'),
+];
+
+for (const dir of targetDirs) {
+  fs.mkdirSync(path.join(dir, 'examples'), { recursive: true });
+  fs.mkdirSync(path.join(dir, 'references'), { recursive: true });
+  for (const [relPath, content] of Object.entries(files)) {
+    const fullPath = path.join(dir, relPath);
+    fs.writeFileSync(fullPath, content.trim() + '\n', 'utf8');
+    console.log('✅ Generated:', fullPath);
+  }
 }
