@@ -970,7 +970,7 @@ export function PdfRenderer({
       <div className="flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">
         <div className="relative mb-6">
           <div className="h-16 w-16 animate-spin rounded-full border-4 border-amber-500/20 border-t-amber-500" />
-          <Lock className="absolute inset-0 m-auto h-6 w-6 text-amber-400" />
+          <img src="/brand/02-favicon.svg" alt="BlindShare" className="absolute inset-0 m-auto h-7 w-7 object-contain" />
         </div>
         <h3 className="text-lg font-semibold text-white mb-2">{t.viewer.loadingDoc}</h3>
         <p className="text-sm text-slate-400 max-w-md animate-pulse">{loadingStep}</p>
@@ -1016,8 +1016,8 @@ export function PdfRenderer({
               className="h-7 w-auto max-w-[120px] object-contain rounded"
             />
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/30">
-              <BookOpen className="h-4 w-4" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 border border-amber-500/30 p-1">
+              <img src="/brand/02-favicon.svg" alt="BlindShare" className="h-full w-full object-contain" />
             </div>
           )}
           <div>

@@ -187,9 +187,9 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
 
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
         <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
-          {/* Top Lock Icon */}
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400">
-            <Lock className="h-7 w-7" />
+          {/* Top Brand Logo Icon */}
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-900 border border-amber-500/40 shadow-xl shadow-amber-500/10 p-2">
+            <img src="/brand/02-favicon.svg" alt="BlindShare" className="h-full w-full object-contain" />
           </div>
 
           {/* Segmented Sign In / Create Account Switcher */}

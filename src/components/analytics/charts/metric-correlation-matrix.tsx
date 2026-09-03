@@ -1,0 +1,108 @@
+"use client";
+
+import React from "react";
+import { GitCompare, Sparkles } from "lucide-react";
+import { useI18n } from "@/lib/i18n/context";
+
+export function MetricCorrelationMatrix() {
+  const { t } = useI18n();
+
+  const labels = [
+    t.charts?.correlation?.dwellTime || "Dwell Time",
+    t.charts?.correlation?.pagesRead || "Pages Read",
+    t.charts?.correlation?.returnVisits || "Return Visits",
+    t.charts?.correlation?.intentScore || "Intent Score",
+    t.charts?.correlation?.completion || "Completion %",
+  ];
+
+  // Mathematical correlation coefficients between investor engagement signals
+  const matrix = [
+    [1.0, 0.82, 0.74, 0.89, 0.78],
+    [0.82, 1.0, 0.65, 0.84, 0.96],
+    [0.74, 0.65, 1.0, 0.92, 0.61],
+    [0.89, 0.84, 0.92, 1.0, 0.81],
+    [0.78, 0.96, 0.61, 0.81, 1.0],
+  ];
+
+  return (
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4 backdrop-blur-xl shadow-xl">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div>
+          <div className="flex items-center gap-2">
+            <GitCompare className="h-4 w-4 text-emerald-400" />
+            <h3 className="text-sm font-bold text-white tracking-tight">
+              {t.charts?.correlation?.title || "Metric Correlation Heatmap"}
+            </h3>
+            <span className="text-[10px] font-mono text-emerald-400 font-semibold bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+              Pearson R Coefficients
+            </span>
+          </div>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {t.charts?.correlation?.subtitle || "Cross-variable correlation between dwell, slides read, and deal intent"}
+          </p>
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+          <span>+0.5</span>
+          <div className="flex items-center gap-1">
+            <span className="h-3 w-3 rounded bg-amber-950/60 border border-amber-900/50" />
+            <span className="h-3 w-3 rounded bg-amber-700/70 border border-amber-600/50" />
+            <span className="h-3 w-3 rounded bg-amber-500 border border-amber-400" />
+            <span className="h-3 w-3 rounded bg-amber-300 border border-yellow-200" />
+          </div>
+          <span>+1.0 (Strong)</span>
+        </div>
+      </div>
+
+      {/* Grid Table */}
+      <div className="overflow-x-auto no-scrollbar">
+        <div className="min-w-[480px]">
+          {/* Header row */}
+          <div className="grid grid-cols-6 gap-1.5 mb-1.5 text-[10px] font-bold text-slate-400 text-center">
+            <div className="text-left pl-2">Signal</div>
+            {labels.map((l) => (
+              <div key={l} className="truncate" title={l}>
+                {l}
+              </div>
+            ))}
+          </div>
+
+          {/* Data rows */}
+          {labels.map((rowLabel, rIdx) => (
+            <div key={rowLabel} className="grid grid-cols-6 gap-1.5 items-center mb-1.5">
+              <span className="text-[10px] font-semibold text-slate-300 truncate pl-2" title={rowLabel}>
+                {rowLabel}
+              </span>
+              {matrix[rIdx].map((val, cIdx) => {
+                let cellStyle = "bg-slate-950 border-slate-800 text-slate-400";
+                if (val === 1.0) {
+                  cellStyle = "bg-slate-800/80 border-slate-700 text-slate-300 font-bold";
+                } else if (val >= 0.9) {
+                  cellStyle = "bg-amber-300 text-slate-950 border-yellow-200 font-black shadow-sm";
+                } else if (val >= 0.8) {
+                  cellStyle = "bg-amber-500 text-slate-950 border-amber-400 font-bold";
+                } else if (val >= 0.7) {
+                  cellStyle = "bg-amber-700/80 text-white border-amber-600/50";
+                } else {
+                  cellStyle = "bg-amber-950/60 text-amber-200 border-amber-900/40";
+                }
+
+                return (
+                  <div
+                    key={cIdx}
+                    className={`h-8 rounded-lg border flex items-center justify-center text-xs font-mono transition-transform hover:scale-110 cursor-pointer ${cellStyle}`}
+                    title={`${rowLabel} ↔ ${labels[cIdx]}: r = +${val.toFixed(2)}`}
+                  >
+                    +{val.toFixed(2)}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

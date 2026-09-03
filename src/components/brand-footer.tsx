@@ -20,13 +20,12 @@ export function BrandFooter() {
     <footer className="border-t border-slate-800/80 bg-slate-950/90 text-slate-400 text-xs backdrop-blur-xl relative z-10">
       {/* Top ambient highlight line */}
       <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-amber-500/30 to-transparent" />
-
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-slate-800/80">
           <div className="space-y-4 md:col-span-2">
             <div className="flex flex-wrap items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-md shadow-amber-500/20 text-slate-950 font-bold">
-                <Lock className="h-4 w-4 stroke-[2.5]" />
+              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 border border-amber-500/40 shadow-md shadow-amber-500/15 p-1">
+                <img src="/brand/02-favicon.svg" alt="BlindShare" className="h-full w-full object-contain" />
               </div>
               <span className="font-bold text-white text-base tracking-tight">{appName}</span>
               <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 shadow-sm">

@@ -33,10 +33,18 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { DwellSplineChart } from "./charts/dwell-spline-chart";
-import { RetentionSurvivalChart } from "./charts/retention-survival-chart";
-import { DeviceDonutChart } from "./charts/device-donut-chart";
-import { LeadTemperatureMeter } from "./charts/lead-temperature-meter";
+import {
+  DwellSplineChart,
+  RetentionSurvivalChart,
+  DeviceDonutChart,
+  LeadTemperatureMeter,
+  RetentionFunnelSankey,
+  HourlyMatrixHeatmap,
+  DwellHistogram,
+  DwellScatterPlot,
+  QuestionDensityHeatmap,
+  MetricCorrelationMatrix,
+} from "./charts";
 
 interface LinkAnalyticsViewProps {
   linkId: string;
@@ -312,54 +320,7 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
       </div>
 
       {/* Reader Funnel Drop-off Analysis (Enterprise Analytics) */}
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <TrendingDown className="h-4 w-4 text-amber-400" />
-              <span>Reader Retention Funnel & Drop-Off</span>
-            </h3>
-            <p className="text-xs text-slate-400">
-              Conversion rate of readers progressing from Page 1 to Document Finish
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-          <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400">Step 1: Opened Document</span>
-              <span className="font-mono text-white font-bold">{funnelStats.started}%</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-              <div className="h-full bg-blue-500" style={{ width: `${funnelStats.started}%` }} />
-            </div>
-            <div className="text-[10px] text-slate-500">{funnelStats.rawStarted} total view sessions</div>
-          </div>
-
-          <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400">Step 2: Reached Mid-Point</span>
-              <span className="font-mono text-amber-400 font-bold">{funnelStats.midpoint}%</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-              <div className="h-full bg-amber-500" style={{ width: `${funnelStats.midpoint}%` }} />
-            </div>
-            <div className="text-[10px] text-slate-500">{funnelStats.rawMidpoint} read to page {Math.max(1, Math.ceil(totalPages / 2))}</div>
-          </div>
-
-          <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400">Step 3: Completed Last Page</span>
-              <span className="font-mono text-emerald-400 font-bold">{funnelStats.completed}%</span>
-            </div>
-            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
-              <div className="h-full bg-emerald-500" style={{ width: `${funnelStats.completed}%` }} />
-            </div>
-            <div className="text-[10px] text-slate-500">{funnelStats.rawCompleted} finished all {totalPages} pages</div>
-          </div>
-        </div>
-      </div>
+      <RetentionFunnelSankey sessions={sessions || []} totalPages={totalPages} />
 
       {/* Reader Retention Survival Curve (Drop-off & Churn Analysis) */}
       <RetentionSurvivalChart sessions={sessions} totalPages={totalPages} />
@@ -473,6 +434,21 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
         currentFilter={intentFilter}
         onFilterChange={setIntentFilter}
       />
+
+      {/* 24x7 Reading Heatmap Matrix */}
+      <HourlyMatrixHeatmap sessions={sessions || []} />
+
+      {/* Dwell Scatter Plot: Dwell Time vs Completion Matrix */}
+      <DwellScatterPlot sessions={sessions || []} totalPages={totalPages} />
+
+      {/* In-Doc Slide Question Density Heatmap */}
+      <QuestionDensityHeatmap questions={data?.questions || []} totalPages={totalPages} />
+
+      {/* Dwell Time Distribution Buckets & Metric Correlation Matrix */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <DwellHistogram sessions={sessions || []} />
+        <MetricCorrelationMatrix />
+      </div>
 
       {/* Viewer Session Logs Table (Interactive with Intent Filter & Page Breakdown) */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">

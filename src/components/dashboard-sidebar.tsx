@@ -153,14 +153,16 @@ export function DashboardSidebar({ user, onLogout }: DashboardSidebarProps) {
                 style={{
                   display: "flex", alignItems: "center", justifyContent: "center",
                   width: 40, height: 40, flexShrink: 0, borderRadius: 13,
-                  background: "linear-gradient(135deg,#f59e0b,#d97706)",
-                  boxShadow: "0 4px 16px rgba(245,158,11,0.35)",
+                  background: "linear-gradient(135deg,#0f172a,#020617)",
+                  border: "1px solid rgba(245,158,11,0.4)",
+                  boxShadow: "0 4px 16px rgba(245,158,11,0.25)",
                   transition: "transform 0.25s cubic-bezier(0.34,1.56,0.64,1)",
+                  padding: 6,
                 }}
                 onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1) rotate(8deg)")}
                 onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
               >
-                <Lock style={{ width: 18, height: 18, color: "#1e293b", strokeWidth: 2.8 }} />
+                <img src="/brand/02-favicon.svg" alt="BlindShare" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
               </div>
 
               {!collapsed && (

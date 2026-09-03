@@ -24,8 +24,19 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n/context";
+import {
+  WeeklyKpiDigest,
+  CalendarViewsHeatmap,
+  HourlyMatrixHeatmap,
+  GeoChoroplethMap,
+  TopLinksLeaderboard,
+  MetricCorrelationMatrix,
+  DwellHistogram,
+} from "@/components/analytics/charts";
 
 export default function GlobalAnalyticsPage() {
+  const { t } = useI18n();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -307,6 +318,27 @@ export default function GlobalAnalyticsPage() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* 1. Executive Weekly KPI Digest */}
+        <WeeklyKpiDigest metrics={metrics} />
+
+        {/* 2. 365-Day Annual Views Intensity Calendar Heatmap */}
+        <CalendarViewsHeatmap sessions={recentSessions || []} />
+
+        {/* 3. 24x7 Reading Heatmap Matrix */}
+        <HourlyMatrixHeatmap sessions={recentSessions || []} />
+
+        {/* 4. Global Geographic Radar Map */}
+        <GeoChoroplethMap countryBreakdown={countryBreakdown || []} />
+
+        {/* 5. Top Performing Pitch Decks Leaderboard */}
+        <TopLinksLeaderboard links={topDocuments || []} />
+
+        {/* 6. Dwell Time Distribution Buckets */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <DwellHistogram sessions={recentSessions || []} />
+          <MetricCorrelationMatrix />
         </div>
 
         {/* Live Real-time Activity Feed */}

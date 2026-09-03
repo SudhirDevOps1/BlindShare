@@ -106,8 +106,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
               <Menu className="h-5 w-5" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 shadow-md shadow-amber-500/25">
-                <Lock className="h-4 w-4 text-slate-950 stroke-[2.5]" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 border border-amber-500/40 shadow-md shadow-amber-500/20 p-1">
+                <img src="/brand/02-favicon.svg" alt="BlindShare" className="h-full w-full object-contain" />
               </div>
               <span className="text-sm font-bold text-white tracking-tight">BlindShare</span>
             </div>
