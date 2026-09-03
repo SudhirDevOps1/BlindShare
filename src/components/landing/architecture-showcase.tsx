@@ -172,18 +172,12 @@ export function ArchitectureShowcase() {
           {/* Left / Top: High-Resolution Scalable SVG Diagram Display with <object> + <img> fallback */}
           <div className="lg:col-span-7 relative group">
             <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-3 shadow-inner flex items-center justify-center min-h-[340px]">
-              <object
-                data={currentSvgUrl}
-                type="image/svg+xml"
-                className="w-full h-auto max-h-[460px] object-contain rounded-xl pointer-events-none"
-                aria-label={currentItem.title}
-              >
-                <img
-                  src={currentSvgUrl}
-                  alt={currentItem.title}
-                  className="w-full h-auto max-h-[460px] object-contain rounded-xl transition-transform duration-500 group-hover:scale-[1.01]"
-                />
-              </object>
+              <img
+                src={currentSvgUrl}
+                alt={currentItem.title}
+                className="w-full h-auto max-h-[460px] object-contain rounded-xl transition-transform duration-500 group-hover:scale-[1.01]"
+                loading="lazy"
+              />
               <a
                 href={currentSvgUrl}
                 target="_blank"

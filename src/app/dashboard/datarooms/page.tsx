@@ -132,18 +132,12 @@ export default function DataroomsPage() {
             </span>
           </div>
           <div className="flex items-center justify-center min-h-[260px] py-2">
-            <object
-              data="/brand/graphs/37-journey-sankey-animated.svg"
-              type="image/svg+xml"
+            <img
+              src="/brand/graphs/37-journey-sankey-animated.svg"
+              alt="Investor Journey Sankey Funnel"
               className="w-full h-auto max-h-[300px] object-contain pointer-events-none"
-              aria-label="Investor Journey Sankey Funnel"
-            >
-              <img
-                src="/brand/graphs/37-journey-sankey-animated.svg"
-                alt="Investor Journey Sankey Funnel"
-                className="w-full h-auto max-h-[300px] object-contain"
-              />
-            </object>
+              loading="lazy"
+            />
           </div>
         </div>
 

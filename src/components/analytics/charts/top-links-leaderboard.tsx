@@ -4,6 +4,8 @@ import React from "react";
 import { Trophy, ExternalLink, Copy, Check, BarChart2 } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
+import { hexToBuffer, docKeyToFragment } from "@/lib/crypto-core";
+import { syncVaultDocumentKeys } from "@/lib/vault/master-vault";
 
 interface TopLinksLeaderboardProps {
   links?: any[];
@@ -38,6 +40,10 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
             avgDwell: perf?.formattedAvgDwell || (l.viewCount > 0 ? "0m 45s" : "0s"),
             score: perf?.score !== undefined ? perf.score : (l.viewCount > 0 ? 50 : 0),
             code: l.slug,
+            docId: l.docId,
+            ownerEncryptedKeyHex: l.ownerEncryptedKeyHex,
+            ownerEncryptedKeyIvHex: l.ownerEncryptedKeyIvHex,
+            hasPassword: l.hasPassword,
             isReal: true,
           };
         });
@@ -47,10 +53,50 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
 
   const maxViews = Math.max(...topItems.map((item) => item.viewCount || 1), 1);
 
-  const handleCopy = (code: string, id: string) => {
-    navigator.clipboard.writeText(`${window.location.origin}/v/${code}`);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+  const getStoredKeyHex = (item: any): string | null => {
+    if (typeof window === "undefined") return null;
+    return (
+      (item.docId && sessionStorage.getItem(`blindshare_key_${item.docId}`)) ||
+      (item.docId && localStorage.getItem(`blindshare_key_${item.docId}`)) ||
+      (item.id && sessionStorage.getItem(`blindshare_key_${item.id}`)) ||
+      (item.id && localStorage.getItem(`blindshare_key_${item.id}`)) ||
+      sessionStorage.getItem(`blindshare_link_key_${item.code}`) ||
+      localStorage.getItem(`blindshare_link_key_${item.code}`) ||
+      sessionStorage.getItem(`blindshare_key_${item.code}`) ||
+      localStorage.getItem(`blindshare_key_${item.code}`) ||
+      null
+    );
+  };
+
+  const buildFullUrl = (item: any) => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    let url = `${origin}/v/${item.code}`;
+
+    const storedHex = getStoredKeyHex(item);
+    if (storedHex) {
+      try {
+        const docKey = hexToBuffer(storedHex);
+        url += `#k=${docKeyToFragment(docKey)}`;
+      } catch {}
+    }
+    return url;
+  };
+
+  const handleCopy = async (item: any) => {
+    let storedHex = getStoredKeyHex(item);
+
+    // If key is missing in storage, attempt immediate auto-unwrap via active master vault
+    if (!storedHex && (item.ownerEncryptedKeyHex || item.docId)) {
+      try {
+        await syncVaultDocumentKeys([], [item]);
+        storedHex = getStoredKeyHex(item);
+      } catch {}
+    }
+
+    const url = buildFullUrl(item);
+    navigator.clipboard.writeText(url);
+    setCopiedId(item.id);
+    setTimeout(() => setCopiedId(null), 2500);
   };
 
   return (
@@ -128,7 +174,7 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
 
                 <button
                   type="button"
-                  onClick={() => handleCopy(item.code, item.id)}
+                  onClick={() => handleCopy(item)}
                   className="rounded-lg bg-slate-800 p-1.5 text-slate-300 hover:text-white hover:bg-slate-700 transition"
                   title="Copy Share Link"
                 >
@@ -136,7 +182,7 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
                 </button>
 
                 <Link
-                  href={`/dashboard/links/${item.id}`}
+                  href={`/dashboard/analytics/${item.id}`}
                   className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-1.5 text-amber-400 hover:bg-amber-500/20 transition"
                   title="View Analytics"
                 >
