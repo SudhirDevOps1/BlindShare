@@ -183,7 +183,30 @@ export default function DataroomsPage() {
             </div>
 
             <div>
-              <div className="mb-2 text-xs font-semibold text-slate-300">Include documents</div>
+              <div className="mb-2 flex items-center justify-between">
+                <div className="text-xs font-semibold text-slate-300">
+                  Include documents ({selectedDocs.length}/{docs.length})
+                </div>
+                {docs.length > 0 && (
+                  <div className="flex items-center gap-2 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDocs(docs.map((d) => d.id))}
+                      className="text-amber-400 hover:text-amber-300 hover:underline"
+                    >
+                      Select All
+                    </button>
+                    <span className="text-slate-600">•</span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDocs([])}
+                      className="text-slate-400 hover:text-white hover:underline"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+              </div>
               <div className="grid max-h-48 grid-cols-1 gap-2 overflow-y-auto sm:grid-cols-2">
                 {docs.map((d) => (
                   <label

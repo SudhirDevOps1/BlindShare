@@ -620,7 +620,8 @@ export function MediaRenderer({
       }
     };
 
-    const beat = setInterval(flushMediaDwell, 10000);
+    // Batch telemetry flush (steady 25-second interval saving Neon CU-hours & serverless invocations)
+    const beat = setInterval(flushMediaDwell, 25000);
 
     const handleVis = () => {
       if (document.visibilityState === "hidden") flushMediaDwell();
