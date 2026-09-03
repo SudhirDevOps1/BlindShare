@@ -1,3 +1,4 @@
+import { BrandIcon } from "./brand-icon";
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -106,9 +107,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
               <Menu className="h-5 w-5" />
             </button>
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-900 border border-amber-500/40 shadow-md shadow-amber-500/20 p-1">
-                <img src="/brand/02-favicon.svg" alt="BlindShare" className="h-full w-full object-contain" />
-              </div>
+              <BrandIcon size="sm" />
               <span className="text-sm font-bold text-white tracking-tight">BlindShare</span>
             </div>
           </div>

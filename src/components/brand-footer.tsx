@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
+import { BrandIcon } from "./brand-icon";
 import { ShieldCheck, Heart, Lock, Code2, ServerOff, Star, Scale } from "lucide-react";
 
 function GithubIcon({ className = "h-4 w-4" }: { className?: string }) {
@@ -24,16 +25,7 @@ export function BrandFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-slate-800/80">
           <div className="space-y-4 md:col-span-2">
             <div className="flex flex-wrap items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-xl bg-slate-900 border border-amber-500/40 shadow-md shadow-amber-500/15 p-1">
-                <object
-                  data="/brand/02-favicon.svg"
-                  type="image/svg+xml"
-                  className="h-full w-full object-contain pointer-events-none"
-                  aria-label="BlindShare Logo"
-                >
-                  <Lock className="h-4 w-4 stroke-[2.5]" />
-                </object>
-              </div>
+              <BrandIcon size="sm" />
               <span className="font-bold text-white text-base tracking-tight">{appName}</span>
               <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 shadow-sm">
                 ₹0 Free-Tier Ready

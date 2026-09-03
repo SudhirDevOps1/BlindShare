@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useI18n } from "@/lib/i18n/context";
+import { BrandIcon } from "./brand-icon";
 import {
   FileText,
   Link as LinkIcon,
@@ -149,21 +150,7 @@ export function DashboardSidebar({ user, onLogout }: DashboardSidebarProps) {
           }}>
             <Link href="/dashboard" style={{ display: "flex", alignItems: "center", gap: 12, textDecoration: "none", minWidth: 0 }}>
               {/* Logo icon */}
-              <div
-                style={{
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  width: 40, height: 40, flexShrink: 0, borderRadius: 13,
-                  background: "linear-gradient(135deg,#0f172a,#020617)",
-                  border: "1px solid rgba(245,158,11,0.4)",
-                  boxShadow: "0 4px 16px rgba(245,158,11,0.25)",
-                  transition: "transform 0.25s cubic-bezier(0.34,1.56,0.64,1)",
-                  padding: 6,
-                }}
-                onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1) rotate(8deg)")}
-                onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
-              >
-                <img src="/brand/02-favicon.svg" alt="BlindShare" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-              </div>
+              <BrandIcon size="md" className="hover:scale-105 transition-transform" />
 
               {!collapsed && (
                 <div className="sb-fade" style={{ minWidth: 0, overflow: "hidden" }}>

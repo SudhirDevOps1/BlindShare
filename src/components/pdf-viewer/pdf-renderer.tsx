@@ -1,3 +1,4 @@
+import { BrandIcon } from "@/components/brand-icon";
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -1016,9 +1017,7 @@ export function PdfRenderer({
               className="h-7 w-auto max-w-[120px] object-contain rounded"
             />
           ) : (
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 border border-amber-500/30 p-1">
-              <img src="/brand/02-favicon.svg" alt="BlindShare" className="h-full w-full object-contain" />
-            </div>
+            <BrandIcon size="sm" />
           )}
           <div>
             <h1 className="font-semibold text-white text-sm max-w-[200px] sm:max-w-xs truncate" title={docData.title}>

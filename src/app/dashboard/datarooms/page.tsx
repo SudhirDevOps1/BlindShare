@@ -1,3 +1,4 @@
+import { BrandIcon } from "@/components/brand-icon";
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -97,20 +98,7 @@ export default function DataroomsPage() {
       <main className="mx-auto w-full max-w-7xl flex-1 space-y-6 px-4 py-8 sm:px-6">
         <div className="flex flex-col items-start justify-between gap-4 border-b border-slate-800 pb-4 sm:flex-row sm:items-center">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 border border-amber-500/40 p-1.5 shadow-md shadow-amber-500/20 shrink-0">
-              <object
-                data="/brand/02-favicon.svg"
-                type="image/svg+xml"
-                className="h-full w-full object-contain pointer-events-none"
-                aria-label="BlindShare Logo"
-              >
-                <img
-                  src="/brand/02-favicon.svg"
-                  alt="BlindShare"
-                  className="h-full w-full object-contain"
-                />
-              </object>
-            </div>
+            <BrandIcon size="lg" />
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-white">Secure Datarooms</h1>
               <p className="mt-0.5 text-xs text-slate-400">

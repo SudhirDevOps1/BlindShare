@@ -1,3 +1,4 @@
+import { BrandIcon } from "@/components/brand-icon";
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -76,20 +77,7 @@ export default function DashboardPage() {
         {/* Welcome Header */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pb-4 border-b border-slate-800/80">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-900 border border-amber-500/40 p-1.5 shadow-md shadow-amber-500/20 shrink-0 group">
-              <object
-                data="/brand/02-favicon.svg"
-                type="image/svg+xml"
-                className="h-full w-full object-contain pointer-events-none group-hover:scale-110 transition-transform"
-                aria-label="BlindShare Logo"
-              >
-                <img
-                  src="/brand/02-favicon.svg"
-                  alt="BlindShare"
-                  className="h-full w-full object-contain"
-                />
-              </object>
-            </div>
+            <BrandIcon size="lg" />
             <div>
               <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">{t.dashboard.welcome}</h1>
               <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
