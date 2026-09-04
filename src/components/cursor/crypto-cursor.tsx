@@ -313,15 +313,15 @@ export function CryptoCursor() {
           }
         }
 
-        // 4. Soft focused flashlight glow (tight circle around cursor)
+        // 4. Soft focused flashlight glow (tight 180px circle centered around cursor)
         if (spotlightRef.current) {
-          spotlightRef.current.style.transform = `translate3d(${tx - 150}px, ${ty - 150}px, 0)`;
+          spotlightRef.current.style.transform = `translate3d(${Math.round(tx - 90)}px, ${Math.round(ty - 90)}px, 0)`;
         }
 
-        // 5. Circular Spotlight Mask: ONLY where cursor is, inside circle of radius 220px!
+        // 5. Circular Spotlight Mask: ONLY where cursor is, inside tight circle of radius 125px!
         // Outside the circle: 100% invisible/dark!
         if (matrixSpotlightRef.current) {
-          const mask = `radial-gradient(circle 220px at ${tx}px ${ty}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 45%, transparent 100%)`;
+          const mask = `radial-gradient(circle 125px at ${tx}px ${ty}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 50%, transparent 100%)`;
           matrixSpotlightRef.current.style.webkitMaskImage = mask;
           matrixSpotlightRef.current.style.maskImage = mask;
         }
@@ -354,7 +354,7 @@ export function CryptoCursor() {
       setIsVisible(false);
       setIsHoveringInteractive(false);
       if (matrixSpotlightRef.current) {
-        const mask = `radial-gradient(circle 220px at -500px -500px, black 0%, transparent 100%)`;
+        const mask = `radial-gradient(circle 125px at -500px -500px, black 0%, transparent 100%)`;
         matrixSpotlightRef.current.style.webkitMaskImage = mask;
         matrixSpotlightRef.current.style.maskImage = mask;
       }
@@ -498,14 +498,14 @@ export function CryptoCursor() {
         }
       `}</style>
 
-      {/* ── 1. Circular Cipher Flashlight (Strictly within 220px circle around cursor, dark everywhere else) ── */}
+      {/* ── 1. Circular Cipher Flashlight (Strictly within tight 125px circle around cursor, dark everywhere else) ── */}
       <div
         ref={matrixSpotlightRef}
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-[32] select-none overflow-hidden mix-blend-screen opacity-[0.45] transition-opacity duration-300"
+        className="pointer-events-none fixed inset-0 z-[32] select-none overflow-hidden mix-blend-screen opacity-[0.5] transition-opacity duration-300"
         style={{
-          WebkitMaskImage: `radial-gradient(circle 220px at -500px -500px, black 0%, transparent 100%)`,
-          maskImage: `radial-gradient(circle 220px at -500px -500px, black 0%, transparent 100%)`,
+          WebkitMaskImage: `radial-gradient(circle 125px at -500px -500px, black 0%, transparent 100%)`,
+          maskImage: `radial-gradient(circle 125px at -500px -500px, black 0%, transparent 100%)`,
         }}
       >
         <div className="absolute inset-0 p-5 font-mono text-[10px] font-bold uppercase tracking-widest leading-loose select-none overflow-hidden break-words text-justify">
@@ -517,14 +517,14 @@ export function CryptoCursor() {
         </div>
       </div>
 
-      {/* ── 2. Focused Radial Spotlight Aura (Tight, Soft, Non-Blinding) ── */}
+      {/* ── 2. Focused Radial Spotlight Aura (Tight 180px, Soft Amber/Emerald Beam) ── */}
       <div
         ref={spotlightRef}
         aria-hidden="true"
-        className="pointer-events-none fixed top-0 left-0 z-[99990] w-[300px] h-[300px] rounded-full will-change-transform opacity-30 transition-opacity duration-300"
+        className="pointer-events-none fixed top-0 left-0 z-[99990] w-[180px] h-[180px] rounded-full will-change-transform opacity-35 transition-opacity duration-300"
         style={{
           background:
-            "radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, rgba(16, 185, 129, 0.03) 45%, transparent 70%)",
+            "radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, rgba(16, 185, 129, 0.04) 50%, transparent 75%)",
         }}
       />
 
