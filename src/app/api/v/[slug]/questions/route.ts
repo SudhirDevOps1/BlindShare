@@ -7,7 +7,7 @@ import { sendWebhookNotification } from "@/lib/notifications/webhook-notifier";
 import { sendPushToUser } from "@/lib/push";
 import { logger } from "@/lib/logger";
 import { rateLimitDistributed } from "@/lib/security/distributed-rate-limiter";
-import { encryptField } from "@/lib/crypto/db-vault";
+import { encryptField, decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(
   request: Request,
@@ -41,9 +41,14 @@ export async function GET(
       })
       .from(pageQuestions)
       .where(eq(pageQuestions.linkId, link.id))
-      .orderBy(desc(pageQuestions.createdAt));
+    const decryptedQuestions = questions.map((q) => ({
+      ...q,
+      questionText: decryptField(q.questionText),
+      askerName: decryptField(q.askerName),
+      replyText: q.replyText ? decryptField(q.replyText) : null,
+    }));
 
-    return NextResponse.json({ questions });
+    return NextResponse.json({ questions: decryptedQuestions });
   } catch (err: any) {
     logger.error("questions.list_failed", { slug, message: err?.message });
     return NextResponse.json({ error: "Failed to fetch question pins" }, { status: 500 });
@@ -131,7 +136,7 @@ export async function POST(
       pageNumber: Math.max(1, parseInt(String(pageNumber), 10)),
       posXPercent: Math.min(100, Math.max(0, parseInt(String(posXPercent || 50), 10))),
       posYPercent: Math.min(100, Math.max(0, parseInt(String(posYPercent || 50), 10))),
-      questionText: sanitizedText,
+      questionText: encryptField(sanitizedText),                        // AES-256-GCM encrypted
       askerEmail: sanitizedEmail ? encryptField(sanitizedEmail) : null, // AES-256-GCM encrypted
       askerName: encryptField(sanitizedName),                            // AES-256-GCM encrypted
     });

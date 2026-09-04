@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { pageQuestions, documents, links } from "@/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { logger } from "@/lib/logger";
+import { encryptField, decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET() {
   const auth = await requireAuth();
@@ -35,7 +36,15 @@ export async function GET() {
       .where(eq(documents.ownerId, auth.user.id))
       .orderBy(desc(pageQuestions.createdAt));
 
-    return NextResponse.json({ questions: userQuestions });
+    const decrypted = userQuestions.map((q) => ({
+      ...q,
+      questionText: decryptField(q.questionText),
+      askerName: decryptField(q.askerName),
+      askerEmail: q.askerEmail ? decryptField(q.askerEmail) : null,
+      replyText: q.replyText ? decryptField(q.replyText) : null,
+    }));
+
+    return NextResponse.json({ questions: decrypted });
   } catch (err: any) {
     logger.error("questions.list_failed", { message: err?.message });
     return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
@@ -73,7 +82,7 @@ export async function POST(request: Request) {
 
     const updatePayload: any = {};
     if (typeof replyText === "string") {
-      updatePayload.replyText = escapeText(replyText, 2000);
+      updatePayload.replyText = encryptField(escapeText(replyText, 2000));
       updatePayload.repliedAt = new Date();
     }
     if (typeof isResolved === "boolean") {

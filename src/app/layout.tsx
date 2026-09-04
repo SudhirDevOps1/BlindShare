@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
+import { CookieConsentBanner } from "@/components/compliance/cookie-consent-banner";
 
 const appName = process.env.PUBLIC_APP_NAME || "BlindShare";
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://blind-share.vercel.app";
@@ -184,6 +185,10 @@ try {
   sessionStorage.setItem('pa_sid',sid);
   function t(e,d){
     try {
+      var cStr = localStorage.getItem('blindshare_cookie_consent_v1');
+      if (!cStr) return;
+      var c = JSON.parse(cStr);
+      if (!c || c.analytics !== true) return;
       var q=new URLSearchParams(location.search);
       if(navigator.sendBeacon){
         navigator.sendBeacon(url,JSON.stringify({
@@ -205,6 +210,7 @@ try {
   t();
   var p=location.pathname;
   window.addEventListener('popstate', function(){ if(p!=location.pathname){ p=location.pathname; t(); } });
+  window.addEventListener('blindshare-consent-updated', function(){ t(); });
 } catch(e){}
 })();`,
             }}
@@ -214,6 +220,7 @@ try {
       <body className="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-200">
         <I18nProvider>
           {children}
+          <CookieConsentBanner />
         </I18nProvider>
       </body>
     </html>

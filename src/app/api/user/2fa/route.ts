@@ -12,6 +12,7 @@ import {
 import { verifyPassword } from "@/lib/auth/password";
 import { genId } from "@/lib/ids";
 import QRCode from "qrcode";
+import { encryptField } from "@/lib/crypto/db-vault";
 
 async function ensure2faColumns() {
   try {
@@ -95,7 +96,7 @@ export async function POST(request: Request) {
         .update(users)
         .set({
           twoFactorEnabled: true,
-          twoFactorSecret: secret,
+          twoFactorSecret: encryptField(secret), // AES-256-GCM encrypted in DB vault
           twoFactorBackupCodes: hashedCodes.join(","),
           updatedAt: new Date(),
         })

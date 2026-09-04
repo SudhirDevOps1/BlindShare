@@ -6,6 +6,7 @@ import { verify2faPreAuthToken, createSessionCookie } from "@/lib/auth/session";
 import { verifyTotpToken, verifyAndConsumeBackupCode } from "@/lib/auth/totp";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import { decryptField, decryptEmail } from "@/lib/crypto/db-vault";
 
 async function ensure2faColumns() {
   try {
@@ -54,7 +55,8 @@ export async function POST(request: Request) {
 
     // Check standard 6-digit TOTP
     if (/^\d{6}$/.test(cleanCode.replace(/\s/g, ""))) {
-      isTotpValid = verifyTotpToken(cleanCode, user.twoFactorSecret);
+      const plainSecret = decryptField(user.twoFactorSecret);
+      isTotpValid = verifyTotpToken(cleanCode, plainSecret);
     }
 
     // If TOTP failed, check emergency recovery backup code
@@ -77,11 +79,12 @@ export async function POST(request: Request) {
       );
     }
 
+    const cleanEmail = decryptEmail(user.email);
     // Success: issue real authenticated session cookie
     await createSessionCookie(
       {
         id: user.id,
-        email: user.email,
+        email: cleanEmail,
         name: user.name,
         role: user.role as "super_admin" | "admin" | "owner",
         isBlocked: user.isBlocked,
@@ -101,14 +104,14 @@ export async function POST(request: Request) {
       action: isBackupValid ? "auth.login_2fa_backup" : "auth.login_2fa",
       resourceType: "user",
       resourceId: user.id,
-      detailsJson: JSON.stringify({ email: user.email, method: isBackupValid ? "backup_code" : "totp" }),
+      detailsJson: JSON.stringify({ email: cleanEmail, method: isBackupValid ? "backup_code" : "totp" }),
     });
 
     return NextResponse.json({
       success: true,
       user: {
         id: user.id,
-        email: user.email,
+        email: cleanEmail,
         name: user.name,
         role: user.role,
       },

@@ -153,6 +153,75 @@ export default function PrivacyPage() {
           </div>
         </section>
 
+        <section id="subprocessors" className="space-y-4 rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-base font-bold text-white">Sub-processor Registry (GDPR Art. 28)</h2>
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-400">
+              Last Audited: 2026-09-04
+            </span>
+          </div>
+          <p className="text-xs text-slate-400 leading-relaxed">
+            BlindShare utilizes vetted infrastructure providers to deliver high availability and cryptographic storage.
+            Under our zero-knowledge architecture, no sub-processor ever receives decryption keys or readable document content.
+          </p>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-slate-800 font-semibold text-slate-400">
+                <tr>
+                  <th className="pb-2">Sub-processor</th>
+                  <th className="pb-2">Location</th>
+                  <th className="pb-2">Processing Scope</th>
+                  <th className="pb-2">Security Boundary</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tr>
+                  <td className="py-2.5 font-medium text-white">Neon Inc.</td>
+                  <td className="py-2.5 text-slate-400">United States (AWS)</td>
+                  <td className="py-2.5">PostgreSQL metadata & session store</td>
+                  <td className="py-2.5 text-emerald-400 font-mono text-[11px]">AES-256-GCM Vault PII</td>
+                </tr>
+                <tr>
+                  <td className="py-2.5 font-medium text-white">Backblaze Inc. (B2)</td>
+                  <td className="py-2.5 text-slate-400">United States / EU</td>
+                  <td className="py-2.5">Encrypted document blob store</td>
+                  <td className="py-2.5 text-emerald-400 font-mono text-[11px]">Client-Side Ciphertext Only</td>
+                </tr>
+                <tr>
+                  <td className="py-2.5 font-medium text-white">Cloudflare Inc. (R2 / Edge)</td>
+                  <td className="py-2.5 text-slate-400">Global Edge (300+ PoPs)</td>
+                  <td className="py-2.5">DNS, DDoS shield & asset edge proxy</td>
+                  <td className="py-2.5 text-emerald-400 font-mono text-[11px]">TLS 1.3 / Strict Zero-Log</td>
+                </tr>
+                <tr>
+                  <td className="py-2.5 font-medium text-white">Vercel Inc.</td>
+                  <td className="py-2.5 text-slate-400">Global Serverless Edge</td>
+                  <td className="py-2.5">Stateless Next.js application runtime</td>
+                  <td className="py-2.5 text-emerald-400 font-mono text-[11px]">Ephemeral Memory Only</td>
+                </tr>
+                <tr>
+                  <td className="py-2.5 font-medium text-white">Upstash Inc.</td>
+                  <td className="py-2.5 text-slate-400">United States (Serverless)</td>
+                  <td className="py-2.5">Brute-force & rate-limit state (Optional)</td>
+                  <td className="py-2.5 text-emerald-400 font-mono text-[11px]">Zero PII Stored</td>
+                </tr>
+                <tr>
+                  <td className="py-2.5 font-medium text-white">Resend / Brevo / GAS</td>
+                  <td className="py-2.5 text-slate-400">United States / France</td>
+                  <td className="py-2.5">Transactional auth emails & magic links</td>
+                  <td className="py-2.5 text-emerald-400 font-mono text-[11px]">Transient Delivery Only</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-[11px] text-slate-400">
+            <strong className="text-slate-300">Data Processing Addendum (DPA):</strong> Enterprise teams can request a signed DPA with standard contractual clauses (SCCs) by emailing{" "}
+            <span className="font-mono text-amber-300">security@blindshare.app</span>.
+          </div>
+        </section>
+
         <section className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
           <h2 className="text-base font-bold text-white">Your rights</h2>
           <ul className="space-y-2 text-xs leading-relaxed text-slate-300">

@@ -234,6 +234,7 @@ test("DB Vault: PII encryption is wired into all auth and sharing routes", () =>
     { path: "src/app/api/v/[slug]/verify/route.ts", fn: "encryptField", label: "verify (viewerEmail)" },
     { path: "src/app/api/v/[slug]/sign/route.ts", fn: "encryptField", label: "sign (signerEmail)" },
     { path: "src/app/api/v/[slug]/questions/route.ts", fn: "encryptField", label: "questions (askerEmail)" },
+    { path: "src/app/api/user/2fa/route.ts", fn: "encryptField", label: "user 2fa (twoFactorSecret)" },
   ];
 
   for (const { path: relPath, fn, label } of routeChecks) {
@@ -244,4 +245,25 @@ test("DB Vault: PII encryption is wired into all auth and sharing routes", () =>
     assert.ok(src.includes("db-vault"), `${label} route must import from db-vault`);
   }
 });
+
+test("Compliance 2026: Cookie Consent Banner & Sub-processors Registry", () => {
+  const bannerPath = path.resolve(process.cwd(), "src/components/compliance/cookie-consent-banner.tsx");
+  assert.ok(fs.existsSync(bannerPath), "CookieConsentBanner component must exist");
+  const bannerSrc = fs.readFileSync(bannerPath, "utf8");
+  assert.ok(bannerSrc.includes("CookieConsentBanner"), "CookieConsentBanner must be exported");
+  assert.ok(bannerSrc.includes("blindshare_cookie_consent_v1"), "Must use versioned storage key for consent state");
+  assert.ok(bannerSrc.includes("Strictly Necessary"), "Must explicitly identify strictly necessary cookies");
+
+  const layoutPath = path.resolve(process.cwd(), "src/app/layout.tsx");
+  const layoutSrc = fs.readFileSync(layoutPath, "utf8");
+  assert.ok(layoutSrc.includes("CookieConsentBanner"), "layout.tsx must render CookieConsentBanner");
+  assert.ok(layoutSrc.includes("blindshare_cookie_consent_v1"), "layout.tsx must gate telemetry based on cookie consent");
+
+  const privacyPath = path.resolve(process.cwd(), "src/app/privacy/page.tsx");
+  const privacySrc = fs.readFileSync(privacyPath, "utf8");
+  assert.ok(privacySrc.includes("subprocessors"), "Privacy page must contain subprocessors section");
+  assert.ok(privacySrc.includes("Neon Inc."), "Privacy page must disclose Neon Inc. as sub-processor");
+  assert.ok(privacySrc.includes("Backblaze Inc."), "Privacy page must disclose Backblaze B2 as sub-processor");
+});
+
 

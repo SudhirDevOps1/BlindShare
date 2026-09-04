@@ -3,8 +3,19 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { sql } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
+import { rateLimitDistributed } from "@/lib/security/distributed-rate-limiter";
 
 export async function GET(request: Request) {
+  const forwarded = request.headers.get("x-forwarded-for");
+  const ip = forwarded ? forwarded.split(",")[0].trim() : "127.0.0.1";
+  const isAllowed = await rateLimitDistributed(`health:${ip}`, 60, 60 * 1000);
+  if (!isAllowed) {
+    return NextResponse.json(
+      { error: "Too many health check requests. Rate limit exceeded." },
+      { status: 429 }
+    );
+  }
+
   const startTime = Date.now();
   let dbStatus = "unknown";
   let storageStatus = "unknown";
