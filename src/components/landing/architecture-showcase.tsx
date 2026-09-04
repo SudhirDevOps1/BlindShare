@@ -57,33 +57,11 @@ export function ArchitectureShowcase() {
 
   const isPaused = isManualPaused || isSectionHovered;
 
-  // Mouse tracking for Option 2 (Cipher Spotlight Watermark Matrix)
-  const [mousePos, setMousePos] = useState<{ x: number; y: number; active: boolean }>({
-    x: -500,
-    y: -500,
-    active: false,
-  });
-  const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
-
-  // Detect touch screens or coarse pointers to gracefully disable custom spotlight
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
-      setIsTouchDevice(hasTouch);
-    }
-  }, []);
-
-  const handleSectionMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    if (isTouchDevice || !sectionRef.current) return;
+  const handleSectionMouseMove = () => {
     setIsSectionHovered(true); // Hovering pauses the slideshow
-    const rect = sectionRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    setMousePos({ x, y, active: true });
   };
 
   const handleSectionMouseLeave = () => {
-    setMousePos((prev) => ({ ...prev, active: false }));
     setIsSectionHovered(false); // Cursor leave immediately resumes infinite slideshow!
   };
 
@@ -304,49 +282,6 @@ export function ArchitectureShowcase() {
       {/* Background ambient lighting */}
       <div className="absolute top-1/4 right-10 -z-10 h-96 w-96 rounded-full bg-amber-500/10 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-10 left-10 -z-10 h-80 w-80 rounded-full bg-blue-500/10 blur-[130px] pointer-events-none" />
-
-      {/* Option 2: Zero-Knowledge Cipher Spotlight Watermark Matrix */}
-      {!isTouchDevice && mousePos.active && (
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0 select-none overflow-hidden"
-          style={{
-            WebkitMaskImage: `radial-gradient(380px circle at ${mousePos.x}px ${mousePos.y}px, black 25%, transparent 85%)`,
-            maskImage: `radial-gradient(380px circle at ${mousePos.x}px ${mousePos.y}px, black 25%, transparent 85%)`,
-          }}
-        >
-          {/* Faint Zero-Knowledge Cipher Fragment Watermarks */}
-          <div className="absolute inset-0 flex flex-wrap gap-x-8 gap-y-5 p-6 font-mono text-[10.5px] font-bold uppercase tracking-widest text-amber-400/30 leading-none">
-            {Array.from({ length: 48 }).map((_, i) => (
-              <span key={i} className="inline-flex items-center gap-2">
-                <span className="text-amber-300/40">#k=aes256_gcm_{((i * 1337) % 9999).toString(16)}</span>
-                <span className="text-slate-600">•</span>
-                <span className="text-emerald-400/40">PBKDF2_100k</span>
-                <span className="text-slate-600">•</span>
-                <span className="text-blue-400/35">ZERO_KNOWLEDGE_COURIER</span>
-                <span className="text-slate-600">•</span>
-                <span className="text-amber-400/40">RFC3986_FRAGMENT</span>
-                <span className="text-slate-600">•</span>
-                <span className="text-emerald-300/35">CLIENT_SIDE_RAM</span>
-                <span className="text-slate-600">•</span>
-                <span className="text-indigo-400/35">DUCKDB_TELEMETRY</span>
-              </span>
-            ))}
-          </div>
-
-          {/* Ambient Radial Spotlight Beam */}
-          <div
-            className="absolute pointer-events-none rounded-full blur-3xl opacity-60"
-            style={{
-              left: `${mousePos.x - 200}px`,
-              top: `${mousePos.y - 200}px`,
-              width: "400px",
-              height: "400px",
-              background: "radial-gradient(circle, rgba(245,158,11,0.18) 0%, rgba(59,130,246,0.06) 45%, transparent 75%)",
-            }}
-          />
-        </div>
-      )}
 
       <div className="relative z-10 mx-auto max-w-7xl space-y-8">
         {/* Section Header */}

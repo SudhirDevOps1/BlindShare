@@ -9,6 +9,16 @@ interface SonarPing {
   y: number;
 }
 
+// Precomputed 160 cipher watermark tokens to fill full viewport up to 4K displays with 0 GC overhead
+const CIPHER_TOKENS = Array.from({ length: 160 }).map((_, i) => ({
+  key: `#k=aes256_gcm_${((i * 1337) % 9999).toString(16)}`,
+  pbkdf2: "PBKDF2_100k",
+  zkCourier: "ZERO_KNOWLEDGE_COURIER",
+  fragment: "RFC3986_FRAGMENT",
+  ram: "CLIENT_SIDE_RAM",
+  telemetry: "DUCKDB_TELEMETRY",
+}));
+
 export function CryptoCursor() {
   const { t } = useI18n();
   const [isTouchDevice, setIsTouchDevice] = useState<boolean>(true);
@@ -30,6 +40,7 @@ export function CryptoCursor() {
   const haloRef = useRef<HTMLDivElement>(null);
   const badgeRef = useRef<HTMLDivElement>(null);
   const spotlightRef = useRef<HTMLDivElement>(null);
+  const matrixRef = useRef<HTMLDivElement>(null);
 
   // Detect touch screens or coarse pointers to disable custom cursor
   useEffect(() => {
@@ -87,6 +98,13 @@ export function CryptoCursor() {
         if (spotlightRef.current) {
           spotlightRef.current.style.transform = `translate3d(${tx - 250}px, ${ty - 250}px, 0)`;
         }
+
+        // Global Zero-Knowledge Cipher Spotlight Watermark Matrix mask
+        if (matrixRef.current) {
+          const mask = `radial-gradient(380px circle at ${tx}px ${ty}px, black 25%, transparent 85%)`;
+          matrixRef.current.style.webkitMaskImage = mask;
+          matrixRef.current.style.maskImage = mask;
+        }
       }
 
       animationFrameId = requestAnimationFrame(animate);
@@ -115,6 +133,11 @@ export function CryptoCursor() {
       coordsRef.current.active = false;
       setIsVisible(false);
       setIsHoveringInteractive(false);
+      if (matrixRef.current) {
+        const mask = `radial-gradient(380px circle at -500px -500px, black 25%, transparent 85%)`;
+        matrixRef.current.style.webkitMaskImage = mask;
+        matrixRef.current.style.maskImage = mask;
+      }
     };
 
     const handleClick = (e: MouseEvent) => {
@@ -147,7 +170,37 @@ export function CryptoCursor() {
 
   return (
     <>
-      {/* Option 2: Zero-Knowledge Ambient Cipher Spotlight Beam (Global) */}
+      {/* Option 2: Global Zero-Knowledge Cipher Spotlight Watermark Matrix (Full Web) */}
+      <div
+        ref={matrixRef}
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-[35] select-none overflow-hidden mix-blend-screen opacity-75"
+        style={{
+          WebkitMaskImage: `radial-gradient(380px circle at -500px -500px, black 25%, transparent 85%)`,
+          maskImage: `radial-gradient(380px circle at -500px -500px, black 25%, transparent 85%)`,
+        }}
+      >
+        {/* Repeating Cryptographic Matrix Grid */}
+        <div className="absolute inset-0 flex flex-wrap gap-x-8 gap-y-5 p-6 font-mono text-[10.5px] font-bold uppercase tracking-widest leading-none">
+          {CIPHER_TOKENS.map((token, i) => (
+            <span key={i} className="inline-flex items-center gap-2">
+              <span className="text-amber-300/50">{token.key}</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-emerald-400/50">{token.pbkdf2}</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-blue-400/45">{token.zkCourier}</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-amber-400/50">{token.fragment}</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-emerald-300/45">{token.ram}</span>
+              <span className="text-slate-600">•</span>
+              <span className="text-indigo-400/45">{token.telemetry}</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Ambient Radial Spotlight Beam (Global) */}
       <div
         ref={spotlightRef}
         aria-hidden="true"
