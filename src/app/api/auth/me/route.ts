@@ -28,7 +28,19 @@ export async function GET() {
       .limit(1);
 
     if (dbUser) {
-      return NextResponse.json({ user: { ...dbUser, email: decryptEmail(dbUser.email) } });
+      let masterKeySaltHex = dbUser.masterKeySaltHex;
+      if (!masterKeySaltHex) {
+        const cryptoModule = await import("crypto");
+        masterKeySaltHex = cryptoModule.randomBytes(16).toString("hex");
+        await db
+          .update(users)
+          .set({ masterKeySaltHex })
+          .where(eq(users.id, dbUser.id))
+          .catch(() => {});
+      }
+      return NextResponse.json({
+        user: { ...dbUser, masterKeySaltHex, email: decryptEmail(dbUser.email) },
+      });
     }
     // Database was wiped or user row was purged — actively shred the zombie cookie
     const res = NextResponse.json({ user: null });

@@ -25,10 +25,13 @@ import {
   Ban,
   CheckCircle,
   FileText,
+  Eye,
+  EyeOff,
+  Loader2,
 } from "lucide-react";
 import QRCodeLib from "qrcode";
-import { hexToBuffer, bufferToHex, docKeyToFragment, fragmentToDocKey, unwrapDocKeyForOwner } from "@/lib/crypto-core";
-import { syncVaultDocumentKeys, isVaultUnlocked, unlockOwnerVault, getOwnerMasterKey } from "@/lib/vault/master-vault";
+import { hexToBuffer, bufferToHex, docKeyToFragment, fragmentToDocKey, unwrapDocKeyForOwner, unwrapKeyWithPassword } from "@/lib/crypto-core";
+import { syncVaultDocumentKeys, isVaultUnlocked, unlockOwnerVault, getOwnerMasterKey, autoWrapDocKeyForOwner } from "@/lib/vault/master-vault";
 
 export default function LinksPage() {
   const { t } = useI18n();
@@ -48,6 +51,8 @@ export default function LinksPage() {
   const [keyRecoveryTarget, setKeyRecoveryTarget] = useState<any | null>(null);
   const [keyInput, setKeyInput] = useState("");
   const [keyError, setKeyError] = useState<string | null>(null);
+  const [recovering, setRecovering] = useState(false);
+  const [showKeyInput, setShowKeyInput] = useState(false);
 
   const fetchLinks = async () => {
     try {
@@ -132,49 +137,115 @@ export default function LinksPage() {
     if (!keyRecoveryTarget || !keyInput.trim()) return;
 
     try {
+      setRecovering(true);
+      setKeyError(null);
+
       let docKey: Uint8Array | null = null;
       const trimmed = keyInput.trim();
 
-      // 1. Check if user typed account password to unlock Master Vault
-      try {
-        const meRes = await fetch("/api/auth/me");
-        const meJson = await meRes.json().catch(() => ({}));
-        if (meJson.user?.masterKeySaltHex) {
-          const masterKey = await unlockOwnerVault(trimmed, meJson.user.masterKeySaltHex);
+      // Case A: User pasted a URL or key fragment directly (#k=..., k=..., /v/..., or raw 32-byte hex)
+      const looksLikeFragment =
+        trimmed.includes("#k=") ||
+        trimmed.includes("/v/") ||
+        trimmed.startsWith("k=") ||
+        /^[a-zA-Z0-9_-]{43,44}$/.test(trimmed) ||
+        /^[0-9a-fA-F]{64}$/.test(trimmed);
+
+      if (looksLikeFragment) {
+        try {
+          if (trimmed.includes("#k=")) {
+            docKey = fragmentToDocKey(trimmed.substring(trimmed.indexOf("#k=")));
+          } else if (trimmed.includes("/v/")) {
+            const hashIdx = trimmed.indexOf("#");
+            if (hashIdx !== -1) {
+              docKey = fragmentToDocKey(trimmed.substring(hashIdx));
+            }
+          } else if (trimmed.startsWith("k=")) {
+            docKey = fragmentToDocKey(`#${trimmed}`);
+          } else if (/^[0-9a-fA-F]{64}$/.test(trimmed)) {
+            docKey = hexToBuffer(trimmed);
+          } else {
+            docKey = fragmentToDocKey(`#k=${trimmed}`);
+          }
+        } catch {}
+      }
+
+      // Case B: If not a fragment, or fragment parsing failed, treat as account password or link password
+      if (!docKey) {
+        // 1. Check if the link itself is password-protected and user typed the link password
+        if (keyRecoveryTarget.wrappedKeyHex && keyRecoveryTarget.passwordSaltHex) {
+          try {
+            const unwrapped = await unwrapKeyWithPassword(
+              keyRecoveryTarget.wrappedKeyHex,
+              keyRecoveryTarget.passwordSaltHex,
+              trimmed
+            );
+            if (unwrapped && unwrapped.length === 32) {
+              docKey = unwrapped;
+            }
+          } catch {}
+        }
+
+        // 2. Check if this is the user's account password to unlock the Master Vault
+        if (!docKey) {
+          const verifyRes = await fetch("/api/auth/verify-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: trimmed }),
+          });
+
+          const verifyData = await verifyRes.json().catch(() => ({}));
+
+          if (!verifyRes.ok || !verifyData.valid) {
+            setKeyError("Incorrect password or invalid key. Please check your account password or paste the share link URL / #k=... fragment.");
+            setRecovering(false);
+            return;
+          }
+
+          // Account Password IS VALID! Now unlock Master Vault
+          const masterKey = await unlockOwnerVault(trimmed, verifyData.masterKeySaltHex);
+
+          // Find encrypted key on link object or on document
+          let encKeyHex = keyRecoveryTarget.ownerEncryptedKeyHex;
+          let encIvHex = keyRecoveryTarget.ownerEncryptedKeyIvHex;
+
           const docsRes = await fetch("/api/docs");
           const docsJson = await docsRes.json().catch(() => ({}));
-          if (docsJson.documents) {
-            const targetDoc = docsJson.documents.find((d: any) => d.id === keyRecoveryTarget.docId);
-            if (targetDoc?.ownerEncryptedKeyHex && targetDoc?.ownerEncryptedKeyIvHex) {
-              docKey = await unwrapDocKeyForOwner(
-                targetDoc.ownerEncryptedKeyHex,
-                targetDoc.ownerEncryptedKeyIvHex,
-                masterKey
-              );
-            }
-            await syncVaultDocumentKeys(docsJson.documents);
-          }
-        }
-      } catch {}
+          const allDocs = Array.isArray(docsJson.documents) ? docsJson.documents : [];
+          const targetDoc = allDocs.find((d: any) => d.id === keyRecoveryTarget.docId);
 
-      // 2. If not a master password or vault unwrap, parse as fragment / direct key
-      if (!docKey) {
-        if (trimmed.includes("#k=")) {
-          docKey = fragmentToDocKey(trimmed.substring(trimmed.indexOf("#k=")));
-        } else if (trimmed.includes("/v/")) {
-          const hashIdx = trimmed.indexOf("#");
-          if (hashIdx !== -1) {
-            docKey = fragmentToDocKey(trimmed.substring(hashIdx));
+          if (!encKeyHex && targetDoc) {
+            encKeyHex = targetDoc.ownerEncryptedKeyHex;
+            encIvHex = targetDoc.ownerEncryptedKeyIvHex;
           }
-        } else if (trimmed.startsWith("k=")) {
-          docKey = fragmentToDocKey(`#${trimmed}`);
-        } else {
-          docKey = fragmentToDocKey(`#k=${trimmed}`);
+
+          if (encKeyHex && encIvHex) {
+            try {
+              docKey = await unwrapDocKeyForOwner(encKeyHex, encIvHex, masterKey);
+            } catch {
+              setKeyError("Password verified, but Master Vault decryption tag did not match. If your password was changed, please paste the original share link or #k=... fragment.");
+              setRecovering(false);
+              return;
+            }
+          }
+
+          // Auto-sync all other documents in vault as well
+          await syncVaultDocumentKeys(allDocs, links);
+
+          // If document had no ownerEncryptedKeyHex in DB, provide helpful guidance
+          if (!docKey) {
+            setKeyError(
+              "Account password verified! However, this document was created on another device without a Master Vault backup. Please paste the share link URL or the #k=... fragment from that device once to restore it."
+            );
+            setRecovering(false);
+            return;
+          }
         }
       }
 
       if (!docKey || docKey.length < 16) {
-        setKeyError("Invalid key or account password. Please enter your account password, full link, or #k=... fragment.");
+        setKeyError("Invalid decryption key. Please enter your account password, full link, or #k=... fragment.");
+        setRecovering(false);
         return;
       }
 
@@ -182,6 +253,22 @@ export default function LinksPage() {
       if (keyRecoveryTarget.docId) {
         localStorage.setItem(`blindshare_key_${keyRecoveryTarget.docId}`, hex);
         sessionStorage.setItem(`blindshare_key_${keyRecoveryTarget.docId}`, hex);
+
+        // If vault is unlocked, auto-back up ownerEncryptedKey to DB so user never needs to restore again
+        autoWrapDocKeyForOwner(docKey)
+          .then((wrapped) => {
+            if (wrapped && keyRecoveryTarget.docId) {
+              fetch(`/api/docs/${keyRecoveryTarget.docId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  ownerEncryptedKeyHex: wrapped.ownerEncryptedKeyHex,
+                  ownerEncryptedKeyIvHex: wrapped.ownerEncryptedKeyIvHex,
+                }),
+              }).catch(() => {});
+            }
+          })
+          .catch(() => {});
       }
       localStorage.setItem(`blindshare_link_key_${keyRecoveryTarget.slug}`, hex);
       sessionStorage.setItem(`blindshare_link_key_${keyRecoveryTarget.slug}`, hex);
@@ -193,6 +280,8 @@ export default function LinksPage() {
       setKeyRecoveryTarget(null);
     } catch {
       setKeyError("Failed to parse decryption key or verify account password.");
+    } finally {
+      setRecovering(false);
     }
   };
 
@@ -551,35 +640,63 @@ export default function LinksPage() {
               <label className="text-xs font-semibold text-slate-300">
                 Account Password, Decryption Key, or Link
               </label>
-              <input
-                type="password"
-                value={keyInput}
-                onChange={(e) => {
-                  setKeyInput(e.target.value);
-                  setKeyError(null);
-                }}
-                placeholder="Enter account password or #k=... fragment"
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-600 focus:border-amber-500 focus:outline-none"
-                autoFocus
-              />
-              {keyError && <p className="text-xs text-red-400">{keyError}</p>}
+              <div className="relative">
+                <input
+                  type={showKeyInput ? "text" : "password"}
+                  value={keyInput}
+                  onChange={(e) => {
+                    setKeyInput(e.target.value);
+                    setKeyError(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && keyInput.trim() && !recovering) {
+                      handleSaveRecoveredKey();
+                    }
+                  }}
+                  placeholder="Enter account password or paste #k=... fragment"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 pr-10 text-xs text-white placeholder-slate-600 focus:border-amber-500 focus:outline-none"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowKeyInput(!showKeyInput)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                  tabIndex={-1}
+                  aria-label={showKeyInput ? "Hide key" : "Show key"}
+                >
+                  {showKeyInput ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {keyError && (
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2.5 text-xs text-red-300 leading-relaxed">
+                  {keyError}
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setKeyRecoveryTarget(null)}
-                className="rounded-xl px-4 py-2 text-xs font-medium text-slate-400 hover:text-white"
+                disabled={recovering}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-slate-400 hover:text-white disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={handleSaveRecoveredKey}
-                disabled={!keyInput.trim()}
-                className="rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 shadow-md shadow-amber-500/10"
+                disabled={!keyInput.trim() || recovering}
+                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 shadow-md shadow-amber-500/10"
               >
-                Save & Copy Link
+                {recovering ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>Verifying...</span>
+                  </>
+                ) : (
+                  <span>Save & Copy Link</span>
+                )}
               </button>
             </div>
           </div>

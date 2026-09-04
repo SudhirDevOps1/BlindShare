@@ -111,6 +111,8 @@ export const createDocumentSchema = z
 
 export const updateDocumentSchema = z.object({
   title: z.string().trim().min(1).max(200).optional(),
+  ownerEncryptedKeyHex: hexStringSchema(512),
+  ownerEncryptedKeyIvHex: hexStringSchema(64),
 });
 
 export const createVersionSchema = z.object({

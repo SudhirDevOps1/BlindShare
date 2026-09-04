@@ -40,6 +40,8 @@ export async function GET() {
         docIvHex: documents.ivHex,
         ownerEncryptedKeyHex: documents.ownerEncryptedKeyHex,
         ownerEncryptedKeyIvHex: documents.ownerEncryptedKeyIvHex,
+        wrappedKeyHex: links.wrappedKeyHex,
+        passwordSaltHex: links.passwordSaltHex,
         dataroomName: datarooms.name,
       })
       .from(links)

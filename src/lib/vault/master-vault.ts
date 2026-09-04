@@ -118,15 +118,13 @@ export async function syncVaultDocumentKeys(documents: any[], links?: any[]): Pr
 
   if (Array.isArray(documents)) {
     for (const doc of documents) {
-      if (!doc?.id || !doc?.ownerEncryptedKeyHex || !doc?.ownerEncryptedKeyIvHex) {
-        continue;
-      }
+      if (!doc?.id) continue;
 
       let hexKey =
         localStorage.getItem(`blindshare_key_${doc.id}`) ||
         sessionStorage.getItem(`blindshare_key_${doc.id}`);
 
-      if (!hexKey) {
+      if (!hexKey && doc.ownerEncryptedKeyHex && doc.ownerEncryptedKeyIvHex) {
         try {
           const docKey = await unwrapDocKeyForOwner(
             doc.ownerEncryptedKeyHex,
@@ -143,6 +141,23 @@ export async function syncVaultDocumentKeys(documents: any[], links?: any[]): Pr
         } catch (err) {
           console.warn(`Failed to unwrap key for document ${doc.id}:`, err);
         }
+      } else if (hexKey && (!doc.ownerEncryptedKeyHex || !doc.ownerEncryptedKeyIvHex)) {
+        // Auto-heal: If local key exists on this device, wrap and back up to Master Vault!
+        try {
+          const rawKey = hexToBuffer(hexKey);
+          wrapDocKeyForOwner(rawKey, masterKey)
+            .then((wrapped) => {
+              fetch(`/api/docs/${doc.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  ownerEncryptedKeyHex: wrapped.wrappedHex,
+                  ownerEncryptedKeyIvHex: wrapped.ivHex,
+                }),
+              }).catch(() => {});
+            })
+            .catch(() => {});
+        } catch {}
       }
     }
   }

@@ -44,7 +44,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   const { id } = await params;
   const parsed = await parseBody(request, updateDocumentSchema);
   if ("errorResponse" in parsed) return parsed.errorResponse;
-  const { title } = parsed.data;
+  const { title, ownerEncryptedKeyHex, ownerEncryptedKeyIvHex } = parsed.data;
 
   try {
     const [doc] = await db
@@ -57,9 +57,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       return NextResponse.json({ error: "Document not found" }, { status: 404 });
     }
 
+    const updates: Record<string, any> = {
+      title: title || doc.title,
+      updatedAt: new Date(),
+    };
+    if (ownerEncryptedKeyHex !== undefined) {
+      updates.ownerEncryptedKeyHex = ownerEncryptedKeyHex;
+    }
+    if (ownerEncryptedKeyIvHex !== undefined) {
+      updates.ownerEncryptedKeyIvHex = ownerEncryptedKeyIvHex;
+    }
+
     await db
       .update(documents)
-      .set({ title: title || doc.title, updatedAt: new Date() })
+      .set(updates)
       .where(eq(documents.id, id));
 
     return NextResponse.json({ success: true });
