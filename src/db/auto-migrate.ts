@@ -245,6 +245,54 @@ export async function ensureDatabaseSchema(pool: Pool) {
         ALTER TABLE links ADD COLUMN IF NOT EXISTS burn_after_reading boolean NOT NULL DEFAULT false;
         ALTER TABLE links ADD COLUMN IF NOT EXISTS voice_pitch_enabled boolean NOT NULL DEFAULT true;
         ALTER TABLE links ADD COLUMN IF NOT EXISTS anti_leak_blur_enabled boolean NOT NULL DEFAULT true;
+
+        -- Performance & Foreign Key Indexing (Eliminates Seq Scans & Conserves Neon CU-hrs)
+        CREATE INDEX IF NOT EXISTS idx_page_events_link_id ON page_events(link_id);
+        CREATE INDEX IF NOT EXISTS idx_page_events_session_id ON page_events(session_id);
+        CREATE INDEX IF NOT EXISTS idx_page_events_doc_id ON page_events(doc_id);
+        CREATE INDEX IF NOT EXISTS idx_view_sessions_link_id ON view_sessions(link_id);
+        CREATE INDEX IF NOT EXISTS idx_view_sessions_started_at ON view_sessions(started_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_documents_owner_id ON documents(owner_id);
+        CREATE INDEX IF NOT EXISTS idx_links_owner_id ON links(owner_id);
+        CREATE INDEX IF NOT EXISTS idx_links_doc_id ON links(doc_id);
+        CREATE INDEX IF NOT EXISTS idx_auth_tokens_hash_type ON auth_tokens(token_hash, type);
+        CREATE INDEX IF NOT EXISTS idx_auth_tokens_expires ON auth_tokens(expires_at);
+        CREATE INDEX IF NOT EXISTS idx_signatures_link_id ON signatures(link_id);
+        CREATE INDEX IF NOT EXISTS idx_page_questions_link_id ON page_questions(link_id);
+
+        -- Tailored Autovacuum for High-Churn Heartbeat Tables (Bloat Prevention)
+        ALTER TABLE view_sessions SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 50);
+        ALTER TABLE page_events SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 100);
+        ALTER TABLE live_rooms SET (autovacuum_vacuum_scale_factor = 0.05, autovacuum_vacuum_threshold = 20);
+
+        -- Opportunistic purge of expired / consumed auth tokens (>7 days old)
+        DELETE FROM auth_tokens 
+        WHERE expires_at < (now() - INTERVAL '7 days') 
+           OR (is_used = true AND created_at < (now() - INTERVAL '1 day'));
+
+        -- High-Efficiency LZ4 TOAST Compression for Bulky Base64 & JSON Payloads (PostgreSQL 14+)
+        DO $$
+        BEGIN
+          IF current_setting('server_version_num')::integer >= 140000 THEN
+            BEGIN
+              ALTER TABLE signatures ALTER COLUMN signature_data_url SET COMPRESSION lz4;
+            EXCEPTION WHEN OTHERS THEN NULL;
+            END;
+            BEGIN
+              ALTER TABLE doc_audio_notes ALTER COLUMN audio_data_url SET COMPRESSION lz4;
+            EXCEPTION WHEN OTHERS THEN NULL;
+            END;
+            BEGIN
+              ALTER TABLE audit_log ALTER COLUMN details_json SET COMPRESSION lz4;
+            EXCEPTION WHEN OTHERS THEN NULL;
+            END;
+            BEGIN
+              ALTER TABLE page_questions ALTER COLUMN question_text SET COMPRESSION lz4;
+              ALTER TABLE page_questions ALTER COLUMN reply_text SET COMPRESSION lz4;
+            EXCEPTION WHEN OTHERS THEN NULL;
+            END;
+          END IF;
+        END $$;
       `);
       migrationDone = true;
       logger.info("db.auto_migration_complete");
