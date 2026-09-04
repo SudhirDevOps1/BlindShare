@@ -1,6 +1,6 @@
 -- ==============================================================================
 -- 🧹 BLINDSHARE COMPLETE DATABASE FACTORY RESET SCRIPT (PostgreSQL / Neon)
--- Version: 1.3.0
+-- Version: 1.4.0
 -- ==============================================================================
 -- Instructions:
 -- 1. Open your Neon Dashboard (https://console.neon.tech) or PostgreSQL client.
@@ -8,31 +8,25 @@
 -- 3. Paste this entire script and click "Run".
 -- 4. All tables, test accounts, and data will be wiped cleanly.
 -- 5. Open your app URL (e.g. /login) to register your fresh Super Admin!
+--
+-- 🔑 WHY WERE AUTH TOKENS STILL PERSISTING IN YOUR BROWSER?
+-- - Session tokens are signed HMAC-SHA256 cookies stored directly in your browser.
+-- - When you reset the database, the user row in PostgreSQL is deleted, but the
+--   browser still sends the old cookie until you visit the app or clear cookies.
+-- - In v1.4.0, /api/auth/me automatically detects that the user is missing from DB
+--   and destroys the zombie cookie immediately with Clear-Site-Data.
+-- - To INSTANTLY invalidate all tokens across all browsers globally:
+--   Rotate SESSION_SECRET in Vercel / Cloudflare environment variables:
+--   openssl rand -hex 32
 -- ==============================================================================
 
--- 1. Disable triggers and drop all application tables in dependency order
-DROP TABLE IF EXISTS live_rooms CASCADE;
-DROP TABLE IF EXISTS doc_audio_notes CASCADE;
-DROP TABLE IF EXISTS page_questions CASCADE;
-DROP TABLE IF EXISTS page_events CASCADE;
-DROP TABLE IF EXISTS signatures CASCADE;
-DROP TABLE IF EXISTS view_sessions CASCADE;
-DROP TABLE IF EXISTS links CASCADE;
-DROP TABLE IF EXISTS dataroom_docs CASCADE;
-DROP TABLE IF EXISTS datarooms CASCADE;
-DROP TABLE IF EXISTS doc_versions CASCADE;
-DROP TABLE IF EXISTS documents CASCADE;
-DROP TABLE IF EXISTS push_subscriptions CASCADE;
-DROP TABLE IF EXISTS audit_log CASCADE;
-DROP TABLE IF EXISTS system_settings CASCADE;
-DROP TABLE IF EXISTS invites CASCADE;
-DROP TABLE IF EXISTS users CASCADE;
+-- 1. Nuclear Schema Reset (Drops all tables, triggers, sequences, and extensions cleanly)
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA public;
+GRANT ALL ON SCHEMA public TO public;
+COMMENT ON SCHEMA public IS 'standard public schema';
 
--- 2. Drop any legacy drizzle migration tracking tables
-DROP TABLE IF EXISTS "__drizzle_migrations" CASCADE;
-DROP TABLE IF EXISTS "drizzle_migrations" CASCADE;
-
--- 3. Automatically recreate pristine empty schema matching src/db/schema.ts 100%
+-- 3. Automatically recreate pristine empty schema matching src/db/schema.ts 100% (v1.4.0)
 
 -- ------------------------------------------------------------------------------
 -- USERS TABLE
@@ -333,4 +327,4 @@ BEGIN
 END $$;
 
 -- Output confirmation
-SELECT 'DATABASE RESET SUCCESSFUL: Pristine v1.3.0 schema ready with zstd storage compression' AS status;
+SELECT 'DATABASE RESET SUCCESSFUL: Pristine v1.4.0 schema ready with zstd storage compression & AES-256-GCM field vault compatibility' AS status;

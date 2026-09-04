@@ -9,7 +9,10 @@ export async function GET() {
   try {
     const sessionUser = await getSession();
     if (!sessionUser) {
-      return NextResponse.json({ user: null });
+      const res = NextResponse.json({ user: null });
+      res.cookies.set("blindshare_session", "", { path: "/", maxAge: 0, expires: new Date(0) });
+      res.cookies.set("__Host-blindshare_session", "", { path: "/", maxAge: 0, expires: new Date(0), secure: true });
+      return res;
     }
 
     const [dbUser] = await db
@@ -27,8 +30,15 @@ export async function GET() {
     if (dbUser) {
       return NextResponse.json({ user: { ...dbUser, email: decryptEmail(dbUser.email) } });
     }
-    return NextResponse.json({ user: sessionUser });
+    // Database was wiped or user row was purged — actively shred the zombie cookie
+    const res = NextResponse.json({ user: null });
+    res.cookies.set("blindshare_session", "", { path: "/", maxAge: 0, expires: new Date(0) });
+    res.cookies.set("__Host-blindshare_session", "", { path: "/", maxAge: 0, expires: new Date(0), secure: true });
+    return res;
   } catch {
-    return NextResponse.json({ user: null });
+    const res = NextResponse.json({ user: null });
+    res.cookies.set("blindshare_session", "", { path: "/", maxAge: 0, expires: new Date(0) });
+    res.cookies.set("__Host-blindshare_session", "", { path: "/", maxAge: 0, expires: new Date(0), secure: true });
+    return res;
   }
 }

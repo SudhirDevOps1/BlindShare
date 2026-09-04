@@ -29,5 +29,8 @@ export async function POST() {
     secure: true,
   });
 
+  // Complete nuclear purge of client-side cookies and storage
+  response.headers.set("Clear-Site-Data", '"cache", "cookies", "storage"');
+
   return response;
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
+import Image from "next/image";
 import {
   Server,
   Database,
@@ -17,6 +18,12 @@ import {
   Cpu,
   Layers,
   Sparkles,
+  Maximize2,
+  Eye,
+  Lock,
+  Compass,
+  Play,
+  Share2,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 
@@ -42,10 +49,108 @@ interface ProviderCard {
   dailyTrafficCapability: string;
 }
 
+interface SvgShowcaseItem {
+  id: string;
+  title: string;
+  tag: string;
+  file: string;
+  accent: string;
+  description: string;
+}
+
 export function ProductionLedger() {
   const { lang } = useI18n();
   const isHindi = lang === "hi";
   const [selectedTab, setSelectedTab] = useState<string>("all");
+  const [activeSvgId, setActiveSvgId] = useState<string>("encryption");
+  const [isZoomed, setIsZoomed] = useState<boolean>(false);
+
+  // 3D tilt tracking for visual showcase
+  const [tiltStyle, setTiltStyle] = useState<React.CSSProperties>({});
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setTiltStyle({
+      transform: `perspective(1000px) rotateX(${-y * 12}deg) rotateY(${x * 14}deg) scale3d(1.015, 1.015, 1.015)`,
+      transition: "transform 0.1s ease-out",
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTiltStyle({
+      transform: "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)",
+      transition: "transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1)",
+    });
+  };
+
+  const svgShowcaseList: SvgShowcaseItem[] = [
+    {
+      id: "encryption",
+      title: isHindi ? "शून्य-ज्ञान एन्क्रिप्शन इंजन" : "Zero-Knowledge Encryption Engine",
+      tag: "AES-GCM-256",
+      file: "17-hero-animated-encryption.svg",
+      accent: "#f59e0b",
+      description: isHindi
+        ? "क्लाइंट-साइड WebCrypto RAM में 256-बिट की उत्पत्ति और ब्राउज़र द्वारा एन्क्रिप्शन। सर्वर कभी भी की नहीं देखता।"
+        : "Client-side WebCrypto RAM key generation & in-memory AES-GCM-256 encryption. Decryption key travels strictly via URL #fragment.",
+    },
+    {
+      id: "vault",
+      title: isHindi ? "मास्टर वॉल्ट ऑटो-अनलॉक" : "Master Vault 100k PBKDF2 Unlock",
+      tag: "PBKDF2-100K",
+      file: "18-vault-unlock-animated.svg",
+      accent: "#a855f7",
+      description: isHindi
+        ? "ब्राउज़र कैशे क्लियर होने पर भी अकाउंट पासवर्ड से 100,000 PBKDF2 राउंड्स द्वारा सभी डॉक-कीज़ का ऑटोमैटिक अनरैपिंग।"
+        : "Seamless cross-device recovery deriving 256-bit master key to unwrap document keys in RAM without server knowledge.",
+    },
+    {
+      id: "radar",
+      title: isHindi ? "लाइव इन्वेस्टर रडार पल्स" : "Live Investor Radar & Pulse Map",
+      tag: "Umami-Style",
+      file: "34-live-pulse-map-animated.svg",
+      accent: "#10b981",
+      description: isHindi
+        ? "सक्रिय पाठकों का रियल-टाइम 5-मिनट मॉनिटर, स्लाइड प्रगति और बिना कुकीज़/IP के भौगोलिक पल्स।"
+        : "Real-time 5-minute active reader telemetry tracking slide progression, active engagement, and coarse geography with zero third-party cookies.",
+    },
+    {
+      id: "budget",
+      title: isHindi ? "₹0 फ्री-टियर बजट लेजर" : "$0 Free-Tier Budget & Quota Gauge",
+      tag: "100% Free",
+      file: "38-cost-forecast-animated.svg",
+      accent: "#3b82f6",
+      description: isHindi
+        ? "Vercel, Neon, Backblaze B2, Google Apps Script और GitHub के फ्री-टियर का लाइव संतुलित उपयोग।"
+        : "Mathematical budget ledger forecasting zero server expenditure across generous lifetime developer free tiers.",
+    },
+    {
+      id: "watermark",
+      title: isHindi ? "फोरेंसिक कैनवस वॉटरमार्किंग" : "Permanent Vector Watermark Stamping",
+      tag: "pdf-lib Core",
+      file: "19-watermark-burn-animated.svg",
+      accent: "#ef4444",
+      description: isHindi
+        ? "वेरीफाइड ईमेल, आईपी हैश और टाइमस्टैम्प को हर पेज स्ट्रीम में स्थायी रूप से बर्न करने वाला डायगोनल मैट्रिक्स।"
+        : "Dynamic multi-layer canvas watermarking with indelibly burned vector stamps on exported PDF page streams.",
+    },
+    {
+      id: "qa",
+      title: isHindi ? "इन-डॉक रियल-टाइम Q&A पिन्स" : "Real-Time Slide Q&A Pinning",
+      tag: "3s Live Sync",
+      file: "20-qa-live-pins-animated.svg",
+      accent: "#06b6d4",
+      description: isHindi
+        ? "स्लाइड्स पर क्लिक करके सीधे प्रश्न पूछना और संस्थापक द्वारा 3 सेकंड के लाइव वॉचडॉग सिंक से तुरंत उत्तर प्राप्त करना।"
+        : "Interactive pin overlays allowing readers to ask in-doc questions with real-time founder reply popover updates.",
+    },
+  ];
+
+  const activeSvg = svgShowcaseList.find((s) => s.id === activeSvgId) || svgShowcaseList[0];
 
   const providers: ProviderCard[] = [
     {
@@ -251,12 +356,13 @@ export function ProductionLedger() {
 
   return (
     <section id="live-quotas" className="relative border-t border-slate-900 bg-slate-950 py-24 px-4 sm:px-6">
-      {/* Subtle Glows */}
+      {/* Ambient Neon Atmosphere */}
       <div className="absolute top-1/4 left-1/4 -z-10 h-96 w-96 rounded-full bg-amber-500/10 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 -z-10 h-96 w-96 rounded-full bg-emerald-500/10 blur-[150px] pointer-events-none" />
+      <div className="absolute top-2/3 left-1/2 -translate-x-1/2 -z-10 h-80 w-80 rounded-full bg-blue-500/10 blur-[140px] pointer-events-none" />
 
-      <div className="mx-auto max-w-7xl space-y-12">
-        {/* Header */}
+      <div className="mx-auto max-w-7xl space-y-16">
+        {/* Section Header */}
         <div className="text-center space-y-4 max-w-3xl mx-auto">
           <div className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-semibold text-emerald-300">
             <ShieldCheck className="h-4 w-4" />
@@ -277,6 +383,146 @@ export function ProductionLedger() {
               : "See exactly how BlindShare runs in live production across Vercel, Neon PostgreSQL, Backblaze B2, Google Apps Script, and GitHub for exactly $0.00/month with zero commercial compromises."}
           </p>
         </div>
+
+        {/* ── 3D VECTOR MOTION THEATER ── */}
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+            <div className="flex items-center gap-2.5">
+              <span className="flex h-3 w-3 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500" />
+              </span>
+              <h3 className="text-lg font-bold text-white tracking-tight">
+                {isHindi ? "3D एनिमेटेड आर्किटेक्चर विजुअलाइज़र" : "3D Animated Vector Architecture Visualizer"}
+              </h3>
+              <span className="rounded-md border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 text-[10px] font-mono text-amber-300">
+                60 FPS Vector Motion
+              </span>
+            </div>
+
+            {/* SVG Selector Pills */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              {svgShowcaseList.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveSvgId(item.id)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    activeSvgId === item.id
+                      ? "bg-slate-800 text-amber-400 border border-amber-500/40 shadow-md shadow-amber-500/10"
+                      : "bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800/80"
+                  }`}
+                >
+                  {item.tag}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Interactive 3D Card */}
+          <div
+            ref={cardRef}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            style={tiltStyle}
+            className="group relative rounded-2xl border border-slate-800/90 bg-gradient-to-b from-slate-900/80 via-slate-950 to-slate-900/90 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl transition-all duration-300"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+              {/* SVG Graphic Frame */}
+              <div className="lg:col-span-8 relative overflow-hidden rounded-xl border border-slate-800/80 bg-slate-950/90 p-4 sm:p-6 flex items-center justify-center min-h-[300px] sm:min-h-[420px] shadow-inner">
+                {/* Ambient glow behind active SVG */}
+                <div
+                  className="absolute inset-0 opacity-20 blur-3xl pointer-events-none transition-all duration-700"
+                  style={{ backgroundColor: activeSvg.accent }}
+                />
+
+                <Image
+                  src={`/brand/${activeSvg.file}`}
+                  alt={activeSvg.title}
+                  width={720}
+                  height={420}
+                  className="w-full h-auto max-h-[380px] object-contain relative z-10 transition-transform duration-500 group-hover:scale-[1.02]"
+                  unoptimized
+                />
+
+                {/* Inspect Button */}
+                <button
+                  onClick={() => setIsZoomed(true)}
+                  className="absolute top-3 right-3 z-20 flex items-center gap-1.5 rounded-lg border border-slate-700/80 bg-slate-900/90 px-2.5 py-1.5 text-xs text-slate-300 opacity-80 hover:opacity-100 hover:border-amber-400 hover:text-white transition-all shadow-lg"
+                >
+                  <Maximize2 className="h-3.5 w-3.5" />
+                  <span className="text-[11px] font-medium">{isHindi ? "फुलस्क्रीन" : "Inspect SVG"}</span>
+                </button>
+              </div>
+
+              {/* Graphic Metadata & Description */}
+              <div className="lg:col-span-4 space-y-5">
+                <div className="space-y-2">
+                  <div className="inline-flex items-center gap-2 rounded-md border border-slate-700/60 bg-slate-800/60 px-2.5 py-1 text-xs font-mono text-amber-300">
+                    <Sparkles className="h-3 w-3" />
+                    <span>{activeSvg.tag} Standard</span>
+                  </div>
+                  <h4 className="text-xl font-black text-white">{activeSvg.title}</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">{activeSvg.description}</p>
+                </div>
+
+                <div className="space-y-2.5 border-t border-slate-800/80 pt-4 text-xs">
+                  <div className="flex items-center justify-between text-slate-400">
+                    <span>{isHindi ? "वेक्टर रेजोल्यूशन:" : "Vector Resolution:"}</span>
+                    <strong className="text-emerald-400 font-mono">Infinitely Scalable (SVG)</strong>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-400">
+                    <span>{isHindi ? "एनिमेशन इंजन:" : "Animation Engine:"}</span>
+                    <strong className="text-amber-400 font-mono">CSS3 Keyframes + SMIL</strong>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-400">
+                    <span>{isHindi ? "सुरक्षा सत्यापन:" : "Cryptographic Standard:"}</span>
+                    <strong className="text-blue-400 font-mono">RFC 3986 Certified</strong>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-slate-800 bg-slate-900/50 p-3 text-[11px] text-slate-400">
+                  <span className="text-amber-300 font-semibold">{isHindi ? "टिप:" : "Interactive Hint:"}</span>{" "}
+                  {isHindi
+                    ? "माउस घुमाकर 3D पर्सपेक्टिव टिल्ट का अनुभव करें या विभिन्न वास्तुकला आरेखों का चयन करें।"
+                    : "Move your mouse across the frame to experience responsive 3D perspective depth, or switch between architecture diagrams."}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Modal for SVG Fullscreen Inspection */}
+        {isZoomed && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-md"
+            onClick={() => setIsZoomed(false)}
+          >
+            <div
+              className="relative max-w-5xl w-full rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h4 className="text-base font-bold text-white">{activeSvg.title}</h4>
+                <button
+                  onClick={() => setIsZoomed(false)}
+                  className="rounded-lg border border-slate-700 bg-slate-800 px-3 py-1 text-xs text-slate-300 hover:text-white"
+                >
+                  ✕ Close
+                </button>
+              </div>
+              <div className="flex items-center justify-center p-4 bg-slate-950 rounded-xl overflow-auto max-h-[80vh]">
+                <Image
+                  src={`/brand/${activeSvg.file}`}
+                  alt={activeSvg.title}
+                  width={1200}
+                  height={800}
+                  className="w-full h-auto object-contain max-h-[70vh]"
+                  unoptimized
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Traffic Capability Summary Box */}
         <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-slate-900/60 to-slate-950 p-6 sm:p-8 backdrop-blur-xl shadow-2xl">
