@@ -29,14 +29,21 @@ import {
   Key,
 } from "lucide-react";
 
+interface SessionUser {
+  id: string;
+  email: string;
+  name?: string | null;
+  role?: string;
+}
+
 export default function HomePage() {
   const { t, appName } = useI18n();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<SessionUser | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((res) => res.json())
-      .then((data) => {
+      .then((data: { user?: SessionUser | null }) => {
         if (data.user) setUser(data.user);
       })
       .catch(() => {});
