@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
+import { usePathname } from "next/navigation";
 
 interface SonarPing {
   id: number;
@@ -150,10 +151,42 @@ function TuxCyberPet({ isHovering }: { isHovering: boolean }) {
 }
 
 export function CryptoCursor() {
+  const pathname = usePathname();
+  const [isEnabled, setIsEnabled] = useState<boolean>(false);
   const [isTouchDevice, setIsTouchDevice] = useState<boolean>(true);
   const [isHoveringInteractive, setIsHoveringInteractive] = useState<boolean>(false);
   const [sonarPings, setSonarPings] = useState<SonarPing[]>([]);
   const [isVisible, setIsVisible] = useState<boolean>(false);
+
+  // Check whether cursor is enabled: ON by default in showcase/public, OFF by default in dashboard/admin
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const evaluateEnabled = () => {
+      const isDashboardRoute =
+        pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin");
+      if (isDashboardRoute) {
+        // In dashboard app: OFF by default, ON if explicitly enabled by user
+        const pref = localStorage.getItem("blindshare_crypto_cursor_dashboard");
+        setIsEnabled(pref === "true");
+      } else {
+        // In showcase / public landing: ON by default, OFF if explicitly disabled by user
+        const pref = localStorage.getItem("blindshare_crypto_cursor_public");
+        setIsEnabled(pref !== "false");
+      }
+    };
+
+    evaluateEnabled();
+
+    const handleToggle = () => evaluateEnabled();
+    window.addEventListener("blindshare-cursor-toggle", handleToggle);
+    window.addEventListener("storage", handleToggle);
+
+    return () => {
+      window.removeEventListener("blindshare-cursor-toggle", handleToggle);
+      window.removeEventListener("storage", handleToggle);
+    };
+  }, [pathname]);
 
   // High-performance mutable coordinates in refs to prevent React re-renders on mousemove
   const coordsRef = useRef<{ x: number; y: number; active: boolean }>({
@@ -190,7 +223,7 @@ export function CryptoCursor() {
 
   // Ultra-smooth 60-144 FPS hardware-accelerated RAF animation loop
   useEffect(() => {
-    if (isTouchDevice) return;
+    if (isTouchDevice || !isEnabled) return;
     let animationFrameId: number;
 
     const animate = () => {
@@ -242,11 +275,11 @@ export function CryptoCursor() {
 
     animationFrameId = requestAnimationFrame(animate);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isTouchDevice]);
+  }, [isTouchDevice, isEnabled]);
 
   // Passive window listeners for mouse tracking & clicks
   useEffect(() => {
-    if (isTouchDevice) return;
+    if (isTouchDevice || !isEnabled) return;
 
     const handleMouseMove = (e: MouseEvent) => {
       coordsRef.current = { x: e.clientX, y: e.clientY, active: true };
@@ -287,9 +320,9 @@ export function CryptoCursor() {
       window.removeEventListener("mouseleave", handleMouseLeave);
       window.removeEventListener("click", handleClick);
     };
-  }, [isTouchDevice, isVisible]);
+  }, [isTouchDevice, isVisible, isEnabled]);
 
-  if (isTouchDevice || !isVisible) {
+  if (isTouchDevice || !isVisible || !isEnabled) {
     return null;
   }
 

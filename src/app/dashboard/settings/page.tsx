@@ -60,6 +60,29 @@ export default function SettingsPage() {
   const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(true);
   const [sendingTestDigest, setSendingTestDigest] = useState(false);
 
+  // Cursor FX & Cyber Pet State (OFF by default in dashboard, ON in showcase)
+  const [cursorFxEnabled, setCursorFxEnabled] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const pref = localStorage.getItem("blindshare_crypto_cursor_dashboard");
+      setCursorFxEnabled(pref === "true");
+    }
+  }, []);
+
+  const handleToggleCursorFx = () => {
+    const next = !cursorFxEnabled;
+    setCursorFxEnabled(next);
+    localStorage.setItem("blindshare_crypto_cursor_dashboard", next ? "true" : "false");
+    window.dispatchEvent(new Event("blindshare-cursor-toggle"));
+    setMessage({
+      type: "success",
+      text: next
+        ? (lang === "hi" ? "साइबर पेट और कर्सर प्रभाव डैशबोर्ड में सक्रिय किया गया!" : "Cyber Pet & Cursor FX enabled in dashboard!")
+        : (lang === "hi" ? "कर्सर प्रभाव अक्षम किया गया (न्यूनतम कार्यक्षेत्र)।" : "Cursor FX disabled in dashboard (clean workspace)."),
+    });
+  };
+
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
@@ -565,6 +588,59 @@ export default function SettingsPage() {
               No custom invite codes created yet. Use the generator above to invite team members.
             </div>
           )}
+        </div>
+
+        {/* 3.5 Cyber Pet & Interactive Cursor FX */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-white">
+              <Sparkles className="h-4 w-4 text-amber-400" />
+              <span>{lang === "hi" ? "साइबर पेट और कर्सर प्रभाव" : "Cyber Pet & Interactive Cursor FX"}</span>
+            </div>
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
+                cursorFxEnabled
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                  : "border-slate-700 bg-slate-800 text-slate-400"
+              }`}
+            >
+              {cursorFxEnabled
+                ? (lang === "hi" ? "सक्रिय ✓" : "Active ✓")
+                : (lang === "hi" ? "डिफ़ॉल्ट बंद (न्यूनतम मोड)" : "Default Off (Clean Workspace)")}
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-xs text-slate-300 font-semibold">
+                {lang === "hi"
+                  ? "टक्स साइबर-पेट साथी, लेजर पॉइंटर और जीरो-नॉलेज सिफर स्पॉटलाइट"
+                  : "Tux Cyber-Pet companion, laser tracking pointer & cipher matrix spotlight"}
+              </p>
+              <p className="text-[11px] text-slate-400 max-w-xl">
+                {lang === "hi"
+                  ? "पब्लिक शोकेस पेजों पर यह हमेशा सक्रिय रहता है। डैशबोर्ड को शांत, केंद्रित और हल्का रखने के लिए डिफ़ॉल्ट रूप से यहाँ बंद रहता है। आवश्यकतानुसार आप इसे यहाँ से कभी भी चालू या बंद कर सकते हैं।"
+                  : "Active by default on public showcase pages. Kept disabled by default in the dashboard for a distraction-free, professional workspace. Toggle anytime whenever you want the companion active."}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleToggleCursorFx}
+              className={`rounded-xl px-4 py-2.5 text-xs font-bold transition shadow-sm shrink-0 flex items-center gap-2 ${
+                cursorFxEnabled
+                  ? "bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-amber-500/10"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700"
+              }`}
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>
+                {cursorFxEnabled
+                  ? (lang === "hi" ? "प्रभाव सक्रिय ✓ (बंद करें)" : "Enabled ✓ (Click to Turn Off)")
+                  : (lang === "hi" ? "सक्षम करें (Turn ON)" : "Enable Cursor FX")}
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* 4. Language & Sessions */}

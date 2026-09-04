@@ -22,6 +22,7 @@ import {
   Home,
   Settings,
   Zap,
+  Sparkles,
 } from "lucide-react";
 import { TwoFactorModal } from "@/components/auth/two-factor-modal";
 
@@ -61,6 +62,29 @@ export function DashboardSidebar({ user, onLogout }: DashboardSidebarProps) {
   const [collapsed, setCollapsed]   = useState(false);
   const [twoFAOpen, setTwoFAOpen]   = useState(false);
   const [hoveredHref, setHoveredHref] = useState<string | null>(null);
+  const [cursorFxOn, setCursorFxOn] = useState(false);
+
+  // Sync cursor FX state (default OFF in dashboard)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const checkFx = () => {
+      setCursorFxOn(localStorage.getItem("blindshare_crypto_cursor_dashboard") === "true");
+    };
+    checkFx();
+    window.addEventListener("blindshare-cursor-toggle", checkFx);
+    window.addEventListener("storage", checkFx);
+    return () => {
+      window.removeEventListener("blindshare-cursor-toggle", checkFx);
+      window.removeEventListener("storage", checkFx);
+    };
+  }, []);
+
+  const toggleCursorFx = () => {
+    const next = !cursorFxOn;
+    setCursorFxOn(next);
+    localStorage.setItem("blindshare_crypto_cursor_dashboard", next ? "true" : "false");
+    window.dispatchEvent(new Event("blindshare-cursor-toggle"));
+  };
 
   // Clear stale collapsed keys from previous versions — always start expanded
   useEffect(() => {
@@ -383,6 +407,54 @@ export function DashboardSidebar({ user, onLogout }: DashboardSidebarProps) {
               <Smartphone style={{ width: 16, height: 16, color: "#fbbf24", flexShrink: 0 }} />
               {!collapsed && (
                 <span style={{ fontSize: 12, fontWeight: 600, color: "#fde68a" }}>2FA Security</span>
+              )}
+            </button>
+
+            {/* Cyber Pet / Cursor FX Quick Toggle */}
+            <button
+              onClick={toggleCursorFx}
+              title={
+                cursorFxOn
+                  ? (lang === "hi" ? "कर्सर प्रभाव बंद करें" : "Disable Cyber Pet & Cursor FX")
+                  : (lang === "hi" ? "कर्सर प्रभाव चालू करें" : "Enable Cyber Pet & Cursor FX")
+              }
+              style={{
+                display: "flex", alignItems: "center",
+                justifyContent: collapsed ? "center" : "flex-start",
+                gap: collapsed ? 0 : 10,
+                borderRadius: 11,
+                padding: collapsed ? "9px 0" : "9px 12px",
+                border: cursorFxOn ? "1px solid rgba(16,185,129,0.35)" : "1px solid rgba(51,65,85,0.5)",
+                background: cursorFxOn ? "rgba(16,185,129,0.08)" : "rgba(15,23,42,0.5)",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+                width: "100%",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.background = cursorFxOn ? "rgba(16,185,129,0.15)" : "rgba(30,41,59,0.75)";
+                (e.currentTarget as HTMLElement).style.borderColor = cursorFxOn ? "rgba(16,185,129,0.5)" : "rgba(100,116,139,0.65)";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.background = cursorFxOn ? "rgba(16,185,129,0.08)" : "rgba(15,23,42,0.5)";
+                (e.currentTarget as HTMLElement).style.borderColor = cursorFxOn ? "rgba(16,185,129,0.35)" : "rgba(51,65,85,0.5)";
+              }}
+            >
+              <Sparkles style={{ width: 16, height: 16, color: cursorFxOn ? "#34d399" : "#64748b", flexShrink: 0 }} />
+              {!collapsed && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: cursorFxOn ? "#a7f3d0" : "#94a3b8" }}>
+                    {lang === "hi" ? "साइबर पेट" : "Cyber Pet FX"}
+                  </span>
+                  <span style={{
+                    fontSize: 9, fontWeight: 700,
+                    color: cursorFxOn ? "#34d399" : "#64748b",
+                    background: cursorFxOn ? "rgba(16,185,129,0.15)" : "rgba(100,116,139,0.12)",
+                    border: cursorFxOn ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(100,116,139,0.2)",
+                    padding: "2px 6px", borderRadius: 999,
+                  }}>
+                    {cursorFxOn ? "ON" : "OFF"}
+                  </span>
+                </div>
               )}
             </button>
 
