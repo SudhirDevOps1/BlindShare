@@ -274,6 +274,18 @@ BlindShare features a **Zero-Knowledge Master Key Vault** that guarantees you ne
 
 </details>
 
+<details open>
+<summary><strong>✨ Interactive Cyber Companion & Cryptographic Visuals</strong></summary>
+<br/>
+
+- **Tux Robot Cyber-Pet Mascot (`src/components/cursor/crypto-cursor.tsx`)** — GPU-accelerated companion with energetic wing flapping, eye blinking, dynamic amber/emerald pupils, and thruster plasma boost
+- **Adaptive Personal Distance Physics** — pet maintains a polite 80px trailing distance from cursor; activates high-speed sprint chase only when cursor moves away, yielding smoothly if crowded
+- **Focused 125px Circular Flashlight Spotlight** — tight radial cipher mask revealing background ciphertext only where the cursor moves, keeping the rest of the workspace 100% dark and clean
+- **Dedicated Settings Management** — companion toggle cleanly positioned in `/dashboard/settings` with bilingual English/Hindi controls; completely non-intrusive
+- **Strict Touch & Mobile Guard** — automatically disables overlays on touchscreens and small viewports (`< 768px`) for native, zero-obstruction mobile responsiveness
+
+</details>
+
 ---
 
 ## 👥 Role-Based Access Control (RBAC) & Permission Architecture

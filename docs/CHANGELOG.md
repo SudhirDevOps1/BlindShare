@@ -34,11 +34,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
   - GDPR Article 28 vendor disclosures covering Neon, Backblaze B2, Cloudflare, Vercel, Upstash, and Resend.
   - Enforces zero-knowledge boundary: no sub-processor ever receives decryption keys or plaintext documents.
 
+- **Tux Robot Cyber-Pet & Tight Circular Flashlight Spotlight (`src/components/cursor/crypto-cursor.tsx`):**
+  - GPU-accelerated companion mascot with flapping wings, eye blinking, dynamic amber/emerald pupils, and trailing companion distance physics.
+  - Adaptive follow physics: pet respects 80px personal space and activates high-speed chase sprint only when cursor pulls away.
+  - 125px circular flashlight mask confining ciphertext illumination strictly inside a tight radius around the cursor; workspace remains 100% dark and undisturbed elsewhere.
+  - Automatic graceful degradation on mobile touchscreens and viewports `< 768px` for zero-obstruction mobile responsiveness.
+- **Dedicated Settings Management for Cyber Pet:**
+  - Placed cyber pet toggle exclusively inside the Settings page (`/dashboard/settings`), removing clutter from dashboard sidebar.
+
 ### 🛡️ Security Hardening
 - **AES-256-GCM Database Field Vault (`src/lib/crypto/db-vault.ts`):**
   - Server-side AES-256-GCM encryption of sensitive database fields at rest using PBKDF2-SHA256 derived keys (`DB_ENCRYPTION_KEY`).
-  - Deterministic encryption for auth lookups (`users.email`, `viewSessions.viewerEmail`); randomized encryption for TOTP secrets, NDA signatures, and in-doc Q&A.
-  - Transparent decryption on read routes; seamless legacy plaintext fallback and automatic upgrade on write.
+  - Deterministic encryption for auth lookups (`users.email`, `viewSessions.viewerEmail`, `auditLog.detailsJson`); randomized encryption for TOTP secrets, NDA signatures, and in-doc Q&A.
+  - Retroactive auto-migration scanning existing Neon DB audit rows and securely upgrading legacy emails to `enc:det:...`.
+  - Full authenticated AES-256-GCM encryption wired into OTP verification routes.
+- **Unregistered User Warning Defense (Auth Routes):**
+  - Instant 404 alert warnings for unregistered email submissions on Forgot Password, Magic Link, and OTP routes, eliminating silent failures.
 - **Distributed Anti-DoS Rate Limiter on System Probes (`src/app/api/health/route.ts`):**
   - Sliding-window rate limiter protecting `/api/health` probes (60 req/min per IP) to prevent monitoring pipeline starvation.
 - **34 Automated Enterprise Security Tests (`npm test`):**

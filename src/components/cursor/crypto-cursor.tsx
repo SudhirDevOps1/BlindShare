@@ -213,16 +213,19 @@ export function CryptoCursor() {
   const spotlightRef = useRef<HTMLDivElement>(null);
   const matrixSpotlightRef = useRef<HTMLDivElement>(null);
 
-  // Detect touch screens or coarse pointers to disable custom cursor
+  // Detect touch screens or small viewports (< 768px) to disable custom cursor on mobile
   useEffect(() => {
     if (typeof window === "undefined") return;
     const checkTouch = () => {
       const isCoarse = window.matchMedia("(pointer: coarse)").matches;
       const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      const isSmallScreen = window.innerWidth < 768;
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      setIsTouchDevice(isCoarse || hasTouch || reducedMotion);
+      setIsTouchDevice(isCoarse || hasTouch || isSmallScreen || reducedMotion);
     };
     checkTouch();
+    window.addEventListener("resize", checkTouch);
+    return () => window.removeEventListener("resize", checkTouch);
   }, []);
 
   // Synchronize hovering state to ref for animation frame loop
@@ -260,40 +263,51 @@ export function CryptoCursor() {
           haloRef.current.style.transform = `translate3d(${lx - 12}px, ${ly - 12}px, 0) scale(${scale})`;
         }
 
-        // 3. Cute Tux Cyber Pet Chase Sprint Physics ("daud ke aaye")
+        // 3. Cute Tux Cyber Pet Chase Sprint Physics ("cursor se dur rahein, door jane par follow krein")
         const pet = petPhysicsRef.current;
         if (pet.x === -500) {
-          pet.x = tx - 45;
-          pet.y = ty + 12;
+          pet.x = tx - 80;
+          pet.y = ty + 24;
         }
 
-        // Target spot: pet runs to stay at a friendly trailing position
-        const targetSide = tx >= pet.x ? -44 : 44;
+        // Target spot: pet stays at a friendly trailing distance (80px) from cursor
+        const targetSide = tx >= pet.x ? -80 : 80;
         const targetPetX = tx + targetSide;
-        const targetPetY = ty + 12;
+        const targetPetY = ty + 24;
 
         const pDx = targetPetX - pet.x;
         const pDy = targetPetY - pet.y;
         const pDist = Math.hypot(pDx, pDy);
+        const distFromCursor = Math.hypot(tx - pet.x, ty - pet.y);
 
         let isRunningNow = false;
         const facingNow: 1 | -1 = tx >= pet.x ? 1 : -1;
 
-        if (pDist > 14) {
-          // Pet is actively running to catch up!
+        // Follow threshold: Only follow/run when cursor moves away beyond comfortable distance
+        const shouldStartRunning = pDist > 48 || distFromCursor > 125;
+        const shouldKeepRunning = pet.wasRunning && pDist > 16;
+
+        if (shouldStartRunning || shouldKeepRunning) {
+          // Pet is actively running to catch up to its 80px spot!
           isRunningNow = true;
           // Dynamic chase speed: runs fast (up to 14px/frame) if distant
-          const chaseSpeed = Math.min(14, Math.max(3, pDist * 0.15));
+          const chaseSpeed = Math.min(14, Math.max(3.2, pDist * 0.15));
           const angle = Math.atan2(pDy, pDx);
           pet.x += Math.cos(angle) * chaseSpeed;
           pet.y += Math.sin(angle) * chaseSpeed;
           pet.idleFrames = 0;
         } else {
-          // Smooth deceleration when close
-          pet.x += pDx * 0.12;
-          pet.y += pDy * 0.12;
+          // If cursor gets too close to the pet (crowding < 55px), pet gently yields space
+          if (distFromCursor < 55) {
+            pet.x += (pet.x - tx) * 0.06;
+            pet.y += (pet.y - ty) * 0.06;
+          } else {
+            // Smooth idle positioning
+            pet.x += pDx * 0.08;
+            pet.y += pDy * 0.08;
+          }
           pet.idleFrames = (pet.idleFrames || 0) + 1;
-          if (pet.idleFrames < 6 && pet.wasRunning) {
+          if (pet.idleFrames < 4 && pet.wasRunning) {
             isRunningNow = true;
           }
         }

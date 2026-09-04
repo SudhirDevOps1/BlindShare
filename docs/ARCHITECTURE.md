@@ -94,6 +94,13 @@ users 1─* invites · users 1─* push_subscriptions · audit_log · system_set
   - Aggregates live viewer counts, active links, slide progression, and coarse geolocation without storing IP addresses or tracking cookies.
 - **Distributed Anti-DoS Rate Limiter on System Probes (`src/app/api/health/route.ts`)**:
   - Sliding-window rate limiter protecting `/api/health` probes (60 req/min per IP) to prevent denial-of-service and resource exhaustion attacks against monitoring endpoints.
+- **Interactive Cyber Companion & 125px Flashlight Spotlight Architecture (`src/components/cursor/crypto-cursor.tsx`)**:
+  - GPU-accelerated mascot follower using direct DOM classes inside `requestAnimationFrame` for 0ms React scheduler latency.
+  - Adaptive trailing personal space: pet maintains a comfortable 80px distance from cursor; activates high-speed sprint chase only when cursor moves away beyond threshold, smoothly yielding if crowded.
+  - Tight 125px circular CSS mask (`radial-gradient`) confining ciphertext illumination strictly around the cursor, keeping the rest of the workspace completely dark and clean.
+  - Strict Touchscreen & Small Viewport Guard: automatically unmounts/disables overlays on coarse pointers, touchscreens, and viewports `< 768px` to guarantee 100% native mobile responsiveness.
+- **Unregistered Account Warning Defense (`/api/auth/forgot-password`, `/api/auth/magic-link`, `/api/auth/otp`)**:
+  - Explicit 404 alert responses for unauthenticated requests with unregistered emails, paired with prominent UI alert banners to prevent user confusion.
 ---
 
 ## 📚 Related Documentation & Knowledge Base
