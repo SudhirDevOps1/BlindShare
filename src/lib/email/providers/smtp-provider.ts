@@ -19,8 +19,9 @@ export async function sendViaSmtp(payload: EmailPayload): Promise<EmailResult> {
 
   // If running in an environment where nodemailer or raw socket is available
   try {
-    // Dynamic import to avoid build errors if nodemailer is not present
-    const nodemailer = await import("nodemailer" as any).catch(() => null);
+    // Runtime dynamic load to avoid Turbopack bundle warnings if nodemailer is not installed
+    const modName = "nodemailer";
+    const nodemailer = await (Function("m", "return import(m)")(modName)).catch(() => null);
     if (!nodemailer || !nodemailer.createTransport) {
       return {
         success: false,
