@@ -49,6 +49,7 @@
 <p>
   <a href="#-why-blindshare">Why BlindShare?</a> &nbsp;•&nbsp;
   <a href="#-features">Features</a> &nbsp;•&nbsp;
+  <a href="#-role-based-access-control-rbac--permission-architecture">Access Control</a> &nbsp;•&nbsp;
   <a href="#-1-click-deployment-presets">Deploy</a> &nbsp;•&nbsp;
   <a href="#-how-it-works">How It Works</a> &nbsp;•&nbsp;
   <a href="#-local-development">Local Dev</a> &nbsp;•&nbsp;
@@ -266,30 +267,84 @@ BlindShare features a **Zero-Knowledge Master Key Vault** that guarantees you ne
 
 ---
 
-## 👥 Access Control
+## 👥 Role-Based Access Control (RBAC) & Permission Architecture
+
+BlindShare enforces multi-tenant cryptographic isolation and zero-trust administrative boundaries powered by a typed RBAC authorization engine (`src/lib/auth/rbac.ts`). Security policies are strictly enforced on all administrative API endpoints (`/api/admin/*`) and UI views.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    SUPER ADMIN (Genesis)                     │
-│  ↳ Created automatically — first account on a fresh deploy  │
-│  ↳ Full platform control, global audit logs, all invites    │
+│                    SUPER ADMIN (Genesis / Root)             │
+│  ↳ Created automatically on fresh setup / via bootstrap key │
+│  ↳ Full platform governance, infrastructure & audit trail   │
+│  ↳ Exclusive power to purge accounts & promote/demote roles │
 ├─────────────────────────────────────────────────────────────┤
-│                         ADMIN                               │
-│  ↳ Upload / share documents                                  │
-│  ↳ Generate invite codes for team members                    │
-│  ↳ View system metrics and storage usage                     │
+│                         ADMIN (Manager)                     │
+│  ↳ Upload & share confidential documents                    │
+│  ↳ Generate registration invite tokens for members & admins │
+│  ↳ Monitor live infrastructure health, DB & storage quotas  │
+│  ↳ Block/unblock accounts; execute system maintenance sweeps│
+│  ↳ CANNOT delete users or escalate privileges (Protected)   │
 ├─────────────────────────────────────────────────────────────┤
-│                    MEMBER (Owner)                            │
-│  ↳ Private vault — fully isolated from other users          │
-│  ↳ Upload, encrypt, share, create datarooms                  │
-│  ↳ Cannot see other users' files or admin settings          │
+│                    MEMBER (Owner / Tenant)                  │
+│  ↳ Private vault — cryptographically isolated per user      │
+│  ↳ Client-side AES-GCM-256 encryption in browser RAM        │
+│  ↳ Upload, encrypt, share links, create Virtual Data Rooms  │
+│  ↳ View slide dwell analytics, heatmaps & Q&A pin inbox     │
+│  ↳ Zero visibility into other users' files or admin panel   │
 ├─────────────────────────────────────────────────────────────┤
-│                   VIEWER / RECIPIENT                         │
-│  ↳ External party opening a share link                       │
-│  ↳ No account required                                       │
-│  ↳ Decrypts in-memory, signs NDAs, enters link passwords     │
+│                   VIEWER / RECIPIENT                        │
+│  ↳ External recipient opening a trackable share link        │
+│  ↳ No account or signup required                            │
+│  ↳ Decrypts in browser memory via #k=... URL fragment       │
+│  ↳ Signs clickwrap NDAs, passes email gates, views slides   │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+### 📝 Permission Matrix at a Glance
+
+| Action / Capability | 👑 Super Admin (Founder / Root) | 🛡️ Admin (Operations / Lead) | 👤 Owner (Tenant / Member) | 👁️ Viewer (Recipient) |
+|---|:---:|:---:|:---:|:---:|
+| **Upload Documents & Share E2EE Links** | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No |
+| **Track Dwell Times, Heatmaps & Slide Analytics** | ✅ Yes (Own docs) | ✅ Yes (Own docs) | ✅ Yes (Own docs only) | ❌ No |
+| **Manage Virtual Data Rooms (VDRs)** | ✅ Yes | ✅ Yes | ✅ Yes | ❌ No |
+| **Access Admin Panel (`/admin`)** | ✅ Full Access | ✅ Full Access | ❌ Forbidden (403) | ❌ Forbidden |
+| **Inspect System Diagnostics & Live Latency Meters** | ✅ Yes (Neon, B2) | ✅ Yes (Neon, B2) | ❌ Forbidden (403) | ❌ Forbidden |
+| **Execute Maintenance Sweeps & Storage Purging** | ✅ Yes | ✅ Yes | ❌ Forbidden (403) | ❌ Forbidden |
+| **View System-Wide Security Audit Logs** | ✅ Full Audit Trail | ✅ Full Audit Trail | ❌ Forbidden (403) | ❌ Forbidden |
+| **Generate Registration Invites (Owner/Admin)** | ✅ Yes | ✅ Yes | ❌ Forbidden (403) | ❌ Forbidden |
+| **Block / Unblock Accounts (Instant Session Kill)** | ✅ Yes | ✅ Yes | ❌ Forbidden (403) | ❌ Forbidden |
+| **Mint Super Admin Registration Invites** | 👑 **Super Admin Only** | ❌ Blocked (Auto-downgraded) | ❌ Forbidden (403) | ❌ Forbidden |
+| **Promote or Demote User Roles** | 👑 **Super Admin Only** | ❌ Blocked (403 Forbidden) | ❌ Forbidden (403) | ❌ Forbidden |
+| **Permanently Delete User Accounts & Wipe Storage** | 👑 **Super Admin Only** | ❌ Blocked (403 Forbidden) | ❌ Forbidden (403) | ❌ Forbidden |
+| **Read Other Users' Secret Plaintext Documents** | ❌ **Mathematically Impossible** | ❌ **Mathematically Impossible** | ❌ **Mathematically Impossible** | 🔑 **Only with `#k=` key** |
+
+> 🔒 **The BlindShare Cryptographic Guarantee:** Even a **Super Admin** with complete root database and server access cannot decrypt or read another user's documents. Decryption keys reside exclusively in the recipient's browser memory or inside the URL fragment (`#k=...`), which RFC 3986 guarantees is never transmitted across the network or stored in database columns.
+
+---
+
+### 🏢 Real-World Enterprise Scenario
+
+To understand how permissions operate in production, consider a high-growth company **TechCorp**:
+
+1. **Founder & CEO (👑 Super Admin)**:
+   - Sets up the initial deployment.
+   - Generates an Admin invite token (`role: admin`) for their VP of Operations.
+   - Retains supreme authority: If an admin leaves or turns rogue, only the Super Admin can revoke their administrative privileges, demote their role back to a standard user, or permanently purge the account and wipe its encrypted storage.
+2. **VP of Operations / IT Lead (🛡️ Admin)**:
+   - Oversees day-to-day platform health from `/admin`.
+   - Checks that database storage is within the free-tier quota (e.g. 9 MB of 512 MB).
+   - Generates 1-click registration links for new employees or external partners.
+   - Suspends suspicious accounts instantly using the **Block** action (immediately revoking all active sessions via `sessionVersion` bumping).
+   - **Grave Action Protection:** Cannot delete user accounts, promote accounts to Super Admin, or hijack the platform.
+3. **Sales Representative / Dealmaker (👤 Owner / Member)**:
+   - Uploads confidential pitch decks and financial spreadsheets.
+   - Generates zero-knowledge links with dynamic email watermarking, self-destruct countdowns, and clickwrap NDAs.
+   - Monitors investor engagement in real time (e.g. slide 4 dwell time: 2m 14s, 🔥 Hot Deal conviction score: 92/100).
+   - Completely isolated from other users' files and has zero access to the Admin panel.
+4. **Prospective Investor / Enterprise Client (👁️ Viewer)**:
+   - Receives the link (`https://app.com/v/pitch-deck#k=...`).
+   - Browser client WebCrypto engine decrypts the document in memory without needing an account.
+   - Reads the deck, draws in-canvas digital signatures, and asks questions by pinning interactive question tags directly onto specific slides.
 
 ---
 
