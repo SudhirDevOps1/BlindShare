@@ -39,15 +39,26 @@ const CIPHER_STREAM = Array.from({ length: 1400 }).map((_, i) => {
   };
 });
 
-function TuxCyberPet({ isHovering }: { isHovering: boolean }) {
+interface TuxCyberPetProps {
+  isHovering: boolean;
+  isRunning: boolean;
+  facing: 1 | -1;
+}
+
+function TuxCyberPet({ isHovering, isRunning, facing }: TuxCyberPetProps) {
   return (
-    <div className="relative select-none pointer-events-none">
+    <div
+      className="relative select-none pointer-events-none transition-transform duration-100"
+      style={{
+        transform: `scaleX(${facing}) rotate(${isRunning ? facing * 12 : 0}deg)`,
+      }}
+    >
       <svg
         viewBox="0 0 36 42"
-        className={`w-7 h-8 transition-transform duration-200 ${
+        className={`w-8 h-9 transition-transform duration-200 ${
           isHovering
-            ? "scale-110 drop-shadow-[0_2px_8px_rgba(245,158,11,0.35)]"
-            : "scale-100 drop-shadow-[0_2px_5px_rgba(16,185,129,0.2)]"
+            ? "scale-110 drop-shadow-[0_2px_10px_rgba(245,158,11,0.45)]"
+            : "scale-100 drop-shadow-[0_2px_6px_rgba(16,185,129,0.3)]"
         }`}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
@@ -56,15 +67,35 @@ function TuxCyberPet({ isHovering }: { isHovering: boolean }) {
         <ellipse
           cx="18"
           cy="39"
-          rx="4.5"
-          ry="1.5"
-          fill={isHovering ? "rgba(245,158,11,0.45)" : "rgba(56,189,248,0.35)"}
+          rx={isRunning ? 6 : 4.5}
+          ry={isRunning ? 2.6 : 1.5}
+          fill={isRunning ? "rgba(245,158,11,0.85)" : isHovering ? "rgba(245,158,11,0.5)" : "rgba(56,189,248,0.4)"}
           className="animate-pulse"
         />
 
-        {/* Penguin Little Cyber Feet */}
-        <ellipse cx="12" cy="36" rx="3.5" ry="1.8" fill="#F59E0B" />
-        <ellipse cx="24" cy="36" rx="3.5" ry="1.8" fill="#F59E0B" />
+        {/* Penguin Little Cyber Feet (running step animation when moving) */}
+        <ellipse
+          cx="12"
+          cy="36"
+          rx="3.5"
+          ry="1.8"
+          fill="#F59E0B"
+          style={{
+            transformOrigin: "12px 36px",
+            animation: isRunning ? "tuxRunFootLeft 0.16s ease-in-out infinite alternate" : undefined,
+          }}
+        />
+        <ellipse
+          cx="24"
+          cy="36"
+          rx="3.5"
+          ry="1.8"
+          fill="#F59E0B"
+          style={{
+            transformOrigin: "24px 36px",
+            animation: isRunning ? "tuxRunFootRight 0.16s ease-in-out infinite alternate" : undefined,
+          }}
+        />
 
         {/* Penguin Main Body (Obsidian Cyber Chassis) */}
         <ellipse cx="18" cy="21" rx="13" ry="15" fill="#0F172A" stroke="#334155" strokeWidth="1" />
@@ -77,7 +108,9 @@ function TuxCyberPet({ isHovering }: { isHovering: boolean }) {
           strokeWidth="0.75"
           style={{
             transformOrigin: "6px 16px",
-            animation: isHovering
+            animation: isRunning
+              ? "tuxWingLeft 0.14s ease-in-out infinite alternate"
+              : isHovering
               ? "tuxWingLeft 0.25s ease-in-out infinite alternate"
               : "tuxWingLeft 0.65s ease-in-out infinite alternate",
           }}
@@ -91,7 +124,9 @@ function TuxCyberPet({ isHovering }: { isHovering: boolean }) {
           strokeWidth="0.75"
           style={{
             transformOrigin: "30px 16px",
-            animation: isHovering
+            animation: isRunning
+              ? "tuxWingRight 0.14s ease-in-out infinite alternate"
+              : isHovering
               ? "tuxWingRight 0.25s ease-in-out infinite alternate"
               : "tuxWingRight 0.65s ease-in-out infinite alternate",
           }}
@@ -120,7 +155,7 @@ function TuxCyberPet({ isHovering }: { isHovering: boolean }) {
         <polygon points="15.5,14 20.5,14 18,17.5" fill="#F59E0B" />
 
         {/* Eyes (Cute Digital LED Visor Eyes) */}
-        {isHovering ? (
+        {isHovering || isRunning ? (
           <>
             <circle cx="14" cy="11" r="2.2" fill="#020617" />
             <circle cx="14" cy="11" r="1.2" fill="#F59E0B" className="animate-pulse" />
@@ -142,7 +177,7 @@ function TuxCyberPet({ isHovering }: { isHovering: boolean }) {
           cx="18"
           cy="2"
           r="1.2"
-          fill={isHovering ? "#F59E0B" : "#10B981"}
+          fill={isRunning ? "#F59E0B" : isHovering ? "#F59E0B" : "#10B981"}
           className="animate-ping"
         />
       </svg>
@@ -157,6 +192,10 @@ export function CryptoCursor() {
   const [isHoveringInteractive, setIsHoveringInteractive] = useState<boolean>(false);
   const [sonarPings, setSonarPings] = useState<SonarPing[]>([]);
   const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [petMotion, setPetMotion] = useState<{ isRunning: boolean; facing: 1 | -1 }>({
+    isRunning: false,
+    facing: 1,
+  });
 
   // Check whether cursor is enabled: ON by default in showcase/public, OFF by default in dashboard/admin
   useEffect(() => {
@@ -195,6 +234,17 @@ export function CryptoCursor() {
     active: false,
   });
   const lerpRef = useRef<{ x: number; y: number }>({ x: -500, y: -500 });
+  const petPhysicsRef = useRef<{
+    x: number;
+    y: number;
+    facing: 1 | -1;
+    isRunning: boolean;
+  }>({
+    x: -500,
+    y: -500,
+    facing: 1,
+    isRunning: false,
+  });
   const isHoveringRef = useRef<boolean>(false);
 
   // Direct element references for 60-144 FPS hardware-accelerated transforms
@@ -229,7 +279,7 @@ export function CryptoCursor() {
     const animate = () => {
       const target = coordsRef.current;
       if (target.active) {
-        // Lerp damping calculation: targetX + (mouseX - targetX) * 0.22
+        // Cursor Lerp damping calculation: targetX + (mouseX - targetX) * 0.22
         const dx = target.x - lerpRef.current.x;
         const dy = target.y - lerpRef.current.y;
         lerpRef.current.x += dx * 0.22;
@@ -247,24 +297,61 @@ export function CryptoCursor() {
 
         // 2. Inertia laser halo with magnetic scale
         if (haloRef.current) {
-          const scale = isHoveringRef.current ? 1.3 : 1.0;
-          haloRef.current.style.transform = `translate3d(${lx - 14}px, ${ly - 14}px, 0) scale(${scale})`;
+          const scale = isHoveringRef.current ? 1.25 : 1.0;
+          haloRef.current.style.transform = `translate3d(${lx - 12}px, ${ly - 12}px, 0) scale(${scale})`;
         }
 
-        // 3. Cute Tux Cyber Pet Companion floating alongside with organic levitation
+        // 3. Cute Tux Cyber Pet companion running & flowing towards the cursor ("daud ke aaye")
+        const pet = petPhysicsRef.current;
+        if (pet.x === -500) {
+          pet.x = tx - 32;
+          pet.y = ty + 12;
+        }
+
+        // Target spot for pet is slightly behind cursor depending on movement direction
+        const petTargetX = tx + (pet.facing === 1 ? -36 : 36);
+        const petTargetY = ty + 12;
+
+        const petDx = petTargetX - pet.x;
+        const petDy = petTargetY - pet.y;
+        const petDist = Math.hypot(petDx, petDy);
+
+        if (petDist > 18) {
+          // Pet is actively running to catch up!
+          const newFacing: 1 | -1 = petDx >= 0 ? 1 : -1;
+          pet.x += petDx * 0.16; // dynamic sprint
+          pet.y += petDy * 0.16;
+
+          if (!pet.isRunning || pet.facing !== newFacing) {
+            pet.isRunning = true;
+            pet.facing = newFacing;
+            setPetMotion({ isRunning: true, facing: newFacing });
+          }
+        } else {
+          // Pet has arrived at cursor, smooth idle float
+          pet.x += petDx * 0.08;
+          pet.y += petDy * 0.08;
+
+          if (pet.isRunning) {
+            pet.isRunning = false;
+            setPetMotion((prev) => ({ ...prev, isRunning: false }));
+          }
+        }
+
         if (petRef.current) {
-          const hoverBob = Math.sin(Date.now() / 280) * 3;
-          petRef.current.style.transform = `translate3d(${lx + 16}px, ${ly - 16 + hoverBob}px, 0)`;
+          const hoverBob = pet.isRunning ? 0 : Math.sin(Date.now() / 260) * 2.5;
+          petRef.current.style.transform = `translate3d(${Math.round(pet.x)}px, ${Math.round(pet.y + hoverBob)}px, 0)`;
         }
 
-        // 4. Soft ambient spotlight beam
+        // 4. Soft focused flashlight glow (tight circle around cursor)
         if (spotlightRef.current) {
-          spotlightRef.current.style.transform = `translate3d(${tx - 240}px, ${ty - 240}px, 0)`;
+          spotlightRef.current.style.transform = `translate3d(${tx - 150}px, ${ty - 150}px, 0)`;
         }
 
-        // 5. Active spotlight mask over the cipher matrix
+        // 5. Circular Spotlight Mask: ONLY where cursor is, inside circle of radius 220px!
+        // Outside the circle: 100% invisible/dark!
         if (matrixSpotlightRef.current) {
-          const mask = `radial-gradient(460px circle at ${tx}px ${ty}px, black 20%, transparent 85%)`;
+          const mask = `radial-gradient(circle 220px at ${tx}px ${ty}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 45%, transparent 100%)`;
           matrixSpotlightRef.current.style.webkitMaskImage = mask;
           matrixSpotlightRef.current.style.maskImage = mask;
         }
@@ -297,7 +384,7 @@ export function CryptoCursor() {
       setIsVisible(false);
       setIsHoveringInteractive(false);
       if (matrixSpotlightRef.current) {
-        const mask = `radial-gradient(460px circle at -500px -500px, black 20%, transparent 85%)`;
+        const mask = `radial-gradient(circle 220px at -500px -500px, black 0%, transparent 100%)`;
         matrixSpotlightRef.current.style.webkitMaskImage = mask;
         matrixSpotlightRef.current.style.maskImage = mask;
       }
@@ -331,36 +418,30 @@ export function CryptoCursor() {
       <style>{`
         @keyframes tuxWingLeft {
           0% { transform: rotate(0deg); }
-          100% { transform: rotate(-22deg); }
+          100% { transform: rotate(-24deg); }
         }
         @keyframes tuxWingRight {
           0% { transform: rotate(0deg); }
-          100% { transform: rotate(22deg); }
+          100% { transform: rotate(24deg); }
+        }
+        @keyframes tuxRunFootLeft {
+          0% { transform: translateY(0px) rotate(0deg); }
+          100% { transform: translateY(-4px) rotate(-20deg); }
+        }
+        @keyframes tuxRunFootRight {
+          0% { transform: translateY(-4px) rotate(-20deg); }
+          100% { transform: translateY(0px) rotate(0deg); }
         }
       `}</style>
 
-      {/* ── 1. Full-Screen Continuous Ambient Watermark Matrix (Across ENTIRE Screen, Soft Dim Glow) ── */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-[34] select-none overflow-hidden opacity-[0.14] mix-blend-screen"
-      >
-        <div className="absolute inset-0 p-5 font-mono text-[10px] font-bold uppercase tracking-widest leading-loose select-none overflow-hidden break-words text-justify">
-          {CIPHER_STREAM.map((item) => (
-            <span key={`amb-${item.id}`} className={`${item.color} mr-2.5 inline-block`}>
-              {item.text}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ── 2. Interactive Spotlight Illumination Layer (Brightens Softly around Cursor) ── */}
+      {/* ── 1. Circular Cipher Flashlight (Strictly within 220px circle around cursor, dark everywhere else) ── */}
       <div
         ref={matrixSpotlightRef}
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-[35] select-none overflow-hidden mix-blend-screen opacity-[0.55]"
+        className="pointer-events-none fixed inset-0 z-[32] select-none overflow-hidden mix-blend-screen opacity-[0.45] transition-opacity duration-300"
         style={{
-          WebkitMaskImage: `radial-gradient(460px circle at -500px -500px, black 20%, transparent 85%)`,
-          maskImage: `radial-gradient(460px circle at -500px -500px, black 20%, transparent 85%)`,
+          WebkitMaskImage: `radial-gradient(circle 220px at -500px -500px, black 0%, transparent 100%)`,
+          maskImage: `radial-gradient(circle 220px at -500px -500px, black 0%, transparent 100%)`,
         }}
       >
         <div className="absolute inset-0 p-5 font-mono text-[10px] font-bold uppercase tracking-widest leading-loose select-none overflow-hidden break-words text-justify">
@@ -372,50 +453,54 @@ export function CryptoCursor() {
         </div>
       </div>
 
-      {/* ── 3. Soft Ambient Radial Beam (Subtle Glow, Not Blinding) ── */}
+      {/* ── 2. Focused Radial Spotlight Aura (Tight, Soft, Non-Blinding) ── */}
       <div
         ref={spotlightRef}
         aria-hidden="true"
-        className="pointer-events-none fixed top-0 left-0 z-[99990] w-[480px] h-[480px] rounded-full will-change-transform opacity-60 transition-opacity duration-300"
+        className="pointer-events-none fixed top-0 left-0 z-[99990] w-[300px] h-[300px] rounded-full will-change-transform opacity-30 transition-opacity duration-300"
         style={{
           background:
-            "radial-gradient(circle, rgba(245, 158, 11, 0.04) 0%, rgba(59, 130, 246, 0.015) 45%, transparent 75%)",
+            "radial-gradient(circle, rgba(245, 158, 11, 0.08) 0%, rgba(16, 185, 129, 0.03) 45%, transparent 70%)",
         }}
       />
 
-      {/* ── 4. Cryptographic Overlays & Tux Cyber-Pet (No Text, Soft Luminescence) ── */}
+      {/* ── 3. Cryptographic Overlays & Tux Cyber-Pet Follower ── */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-[99999] overflow-hidden select-none"
       >
-        {/* Soft Inertia Halo Ring */}
+        {/* Crisp Laser Halo Ring */}
         <div
           ref={haloRef}
-          className={`absolute top-0 left-0 w-7 h-7 rounded-full border transition-colors duration-150 flex items-center justify-center will-change-transform ${
+          className={`absolute top-0 left-0 w-6 h-6 rounded-full border transition-colors duration-150 flex items-center justify-center will-change-transform ${
             isHoveringInteractive
-              ? "border-amber-400/80 bg-amber-400/10 shadow-[0_0_16px_rgba(245,158,11,0.4)]"
-              : "border-amber-500/40 bg-amber-500/5 shadow-[0_0_8px_rgba(245,158,11,0.2)]"
+              ? "border-amber-400/90 bg-amber-400/10 shadow-[0_0_12px_rgba(245,158,11,0.4)]"
+              : "border-amber-500/50 bg-amber-500/5 shadow-[0_0_6px_rgba(245,158,11,0.2)]"
           }`}
         >
-          {/* Subtle Precision Crosshair Notches on Halo */}
-          <div className="absolute top-0 w-0.5 h-1 bg-amber-400/70" />
-          <div className="absolute bottom-0 w-0.5 h-1 bg-amber-400/70" />
-          <div className="absolute left-0 h-0.5 w-1 bg-amber-400/70" />
-          <div className="absolute right-0 h-0.5 w-1 bg-amber-400/70" />
+          {/* Micro Precision Crosshair Notches on Halo */}
+          <div className="absolute top-0 w-0.5 h-1 bg-amber-400/80" />
+          <div className="absolute bottom-0 w-0.5 h-1 bg-amber-400/80" />
+          <div className="absolute left-0 h-0.5 w-1 bg-amber-400/80" />
+          <div className="absolute right-0 h-0.5 w-1 bg-amber-400/80" />
         </div>
 
-        {/* Precision Laser Center Micro-Dot */}
+        {/* Pinpoint Precision Laser Center Micro-Dot */}
         <div
           ref={laserDotRef}
-          className="absolute top-0 left-0 w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_6px_#f59e0b] will-change-transform"
+          className="absolute top-0 left-0 w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_5px_#f59e0b] will-change-transform"
         />
 
-        {/* Cute Linux Tux Cyber-Pet Companion (Animated, Compact, No Text) */}
+        {/* Tux Cyber-Pet Companion: Runs & flows to cursor ("daud ke aaye") */}
         <div
           ref={petRef}
           className="absolute top-0 left-0 will-change-transform pointer-events-none"
         >
-          <TuxCyberPet isHovering={isHoveringInteractive} />
+          <TuxCyberPet
+            isHovering={isHoveringInteractive}
+            isRunning={petMotion.isRunning}
+            facing={petMotion.facing}
+          />
         </div>
 
         {/* Click Sonar Ping Waves */}
@@ -424,10 +509,10 @@ export function CryptoCursor() {
             key={ping.id}
             className="absolute rounded-full border border-amber-400/70 bg-amber-400/15 pointer-events-none animate-ping"
             style={{
-              left: `${ping.x - 26}px`,
-              top: `${ping.y - 26}px`,
-              width: "52px",
-              height: "52px",
+              left: `${ping.x - 22}px`,
+              top: `${ping.y - 22}px`,
+              width: "44px",
+              height: "44px",
               animationDuration: "0.55s",
             }}
           />

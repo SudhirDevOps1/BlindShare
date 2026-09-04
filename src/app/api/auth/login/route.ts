@@ -158,7 +158,7 @@ export async function POST(request: Request) {
       action: "auth.login",
       resourceType: "user",
       resourceId: user.id,
-      detailsJson: JSON.stringify({ email: cleanEmail }), // use cleanEmail (already decrypted/normalized)
+      detailsJson: JSON.stringify({ email: encryptEmail(cleanEmail) }), // AES-256-GCM encrypted
     });
 
     const decryptedEmail = decryptEmail(user.email);

@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { logger } from "@/lib/logger";
+import { encryptEmail } from "@/lib/crypto/db-vault";
 
 let migrationDone = false;
 
@@ -294,6 +295,35 @@ export async function ensureDatabaseSchema(pool: Pool) {
           END IF;
         END $$;
       `);
+
+      // Retroactive zero-knowledge sanitization: encrypt any legacy plaintext emails in audit_log
+      try {
+        const auditRes = await client.query(`
+          SELECT id, details_json 
+          FROM audit_log 
+          WHERE details_json LIKE '%"email"%' 
+            AND details_json NOT LIKE '%enc:det:%'
+          LIMIT 250;
+        `);
+        for (const row of auditRes.rows) {
+          try {
+            const parsed = JSON.parse(row.details_json);
+            let changed = false;
+            if (parsed.email && typeof parsed.email === "string" && !parsed.email.startsWith("enc:")) {
+              parsed.email = encryptEmail(parsed.email);
+              changed = true;
+            }
+            if (parsed.recipientEmail && typeof parsed.recipientEmail === "string" && !parsed.recipientEmail.startsWith("enc:")) {
+              parsed.recipientEmail = encryptEmail(parsed.recipientEmail);
+              changed = true;
+            }
+            if (changed) {
+              await client.query(`UPDATE audit_log SET details_json = $1 WHERE id = $2`, [JSON.stringify(parsed), row.id]);
+            }
+          } catch {}
+        }
+      } catch {}
+
       migrationDone = true;
       logger.info("db.auto_migration_complete");
     } finally {

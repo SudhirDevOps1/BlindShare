@@ -9,6 +9,7 @@ import { sendEmail, renderInviteEmail } from "@/lib/email";
 import { getRequestOrigin } from "@/lib/auth/request-origin";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
+import { encryptEmail } from "@/lib/crypto/db-vault";
 
 const sendInviteSchema = z.object({
   recipientEmail: z.string().trim().email("Valid recipient email is required").toLowerCase(),
@@ -79,7 +80,7 @@ export async function POST(request: Request) {
       resourceType: "invite",
       resourceId: inviteId,
       detailsJson: JSON.stringify({
-        recipientEmail,
+        recipientEmail: encryptEmail(recipientEmail),
         role: effectiveRole,
         expiryDays: finalDays,
         emailProvider: emailResult.provider,

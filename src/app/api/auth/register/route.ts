@@ -140,7 +140,7 @@ export async function POST(request: Request) {
       action: "auth.register",
       resourceType: "user",
       resourceId: userId,
-      detailsJson: JSON.stringify({ email: cleanEmail, role }),
+      detailsJson: JSON.stringify({ email: encryptEmail(cleanEmail), role }),
     });
 
     return NextResponse.json({

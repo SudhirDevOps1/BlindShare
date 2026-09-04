@@ -6,6 +6,7 @@ import { contactSchema } from "@/lib/validation/schemas";
 import { checkLockout, recordFailure } from "@/lib/auth/lockout";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import { encryptEmail, encryptField } from "@/lib/crypto/db-vault";
 
 function clientIp(request: Request): string {
   return (
@@ -46,12 +47,12 @@ export async function POST(request: Request) {
         actorType: "viewer",
         action: "contact_submission",
         resourceType: "contact_message",
-        resourceId: email,
+        resourceId: encryptEmail(email),
         detailsJson: JSON.stringify({
-          name: name || "Anonymous",
-          email,
+          name: name ? encryptField(name) : "Anonymous",
+          email: encryptEmail(email),
           subject: subject || "General Inquiry",
-          messageSnippet: message.slice(0, 300),
+          messageSnippet: encryptField(message.slice(0, 300)),
           submittedAt: new Date().toISOString(),
           ip,
         }),

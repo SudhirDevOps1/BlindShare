@@ -12,7 +12,7 @@ import {
 import { verifyPassword } from "@/lib/auth/password";
 import { genId } from "@/lib/ids";
 import QRCode from "qrcode";
-import { encryptField } from "@/lib/crypto/db-vault";
+import { encryptField, encryptEmail } from "@/lib/crypto/db-vault";
 
 async function ensure2faColumns() {
   try {
@@ -109,7 +109,7 @@ export async function POST(request: Request) {
         action: "auth.2fa_enabled",
         resourceType: "user",
         resourceId: session.id,
-        detailsJson: JSON.stringify({ email: session.email }),
+        detailsJson: JSON.stringify({ email: encryptEmail(session.email) }),
       });
 
       return NextResponse.json({
@@ -159,7 +159,7 @@ export async function POST(request: Request) {
         action: "auth.2fa_disabled",
         resourceType: "user",
         resourceId: session.id,
-        detailsJson: JSON.stringify({ email: session.email }),
+        detailsJson: JSON.stringify({ email: encryptEmail(session.email) }),
       });
 
       return NextResponse.json({

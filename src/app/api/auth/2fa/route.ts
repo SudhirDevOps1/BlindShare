@@ -6,7 +6,7 @@ import { verify2faPreAuthToken, createSessionCookie } from "@/lib/auth/session";
 import { verifyTotpToken, verifyAndConsumeBackupCode } from "@/lib/auth/totp";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
-import { decryptField, decryptEmail } from "@/lib/crypto/db-vault";
+import { decryptField, decryptEmail, encryptEmail } from "@/lib/crypto/db-vault";
 
 async function ensure2faColumns() {
   try {
@@ -104,7 +104,7 @@ export async function POST(request: Request) {
       action: isBackupValid ? "auth.login_2fa_backup" : "auth.login_2fa",
       resourceType: "user",
       resourceId: user.id,
-      detailsJson: JSON.stringify({ email: cleanEmail, method: isBackupValid ? "backup_code" : "totp" }),
+      detailsJson: JSON.stringify({ email: encryptEmail(cleanEmail), method: isBackupValid ? "backup_code" : "totp" }),
     });
 
     return NextResponse.json({
