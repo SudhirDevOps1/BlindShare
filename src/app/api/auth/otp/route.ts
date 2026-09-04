@@ -8,6 +8,7 @@ import { sendEmail, renderOtpEmail } from "@/lib/email";
 import { parseBody } from "@/lib/validation";
 import { z } from "zod";
 import crypto from "crypto";
+import { encryptEmail, decryptEmail } from "@/lib/crypto/db-vault";
 
 const sendOtpSchema = z.object({
   email: z.string().trim().email("Invalid email address").toLowerCase(),
@@ -34,23 +35,37 @@ export async function POST(request: Request) {
   const { email } = parsed.data;
 
   try {
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const encEmail = encryptEmail(email);
+    const [user] = await db.select().from(users).where(eq(users.email, encEmail)).limit(1);
     if (!user) {
-      return NextResponse.json({
-        success: true,
-        message: "If an account exists with that email, a verification code has been sent.",
-      });
+      const [anyUser] = await db.select({ id: users.id }).from(users).limit(1);
+      if (!anyUser) {
+        return NextResponse.json(
+          {
+            error: "Database has no registered accounts yet. Please click 'Create Account' to register your Super Admin account.",
+            reason: "no_users",
+          },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(
+        {
+          error: "No account found with this email address. Please check your email or register first.",
+          reason: "user_not_found",
+        },
+        { status: 404 }
+      );
     }
 
     if (user.isBlocked) {
       return NextResponse.json({ error: "Account is suspended. Contact an administrator." }, { status: 403 });
     }
 
-    // Invalidate prior active OTPs for this email
+    // Invalidate prior active OTPs for this email (encrypted lookup)
     await db
       .update(authTokens)
       .set({ isUsed: true })
-      .where(and(eq(authTokens.email, email), eq(authTokens.type, "otp"), eq(authTokens.isUsed, false)));
+      .where(and(eq(authTokens.email, encEmail), eq(authTokens.type, "otp"), eq(authTokens.isUsed, false)));
 
     // Generate random 6-digit number
     const rawOtp = crypto.randomInt(100000, 999999).toString();
@@ -60,7 +75,7 @@ export async function POST(request: Request) {
 
     await db.insert(authTokens).values({
       id: genId("tok"),
-      email,
+      email: encEmail, // AES-256-GCM encrypted
       tokenHash,
       type: "otp",
       expiresAt,
@@ -97,6 +112,7 @@ export async function PUT(request: Request) {
   const rawCode = (parsed.data.code || parsed.data.otp)!.trim();
 
   try {
+    const encEmail = encryptEmail(email);
     const tokenHash = hashToken(rawCode);
     const now = new Date();
 
@@ -105,7 +121,7 @@ export async function PUT(request: Request) {
       .from(authTokens)
       .where(
         and(
-          eq(authTokens.email, email),
+          eq(authTokens.email, encEmail),
           eq(authTokens.tokenHash, tokenHash),
           eq(authTokens.type, "otp"),
           eq(authTokens.isUsed, false),
@@ -118,7 +134,7 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Invalid or expired verification code" }, { status: 400 });
     }
 
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const [user] = await db.select().from(users).where(eq(users.email, encEmail)).limit(1);
 
     if (!user || user.isBlocked) {
       return NextResponse.json({ error: "Account not found or suspended" }, { status: 403 });
@@ -129,7 +145,7 @@ export async function PUT(request: Request) {
 
     const sessionUser = {
       id: user.id,
-      email: user.email,
+      email: decryptEmail(user.email),
       name: user.name,
       role: user.role as any,
       isBlocked: user.isBlocked,

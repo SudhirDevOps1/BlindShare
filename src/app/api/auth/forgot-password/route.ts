@@ -33,11 +33,23 @@ export async function POST(request: Request) {
     const encEmail = encryptEmail(email);
     const [user] = await db.select().from(users).where(eq(users.email, encEmail)).limit(1);
     if (!user) {
-      // Don't leak user existence
-      return NextResponse.json({
-        success: true,
-        message: "If an account exists with that email, a password reset link has been sent.",
-      });
+      const [anyUser] = await db.select({ id: users.id }).from(users).limit(1);
+      if (!anyUser) {
+        return NextResponse.json(
+          {
+            error: "Database has no registered accounts yet. Please click 'Create Account' to register your Super Admin account.",
+            reason: "no_users",
+          },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(
+        {
+          error: "No account found with this email address. Please check your email or register first.",
+          reason: "user_not_found",
+        },
+        { status: 404 }
+      );
     }
 
     if (user.isBlocked) {

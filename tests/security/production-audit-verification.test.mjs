@@ -230,6 +230,7 @@ test("DB Vault: PII encryption is wired into all auth and sharing routes", () =>
     { path: "src/app/api/auth/register/route.ts", fn: "encryptEmail", label: "register" },
     { path: "src/app/api/auth/login/route.ts", fn: "encryptEmail", label: "login" },
     { path: "src/app/api/auth/magic-link/route.ts", fn: "encryptEmail", label: "magic-link" },
+    { path: "src/app/api/auth/otp/route.ts", fn: "encryptEmail", label: "otp" },
     { path: "src/app/api/auth/forgot-password/route.ts", fn: "encryptEmail", label: "forgot-password" },
     { path: "src/app/api/v/[slug]/verify/route.ts", fn: "encryptField", label: "verify (viewerEmail)" },
     { path: "src/app/api/v/[slug]/sign/route.ts", fn: "encryptField", label: "sign (signerEmail)" },

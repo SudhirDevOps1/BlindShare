@@ -223,7 +223,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to send password reset link");
-      setActionSuccess("If an account exists with this email, a password reset link has been sent. Please check your inbox.");
+      setActionSuccess("Password reset link dispatched! Please check your email inbox to reset your password.");
     } catch (err: any) {
       setError(err.message || "Failed to send reset email");
     } finally {
