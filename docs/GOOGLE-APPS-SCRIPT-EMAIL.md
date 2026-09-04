@@ -48,8 +48,9 @@ function doPost(e) {
 
     const payload = JSON.parse(e.postData.contents);
 
-    // 1. Verify Secret Token Security
-    if (payload.secretToken !== SHARED_SECRET) {
+    // 1. Verify Secret Token Security (accepts either secretToken or secret)
+    const token = payload.secretToken || payload.secret;
+    if (token !== SHARED_SECRET) {
       return ContentService.createTextOutput(JSON.stringify({
         success: false,
         error: "Unauthorized: Invalid secretToken"

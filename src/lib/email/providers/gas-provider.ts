@@ -26,9 +26,11 @@ export async function sendViaGas(payload: EmailPayload): Promise<EmailResult> {
       },
       body: JSON.stringify({
         secret: secretToken,
+        secretToken: secretToken,
         to: payload.to,
         subject: payload.subject,
         html: payload.html,
+        text: payload.text || "",
         fromName: payload.fromName || "BlindShare Security",
       }),
       signal: AbortSignal.timeout(10000), // 10-second timeout
