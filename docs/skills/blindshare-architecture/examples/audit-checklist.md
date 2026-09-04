@@ -11,4 +11,4 @@ Before completing any task or pushing commits, verify each item:
 - [ ] **7. Dual-Language i18n:** Are new UI labels added to both `en` and `hi` in `src/lib/i18n/dictionary.ts`?
 - [ ] **8. PII-Safe Logging:** Are logs using `logger.info/warn/error` instead of raw `console.log`?
 - [ ] **9. Version Consistency:** Do `package.json`, `src/app/api/version/route.ts`, `README.md`, and `CHANGELOG.md` all match (`v1.4.0`)?
-- [ ] **10. Automated Tests:** Do all 24 security tests pass (`npm test`) with 0 TypeScript/ESLint errors?
+- [ ] **10. Automated Tests:** Do all 34 security tests pass (`npm test`) with 0 TypeScript/ESLint errors?

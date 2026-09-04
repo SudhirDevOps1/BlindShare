@@ -15,18 +15,28 @@ ext-patch.md (original) + NEXT-PATCH-AUDIT-FIX.md + NEXT-PATCH-HACKER-FIX.md = *
 Based on live telemetry data recorded across Neon Serverless PostgreSQL, Vercel Serverless Functions, and Backblaze B2 Object Storage:
 
 ```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        LIVE PRODUCTION RESOURCE BENCHMARKS                             │
-├───────────────────────┬─────────────────────────────┬──────────────────┬───────────────┤
-│ Infrastructure Layer  │ Live Resource Usage         │ Free-Tier Quota  │ Buffer Margin │
-├───────────────────────┼─────────────────────────────┼──────────────────┼───────────────┤
-│ 🐘 Neon Postgres      │ 9.02 MB DB Size (0.3 GB vol)│ 512 MB Free DB   │ 98.2% Free    │
-│ 🐘 Neon Compute       │ 1.34 CU-hours total         │ Serverless Idle  │ Sleep Active  │
-│ 🚀 Vercel Serverless  │ 17K Function Invocations    │ 1,000K (1M) Free │ 98.3% Free    │
-│ 🚀 Vercel Bandwidth   │ 179.23 MB Transfer          │ 100 GB Free      │ 99.8% Free    │
-│ 🚀 Vercel CPU Time    │ 10m 11s Active CPU          │ 4 Hours Free     │ 95.8% Free    │
-│ 🪣 Backblaze B2       │ 0.54 MB / 7 Encrypted Blobs │ 10,240 MB (10 GB)│ 99.9% Free    │
-│ 🪣 B2 Daily Ops       │ 16 Class B / 22 Class C     │ 2,500 Daily Caps │ $0.00 / Month │
+┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                        LIVE PRODUCTION RESOURCE BENCHMARKS (AUDITED SEP 2026)                          │
+├───────────────────────┬───────────────────────────────┬───────────────────┬──────────────┬─────────────┤
+│ Infrastructure Layer  │ Live Resource Usage           │ Free-Tier Quota   │ % Utilized   │ Headroom    │
+├───────────────────────┼───────────────────────────────┼───────────────────┼──────────────┼─────────────┤
+│ 🚀 Vercel Fast Bandwidth│ 220.18 MB Transfer          │ 100 GB / month    │ 0.22%        │ 99.78 GB    │
+│ 🚀 Vercel Function Calls│ 24K Invocations             │ 1,000K (1M) / mo  │ 2.40%        │ 976K calls  │
+│ 🚀 Vercel Active CPU  │ 15m 16s Fluid Execution       │ 4 Hours / month   │ 6.36%        │ 3h 44m      │
+│ 🚀 Vercel Memory Pool │ 3.8 GB-Hrs Provisioned RAM    │ 360 GB-Hrs / mo   │ 1.05%        │ 356 GB-Hrs  │
+│ 🚀 Vercel Edge Req    │ 27K Edge Requests             │ 1,000K (1M) / mo  │ 2.70%        │ 973K req    │
+├───────────────────────┼───────────────────────────────┼───────────────────┼──────────────┼─────────────┤
+│ 🐘 Neon DB Compute    │ 3.44 CU-hrs (Usage Sep 1–4)   │ 100 CU-hrs / mo   │ 3.44%        │ 74.2% bfr*  │
+│ 🐘 Neon DB Storage    │ 0.3 GB (300 MB) Data          │ 0.5 GB (512 MB)   │ 60.0%        │ 212 MB      │
+│ 🐘 Neon DB Network    │ 0.01 GB (10 MB) Egress        │ 5.0 GB / month    │ 0.20%        │ 4.99 GB     │
+├───────────────────────┼───────────────────────────────┼───────────────────┼──────────────┼─────────────┤
+│ 🪣 Backblaze B2 Store │ 1 MB (Today: $0.00)           │ 10 GB Free Storage│ 0.01%        │ 10,239 MB   │
+│ 🪣 Backblaze B2 Egress│ 36 KB (Today: $0.00)          │ 1 GB / day (30GB) │ 0.003%       │ ~1 GB/day   │
+│ 🪣 B2 Class B Calls   │ 3 Downloads / Reads           │ 2,500 / day       │ 0.12%        │ 2,497/day   │
+│ 🪣 B2 Class C Calls   │ 35 List / Metadata Ops        │ 2,500 / day       │ 1.40%        │ 2,465/day   │
+├───────────────────────┼───────────────────────────────┼───────────────────┼──────────────┼─────────────┤
+│ 📬 Google Apps Script │ Active Transactional Engine   │ 100–1,500 emails/d│ ~12.0%       │ $0/mo ($20s)│
+│ 🐙 GitHub Actions CI  │ 180 mins used (34 Tests pass) │ 2,000 mins / mo   │ 9.00%        │ 1,820 mins  │
 └───────────────────────┴─────────────────────────────┴──────────────────┴───────────────┘
 ```
 

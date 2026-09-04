@@ -5,11 +5,17 @@
 | Ciphertext documents | Until owner deletes; optional `DOC_TTL_SWEEP_DAYS > 0` auto-purge | crypto-shred (object delete) |
 | Document versions | With parent document; superseded objects kept until purge | versions table + tombstones |
 | `page_events` | `PAGE_EVENTS_RETENTION_DAYS` (default 180 days) | sweep job |
-| `view_sessions` | 180 days | sweep job |
+| `view_sessions` (PII encrypted) | 180 days | sweep job (AES-256-GCM encrypted viewerEmail) |
+| `signatures` (NDA clickwrap) | Retained with parent document or until account delete | AES-256-GCM encrypted signerName, signerEmail, signatureDataUrl |
+| `page_questions` (In-doc Q&A) | Retained with parent document or until owner/asker resolves | AES-256-GCM encrypted questionText, replyText, askerEmail |
 | `audit_log` | `AUDIT_RETENTION_DAYS` (default 30 days, rolling) | sweep job |
 | Invites | Until expiry + 30 days | sweep job |
 | Push subscriptions | Until unsubscribe / 404-410 from push service | auto-clean on send failure |
 | Orphaned bucket objects | > 24 h without a DB row | `/api/admin/sweeps` (cron on CF/Render) |
+
+## 🔒 Cryptographic Shredding & GDPR Art. 17 Lifecycle
+- **At Rest Protection**: All retained PII (user emails, viewer emails, 2FA secret seeds, NDA digital signatures, and slide Q&A conversations) is encrypted under the AES-256-GCM Database Field Vault (`src/lib/crypto/db-vault.ts`).
+- **Cryptographic Shredding**: When an owner deletes a document or purges their account, the server physically deletes the ciphertext objects from S3/B2 and permanently purges the associated wrapped keys. Without the keys, any residual fragments or cached blocks are mathematically unrecoverable.
 ---
 
 ## 📚 Related Documentation & Knowledge Base

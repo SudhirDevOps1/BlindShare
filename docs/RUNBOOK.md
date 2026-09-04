@@ -4,6 +4,7 @@
 Copy `.env.example` → `.env`. Generate secrets:
 ```bash
 openssl rand -hex 32              # SESSION_SECRET
+openssl rand -hex 32              # DB_ENCRYPTION_KEY (AES-256 DB Vault)
 openssl rand -hex 16              # HEALTH_TOKEN
 npx web-push generate-vapid-keys  # VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY
 uuidgen                           # ADMIN_BOOTSTRAP_INVITE

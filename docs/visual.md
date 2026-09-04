@@ -186,18 +186,20 @@ stateDiagram-v2
 
 ---
 
-## 💰 6. Three ₹0 Free-Tier Deployment Presets
+## 💰 6. Three ₹0 Free-Tier Deployment Presets & 5-Pillar Combo
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        BLINDSHARE ₹0 FREE-TIER PRESETS                                 │
+│                   BLINDSHARE ₹0 PRODUCTION STACK COMBO & PRESETS                       │
 ├───────────────────────┬────────────────────────────────┬───────────────────────────────┤
-│ PRESET A: CLOUD       │ PRESET B: DOCKER / VPS         │ PRESET C: CLOUDFLARE EDGE     │
+│ PRESET A: SERVERLESS  │ PRESET B: DOCKER / VPS         │ PRESET C: CLOUDFLARE EDGE     │
 ├───────────────────────┼────────────────────────────────┼───────────────────────────────┤
-│ 🚀 Vercel / Render    │ 🐳 Self-Hosted Docker          │ ⚡ Cloudflare Pages           │
-│ 🐘 Neon Postgres      │ 🗄️ SQLite + Litestream         │ 🌐 Turso libSQL Edge          │
+│ 🚀 Vercel Serverless  │ 🐳 Self-Hosted Docker          │ ⚡ Cloudflare Pages           │
+│ 🐘 Neon Postgres Vault│ 🗄️ SQLite + Litestream         │ 🌐 Turso libSQL Edge          │
 │ 🪣 Backblaze B2 (S3)  │ 🪣 B2 Continuous WAL Stream    │ 🪣 B2 Bandwidth Alliance      │
-│ 💰 $0 / Month         │ 💰 $0 / Month                  │ 💰 $0 / Month (0 Egress Cost) │
+│ 📬 Google Apps Script │ 📬 Google Apps Script          │ 📬 Google Apps Script         │
+│ 🐙 GitHub Actions CI  │ 🐙 GitHub Actions CI           │ 🐙 GitHub Actions CI          │
+│ 💰 $0.00 / Month      │ 💰 $0.00 / Month               │ 💰 $0.00 / Month (0 Egress)   │
 └───────────────────────┴────────────────────────────────┴───────────────────────────────┘
 ```
 
@@ -211,7 +213,7 @@ stateDiagram-v2
 | INVARIANT 2: 128-bit random tokens (genId) eliminate IDOR & enumeration attacks.      |
 | INVARIANT 3: Timing-safe HMAC & PoW comparisons (crypto.timingSafeEqual).             |
 | INVARIANT 4: SSRF engine blocks private RFC-1918 subnets & cloud metadata endpoints.  |
-| INVARIANT 5: Automated 24/24 enterprise security tests pass on every build.           |
+| INVARIANT 5: Automated 34/34 enterprise security tests pass on every build.           |
 +---------------------------------------------------------------------------------------+
 ```
 

@@ -18,6 +18,9 @@
 | Webhook Server-Side Request Forgery (SSRF) | Outbound URL/IP filter actively blocks RFC-1918 private subnets, loopback, and cloud metadata (`169.254.169.254`) | Attacker probes external public domains |
 | Account credential stuffing / password theft | Two-Factor Authentication (2FA / TOTP RFC 6238) with Google Authenticator + 8 recovery codes | User losing both authenticator device and backup codes |
 | CDN tampering / Supply-chain outage | Self-hosted local `pdf.js` vendor bundle with automatic CDN fallback | Browser caching stale scripts |
+| Database dump theft / SQL injection read leak | AES-256-GCM Database Field Vault (`src/lib/crypto/db-vault.ts`) encrypts all PII (user/viewer emails, TOTP secrets, NDA signatures, slide Q&A) | Attacker observes row counts, timestamps, and relational links, but cannot read plaintext PII |
+| Health check probe exhaustion / Monitoring DoS | Distributed sliding-window rate limiter on `/api/health` (60 req/min per IP) | Volumetric L7 DDoS saturates edge ingress bandwidth before handler executes |
+| Unconsented tracking / Regulatory non-compliance | 2026 GDPR Article 7 Bilingual Cookie Banner strictly gates `PrismAnalytics` execution until explicit affirmative opt-in | Viewer resetting browser storage triggers fresh consent banner on return |
 ---
 
 ## 📚 Related Documentation & Knowledge Base

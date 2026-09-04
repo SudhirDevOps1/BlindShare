@@ -86,6 +86,40 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
   - Seamlessly protects public document links, investor email gates, founder Q&A question pins, and admin login forms.
 - **Privacy-First Telemetry Architecture (`PrismAnalytics`)**:
   - Optional, self-hosted telemetry engine with zero third-party scripts, zero PII, zero cross-site cookies, and 10s buffered batch beaconing.
+- **AES-256-GCM Database Field Vault (`src/lib/crypto/db-vault.ts`)**:
+  - Server-side AES-256-GCM encryption of sensitive database fields at rest using PBKDF2-SHA256 derived keys (`DB_ENCRYPTION_KEY`).
+  - Protects user emails, viewer emails, 2FA TOTP secrets, NDA signatures, and slide Q&A conversations.
+  - Deterministic encryption mode enables index lookups for auth without leaking raw email plaintext.
+  - Mitigates catastrophic database dump leaks or read-only SQL injection exposure.
+- **Distributed Anti-DoS Rate Limiter on System Probes (`src/app/api/health/route.ts`)**:
+  - Sliding-window rate limiter protecting `/api/health` probes (60 req/min per IP) to prevent denial-of-service and monitoring pipeline starvation.
+- **2026 GDPR Article 7 Bilingual Cookie & Privacy Consent (`src/components/compliance/cookie-consent-banner.tsx`)**:
+  - Zero-dark-pattern consent banner gating all client analytics until affirmative opt-in with 100% English/Hindi bilingual parity.
+- **Sub-processor Registry & Enterprise DPA Transparency (`docs/PRIVACY-POLICY.md`, `/privacy#subprocessors`)**:
+  - Exhaustive GDPR Article 28 vendor disclosures (Neon, Backblaze B2, Cloudflare, Vercel, Upstash, Resend) guaranteeing zero vendor visibility into document keys or plaintext.
+- **34 Automated Enterprise Security Tests (`npm test`)**:
+  - Comprehensive CI test suite running on every commit and PR verifying:
+    1. ALTCHA SHA-256 HMAC challenge generation and PoW verification
+    2. ALTCHA signature forgery and replay attack prevention
+    3. Timing-safe HMAC session cookie verification and tamper rejection
+    4. Session revocation via `sessionVersion` invalidation
+    5. 2FA TOTP RFC 6238 generation and single-use backup code matching
+    6. Client-side AES-GCM-256 + GZIP compression roundtrip integrity
+    7. Zero-Knowledge tamper resistance and authentication tag validation
+    8. RFC 3986 URL fragment key preservation (`#k=...` never sent to server)
+    9. Owner Master Vault PBKDF2 100k rounds key derivation and key wrapping
+    10. DuckDB slide heatmaps, completion rates, and dwell percentiles ($p50, p90, p99$)
+    11. XSS script tag and event handler sanitization
+    12. AI Lead Conviction Intent Scoring (Hot, Warm, Cold deal detection)
+    13. SVG brand vector icon integrity (zero corrupted or raster PNG files)
+    14. Burn-after-reading single-use link self-destruction
+    15. Storage isolation: plaintext keys never persisted in document models
+    16. Investor intelligence metrics NaN prevention and route registration
+    17. Database Field Vault AES-256-GCM PII encryption roundtrip & auth wiring
+    18. GDPR 2026 Cookie Consent Banner & Sub-processors registry integrity
+    19. Common Event Format (CEF) SIEM string formatting
+    20. SSRF outbound validation blocking private subnets, loopbacks, and cloud metadata
+    21. Disposable/temporary email blocking and MX validation
 ---
 
 ## 📚 Related Documentation & Knowledge Base

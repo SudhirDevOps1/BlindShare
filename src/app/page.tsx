@@ -10,6 +10,7 @@ import { FeaturesShowcase } from "@/components/landing/features-showcase";
 import { StatsCounter } from "@/components/landing/stats-counter";
 import { WorkflowTimeline } from "@/components/landing/workflow-timeline";
 import { ArchitectureShowcase } from "@/components/landing/architecture-showcase";
+import { ProductionLedger } from "@/components/landing/production-ledger";
 import { CTABanner } from "@/components/landing/cta-banner";
 import { TrustBar } from "@/components/landing/trust-bar";
 import {
@@ -304,6 +305,9 @@ export default function HomePage() {
         <section className="border-t border-slate-900/80 bg-slate-950/60">
           <FeaturesShowcase />
         </section>
+
+        {/* Live Production Telemetry & $0 Free-Tier Stack Quota Ledger */}
+        <ProductionLedger />
 
         {/* ── Final CTA Banner ─────────────────────────────────────────── */}
         <CTABanner />

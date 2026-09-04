@@ -12,7 +12,7 @@ interface StatItem {
 }
 
 const STATS: StatItem[] = [
-  { value: 20,  suffix: "",   label: "Security Tests",     sub: "All passing, CodeQL verified",        color: "#10b981" },
+  { value: 34,  suffix: "",   label: "Security Tests",     sub: "All passing, CodeQL verified",        color: "#10b981" },
   { value: 256, suffix: "-bit", label: "AES-GCM Key",      sub: "Client-side WebCrypto standard",      color: "#f59e0b" },
   { value: 100, suffix: "%",  label: "Zero-Knowledge",     sub: "Server never sees plaintext",         color: "#a78bfa" },
   { value: 0,   suffix: "",  prefix: "₹", label: "Monthly Cost", sub: "Three free-tier hosting presets", color: "#34d399" },

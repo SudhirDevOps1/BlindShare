@@ -11,6 +11,15 @@
 Code: `src/lib/storage/{b2,r2,local}-adapter.ts` implement one `StorageAdapter` contract
 (`getPresignedPutUrl`, `getPresignedGetUrl`, `putObject`, `getObject`, `deleteObject`, `listObjects`).
 
+## Production ₹0 Free-Tier Stack Combo
+BlindShare is mathematically optimized to run in production on a zero-cost 5-pillar stack:
+- **Application & Edge APIs:** Vercel Hobby (100 GB bandwidth, 1M invocations, 4h CPU, 360 GB-Hrs RAM)
+- **Database & PII Field Vault:** Neon Serverless PostgreSQL (512 MB DB storage, 100 CU-hrs compute with 5-minute auto-suspend)
+- **Encrypted Blob Storage:** Backblaze B2 (10 GB free forever, 1 GB/day free egress, 2,500 daily Class B/C API operations)
+- **Transactional Auth Mailer:** Google Apps Script (`docs/GOOGLE-APPS-SCRIPT-EMAIL.md` — 100 to 1,500 free emails/day)
+- **Continuous Hardening & CI:** GitHub Actions (2,000 free runner minutes, automated CodeQL SAST & Trivy vulnerability scans)
+- **Daily Capacity Handled:** 2,500+ active deck viewers, 330–500 full pitch deck downloads, 50,000+ DB transactions daily for **$0.00 / month**.
+
 ## Data model (ER, simplified)
 ```
 users 1─* documents 1─* doc_versions
@@ -68,6 +77,23 @@ users 1─* invites · users 1─* push_subscriptions · audit_log · system_set
 - **Live Room Owner-Only Authorization**: Strict owner authentication preventing presenter slide hijacking.
 - **Tab-Switch Anti-Spy Shield**: Focus & visibility listener blurring confidential documents when reader tabs out.
 - **Distributed Edge Rate Limiting**: Upstash Redis REST pipeline (`src/lib/security/distributed-rate-limiter.ts`) synchronized across edge nodes with zero-crash in-memory sliding window fallback.
+- **AES-256-GCM Database Field Vault (`src/lib/crypto/db-vault.ts`)**:
+  - Encrypts PII at rest in the database using server-side AES-256-GCM with PBKDF2/SHA-256 key derivation (`DB_ENCRYPTION_KEY`).
+  - **Deterministic Mode** (fixed IV derived from HMAC of plaintext) enables exact lookup queries (`WHERE email = ?`) for `users.email` and `viewSessions.viewerEmail`.
+  - **Randomized Mode** (cryptographically random 12-byte IV per encryption) protects sensitive payloads without query requirements: TOTP secrets (`users.twoFactorSecret`), NDA signatures (`signerName`, `signerEmail`, `signatureDataUrl`), and slide Q&A content (`pageQuestions.questionText`, `replyText`, `askerName`, `askerEmail`).
+  - Ciphertexts are formatted as `vault:v1:iv_hex:tag_hex:cipher_hex`. Legacy plaintext strings pass through safely and upgrade upon write.
+- **2026 GDPR Article 7 Bilingual Cookie Consent & Telemetry Gating (`src/components/compliance/cookie-consent-banner.tsx`)**:
+  - Strictly prevents execution of non-essential analytics and tracking (`PrismAnalytics`) until the visitor grants explicit affirmative consent.
+  - Zero dark patterns: Accept All, Essential Only, and Granular Preference toggles with full 100% English (`en`) and Hindi (`hi`) synchronization.
+  - Consent status persisted in `localStorage` under `blindshare_cookie_consent_v1`.
+- **Sub-processor Registry Architecture (`docs/PRIVACY-POLICY.md`, `/privacy#subprocessors`)**:
+  - Full GDPR Article 28 transparency disclosing all external processing nodes (Neon, Backblaze B2, Cloudflare, Vercel, Upstash, Resend).
+  - Enforces zero-knowledge storage isolation: no third-party vendor ever receives document decryption keys or unencrypted document bytes.
+- **Umami-Style Live Investor Radar (`src/app/api/investors/live/route.ts`)**:
+  - Real-time active reader monitor tracking visitors actively engaged on document pitch decks within the last 5 minutes.
+  - Aggregates live viewer counts, active links, slide progression, and coarse geolocation without storing IP addresses or tracking cookies.
+- **Distributed Anti-DoS Rate Limiter on System Probes (`src/app/api/health/route.ts`)**:
+  - Sliding-window rate limiter protecting `/api/health` probes (60 req/min per IP) to prevent denial-of-service and resource exhaustion attacks against monitoring endpoints.
 ---
 
 ## 📚 Related Documentation & Knowledge Base

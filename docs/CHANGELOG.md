@@ -23,8 +23,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 - **Competitive Flaws & High-Smoothness Research Roadmap (`next-patch.md`):**
   - Strict competitive analysis benchmarking DocSend, Papermark, and Digify user complaints and failure points.
   - v1.4.0 execution plan for GPU-accelerated touch swiping, 0ms slide pre-caching, and reading comfort modes.
+- **Umami-Style Real-Time Live Investor Radar (`src/app/api/investors/live/route.ts`):**
+  - Real-time active reader monitor tracking visitors engaged on pitch decks within the last 5 minutes.
+  - Aggregates live viewer counts, active links, slide progression, and coarse geolocation without storing raw IP addresses or third-party cookies.
+- **2026 GDPR Article 7 Bilingual Cookie Consent Banner (`src/components/compliance/cookie-consent-banner.tsx`):**
+  - Zero-dark-pattern, non-coercive banner with 100% synchronized English (`en`) and Hindi (`hi`) parity.
+  - Telemetry and non-essential analytics (`PrismAnalytics`) strictly gated until affirmative opt-in.
+  - Granular controls with preferences saved in `localStorage` under `blindshare_cookie_consent_v1`.
+- **Sub-processor Registry & Enterprise DPA Transparency (`docs/PRIVACY-POLICY.md`, `/privacy#subprocessors`):**
+  - GDPR Article 28 vendor disclosures covering Neon, Backblaze B2, Cloudflare, Vercel, Upstash, and Resend.
+  - Enforces zero-knowledge boundary: no sub-processor ever receives decryption keys or plaintext documents.
 
 ### 🛡️ Security Hardening
+- **AES-256-GCM Database Field Vault (`src/lib/crypto/db-vault.ts`):**
+  - Server-side AES-256-GCM encryption of sensitive database fields at rest using PBKDF2-SHA256 derived keys (`DB_ENCRYPTION_KEY`).
+  - Deterministic encryption for auth lookups (`users.email`, `viewSessions.viewerEmail`); randomized encryption for TOTP secrets, NDA signatures, and in-doc Q&A.
+  - Transparent decryption on read routes; seamless legacy plaintext fallback and automatic upgrade on write.
+- **Distributed Anti-DoS Rate Limiter on System Probes (`src/app/api/health/route.ts`):**
+  - Sliding-window rate limiter protecting `/api/health` probes (60 req/min per IP) to prevent monitoring pipeline starvation.
+- **34 Automated Enterprise Security Tests (`npm test`):**
+  - Expanded test suite to 34 comprehensive tests covering DB Vault encryption roundtrip, auth route wiring, GDPR Cookie Banner, Sub-processor Registry, ALTCHA PoW, SSRF defense, timing-safe HMACs, and DuckDB analytics.
 - **Automated SIEM CEF 1.4.0 Synchronization:** Upgraded Common Event Format string generation and verified SIEM test suites.
 - **Crawler Document Isolation:** Strict prevention of search engine spidering across private link slugs.
 

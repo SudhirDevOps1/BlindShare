@@ -13,6 +13,7 @@
 | `RESEND_API_KEY`, `ABLY_API_KEY`, `BOT_WEBHOOK_URL` | optional | on compromise |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | optional | on compromise (edge rate limiting) |
 | `ALTCHA_HMAC_KEY` | optional secret store | 180 days (falls back to `SESSION_SECRET`) |
+| `DB_ENCRYPTION_KEY` | platform secret store | 180 days (with re-encryption script) |
 | Android keystore (Phase-4) | GitHub Secrets, base64 | never in repo |
 
 Rules: `.env` is never committed · secrets never appear in logs, chat or the database ·
