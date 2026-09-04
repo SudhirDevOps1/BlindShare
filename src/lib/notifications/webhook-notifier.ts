@@ -47,7 +47,7 @@ export async function sendWebhookNotification(webhookUrl: string, payload: Webho
     if (isDiscord) {
       body = {
         username: "BlindShare Alerts",
-        avatar_url: "https://blindshare.app/icon.png",
+        avatar_url: "https://blindshare.app/brand/02-favicon.svg",
         embeds: [
           {
             title: `🔔 ${getEventTitle(payload.event)}: ${payload.linkName}`,

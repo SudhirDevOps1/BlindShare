@@ -17,18 +17,18 @@ export function RetentionFunnelSankey({ sessions = [], totalPages = 10 }: Retent
     const midPage = Math.max(1, Math.ceil(totalPages / 2));
     const askPage = Math.max(1, Math.ceil(totalPages * 0.8));
 
-    const s1 = total;
-    const s2 = sessions.length > 0 ? sessions.filter((s) => s.maxPageReached >= 1).length : Math.round(total * 0.95);
-    const s3 = sessions.length > 0 ? sessions.filter((s) => s.maxPageReached >= midPage).length : Math.round(total * 0.68);
-    const s4 = sessions.length > 0 ? sessions.filter((s) => s.maxPageReached >= askPage).length : Math.round(total * 0.42);
-    const s5 = sessions.length > 0 ? sessions.filter((s) => s.maxPageReached >= totalPages).length : Math.round(total * 0.28);
+    const s1 = sessions.length;
+    const s2 = s1 > 0 ? sessions.filter((s) => s.maxPageReached >= 1).length : 0;
+    const s3 = s1 > 0 ? sessions.filter((s) => s.maxPageReached >= midPage).length : 0;
+    const s4 = s1 > 0 ? sessions.filter((s) => s.maxPageReached >= askPage).length : 0;
+    const s5 = s1 > 0 ? sessions.filter((s) => s.maxPageReached >= totalPages).length : 0;
 
     const stepDefs = [
       {
         id: "opened",
         label: t.charts?.funnel?.opened || "Link Opened",
         count: s1,
-        pct: 100,
+        pct: s1 > 0 ? 100 : 0,
         color: "from-blue-500 to-cyan-400",
         borderColor: "border-blue-500/40",
       },
@@ -36,7 +36,7 @@ export function RetentionFunnelSankey({ sessions = [], totalPages = 10 }: Retent
         id: "firstPage",
         label: t.charts?.funnel?.firstPage || "First Page Read",
         count: s2,
-        pct: Math.round((s2 / s1) * 100),
+        pct: s1 > 0 ? Math.round((s2 / s1) * 100) : 0,
         color: "from-cyan-400 to-emerald-400",
         borderColor: "border-cyan-500/40",
       },
@@ -44,7 +44,7 @@ export function RetentionFunnelSankey({ sessions = [], totalPages = 10 }: Retent
         id: "midpoint",
         label: `${t.charts?.funnel?.midpoint || "Midpoint Reached"} (p.${midPage})`,
         count: s3,
-        pct: Math.round((s3 / s1) * 100),
+        pct: s1 > 0 ? Math.round((s3 / s1) * 100) : 0,
         color: "from-emerald-400 to-amber-400",
         borderColor: "border-emerald-500/40",
       },
@@ -52,7 +52,7 @@ export function RetentionFunnelSankey({ sessions = [], totalPages = 10 }: Retent
         id: "financials",
         label: `${t.charts?.funnel?.financials || "Financials / Ask"} (p.${askPage})`,
         count: s4,
-        pct: Math.round((s4 / s1) * 100),
+        pct: s1 > 0 ? Math.round((s4 / s1) * 100) : 0,
         color: "from-amber-400 to-orange-400",
         borderColor: "border-amber-500/40",
       },
@@ -60,7 +60,7 @@ export function RetentionFunnelSankey({ sessions = [], totalPages = 10 }: Retent
         id: "completed",
         label: `${t.charts?.funnel?.completed || "Fully Completed"} (p.${totalPages})`,
         count: s5,
-        pct: Math.round((s5 / s1) * 100),
+        pct: s1 > 0 ? Math.round((s5 / s1) * 100) : 0,
         color: "from-orange-400 to-amber-500",
         borderColor: "border-orange-500/40",
       },

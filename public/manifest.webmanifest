@@ -19,13 +19,7 @@
       "type": "image/svg+xml"
     },
     {
-      "src": "/brand/icon.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/brand/logo.svg",
+      "src": "/brand/01-logo-full.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }

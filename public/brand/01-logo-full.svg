@@ -3,57 +3,74 @@
 <desc>Enterprise zero-knowledge mark: shield + blind eye + share nodes, BLINDSHARE wordmark — improved premium edition bina kuchh hataye</desc>
 <defs>
   <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="0%" stop-color="#fbbf24"/><stop offset="100%" stop-color="#f59e0b"/>
+    <stop offset="0%" stop-color="#fde68a"/>
+    <stop offset="50%" stop-color="#f59e0b"/>
+    <stop offset="100%" stop-color="#d97706"/>
   </linearGradient>
   <linearGradient id="goldStroke" x1="0%" y1="0%" x2="100%" y2="0%">
-    <stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#fbbf24"/>
+    <stop offset="0%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#fde68a"/>
+  </linearGradient>
+  <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stop-color="#0b1329" />
+    <stop offset="100%" stop-color="#030712" />
   </linearGradient>
   <filter id="softGlow" x="-50%" y="-50%" width="200%" height="200%">
-    <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#f59e0b" flood-opacity="0.14"/>
+    <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#f59e0b" flood-opacity="0.25"/>
   </filter>
   <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="140%">
     <feDropShadow dx="0" dy="2" stdDeviation="12" flood-color="#000" flood-opacity="0.45"/>
   </filter>
 </defs>
 <rect width="640" height="160" rx="16" fill="#080e1a"/>
-<!-- Subtle vignette - kept, enhanced -->
+<!-- Subtle vignette -->
 <ellipse cx="320" cy="80" rx="340" ry="90" fill="#f59e0b" opacity="0.025"/>
-<!-- Icon Container 104x104 -->
+<!-- Icon Container 104x104 with Gold Document Padlock Shield (Unified with 02-favicon.svg) -->
 <g transform="translate(28,28)" filter="url(#cardShadow)">
-  <rect width="104" height="104" rx="24" fill="#0f172a" stroke="#1e293b" stroke-width="1.2"/>
-  <rect width="104" height="104" rx="24" fill="none" stroke="white" stroke-opacity="0.04" stroke-width="1"/>
-  <!-- Shield outer premium stroke -->
-  <path d="M 52 12 L 86 26 V 56 C 86 73.5 71.2 88.2 52 96 C 32.8 88.2 18 73.5 18 56 V 26 L 52 12 Z" fill="none" stroke="url(#goldGrad)" stroke-width="3.3" stroke-linejoin="round" filter="url(#softGlow)"/>
-  <path d="M 52 16.5 L 82 29 V 56 C 82 71 68 84.5 52 91.5 C 36 84.5 22 71 22 56 V 29 L 52 16.5 Z" fill="none" stroke="#f59e0b" stroke-opacity="0.14" stroke-width="1"/>
-  <!-- Inner gold wash at bottom - new enhancement -->
-  <path d="M 52 91.5 C 36 84.5 22 71 22 56 V 68 C 22 75 36 88.2 52 96 C 68 88.2 86 75 86 68 V 56 C 86 71 68 84.5 52 91.5 Z" fill="url(#goldGrad)" opacity="0.06"/>
-  <!-- Closed Eye — enhanced with subtle shine -->
-  <path d="M 28 48 Q 52 28 76 48" fill="none" stroke="#fbbf24" stroke-width="2.3" stroke-linecap="round"/>
-  <path d="M 28 48 L 76 48" fill="none" stroke="url(#goldGrad)" stroke-width="2.3" stroke-linecap="round"/>
-  <!-- Eyelashes top (5) — kept + refined thickness -->
-  <g stroke="url(#goldGrad)" stroke-width="1.65" stroke-linecap="round" opacity="0.98">
-    <path d="M 35 36.5 L 33.5 30.5"/><path d="M 43.5 32 L 42.5 26"/><path d="M 52 30.2 L 52 24"/><path d="M 60.5 32 L 61.5 26"/><path d="M 69 36.5 L 70.5 30.5"/>
-  </g>
-  <g stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" opacity="0.88">
-    <path d="M 40.5 48 L 39 53.5"/><path d="M 52 48 L 52 54.2"/><path d="M 63.5 48 L 65 53.5"/>
-  </g>
-  <!-- Share Nodes + Lock: kept identical concept, enhanced glow -->
-  <g>
-    <path d="M 52 64 L 36 73.5 L 52 82 L 68 73.5 Z" fill="none" stroke="#3b82f6" stroke-opacity="0.92" stroke-width="1.15" stroke-linejoin="round"/>
-    <circle cx="52" cy="64" r="5.4" fill="url(#goldGrad)" stroke="#080e1a" stroke-width="1.2"/>
-    <circle cx="36" cy="73.5" r="3.9" fill="#0f172a" stroke="#fbbf24" stroke-width="1.35"/>
-    <circle cx="68" cy="73.5" r="3.9" fill="#0f172a" stroke="#fbbf24" stroke-width="1.35"/>
-    <circle cx="52" cy="82" r="3.9" fill="#0f172a" stroke="#3b82f6" stroke-width="1.35"/>
-    <g transform="translate(52,64)">
-      <rect x="-3.2" y="-1.2" width="6.4" height="5.2" rx="1.1" fill="#080e1a"/>
-      <path d="M -2 -1.2 V -3.2 A 2 2 0 0 1 2 -3.2 V -1.2" fill="none" stroke="#080e1a" stroke-width="1.15" stroke-linecap="round"/>
-      <circle cx="0" cy="1.4" r="0.95" fill="#fbbf24"/>
-    </g>
-  </g>
-  <circle cx="14" cy="52" r="1.15" fill="#10b981" opacity="0.95"/>
-  <circle cx="14" cy="52" r="3" fill="none" stroke="#10b981" stroke-opacity="0.18" stroke-width="1"/>
-  <circle cx="90" cy="52" r="1.15" fill="#10b981" opacity="0.95"/>
-  <circle cx="90" cy="52" r="3" fill="none" stroke="#10b981" stroke-opacity="0.18" stroke-width="1"/>
+  <!-- Background rounded card -->
+  <rect width="104" height="104" rx="23" fill="url(#bgGrad)" stroke="#1e293b" stroke-width="1.5" />
+  <rect width="104" height="104" rx="23" fill="none" stroke="#f59e0b" stroke-opacity="0.2" stroke-width="1.5" />
+
+  <!-- Document Outline with Folded Bottom-Right Corner -->
+  <path d="M 25 23 C 25 18 28 15 33 15 H 71 C 76 15 79 18 79 23 V 64 L 64 79 H 33 C 28 79 25 76 25 71 Z" 
+        fill="#0c162d" 
+        stroke="url(#goldGrad)" 
+        stroke-width="4.2" 
+        stroke-linejoin="round" />
+
+  <!-- Folded Dog-Ear Flap -->
+  <path d="M 64 64 H 79 L 64 79 Z" 
+        fill="#1e293b" 
+        stroke="url(#goldGrad)" 
+        stroke-width="4.2" 
+        stroke-linejoin="round" />
+
+  <!-- Horizontal Document Line -->
+  <line x1="35" y1="70" x2="56" y2="70" stroke="url(#goldGrad)" stroke-width="4.2" stroke-linecap="round" />
+
+  <!-- Golden Padlock Shackle -->
+  <path d="M 43 39 V 27 C 43 22 47 18 52 18 C 57 18 61 22 61 27 V 39" 
+        fill="none" 
+        stroke="url(#goldGrad)" 
+        stroke-width="5.7" 
+        stroke-linecap="round" />
+
+  <!-- Padlock Body -->
+  <rect x="34" y="38" width="36" height="28" rx="6.5" 
+        fill="url(#goldGrad)" 
+        stroke="#fef3c7" 
+        stroke-width="1" 
+        filter="url(#softGlow)" />
+
+  <!-- Shield Shape inside Padlock Body -->
+  <path d="M 52 44.5 L 60.5 47.5 V 53 C 60.5 57.5 56.8 60.8 52 62.3 C 47.2 60.8 43.5 57.5 43.5 53 V 47.5 Z" 
+        fill="#080e1a" 
+        stroke="#fde68a" 
+        stroke-width="1.5" 
+        stroke-linejoin="round" />
+
+  <!-- Keyhole inside Shield -->
+  <circle cx="52" cy="52" r="2.3" fill="url(#goldGrad)" />
+  <polygon points="50.8,52 53.2,52 54.1,57.8 49.9,57.8" fill="url(#goldGrad)" />
 </g>
 <!-- Wordmark — kept + improved kerning & weight -->
 <g font-family="Inter, SF Pro Display, system-ui, -apple-system, Segoe UI, sans-serif">

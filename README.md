@@ -1023,7 +1023,7 @@ All deep technical references, security specifications, and operational runbooks
 
 <br/>
 
-<img alt="BlindShare" src="public/brand/icon.png" width="56" height="56" style="border-radius:12px;" />
+<img alt="BlindShare" src="public/brand/02-favicon.svg" width="56" height="56" style="border-radius:12px;" />
 
 <br/>
 

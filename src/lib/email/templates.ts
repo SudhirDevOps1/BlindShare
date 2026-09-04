@@ -5,7 +5,7 @@
 
 import { MagicLinkData, OtpData, PasswordResetData, InviteEmailData, ViewerAlertData } from "./types";
 
-const BLINDSHARE_LOGO_URL = "https://raw.githubusercontent.com/SudhirDevOps1/BlindShare/main/public/brand/icon.png";
+const BLINDSHARE_LOGO_URL = "https://raw.githubusercontent.com/SudhirDevOps1/BlindShare/main/public/brand/02-favicon.svg";
 
 /**
  * Base layout wrapper providing universal table-based container, high-contrast dark theme,

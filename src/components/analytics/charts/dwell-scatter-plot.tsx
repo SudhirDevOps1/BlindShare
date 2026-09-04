@@ -29,17 +29,7 @@ export function DwellScatterPlot({ sessions = [], totalPages = 10 }: DwellScatte
       });
     }
 
-    // Default simulation points representing investor behaviors
-    return [
-      { id: "1", dwellMin: 8.5, completionPct: 95, intent: "high", viewerName: "Partner @ Tier 1 VC" },
-      { id: "2", dwellMin: 6.2, completionPct: 90, intent: "high", viewerName: "Angel Investor" },
-      { id: "3", dwellMin: 7.1, completionPct: 45, intent: "high", viewerName: "Founding Partner (Deep Dive early)" },
-      { id: "4", dwellMin: 3.4, completionPct: 75, intent: "medium", viewerName: "Principal @ Fund" },
-      { id: "5", dwellMin: 2.1, completionPct: 60, intent: "medium", viewerName: "Syndicate Lead" },
-      { id: "6", dwellMin: 0.4, completionPct: 20, intent: "low", viewerName: "Anonymous Skimmer" },
-      { id: "7", dwellMin: 0.2, completionPct: 10, intent: "low", viewerName: "Quick Bounce" },
-      { id: "8", dwellMin: 5.8, completionPct: 50, intent: "high", viewerName: "Family Office CIO" },
-    ];
+    return [];
   }, [sessions, totalPages]);
 
   const maxDwell = Math.max(...points.map((p) => p.dwellMin), 10);
@@ -122,6 +112,14 @@ export function DwellScatterPlot({ sessions = [], totalPages = 10 }: DwellScatte
             );
           })}
         </svg>
+
+        {points.length === 0 && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+            <ScatterChart className="h-8 w-8 text-slate-600 mb-2" />
+            <p className="text-xs font-semibold text-slate-400">No session telemetry recorded yet</p>
+            <p className="text-[11px] text-slate-500 max-w-xs mt-1">Data points will populate automatically as readers open and interact with slides.</p>
+          </div>
+        )}
 
         {/* Floating Tooltip */}
         {hoveredPoint && (

@@ -19,10 +19,10 @@ export function DeviceDonutChart({ deviceCounts, totalSessions }: DeviceDonutCha
   const { t } = useI18n();
   const [hoveredSegment, setHoveredSegment] = useState<"desktop" | "mobile" | "tablet" | null>(null);
 
-  const total = Math.max(totalSessions, 1);
-  const desktopPct = Math.round((deviceCounts.desktop / total) * 100);
-  const mobilePct = Math.round((deviceCounts.mobile / total) * 100);
-  const tabletPct = Math.max(0, 100 - desktopPct - mobilePct);
+  const total = totalSessions;
+  const desktopPct = total > 0 ? Math.round((deviceCounts.desktop / total) * 100) : 0;
+  const mobilePct = total > 0 ? Math.round((deviceCounts.mobile / total) * 100) : 0;
+  const tabletPct = total > 0 ? Math.max(0, 100 - desktopPct - mobilePct) : 0;
 
   // SVG circular geometry
   const radius = 62;

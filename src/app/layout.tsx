@@ -70,9 +70,12 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
-    apple: "/brand/icon.png",
+    icon: [
+      { url: "/brand/02-favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/brand/02-favicon.svg",
+    apple: "/brand/02-favicon.svg",
   },
   robots: {
     index: true,
@@ -122,7 +125,7 @@ const jsonLdSchema = {
       "@type": "Organization",
       "name": "BlindShare",
       "url": "https://blind-share.vercel.app",
-      "logo": "https://blind-share.vercel.app/brand/icon.png",
+      "logo": "https://blind-share.vercel.app/brand/02-favicon.svg",
       "sameAs": ["https://github.com/SudhirDevOps1/BlindShare"],
     },
     {
@@ -144,6 +147,10 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        {/* Universal Vector Favicons - Ultra Crisp SVG with Zero Pixelation */}
+        <link rel="icon" type="image/svg+xml" href="/brand/02-favicon.svg" />
+        <link rel="apple-touch-icon" href="/brand/02-favicon.svg" />
+
         {/* OpenGraph & Social Media Meta Tags for WhatsApp, Telegram, Twitter, LinkedIn */}
         <meta property="og:title" content={`${appName} - Zero-Knowledge Secure Document Sharing & Analytics`} />
         <meta property="og:description" content="Privacy-first Zero-Knowledge document sharing with client-side AES-GCM-256 encryption, page-by-page reading dwell analytics, and dynamic watermarks on a 100% ₹0 free tier." />

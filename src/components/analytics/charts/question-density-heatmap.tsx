@@ -24,15 +24,6 @@ export function QuestionDensityHeatmap({ questions = [], totalPages = 10 }: Ques
           peak = { page: p + 1, count: counts[p] };
         }
       });
-    } else {
-      // Mock pitch deck questions distribution if none yet
-      const sample = [1, 0, 2, 1, 3, 2, 6, 2, 1, 0];
-      for (let i = 0; i < totalPages; i++) {
-        counts[i] = sample[i % sample.length];
-        if (counts[i] > peak.count) {
-          peak = { page: i + 1, count: counts[i] };
-        }
-      }
     }
 
     const max = Math.max(...counts, 1);

@@ -24,9 +24,14 @@ export function BrandFooter() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 pb-8 border-b border-slate-800/80">
           <div className="space-y-4 md:col-span-2">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <BrandIcon size="sm" />
-              <span className="font-bold text-white text-base tracking-tight">{appName}</span>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/" className="inline-block transition-opacity hover:opacity-90">
+                <img
+                  src="/brand/01-logo-full.svg"
+                  alt="BlindShare Logo"
+                  className="h-10 w-auto object-contain rounded-lg border border-slate-800/80 bg-slate-950/60 p-1 shadow-sm"
+                />
+              </Link>
               <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30 shadow-sm">
                 ₹0 Free-Tier Ready
               </span>

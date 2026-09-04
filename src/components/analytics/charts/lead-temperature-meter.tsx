@@ -16,15 +16,15 @@ export function LeadTemperatureMeter({
   onFilterChange,
 }: LeadTemperatureMeterProps) {
   const { t } = useI18n();
-  const total = Math.max(sessions.length, 1);
+  const total = sessions.length;
 
   const hotCount = sessions.filter((s) => s.intent === "high").length;
   const warmCount = sessions.filter((s) => s.intent === "medium").length;
   const coldCount = sessions.filter((s) => s.intent === "low" || !s.intent).length;
 
-  const hotPct = Math.round((hotCount / total) * 100);
-  const warmPct = Math.round((warmCount / total) * 100);
-  const coldPct = Math.max(0, 100 - hotPct - warmPct);
+  const hotPct = total > 0 ? Math.round((hotCount / total) * 100) : 0;
+  const warmPct = total > 0 ? Math.round((warmCount / total) * 100) : 0;
+  const coldPct = total > 0 ? Math.max(0, 100 - hotPct - warmPct) : 0;
 
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4 backdrop-blur-xl shadow-xl">

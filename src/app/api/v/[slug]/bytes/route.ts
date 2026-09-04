@@ -20,17 +20,26 @@ export async function GET(
         expiresAt: links.expiresAt,
         maxViews: links.maxViews,
         viewCount: links.viewCount,
+        burnAfterReading: links.burnAfterReading,
       })
       .from(links)
       .where(eq(links.slug, slug))
       .limit(1);
 
     if (!link || link.isRevoked || !link.isActive) {
-      return NextResponse.json({ error: "Share link is not active" }, { status: 403 });
+      return NextResponse.json({ error: "Share link is not active or has been revoked" }, { status: 410 });
+    }
+
+    if (link.burnAfterReading && link.viewCount >= 1) {
+      return NextResponse.json({ error: "This single-use Burn-After-Reading link has self-destructed" }, { status: 410 });
     }
 
     if (link.expiresAt && new Date(link.expiresAt) < new Date()) {
-      return NextResponse.json({ error: "Share link has expired" }, { status: 403 });
+      return NextResponse.json({ error: "Share link has expired" }, { status: 410 });
+    }
+
+    if (link.maxViews !== null && link.viewCount >= link.maxViews) {
+      return NextResponse.json({ error: "Share link has reached its maximum view limit" }, { status: 410 });
     }
 
     if (!link.docId) {
