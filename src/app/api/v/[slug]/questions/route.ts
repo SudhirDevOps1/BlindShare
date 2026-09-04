@@ -7,6 +7,7 @@ import { sendWebhookNotification } from "@/lib/notifications/webhook-notifier";
 import { sendPushToUser } from "@/lib/push";
 import { logger } from "@/lib/logger";
 import { rateLimitDistributed } from "@/lib/security/distributed-rate-limiter";
+import { encryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(
   request: Request,
@@ -131,8 +132,8 @@ export async function POST(
       posXPercent: Math.min(100, Math.max(0, parseInt(String(posXPercent || 50), 10))),
       posYPercent: Math.min(100, Math.max(0, parseInt(String(posYPercent || 50), 10))),
       questionText: sanitizedText,
-      askerEmail: sanitizedEmail,
-      askerName: sanitizedName,
+      askerEmail: sanitizedEmail ? encryptField(sanitizedEmail) : null, // AES-256-GCM encrypted
+      askerName: encryptField(sanitizedName),                            // AES-256-GCM encrypted
     });
 
     // Notify document owner via Webhook & WebPush

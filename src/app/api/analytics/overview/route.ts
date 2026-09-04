@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { links, documents, viewSessions, pageEvents } from "@/db/schema";
 import { eq, desc, sql, inArray } from "drizzle-orm";
 import { formatDuration } from "@/lib/analytics";
+import { decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(request: Request) {
   const auth = await requireAuth();
@@ -111,7 +112,7 @@ export async function GET(request: Request) {
         linkSlug: link?.slug || "",
         docTitle: doc?.title || "Document",
         docPages: totalPages,
-        viewerEmail: s.viewerEmail,
+        viewerEmail: decryptField(s.viewerEmail), // decrypt from AES-256-GCM ciphertext
         country: s.country || "Unknown",
         device: s.uaDevice || "desktop",
         os: s.uaOs || "Unknown",

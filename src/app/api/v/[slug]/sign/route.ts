@@ -8,6 +8,7 @@ import { submitSignatureSchema } from "@/lib/validation/schemas";
 import { sendWebhookNotification } from "@/lib/notifications/webhook-notifier";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import { encryptField } from "@/lib/crypto/db-vault";
 
 function clientIp(request: Request): string {
   return (
@@ -39,9 +40,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       id: signatureId,
       linkId: link.id,
       sessionId: sessionId || null,
-      signerName,
-      signerEmail: signerEmail || null,
-      signatureDataUrl,
+      signerName: encryptField(signerName),               // AES-256-GCM encrypted
+      signerEmail: signerEmail ? encryptField(signerEmail) : null, // AES-256-GCM encrypted
+      signatureDataUrl: encryptField(signatureDataUrl),   // raw SVG/PNG data URL encrypted
       signedAt: new Date(),
       ipHash,
     });

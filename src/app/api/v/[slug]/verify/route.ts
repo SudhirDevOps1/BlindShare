@@ -12,6 +12,7 @@ import { validateEmailWithMx } from "@/lib/validation/email-validator";
 import { checkLockout, recordFailure, recordSuccess, getFailureCount } from "@/lib/auth/lockout";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import { encryptField } from "@/lib/crypto/db-vault";
 
 function clientIp(request: Request): string {
   return (
@@ -144,7 +145,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       id: sessionId,
       linkId: link.id,
       docId: link.docId || null,
-      viewerEmail: cleanEmail,
+      viewerEmail: cleanEmail ? encryptField(cleanEmail) : null, // AES-256-GCM encrypted at rest
       viewerIpHash: ipHash,
       country,
       uaBrowser: parsedUa.browser,

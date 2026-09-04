@@ -11,6 +11,7 @@ import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
 import crypto from "crypto";
 import { verifyAltchaPayload } from "@/lib/security/altcha";
+import { encryptEmail, decryptEmail } from "@/lib/crypto/db-vault";
 
 function clientIp(request: Request): string {
   return (
@@ -64,10 +65,11 @@ export async function POST(request: Request) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    // Look up by encrypted email — encryptEmail() is deterministic (same input → same ciphertext)
     const [user] = await db
       .select()
       .from(users)
-      .where(sql`LOWER(${users.email}) = ${cleanEmail}`)
+      .where(eq(users.email, encryptEmail(cleanEmail)))
       .limit(1);
 
     if (!user) {
@@ -127,7 +129,7 @@ export async function POST(request: Request) {
     await createSessionCookie(
       {
         id: user.id,
-        email: user.email,
+        email: decryptEmail(user.email), // decrypt before writing to signed session cookie
         name: user.name,
         role: user.role as "super_admin" | "admin" | "owner",
         isBlocked: user.isBlocked,
@@ -156,14 +158,15 @@ export async function POST(request: Request) {
       action: "auth.login",
       resourceType: "user",
       resourceId: user.id,
-      detailsJson: JSON.stringify({ email: user.email }),
+      detailsJson: JSON.stringify({ email: cleanEmail }), // use cleanEmail (already decrypted/normalized)
     });
 
+    const decryptedEmail = decryptEmail(user.email);
     return NextResponse.json({
       success: true,
       user: {
         id: user.id,
-        email: user.email,
+        email: decryptedEmail,
         name: user.name,
         role: user.role,
         masterKeySaltHex,

@@ -9,6 +9,7 @@ import { getRequestOrigin } from "@/lib/auth/request-origin";
 import { parseBody } from "@/lib/validation";
 import { z } from "zod";
 import crypto from "crypto";
+import { encryptEmail } from "@/lib/crypto/db-vault";
 
 const forgotPasswordSchema = z.object({
   email: z.string().trim().email("Invalid email address").toLowerCase(),
@@ -29,7 +30,8 @@ export async function POST(request: Request) {
   const { email } = parsed.data;
 
   try {
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const encEmail = encryptEmail(email);
+    const [user] = await db.select().from(users).where(eq(users.email, encEmail)).limit(1);
     if (!user) {
       // Don't leak user existence
       return NextResponse.json({
@@ -42,11 +44,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Account is suspended. Contact an administrator." }, { status: 403 });
     }
 
-    // Invalidate prior active password reset tokens for this email
+    // Invalidate prior active password reset tokens for this email (encrypted lookup)
     await db
       .update(authTokens)
       .set({ isUsed: true })
-      .where(and(eq(authTokens.email, email), eq(authTokens.type, "password_reset"), eq(authTokens.isUsed, false)));
+      .where(and(eq(authTokens.email, encEmail), eq(authTokens.type, "password_reset"), eq(authTokens.isUsed, false)));
 
     const rawToken = crypto.randomBytes(32).toString("hex");
     const tokenHash = hashToken(rawToken);
@@ -55,7 +57,7 @@ export async function POST(request: Request) {
 
     await db.insert(authTokens).values({
       id: genId("tok"),
-      email,
+      email: encEmail, // AES-256-GCM encrypted at rest
       tokenHash,
       type: "password_reset",
       expiresAt,
@@ -66,13 +68,13 @@ export async function POST(request: Request) {
     const resetUrl = `${origin}/reset-password?token=${rawToken}`;
 
     const { subject, html, text } = renderPasswordResetEmail({
-      recipientEmail: email,
+      recipientEmail: email, // plaintext for SMTP delivery only
       resetUrl,
       expiresInMinutes,
     });
 
     await sendEmail({
-      to: email,
+      to: email, // plaintext for SMTP — never stored
       subject,
       html,
       text,

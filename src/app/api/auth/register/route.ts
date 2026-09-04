@@ -9,6 +9,7 @@ import { registerSchema } from "@/lib/validation/schemas";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
 import crypto from "crypto";
+import { encryptEmail } from "@/lib/crypto/db-vault";
 
 export async function POST(request: Request) {
   try {
@@ -16,8 +17,8 @@ export async function POST(request: Request) {
     if ("errorResponse" in parsed) return parsed.errorResponse;
     const { email: cleanEmail, password, name, inviteCode } = parsed.data;
 
-    // Check if email already registered
-    const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, cleanEmail)).limit(1);
+    // Check if email already registered (compare encrypted form)
+    const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, encryptEmail(cleanEmail))).limit(1);
     if (existing) {
       return NextResponse.json({ error: "An account with this email already exists" }, { status: 400 });
     }
@@ -37,10 +38,11 @@ export async function POST(request: Request) {
 
     // A deployment is "claimed" only once a REAL owner exists. The auto-seeded
     // placeholder account does not count, so the first human sign-up always works.
+    // Note: GENESIS_PLACEHOLDER_EMAIL is compared encrypted since all emails are stored encrypted.
     const realOwners = await db
       .select({ id: users.id })
       .from(users)
-      .where(ne(users.email, GENESIS_PLACEHOLDER_EMAIL))
+      .where(ne(users.email, encryptEmail(GENESIS_PLACEHOLDER_EMAIL)))
       .limit(1);
     const isFirstRealUser = realOwners.length === 0;
 
@@ -105,7 +107,7 @@ export async function POST(request: Request) {
 
     await db.insert(users).values({
       id: userId,
-      email: cleanEmail,
+      email: encryptEmail(cleanEmail), // AES-256-GCM encrypted — plaintext never persisted
       name,
       passwordHash,
       role,

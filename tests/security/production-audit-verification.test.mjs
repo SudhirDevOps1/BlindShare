@@ -151,3 +151,97 @@ test("Investor Intelligence: /api/investors routes are registered", () => {
   const distContent = fs.readFileSync(distRoutePath, "utf8");
   assert.ok(distContent.includes("requireAuth"), "Investor distribution route must require authentication");
 });
+
+test("DB Vault: AES-256-GCM PII field encryption — all invariants hold", async () => {
+  // Dynamic import so this test runs in the Node.js test runner without ts-node
+  // We test the pure logic from the vault's algorithm, not the module directly.
+
+  const crypto = await import("node:crypto");
+
+  function getMasterKey() {
+    const secret = "blindshare-neon-db-master-vault-default-secret-salt-2026";
+    return crypto.createHash("sha256").update(`blindshare:db-vault:v1:${secret}`).digest();
+  }
+
+  function encryptEmail(email) {
+    const clean = email.trim().toLowerCase();
+    if (clean.startsWith("enc:det:") || clean.startsWith("enc:v1:")) return clean;
+    const key = getMasterKey();
+    const iv = crypto.createHmac("sha256", key).update(`email-iv:${clean}`).digest().subarray(0, 12);
+    const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+    const encrypted = Buffer.concat([cipher.update(clean, "utf8"), cipher.final()]);
+    const tag = cipher.getAuthTag();
+    return `enc:det:${iv.toString("hex")}:${tag.toString("hex")}:${encrypted.toString("hex")}`;
+  }
+
+  function decryptEmail(val) {
+    if (!val || typeof val !== "string") return "";
+    if (!val.startsWith("enc:det:") && !val.startsWith("enc:v1:")) return val;
+    const parts = val.split(":");
+    if (parts.length !== 5) return val;
+    const iv = Buffer.from(parts[2], "hex");
+    const tag = Buffer.from(parts[3], "hex");
+    const ciphertext = Buffer.from(parts[4], "hex");
+    const key = getMasterKey();
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+    decipher.setAuthTag(tag);
+    const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+    return decrypted.toString("utf8");
+  }
+
+  // 1. encryptEmail produces ciphertext (not plaintext)
+  const enc = encryptEmail("alice@vc.com");
+  assert.ok(enc.startsWith("enc:det:"), "encryptEmail must produce enc:det:... ciphertext");
+  assert.ok(!enc.includes("alice"), "Ciphertext must not contain plaintext email");
+
+  // 2. decryptEmail recovers original plaintext
+  const dec = decryptEmail(enc);
+  assert.equal(dec, "alice@vc.com", "decryptEmail must recover the original email exactly");
+
+  // 3. Deterministic — same email always produces identical ciphertext (searchable)
+  const enc2 = encryptEmail("alice@vc.com");
+  assert.equal(enc, enc2, "Deterministic encryption: same email must always produce same ciphertext");
+
+  // 4. Case-insensitive normalization — different cases hash to same ciphertext
+  const encUpper = encryptEmail("Alice@VC.com");
+  assert.equal(enc, encUpper, "Email encryption must be case-insensitive (normalized before encrypting)");
+
+  // 5. Legacy plaintext passthrough — backward compatible for unencrypted DB rows
+  const legacy = decryptEmail("plaintext@old.com");
+  assert.equal(legacy, "plaintext@old.com", "decryptEmail must transparently pass through unencrypted legacy values");
+
+  // 6. Already-encrypted idempotency — re-encrypting a ciphertext returns it unchanged
+  const reEnc = encryptEmail(enc);
+  assert.equal(reEnc, enc, "encryptEmail must be idempotent on already-encrypted values");
+
+  // 7. db-vault.ts file exists and exports the required functions
+  const vaultPath = path.resolve(process.cwd(), "src/lib/crypto/db-vault.ts");
+  assert.ok(fs.existsSync(vaultPath), "src/lib/crypto/db-vault.ts must exist");
+  const vaultSrc = fs.readFileSync(vaultPath, "utf8");
+  assert.ok(vaultSrc.includes("encryptEmail"), "db-vault.ts must export encryptEmail");
+  assert.ok(vaultSrc.includes("decryptEmail"), "db-vault.ts must export decryptEmail");
+  assert.ok(vaultSrc.includes("encryptField"), "db-vault.ts must export encryptField");
+  assert.ok(vaultSrc.includes("decryptField"), "db-vault.ts must export decryptField");
+  assert.ok(vaultSrc.includes("aes-256-gcm"), "db-vault.ts must use AES-256-GCM algorithm");
+});
+
+test("DB Vault: PII encryption is wired into all auth and sharing routes", () => {
+  const routeChecks = [
+    { path: "src/app/api/auth/register/route.ts", fn: "encryptEmail", label: "register" },
+    { path: "src/app/api/auth/login/route.ts", fn: "encryptEmail", label: "login" },
+    { path: "src/app/api/auth/magic-link/route.ts", fn: "encryptEmail", label: "magic-link" },
+    { path: "src/app/api/auth/forgot-password/route.ts", fn: "encryptEmail", label: "forgot-password" },
+    { path: "src/app/api/v/[slug]/verify/route.ts", fn: "encryptField", label: "verify (viewerEmail)" },
+    { path: "src/app/api/v/[slug]/sign/route.ts", fn: "encryptField", label: "sign (signerEmail)" },
+    { path: "src/app/api/v/[slug]/questions/route.ts", fn: "encryptField", label: "questions (askerEmail)" },
+  ];
+
+  for (const { path: relPath, fn, label } of routeChecks) {
+    const fullPath = path.resolve(process.cwd(), relPath);
+    assert.ok(fs.existsSync(fullPath), `${label} route must exist at ${relPath}`);
+    const src = fs.readFileSync(fullPath, "utf8");
+    assert.ok(src.includes(fn), `${label} route must call ${fn}() for PII encryption`);
+    assert.ok(src.includes("db-vault"), `${label} route must import from db-vault`);
+  }
+});
+

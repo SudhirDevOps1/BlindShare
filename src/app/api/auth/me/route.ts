@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth/session";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { decryptEmail } from "@/lib/crypto/db-vault";
 
 export async function GET() {
   try {
@@ -23,7 +24,10 @@ export async function GET() {
       .where(eq(users.id, sessionUser.id))
       .limit(1);
 
-    return NextResponse.json({ user: dbUser || sessionUser });
+    if (dbUser) {
+      return NextResponse.json({ user: { ...dbUser, email: decryptEmail(dbUser.email) } });
+    }
+    return NextResponse.json({ user: sessionUser });
   } catch {
     return NextResponse.json({ user: null });
   }

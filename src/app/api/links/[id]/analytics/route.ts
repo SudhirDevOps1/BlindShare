@@ -5,6 +5,7 @@ import { links, documents, viewSessions, pageEvents } from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import { generateCsv, formatDuration } from "@/lib/analytics";
 import { computeReaderIntent } from "@/lib/analytics/intent-scorer";
+import { decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(
   request: Request,
@@ -130,13 +131,14 @@ export async function GET(
         totalDwellSeconds: s.totalDwellSeconds || 0,
         completedPages: s.completedPages || s.maxPageReached,
         totalPages,
-        viewerEmail: s.viewerEmail,
+        viewerEmail: decryptField(s.viewerEmail), // decrypt from AES-256-GCM ciphertext
         ndaSigned: Boolean(s.ndaAgreedAt),
         pageDwells: pageDwellsList,
       });
 
       return {
         ...s,
+        viewerEmail: decryptField(s.viewerEmail), // decrypt ciphertext for UI/CSV consumption
         formattedDwell: formatDuration(s.totalDwellSeconds),
         completionRate,
         intent: aiIntent.level,

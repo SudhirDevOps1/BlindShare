@@ -9,6 +9,7 @@ import { getRequestOrigin } from "@/lib/auth/request-origin";
 import { parseBody } from "@/lib/validation";
 import { z } from "zod";
 import crypto from "crypto";
+import { encryptEmail, decryptEmail } from "@/lib/crypto/db-vault";
 
 const requestMagicLinkSchema = z.object({
   email: z.string().trim().email("Invalid email address").toLowerCase(),
@@ -24,7 +25,8 @@ export async function POST(request: Request) {
   const { email } = parsed.data;
 
   try {
-    const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const encEmail = encryptEmail(email); // deterministic — same lookup, encrypted
+    const [user] = await db.select().from(users).where(eq(users.email, encEmail)).limit(1);
     if (!user) {
       // Don't reveal user existence, but return clean message
       return NextResponse.json({
@@ -37,11 +39,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Account is suspended. Contact an administrator." }, { status: 403 });
     }
 
-    // Invalidate prior active magic links for this email
+    // Invalidate prior active magic links for this email (encrypted lookup)
     await db
       .update(authTokens)
       .set({ isUsed: true })
-      .where(and(eq(authTokens.email, email), eq(authTokens.type, "magic_link"), eq(authTokens.isUsed, false)));
+      .where(and(eq(authTokens.email, encEmail), eq(authTokens.type, "magic_link"), eq(authTokens.isUsed, false)));
 
     const rawToken = crypto.randomBytes(32).toString("hex");
     const tokenHash = hashToken(rawToken);
@@ -50,7 +52,7 @@ export async function POST(request: Request) {
 
     await db.insert(authTokens).values({
       id: genId("tok"),
-      email,
+      email: encEmail, // AES-256-GCM encrypted
       tokenHash,
       type: "magic_link",
       expiresAt,
@@ -61,13 +63,13 @@ export async function POST(request: Request) {
     const magicLinkUrl = `${origin}/api/auth/magic-link?token=${rawToken}`;
 
     const { subject, html, text } = renderMagicLinkEmail({
-      recipientEmail: email,
+      recipientEmail: email, // plaintext for email delivery only
       magicLinkUrl,
       expiresInMinutes,
     });
 
     await sendEmail({
-      to: email,
+      to: email, // plaintext for SMTP — never stored
       subject,
       html,
       text,
@@ -112,6 +114,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL("/login?error=expired_token", request.url));
     }
 
+    // record.email is stored encrypted — look up user with the same encrypted value
     const [user] = await db.select().from(users).where(eq(users.email, record.email)).limit(1);
 
     if (!user || user.isBlocked) {
@@ -121,11 +124,11 @@ export async function GET(request: Request) {
     // Mark token as consumed
     await db.update(authTokens).set({ isUsed: true }).where(eq(authTokens.id, record.id));
 
-    // Create authenticated session
+    // Create authenticated session — decrypt email from DB ciphertext
     await createSessionCookie(
       {
         id: user.id,
-        email: user.email,
+        email: decryptEmail(user.email),
         name: user.name,
         role: user.role as any,
         isBlocked: user.isBlocked,

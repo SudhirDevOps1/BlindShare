@@ -6,6 +6,7 @@ import crypto from "crypto";
 import { hashPassword } from "./password";
 import { logger } from "@/lib/logger";
 import { genId } from "@/lib/ids";
+import { decryptEmail, encryptEmail } from "@/lib/crypto/db-vault";
 
 /**
  * `__Host-` prefix is a strict browser-enforced guarantee: the cookie must be
@@ -214,7 +215,7 @@ export async function getSession(): Promise<SessionUser | null> {
 
     return {
       id: user.id,
-      email: user.email,
+      email: decryptEmail(user.email), // decrypt from AES-256-GCM ciphertext stored in Neon DB
       name: user.name,
       role: user.role as "super_admin" | "admin" | "owner",
       isBlocked: user.isBlocked,
@@ -251,10 +252,10 @@ export async function ensureGenesisAdmin() {
       ADD COLUMN IF NOT EXISTS master_key_salt_hex TEXT;
     `).catch(() => {});
 
-    const realUsers = await db.select({ id: users.id }).from(users).where(ne(users.email, GENESIS_PLACEHOLDER_EMAIL)).limit(1);
+    const realUsers = await db.select({ id: users.id }).from(users).where(ne(users.email, encryptEmail(GENESIS_PLACEHOLDER_EMAIL))).limit(1);
     if (realUsers.length > 0) {
       // Purge default placeholder if real owner exists
-      await db.delete(users).where(eq(users.email, GENESIS_PLACEHOLDER_EMAIL));
+      await db.delete(users).where(eq(users.email, encryptEmail(GENESIS_PLACEHOLDER_EMAIL)));
     }
   } catch (err: any) {
     logger.warn("auth.cleanup_placeholder_skipped", { message: err?.message });
