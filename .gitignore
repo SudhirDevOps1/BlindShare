@@ -10,6 +10,7 @@ coverage/
 .env.*
 .dev.vars*
 !.env.example
+!example.env
 
 .wrangler/
 .vercel/
