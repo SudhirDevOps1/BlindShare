@@ -402,6 +402,8 @@ const TECH_STACK: TechStackItem[] = [
 ];
 
 export const TrustBar = memo(function TrustBar() {
+  const [isPaused, setIsPaused] = React.useState(false);
+
   return (
     <section aria-label="Technology Stack and Security Standards" className="relative border-y border-slate-800/80 bg-slate-950/80 py-6 backdrop-blur-xl overflow-hidden">
       {/* Subtle radial center ambient glow */}
@@ -413,10 +415,22 @@ export const TrustBar = memo(function TrustBar() {
         <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 select-none">
           Built with &amp; Powered by
         </span>
+        <button
+          type="button"
+          onClick={() => setIsPaused((prev) => !prev)}
+          className="ml-2 text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-300 hover:border-amber-500/30 transition cursor-pointer"
+          title="Click to pause or resume scrolling"
+        >
+          {isPaused ? "▶ Resume" : "⏸ Pause"}
+        </button>
       </div>
 
       {/* Infinite Seamless Scrolling Marquee */}
-      <div className="relative overflow-hidden w-full">
+      <div
+        className="relative overflow-hidden w-full cursor-pointer select-none"
+        onClick={() => setIsPaused((prev) => !prev)}
+        title="Click anywhere to pause or resume scroll"
+      >
         {/* Left & Right gradient fade masks for high-end look */}
         <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
         <div className="absolute right-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-l from-slate-950 to-transparent z-10 pointer-events-none" />
@@ -430,15 +444,15 @@ export const TrustBar = memo(function TrustBar() {
             display: flex;
             gap: 12px;
             width: max-content;
-            animation: infiniteScroll 36s linear infinite;
+            animation: infiniteScroll 72s linear infinite;
             will-change: transform;
           }
-          .trust-marquee:hover {
-            animation-play-state: paused;
+          .trust-marquee:hover, .trust-marquee.paused {
+            animation-play-state: paused !important;
           }
         `}</style>
 
-        <div className="trust-marquee" role="list">
+        <div className={`trust-marquee ${isPaused ? "paused" : ""}`} role="list">
           {[...TECH_STACK, ...TECH_STACK].map((item, index) => (
             <div
               key={`${item.name}-${index}`}

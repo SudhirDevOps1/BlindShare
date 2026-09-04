@@ -26,11 +26,26 @@ interface GraphItemData {
   tag: string;
 }
 
+const TAB_KEYS = [
+  "zkFlow",
+  "blindCourier",
+  "dataFlow",
+  "leadScoring",
+  "mockup",
+  "liveAnalytics",
+  "allDataGraphs",
+] as const;
+
+type TabKey = (typeof TAB_KEYS)[number];
+
 export function ArchitectureShowcase() {
   const { t, lang } = useI18n();
-  const [activeTab, setActiveTab] = useState<string>("zkFlow");
+  const [activeTab, setActiveTab] = useState<TabKey>("zkFlow");
   const [selectedGraphNum, setSelectedGraphNum] = useState<number>(30);
   const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
+  const [isSlideAutoPlaying, setIsSlideAutoPlaying] = useState<boolean>(true);
+  const [isCardHovered, setIsCardHovered] = useState<boolean>(false);
+  const [slideProgress, setSlideProgress] = useState<number>(0);
   const [isFullscreenModalOpen, setIsFullscreenModalOpen] = useState<boolean>(false);
   const [tilt, setTilt] = useState<{ x: number; y: number; active: boolean }>({
     x: 0,
@@ -39,6 +54,54 @@ export function ArchitectureShowcase() {
   });
 
   const cardRef = useRef<HTMLDivElement>(null);
+
+  const SLIDE_DURATION = 8500; // 8.5s relaxed presentation slideshow pace
+
+  // Auto-slideshow timer cycling through the 7 primary architecture tabs
+  useEffect(() => {
+    if (!isSlideAutoPlaying || isCardHovered) return;
+    const tickRate = 85; // 100 ticks across 8500ms
+    const interval = setInterval(() => {
+      setSlideProgress((prev) => {
+        const next = prev + (tickRate / SLIDE_DURATION) * 100;
+        if (next >= 100) {
+          setActiveTab((curr) => {
+            const idx = TAB_KEYS.indexOf(curr);
+            const nextIdx = (idx + 1) % TAB_KEYS.length;
+            return TAB_KEYS[nextIdx];
+          });
+          return 0;
+        }
+        return next;
+      });
+    }, tickRate);
+
+    return () => clearInterval(interval);
+  }, [isSlideAutoPlaying, isCardHovered]);
+
+  // Reset slide progress whenever activeTab changes
+  useEffect(() => {
+    setSlideProgress(0);
+  }, [activeTab]);
+
+  const currentSlideIndex = TAB_KEYS.indexOf(activeTab);
+
+  const nextSlide = () => {
+    const nextIdx = (currentSlideIndex + 1) % TAB_KEYS.length;
+    setActiveTab(TAB_KEYS[nextIdx]);
+    setIsSlideAutoPlaying(false); // Pause immediately on user click
+  };
+
+  const prevSlide = () => {
+    const prevIdx = (currentSlideIndex - 1 + TAB_KEYS.length) % TAB_KEYS.length;
+    setActiveTab(TAB_KEYS[prevIdx]);
+    setIsSlideAutoPlaying(false); // Pause immediately on user click
+  };
+
+  const handleTabClick = (key: TabKey) => {
+    setActiveTab(key);
+    setIsSlideAutoPlaying(false); // Pause immediately when user clicks any tab
+  };
 
   const graphList: GraphItemData[] = [
     { num: 30, file: "30-views-timeline-animated.svg", tag: "Area" },
@@ -88,8 +151,10 @@ export function ArchitectureShowcase() {
       } else if (activeTab === "allDataGraphs") {
         if (e.key === "ArrowRight") {
           setSelectedGraphNum((prev) => (prev >= 41 ? 30 : prev + 1));
+          setIsSlideAutoPlaying(false);
         } else if (e.key === "ArrowLeft") {
           setSelectedGraphNum((prev) => (prev <= 30 ? 41 : prev - 1));
+          setIsSlideAutoPlaying(false);
         }
       }
     };
@@ -198,16 +263,6 @@ export function ArchitectureShowcase() {
     };
   }
 
-  const tabKeys = [
-    "zkFlow",
-    "blindCourier",
-    "dataFlow",
-    "leadScoring",
-    "mockup",
-    "liveAnalytics",
-    "allDataGraphs",
-  ] as const;
-
   const currentSvgUrl =
     activeTab === "allDataGraphs"
       ? `/brand/graphs/${graphList.find((g) => g.num === selectedGraphNum)?.file || "30-views-timeline-animated.svg"}`
@@ -215,10 +270,12 @@ export function ArchitectureShowcase() {
 
   const nextGraph = () => {
     setSelectedGraphNum((prev) => (prev >= 41 ? 30 : prev + 1));
+    setIsSlideAutoPlaying(false);
   };
 
   const prevGraph = () => {
     setSelectedGraphNum((prev) => (prev <= 30 ? 41 : prev - 1));
+    setIsSlideAutoPlaying(false);
   };
 
   return (
@@ -227,7 +284,7 @@ export function ArchitectureShowcase() {
       <div className="absolute top-1/4 right-10 -z-10 h-96 w-96 rounded-full bg-amber-500/10 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-10 left-10 -z-10 h-80 w-80 rounded-full bg-blue-500/10 blur-[130px] pointer-events-none" />
 
-      <div className="mx-auto max-w-7xl space-y-10">
+      <div className="mx-auto max-w-7xl space-y-8">
         {/* Section Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold text-amber-300 backdrop-blur-xl shadow-md">
@@ -242,25 +299,136 @@ export function ArchitectureShowcase() {
           </p>
         </div>
 
-        {/* 7 Navigation Tabs */}
+        {/* Presentation Slideshow Control & Navigation Bar */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl border border-slate-800/90 bg-slate-900/80 backdrop-blur-xl shadow-xl">
+          {/* Left: Slide Counter & Auto-Play Status */}
+          <div className="flex items-center gap-3 flex-wrap justify-center sm:justify-start">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300 shadow-sm">
+              <Layers className="h-3.5 w-3.5 text-amber-400" />
+              <span>
+                {t.architectureShowcase.slideshow?.slide || "स्लाइड"} {currentSlideIndex + 1} {t.architectureShowcase.slideshow?.of || "/"} 7
+              </span>
+            </div>
+
+            {/* Auto-Slide Status Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setIsSlideAutoPlaying((prev) => !prev)}
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono transition cursor-pointer border ${
+                isSlideAutoPlaying
+                  ? isCardHovered
+                    ? "bg-amber-500/10 text-amber-300 border-amber-500/30 ring-1 ring-amber-400/20"
+                    : "bg-emerald-500/10 text-emerald-300 border-emerald-500/30 shadow-sm shadow-emerald-500/10"
+                  : "bg-slate-800/80 text-slate-300 border-slate-700 hover:text-white hover:border-slate-600"
+              }`}
+              title={lang === "hi" ? "ऑटो स्लाइड को रोकें या चलाएं" : "Toggle Slideshow Auto-Play"}
+            >
+              {isSlideAutoPlaying ? (
+                isCardHovered ? (
+                  <>
+                    <Pause className="h-3.5 w-3.5 text-amber-400" />
+                    <span>{lang === "hi" ? "होवर पॉज़ (पढ़ें)" : "Hovered (Paused)"}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>{t.architectureShowcase.slideshow?.autoPlaying || "Auto-Slide (8.5s)"}</span>
+                  </>
+                )
+              ) : (
+                <>
+                  <Play className="h-3.5 w-3.5 text-amber-400" />
+                  <span>{t.architectureShowcase.slideshow?.paused || "Paused (Click to Resume)"}</span>
+                </>
+              )}
+            </button>
+
+            <span className="text-[11px] text-slate-400 hidden lg:inline-block">
+              {t.architectureShowcase.slideshow?.slowPaceNotice}
+            </span>
+          </div>
+
+          {/* Right: Controls (Previous, Play/Pause Toggle, Next) */}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={prevSlide}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition cursor-pointer text-xs font-semibold"
+              title={t.architectureShowcase.slideshow?.prevSlide || "Previous Slide"}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">{lang === "hi" ? "पिछली" : "Prev"}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsSlideAutoPlaying((prev) => !prev)}
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition shadow-md cursor-pointer ${
+                isSlideAutoPlaying
+                  ? "bg-slate-800 text-amber-300 border border-amber-500/40 hover:bg-slate-700"
+                  : "bg-amber-500 text-slate-950 hover:bg-amber-400"
+              }`}
+            >
+              {isSlideAutoPlaying ? (
+                <>
+                  <Pause className="h-3.5 w-3.5" />
+                  <span>{t.architectureShowcase.slideshow?.pause || "Pause"}</span>
+                </>
+              ) : (
+                <>
+                  <Play className="h-3.5 w-3.5" />
+                  <span>{t.architectureShowcase.slideshow?.play || "Play"}</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={nextSlide}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-800/90 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition cursor-pointer text-xs font-semibold"
+              title={t.architectureShowcase.slideshow?.nextSlide || "Next Slide"}
+            >
+              <span className="hidden sm:inline">{lang === "hi" ? "अगली" : "Next"}</span>
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Slideshow Ambient Countdown Bar */}
+        <div className="w-full h-1.5 bg-slate-800/80 rounded-full overflow-hidden relative shadow-inner">
+          <div
+            className={`h-full rounded-full transition-all duration-100 ease-linear ${
+              isSlideAutoPlaying && !isCardHovered
+                ? "bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.6)]"
+                : "bg-slate-700 opacity-50"
+            }`}
+            style={{ width: `${isSlideAutoPlaying ? slideProgress : 100}%` }}
+          />
+        </div>
+
+        {/* 7 Slide Navigation Tabs with Slide Numbers */}
         <div className="flex items-center justify-start sm:justify-center gap-2 overflow-x-auto no-scrollbar py-2 px-1">
-          {tabKeys.map((key) => {
+          {TAB_KEYS.map((key, idx) => {
             const item = showcaseData[key];
             const isActive = key === activeTab;
             return (
               <button
                 key={key}
                 type="button"
-                onClick={() => {
-                  setActiveTab(key);
-                  setIsAutoPlaying(false);
-                }}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                onClick={() => handleTabClick(key)}
+                className={`relative flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all whitespace-nowrap cursor-pointer overflow-hidden ${
                   isActive
                     ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/25 scale-[1.02]"
                     : "border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white"
                 }`}
               >
+                <span
+                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
+                    isActive ? "bg-slate-950/25 text-slate-950 font-black" : "bg-slate-800 text-slate-400"
+                  }`}
+                >
+                  {idx + 1}
+                </span>
                 <span>{item.title}</span>
               </button>
             );
@@ -337,6 +505,7 @@ export function ArchitectureShowcase() {
                     onClick={() => {
                       setSelectedGraphNum(g.num);
                       setIsAutoPlaying(false);
+                      setIsSlideAutoPlaying(false);
                     }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                       isSelected
@@ -361,7 +530,14 @@ export function ArchitectureShowcase() {
         )}
 
         {/* Featured Showcase Display Card with 3D Tilt Canvas */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl relative">
+        <div
+          onMouseEnter={() => setIsCardHovered(true)}
+          onMouseLeave={() => {
+            setIsCardHovered(false);
+            handleMouseLeave();
+          }}
+          className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl relative transition-all duration-300"
+        >
           
           {/* Left / Top: High-Resolution Scalable SVG Diagram Display with 3D Perspective Tilt */}
           <div className="lg:col-span-7 relative group">
@@ -388,9 +564,10 @@ export function ArchitectureShowcase() {
               )}
 
               <img
+                key={currentSvgUrl}
                 src={currentSvgUrl}
                 alt={currentItem.title}
-                className="w-full h-auto max-h-[460px] object-contain rounded-xl transition-all duration-300 select-none pointer-events-none"
+                className="w-full h-auto max-h-[460px] object-contain rounded-xl transition-all duration-500 select-none pointer-events-none animate-in fade-in zoom-in-95 duration-400"
                 loading="lazy"
               />
 
@@ -455,7 +632,7 @@ export function ArchitectureShowcase() {
           </div>
 
           {/* Right / Bottom: Deep Technical Breakdown & Project Reality Context */}
-          <div className="lg:col-span-5 space-y-5">
+          <div key={currentItem.id} className="lg:col-span-5 space-y-5 animate-in fade-in duration-300">
             <div>
               <div className="flex items-center gap-2 flex-wrap mb-2">
                 <span className="inline-block rounded-full bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-[10px] font-bold text-amber-400 uppercase tracking-wider">

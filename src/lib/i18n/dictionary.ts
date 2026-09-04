@@ -246,6 +246,17 @@ export const translations = {
       enlargeVector: "Enlarge Vector",
       svgScalable: "100% Vector Scalable (SVG)",
       zkCertified: "Zero-Knowledge Certified",
+      slideshow: {
+        slide: "Slide",
+        of: "of",
+        pause: "Pause",
+        play: "Play Slideshow",
+        autoPlaying: "Auto-Slide Active (8.5s)",
+        paused: "Slideshow Paused (Click to Resume)",
+        slowPaceNotice: "8.5s Relaxed Slide Pace • Click any tab or button to pause",
+        prevSlide: "Previous Slide",
+        nextSlide: "Next Slide",
+      },
       tabs: {
         zkFlow: {
           title: "Zero-Knowledge Encryption Flow",
@@ -887,6 +898,17 @@ export const translations = {
       enlargeVector: "वेक्टर बड़ा करें",
       svgScalable: "100% वेक्टर स्केलेबल (SVG)",
       zkCertified: "शून्य-ज्ञान प्रमाणित",
+      slideshow: {
+        slide: "स्लाइड",
+        of: "/",
+        pause: "रोकें",
+        play: "ऑटो स्लाइड चलाएं",
+        autoPlaying: "ऑटो स्लाइड सक्रिय (8.5s)",
+        paused: "स्लाइड रुकी हुई है (पुनः चलाने के लिए क्लिक करें)",
+        slowPaceNotice: "8.5 सेकंड आरामदायक स्लाइड मोड • रोकने के लिए कहीं भी या टैब पर क्लिक करें",
+        prevSlide: "पिछली स्लाइड",
+        nextSlide: "अगली स्लाइड",
+      },
       tabs: {
         zkFlow: {
           title: "शून्य-ज्ञान एन्क्रिप्शन प्रवाह",
