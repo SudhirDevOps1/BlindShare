@@ -42,9 +42,8 @@ export function ArchitectureShowcase() {
   const { t, lang } = useI18n();
   const [activeTab, setActiveTab] = useState<TabKey>("zkFlow");
   const [selectedGraphNum, setSelectedGraphNum] = useState<number>(30);
-  const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
-  const [isSlideAutoPlaying, setIsSlideAutoPlaying] = useState<boolean>(true);
-  const [isCardHovered, setIsCardHovered] = useState<boolean>(false);
+  const [isManualPaused, setIsManualPaused] = useState<boolean>(false);
+  const [isSectionHovered, setIsSectionHovered] = useState<boolean>(false);
   const [slideProgress, setSlideProgress] = useState<number>(0);
   const [isFullscreenModalOpen, setIsFullscreenModalOpen] = useState<boolean>(false);
   const [tilt, setTilt] = useState<{ x: number; y: number; active: boolean }>({
@@ -56,18 +55,17 @@ export function ArchitectureShowcase() {
   const cardRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
 
-  // Mouse tracking for Option 1 (Laser Pointer) & Option 2 (Cipher Spotlight)
+  const isPaused = isManualPaused || isSectionHovered;
+
+  // Mouse tracking for Option 2 (Cipher Spotlight Watermark Matrix)
   const [mousePos, setMousePos] = useState<{ x: number; y: number; active: boolean }>({
     x: -500,
     y: -500,
     active: false,
   });
-  const [lerpPos, setLerpPos] = useState<{ x: number; y: number }>({ x: -500, y: -500 });
-  const [isHoveringInteractive, setIsHoveringInteractive] = useState<boolean>(false);
-  const [sonarPings, setSonarPings] = useState<Array<{ id: number; x: number; y: number }>>([]);
   const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
 
-  // Detect touch screens or coarse pointers to gracefully disable custom cursor
+  // Detect touch screens or coarse pointers to gracefully disable custom spotlight
   useEffect(() => {
     if (typeof window !== "undefined") {
       const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
@@ -75,61 +73,25 @@ export function ArchitectureShowcase() {
     }
   }, []);
 
-  // 60 FPS lerp interpolation for smooth inertia halo trailing
-  useEffect(() => {
-    if (isTouchDevice || !mousePos.active) return;
-    let animationFrameId: number;
-    const updateLerp = () => {
-      setLerpPos((prev) => {
-        const dx = mousePos.x - prev.x;
-        const dy = mousePos.y - prev.y;
-        if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) return prev;
-        return {
-          x: prev.x + dx * 0.22,
-          y: prev.y + dy * 0.22,
-        };
-      });
-      animationFrameId = requestAnimationFrame(updateLerp);
-    };
-    animationFrameId = requestAnimationFrame(updateLerp);
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [mousePos, isTouchDevice]);
-
   const handleSectionMouseMove = (e: React.MouseEvent<HTMLElement>) => {
     if (isTouchDevice || !sectionRef.current) return;
+    setIsSectionHovered(true); // Hovering pauses the slideshow
     const rect = sectionRef.current.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     setMousePos({ x, y, active: true });
-
-    // Check if hovering interactive controls (buttons, links, pills)
-    const target = e.target as HTMLElement | null;
-    const isInteractive = target?.closest("button, a, [role='button'], input, .cursor-pointer") !== null;
-    setIsHoveringInteractive(isInteractive);
   };
 
   const handleSectionMouseLeave = () => {
     setMousePos((prev) => ({ ...prev, active: false }));
-    setIsHoveringInteractive(false);
-  };
-
-  const handleSectionClick = (e: React.MouseEvent<HTMLElement>) => {
-    if (isTouchDevice || !sectionRef.current) return;
-    const rect = sectionRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const pingId = Date.now();
-    setSonarPings((prev) => [...prev.slice(-3), { id: pingId, x, y }]);
-    setTimeout(() => {
-      setSonarPings((prev) => prev.filter((p) => p.id !== pingId));
-    }, 600);
+    setIsSectionHovered(false); // Cursor leave immediately resumes infinite slideshow!
   };
 
   const SLIDE_DURATION = 8500; // 8.5s relaxed presentation slideshow pace
 
-  // Auto-slideshow timer cycling through the 7 primary architecture tabs
+  // Auto-slideshow timer cycling indefinitely through the 7 primary architecture tabs
   useEffect(() => {
-    if (!isSlideAutoPlaying || isCardHovered) return;
+    if (isPaused) return; // Pauses when hovered or manually paused
     const tickRate = 85; // 100 ticks across 8500ms
     const interval = setInterval(() => {
       setSlideProgress((prev) => {
@@ -147,7 +109,7 @@ export function ArchitectureShowcase() {
     }, tickRate);
 
     return () => clearInterval(interval);
-  }, [isSlideAutoPlaying, isCardHovered]);
+  }, [isPaused]);
 
   // Reset slide progress whenever activeTab changes
   useEffect(() => {
@@ -159,18 +121,18 @@ export function ArchitectureShowcase() {
   const nextSlide = () => {
     const nextIdx = (currentSlideIndex + 1) % TAB_KEYS.length;
     setActiveTab(TAB_KEYS[nextIdx]);
-    setIsSlideAutoPlaying(false); // Pause immediately on user click
+    setSlideProgress(0);
   };
 
   const prevSlide = () => {
     const prevIdx = (currentSlideIndex - 1 + TAB_KEYS.length) % TAB_KEYS.length;
     setActiveTab(TAB_KEYS[prevIdx]);
-    setIsSlideAutoPlaying(false); // Pause immediately on user click
+    setSlideProgress(0);
   };
 
   const handleTabClick = (key: TabKey) => {
     setActiveTab(key);
-    setIsSlideAutoPlaying(false); // Pause immediately when user clicks any tab
+    setSlideProgress(0);
   };
 
   const graphList: GraphItemData[] = [
@@ -187,18 +149,6 @@ export function ArchitectureShowcase() {
     { num: 40, file: "40-question-density-animated.svg", tag: "Density" },
     { num: 41, file: "41-weekly-digest-animated.svg", tag: "Card KPI" },
   ];
-
-  // Auto-tour rotation timer for the 12 graphs
-  useEffect(() => {
-    if (!isAutoPlaying || activeTab !== "allDataGraphs") return;
-    const interval = setInterval(() => {
-      setSelectedGraphNum((prev) => {
-        const next = prev + 1;
-        return next > 41 ? 30 : next;
-      });
-    }, 4500);
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, activeTab]);
 
   // Handle 3D Perspective Tilt on Mouse Move
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -221,10 +171,8 @@ export function ArchitectureShowcase() {
       } else if (activeTab === "allDataGraphs") {
         if (e.key === "ArrowRight") {
           setSelectedGraphNum((prev) => (prev >= 41 ? 30 : prev + 1));
-          setIsSlideAutoPlaying(false);
         } else if (e.key === "ArrowLeft") {
           setSelectedGraphNum((prev) => (prev <= 30 ? 41 : prev - 1));
-          setIsSlideAutoPlaying(false);
         }
       }
     };
@@ -340,12 +288,10 @@ export function ArchitectureShowcase() {
 
   const nextGraph = () => {
     setSelectedGraphNum((prev) => (prev >= 41 ? 30 : prev + 1));
-    setIsSlideAutoPlaying(false);
   };
 
   const prevGraph = () => {
     setSelectedGraphNum((prev) => (prev <= 30 ? 41 : prev - 1));
-    setIsSlideAutoPlaying(false);
   };
 
   return (
@@ -353,7 +299,6 @@ export function ArchitectureShowcase() {
       ref={sectionRef}
       onMouseMove={handleSectionMouseMove}
       onMouseLeave={handleSectionMouseLeave}
-      onClick={handleSectionClick}
       className="relative border-t border-slate-900/80 bg-slate-950/80 py-24 px-4 sm:px-6 overflow-hidden select-none sm:select-auto cursor-default"
     >
       {/* Background ambient lighting */}
@@ -380,7 +325,11 @@ export function ArchitectureShowcase() {
                 <span className="text-slate-600">•</span>
                 <span className="text-blue-400/35">ZERO_KNOWLEDGE_COURIER</span>
                 <span className="text-slate-600">•</span>
-                <span className="text-amber-400/40">RFC3986_URL_FRAGMENT</span>
+                <span className="text-amber-400/40">RFC3986_FRAGMENT</span>
+                <span className="text-slate-600">•</span>
+                <span className="text-emerald-300/35">CLIENT_SIDE_RAM</span>
+                <span className="text-slate-600">•</span>
+                <span className="text-indigo-400/35">DUCKDB_TELEMETRY</span>
               </span>
             ))}
           </div>
@@ -396,59 +345,6 @@ export function ArchitectureShowcase() {
               background: "radial-gradient(circle, rgba(245,158,11,0.18) 0%, rgba(59,130,246,0.06) 45%, transparent 75%)",
             }}
           />
-        </div>
-      )}
-
-      {/* Option 1: Cryptographic Laser Pointer + Inertia Halo + Sonar Ping Waves */}
-      {!isTouchDevice && mousePos.active && (
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-40 overflow-hidden select-none">
-          {/* Inertia Laser Halo */}
-          <div
-            className={`absolute rounded-full border transition-transform duration-100 ease-out flex items-center justify-center ${
-              isHoveringInteractive
-                ? "border-amber-400 bg-amber-400/15 shadow-[0_0_22px_rgba(245,158,11,0.55)] scale-125"
-                : "border-amber-500/50 bg-amber-500/5 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-100"
-            }`}
-            style={{
-              left: `${lerpPos.x - 16}px`,
-              top: `${lerpPos.y - 16}px`,
-              width: "32px",
-              height: "32px",
-              transform: "translate3d(0, 0, 0)",
-            }}
-          >
-            {/* Precision Crosshair Notches */}
-            <div className="absolute top-0 w-0.5 h-1 bg-amber-400/80" />
-            <div className="absolute bottom-0 w-0.5 h-1 bg-amber-400/80" />
-            <div className="absolute left-0 h-0.5 w-1 bg-amber-400/80" />
-            <div className="absolute right-0 h-0.5 w-1 bg-amber-400/80" />
-          </div>
-
-          {/* Precision Laser Center Dot (0-latency tracking) */}
-          <div
-            className="absolute rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b,0_0_14px_#f59e0b]"
-            style={{
-              left: `${mousePos.x - 3}px`,
-              top: `${mousePos.y - 3}px`,
-              width: "6px",
-              height: "6px",
-            }}
-          />
-
-          {/* Click Sonar Ping Waves */}
-          {sonarPings.map((ping) => (
-            <div
-              key={ping.id}
-              className="absolute rounded-full border border-amber-400 bg-amber-400/20 pointer-events-none animate-ping"
-              style={{
-                left: `${ping.x - 30}px`,
-                top: `${ping.y - 30}px`,
-                width: "60px",
-                height: "60px",
-                animationDuration: "0.6s",
-              }}
-            />
-          ))}
         </div>
       )}
 
@@ -478,35 +374,31 @@ export function ArchitectureShowcase() {
               </span>
             </div>
 
-            {/* Auto-Slide Status Toggle Button */}
+            {/* Auto-Slide Status Indicator & Toggle Button */}
             <button
               type="button"
-              onClick={() => setIsSlideAutoPlaying((prev) => !prev)}
+              onClick={() => setIsManualPaused((prev) => !prev)}
               className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-mono transition cursor-pointer border ${
-                isSlideAutoPlaying
-                  ? isCardHovered
-                    ? "bg-amber-500/10 text-amber-300 border-amber-500/30 ring-1 ring-amber-400/20"
-                    : "bg-emerald-500/10 text-emerald-300 border-emerald-500/30 shadow-sm shadow-emerald-500/10"
-                  : "bg-slate-800/80 text-slate-300 border-slate-700 hover:text-white hover:border-slate-600"
+                isPaused
+                  ? "bg-amber-500/10 text-amber-300 border-amber-500/30 ring-1 ring-amber-400/20"
+                  : "bg-emerald-500/10 text-emerald-300 border-emerald-500/30 shadow-sm shadow-emerald-500/10"
               }`}
               title={lang === "hi" ? "ऑटो स्लाइड को रोकें या चलाएं" : "Toggle Slideshow Auto-Play"}
             >
-              {isSlideAutoPlaying ? (
-                isCardHovered ? (
-                  <>
-                    <Pause className="h-3.5 w-3.5 text-amber-400" />
-                    <span>{lang === "hi" ? "होवर पॉज़ (पढ़ें)" : "Hovered (Paused)"}</span>
-                  </>
-                ) : (
-                  <>
-                    <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>{t.architectureShowcase.slideshow?.autoPlaying || "Auto-Slide (8.5s)"}</span>
-                  </>
-                )
-              ) : (
+              {isManualPaused ? (
                 <>
                   <Play className="h-3.5 w-3.5 text-amber-400" />
-                  <span>{t.architectureShowcase.slideshow?.paused || "Paused (Click to Resume)"}</span>
+                  <span>{t.architectureShowcase.slideshow?.paused || "स्लाइड रुकी हुई है"}</span>
+                </>
+              ) : isSectionHovered ? (
+                <>
+                  <Pause className="h-3.5 w-3.5 text-amber-400" />
+                  <span>{t.architectureShowcase.slideshow?.hoverPaused || "होवर पॉज़ (माउस हटाने पर चलेगा)"}</span>
+                </>
+              ) : (
+                <>
+                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>{t.architectureShowcase.slideshow?.autoPlaying || "ऑटो स्लाइड सक्रिय (8.5s)"}</span>
                 </>
               )}
             </button>
@@ -530,22 +422,22 @@ export function ArchitectureShowcase() {
 
             <button
               type="button"
-              onClick={() => setIsSlideAutoPlaying((prev) => !prev)}
+              onClick={() => setIsManualPaused((prev) => !prev)}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition shadow-md cursor-pointer ${
-                isSlideAutoPlaying
-                  ? "bg-slate-800 text-amber-300 border border-amber-500/40 hover:bg-slate-700"
-                  : "bg-amber-500 text-slate-950 hover:bg-amber-400"
+                isManualPaused
+                  ? "bg-amber-500 text-slate-950 hover:bg-amber-400"
+                  : "bg-slate-800 text-amber-300 border border-amber-500/40 hover:bg-slate-700"
               }`}
             >
-              {isSlideAutoPlaying ? (
-                <>
-                  <Pause className="h-3.5 w-3.5" />
-                  <span>{t.architectureShowcase.slideshow?.pause || "Pause"}</span>
-                </>
-              ) : (
+              {isManualPaused ? (
                 <>
                   <Play className="h-3.5 w-3.5" />
                   <span>{t.architectureShowcase.slideshow?.play || "Play"}</span>
+                </>
+              ) : (
+                <>
+                  <Pause className="h-3.5 w-3.5" />
+                  <span>{t.architectureShowcase.slideshow?.pause || "Pause"}</span>
                 </>
               )}
             </button>
@@ -566,11 +458,11 @@ export function ArchitectureShowcase() {
         <div className="w-full h-1.5 bg-slate-800/80 rounded-full overflow-hidden relative shadow-inner">
           <div
             className={`h-full rounded-full transition-all duration-100 ease-linear ${
-              isSlideAutoPlaying && !isCardHovered
+              !isPaused
                 ? "bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.6)]"
                 : "bg-slate-700 opacity-50"
             }`}
-            style={{ width: `${isSlideAutoPlaying ? slideProgress : 100}%` }}
+            style={{ width: `${!isPaused ? slideProgress : 100}%` }}
           />
         </div>
 
@@ -620,40 +512,7 @@ export function ArchitectureShowcase() {
               </div>
 
               <div className="flex items-center gap-2">
-                {/* Auto Tour Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsAutoPlaying((prev) => !prev)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm ${
-                    isAutoPlaying
-                      ? "bg-amber-500 text-slate-950 font-bold animate-pulse"
-                      : "bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white"
-                  }`}
-                  title={lang === "hi" ? "ऑटो टूर चालू/बंद करें" : "Toggle Auto Tour"}
-                >
-                  {isAutoPlaying ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
-                  <span>{isAutoPlaying ? (lang === "hi" ? "ऑटो चल रहा है" : "Auto Tour Active") : (lang === "hi" ? "ऑटो टूर" : "Auto Tour")}</span>
-                </button>
-
-                {/* Prev / Next Arrows */}
-                <button
-                  type="button"
-                  onClick={prevGraph}
-                  className="p-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition"
-                  title={lang === "hi" ? "पिछला ग्राफ़ (←)" : "Previous Graph (←)"}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={nextGraph}
-                  className="p-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition"
-                  title={lang === "hi" ? "अगला ग्राफ़ (→)" : "Next Graph (→)"}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-
-                <span className="font-mono text-[11px] text-slate-400 ml-1 hidden sm:inline">
+                <span className="font-mono text-xs text-amber-400 font-bold px-3 py-1 rounded-xl bg-slate-950/90 border border-slate-800 shadow-sm">
                   #{selectedGraphNum} / 41
                 </span>
               </div>
@@ -672,8 +531,6 @@ export function ArchitectureShowcase() {
                     type="button"
                     onClick={() => {
                       setSelectedGraphNum(g.num);
-                      setIsAutoPlaying(false);
-                      setIsSlideAutoPlaying(false);
                     }}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                       isSelected
@@ -699,9 +556,8 @@ export function ArchitectureShowcase() {
 
         {/* Featured Showcase Display Card with 3D Tilt Canvas */}
         <div
-          onMouseEnter={() => setIsCardHovered(true)}
+          onMouseEnter={() => setIsSectionHovered(true)}
           onMouseLeave={() => {
-            setIsCardHovered(false);
             handleMouseLeave();
           }}
           className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl relative transition-all duration-300"

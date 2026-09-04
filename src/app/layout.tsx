@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
 import { CookieConsentBanner } from "@/components/compliance/cookie-consent-banner";
+import { CryptoCursor } from "@/components/cursor/crypto-cursor";
 
 const appName = process.env.PUBLIC_APP_NAME || "BlindShare";
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://blind-share.vercel.app";
@@ -219,6 +220,7 @@ try {
       </head>
       <body className="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-200">
         <I18nProvider>
+          <CryptoCursor />
           {children}
           <CookieConsentBanner />
         </I18nProvider>

@@ -402,7 +402,10 @@ const TECH_STACK: TechStackItem[] = [
 ];
 
 export const TrustBar = memo(function TrustBar() {
-  const [isPaused, setIsPaused] = React.useState(false);
+  const [isManualPaused, setIsManualPaused] = React.useState(false);
+  const [isHovered, setIsHovered] = React.useState(false);
+
+  const isPaused = isManualPaused || isHovered;
 
   return (
     <section aria-label="Technology Stack and Security Standards" className="relative border-y border-slate-800/80 bg-slate-950/80 py-6 backdrop-blur-xl overflow-hidden">
@@ -411,25 +414,26 @@ export const TrustBar = memo(function TrustBar() {
 
       {/* Section Header Badge */}
       <div className="flex items-center justify-center gap-2 mb-4">
-        <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-pulse" />
+        <span className={`h-1.5 w-1.5 rounded-full ${isPaused ? "bg-amber-400" : "bg-emerald-400 animate-pulse"}`} />
         <span className="text-[11px] font-bold uppercase tracking-[0.2em] text-slate-400 select-none">
           Built with &amp; Powered by
         </span>
         <button
           type="button"
-          onClick={() => setIsPaused((prev) => !prev)}
+          onClick={() => setIsManualPaused((prev) => !prev)}
           className="ml-2 text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-300 hover:border-amber-500/30 transition cursor-pointer"
-          title="Click to pause or resume scrolling"
+          title="Click to toggle manual pause"
         >
-          {isPaused ? "▶ Resume" : "⏸ Pause"}
+          {isManualPaused ? "▶ Resume" : isHovered ? "⏸ Hover Paused" : "⏸ Pause"}
         </button>
       </div>
 
-      {/* Infinite Seamless Scrolling Marquee */}
+      {/* Infinite Seamless Scrolling Marquee with Hover-to-Pause and Leave-to-Resume */}
       <div
-        className="relative overflow-hidden w-full cursor-pointer select-none"
-        onClick={() => setIsPaused((prev) => !prev)}
-        title="Click anywhere to pause or resume scroll"
+        className="relative overflow-hidden w-full select-none"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        title="Hover to pause ticker, move cursor away to resume"
       >
         {/* Left & Right gradient fade masks for high-end look */}
         <div className="absolute left-0 top-0 bottom-0 w-16 sm:w-28 bg-gradient-to-r from-slate-950 to-transparent z-10 pointer-events-none" />
@@ -447,7 +451,7 @@ export const TrustBar = memo(function TrustBar() {
             animation: infiniteScroll 72s linear infinite;
             will-change: transform;
           }
-          .trust-marquee:hover, .trust-marquee.paused {
+          .trust-marquee.paused {
             animation-play-state: paused !important;
           }
         `}</style>
