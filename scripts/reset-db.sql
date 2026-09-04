@@ -22,16 +22,35 @@
 
 -- 1. Nuclear Schema Reset (Drops all tables, triggers, sequences, and extensions cleanly)
 DROP SCHEMA IF EXISTS public CASCADE;
-CREATE SCHEMA public;
+CREATE SCHEMA IF NOT EXISTS public;
 GRANT ALL ON SCHEMA public TO public;
 COMMENT ON SCHEMA public IS 'standard public schema';
+
+-- 2. Explicit Safe Drop (Defense-in-depth in case public schema was not dropped)
+DROP TABLE IF EXISTS system_settings CASCADE;
+DROP TABLE IF EXISTS audit_log CASCADE;
+DROP TABLE IF EXISTS push_subscriptions CASCADE;
+DROP TABLE IF EXISTS live_rooms CASCADE;
+DROP TABLE IF EXISTS doc_audio_notes CASCADE;
+DROP TABLE IF EXISTS page_questions CASCADE;
+DROP TABLE IF EXISTS page_events CASCADE;
+DROP TABLE IF EXISTS signatures CASCADE;
+DROP TABLE IF EXISTS view_sessions CASCADE;
+DROP TABLE IF EXISTS links CASCADE;
+DROP TABLE IF EXISTS dataroom_docs CASCADE;
+DROP TABLE IF EXISTS datarooms CASCADE;
+DROP TABLE IF EXISTS doc_versions CASCADE;
+DROP TABLE IF EXISTS documents CASCADE;
+DROP TABLE IF EXISTS auth_tokens CASCADE;
+DROP TABLE IF EXISTS invites CASCADE;
+DROP TABLE IF EXISTS users CASCADE;
 
 -- 3. Automatically recreate pristine empty schema matching src/db/schema.ts 100% (v1.4.0)
 
 -- ------------------------------------------------------------------------------
 -- USERS TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id text PRIMARY KEY,
   email text NOT NULL UNIQUE,
   password_hash text NOT NULL,
@@ -52,7 +71,7 @@ CREATE TABLE users (
 -- ------------------------------------------------------------------------------
 -- INVITES TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE invites (
+CREATE TABLE IF NOT EXISTS invites (
   id text PRIMARY KEY,
   code text NOT NULL UNIQUE,
   role text NOT NULL DEFAULT 'owner',
@@ -64,9 +83,22 @@ CREATE TABLE invites (
 );
 
 -- ------------------------------------------------------------------------------
+-- AUTH TOKENS TABLE (Password Reset, Magic Links, OTPs)
+-- ------------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS auth_tokens (
+  id text PRIMARY KEY,
+  email text NOT NULL,
+  token_hash text NOT NULL,
+  type text NOT NULL, -- magic_link | otp | password_reset
+  expires_at timestamp with time zone NOT NULL,
+  is_used boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now()
+);
+
+-- ------------------------------------------------------------------------------
 -- DOCUMENTS TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE documents (
+CREATE TABLE IF NOT EXISTS documents (
   id text PRIMARY KEY,
   owner_id text NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   title text NOT NULL,
@@ -89,7 +121,7 @@ CREATE TABLE documents (
 -- ------------------------------------------------------------------------------
 -- DOC VERSIONS TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE doc_versions (
+CREATE TABLE IF NOT EXISTS doc_versions (
   id text PRIMARY KEY,
   doc_id text NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
   version_num integer NOT NULL,
@@ -105,7 +137,7 @@ CREATE TABLE doc_versions (
 -- ------------------------------------------------------------------------------
 -- DATAROOMS TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE datarooms (
+CREATE TABLE IF NOT EXISTS datarooms (
   id text PRIMARY KEY,
   owner_id text NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   name text NOT NULL,
@@ -117,7 +149,7 @@ CREATE TABLE datarooms (
 -- ------------------------------------------------------------------------------
 -- DATAROOM DOCS JUNCTION TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE dataroom_docs (
+CREATE TABLE IF NOT EXISTS dataroom_docs (
   id text PRIMARY KEY,
   dataroom_id text NOT NULL REFERENCES datarooms(id) ON DELETE CASCADE,
   doc_id text NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
@@ -128,7 +160,7 @@ CREATE TABLE dataroom_docs (
 -- ------------------------------------------------------------------------------
 -- LINKS TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE links (
+CREATE TABLE IF NOT EXISTS links (
   id text PRIMARY KEY,
   doc_id text REFERENCES documents(id) ON DELETE CASCADE,
   dataroom_id text REFERENCES datarooms(id) ON DELETE CASCADE,
@@ -166,7 +198,7 @@ CREATE TABLE links (
 -- ------------------------------------------------------------------------------
 -- VIEW SESSIONS TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE view_sessions (
+CREATE TABLE IF NOT EXISTS view_sessions (
   id text PRIMARY KEY,
   link_id text NOT NULL REFERENCES links(id) ON DELETE CASCADE,
   doc_id text REFERENCES documents(id) ON DELETE SET NULL,
@@ -188,7 +220,7 @@ CREATE TABLE view_sessions (
 -- ------------------------------------------------------------------------------
 -- SIGNATURES TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE signatures (
+CREATE TABLE IF NOT EXISTS signatures (
   id text PRIMARY KEY,
   link_id text NOT NULL REFERENCES links(id) ON DELETE CASCADE,
   session_id text REFERENCES view_sessions(id) ON DELETE CASCADE,
@@ -202,7 +234,7 @@ CREATE TABLE signatures (
 -- ------------------------------------------------------------------------------
 -- PAGE EVENTS TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE page_events (
+CREATE TABLE IF NOT EXISTS page_events (
   id text PRIMARY KEY,
   session_id text NOT NULL REFERENCES view_sessions(id) ON DELETE CASCADE,
   link_id text NOT NULL REFERENCES links(id) ON DELETE CASCADE,
@@ -215,7 +247,7 @@ CREATE TABLE page_events (
 -- ------------------------------------------------------------------------------
 -- PAGE QUESTIONS TABLE (In-Doc Real-Time Q&A Pinning)
 -- ------------------------------------------------------------------------------
-CREATE TABLE page_questions (
+CREATE TABLE IF NOT EXISTS page_questions (
   id text PRIMARY KEY,
   link_id text NOT NULL REFERENCES links(id) ON DELETE CASCADE,
   doc_id text REFERENCES documents(id) ON DELETE CASCADE,
@@ -235,7 +267,7 @@ CREATE TABLE page_questions (
 -- ------------------------------------------------------------------------------
 -- DOC AUDIO NOTES TABLE (Voice Pitch per Slide)
 -- ------------------------------------------------------------------------------
-CREATE TABLE doc_audio_notes (
+CREATE TABLE IF NOT EXISTS doc_audio_notes (
   id text PRIMARY KEY,
   doc_id text NOT NULL REFERENCES documents(id) ON DELETE CASCADE,
   page_number integer NOT NULL,
@@ -249,7 +281,7 @@ CREATE TABLE doc_audio_notes (
 -- ------------------------------------------------------------------------------
 -- LIVE ROOMS TABLE (Real-Time Synchronized Co-Browsing)
 -- ------------------------------------------------------------------------------
-CREATE TABLE live_rooms (
+CREATE TABLE IF NOT EXISTS live_rooms (
   id text PRIMARY KEY,
   link_id text NOT NULL REFERENCES links(id) ON DELETE CASCADE UNIQUE,
   current_slide integer NOT NULL DEFAULT 1,
@@ -262,7 +294,7 @@ CREATE TABLE live_rooms (
 -- ------------------------------------------------------------------------------
 -- PUSH SUBSCRIPTIONS TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE push_subscriptions (
+CREATE TABLE IF NOT EXISTS push_subscriptions (
   id text PRIMARY KEY,
   user_id text NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   endpoint text NOT NULL,
@@ -274,7 +306,7 @@ CREATE TABLE push_subscriptions (
 -- ------------------------------------------------------------------------------
 -- AUDIT LOG TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE audit_log (
+CREATE TABLE IF NOT EXISTS audit_log (
   id text PRIMARY KEY,
   user_id text,
   actor_type text NOT NULL DEFAULT 'user', -- user | admin | viewer | system
@@ -288,9 +320,9 @@ CREATE TABLE audit_log (
 -- ------------------------------------------------------------------------------
 -- SYSTEM SETTINGS TABLE
 -- ------------------------------------------------------------------------------
-CREATE TABLE system_settings (
-  key text PRIMARY KEY,
-  value text NOT NULL,
+CREATE TABLE IF NOT EXISTS system_settings (
+  "key" text PRIMARY KEY,
+  "value" text NOT NULL,
   updated_at timestamp with time zone NOT NULL DEFAULT now()
 );
 
@@ -303,6 +335,8 @@ CREATE INDEX IF NOT EXISTS idx_page_events_session_id ON page_events(session_id)
 CREATE INDEX IF NOT EXISTS idx_page_questions_link_id ON page_questions(link_id);
 CREATE INDEX IF NOT EXISTS idx_doc_audio_notes_doc_id ON doc_audio_notes(doc_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON audit_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_auth_tokens_hash_type ON auth_tokens(token_hash, type);
+CREATE INDEX IF NOT EXISTS idx_auth_tokens_expires ON auth_tokens(expires_at);
 
 -- 5. Enterprise Storage Optimization: High-Ratio TOAST Compression & Autovacuum Tuning
 DO $$
