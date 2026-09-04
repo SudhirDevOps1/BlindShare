@@ -129,6 +129,9 @@ export async function GET(request: Request) {
 
     const totalSessions = sessions.length;
     const avgDwellSeconds = totalSessions > 0 ? Math.round(totalDwellAll / totalSessions) : 0;
+    const avgCompletionRate = recentSessions.length > 0
+      ? Math.round(recentSessions.reduce((sum, s) => sum + (s.completionRate || 0), 0) / recentSessions.length)
+      : 0;
 
     // 4. Calculate top performing documents
     const docViewsMap = new Map<string, { doc: any; viewCount: number; dwellSeconds: number; linkCount: number }>();
@@ -162,6 +165,10 @@ export async function GET(request: Request) {
         totalDwellSeconds: item.dwellSeconds,
         formattedDwell: formatDuration(item.dwellSeconds),
       }));
+
+    const topLinkName = topDocuments.length > 0
+      ? topDocuments[0].title
+      : (userLinks.length > 0 ? userLinks[0].name : "");
 
     // Country list sorted
     const countryBreakdown = Object.entries(countryCounts)
@@ -235,6 +242,8 @@ export async function GET(request: Request) {
         activeNow,
         totalLinks: userLinks.length,
         totalDocuments: userDocs.length,
+        avgCompletionRate,
+        topLinkName,
         dbSizeBytes,
       },
       topDocuments,

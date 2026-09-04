@@ -154,10 +154,10 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
                       {item.viewCount || 0} {t.charts?.leaderboard?.views || "views"}
                     </span>
                     <span>•</span>
-                    <span>{item.avgDwell || "3m 20s"}</span>
+                    <span>{item.avgDwell || "0s"}</span>
                     <span>•</span>
                     <span className="text-amber-400 font-bold">
-                      {item.score || 85} {t.charts?.leaderboard?.score || "Score"}
+                      {item.score !== undefined ? item.score : 0} {t.charts?.leaderboard?.score || "Score"}
                     </span>
                   </div>
                 </div>

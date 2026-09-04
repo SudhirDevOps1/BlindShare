@@ -33,6 +33,7 @@ export async function POST(request: Request) {
     const mustRequireAltcha = failures >= 2 || process.env.ALTCHA_REQUIRED === "true";
 
     if (mustRequireAltcha && !altcha) {
+      recordFailure(email, ip);
       return NextResponse.json(
         { error: "Security challenge verification required due to suspicious activity. Please complete the verification.", reason: "captcha_required" },
         { status: 400 }
@@ -43,6 +44,7 @@ export async function POST(request: Request) {
     if (altcha) {
       const isValidAltcha = verifyAltchaPayload(altcha);
       if (!isValidAltcha) {
+        recordFailure(email, ip);
         return NextResponse.json(
           { error: "Security challenge verification failed. Please try again.", reason: "invalid_captcha" },
           { status: 400 }

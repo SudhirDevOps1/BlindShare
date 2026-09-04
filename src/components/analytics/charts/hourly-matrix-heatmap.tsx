@@ -22,7 +22,9 @@ export function HourlyMatrixHeatmap({ sessions = [] }: HourlyMatrixHeatmapProps)
 
     if (sessions.length > 0) {
       sessions.forEach((s) => {
-        const date = s.createdAt ? new Date(s.createdAt) : new Date();
+        const rawDate = s.startedAt || s.createdAt;
+        if (!rawDate) return;
+        const date = new Date(rawDate);
         const d = (date.getUTCDay() + 6) % 7; // Monday=0
         const h = date.getUTCHours();
         grid[d][h] += 1;
@@ -30,8 +32,6 @@ export function HourlyMatrixHeatmap({ sessions = [] }: HourlyMatrixHeatmapProps)
           peak = { day: d, hour: h, count: grid[d][h] };
         }
       });
-    } else {
-      // Clean zero state if brand new link
     }
 
     let max = 1;
@@ -43,6 +43,15 @@ export function HourlyMatrixHeatmap({ sessions = [] }: HourlyMatrixHeatmapProps)
 
     return { matrix: grid, maxCount: max, peakCell: peak };
   }, [sessions]);
+
+  const bestSendText = useMemo(() => {
+    if (sessions.length === 0 || peakCell.count === 0) {
+      return "No session data yet";
+    }
+    const dayStr = days[peakCell.day] || "Tue";
+    const hour12 = peakCell.hour === 0 ? "12 AM" : (peakCell.hour === 12 ? "12 PM" : (peakCell.hour > 12 ? `${peakCell.hour - 12} PM` : `${peakCell.hour} AM`));
+    return `Best Send Time: ${dayStr} ${hour12}`;
+  }, [sessions.length, peakCell, days]);
 
   return (
     <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 space-y-4 backdrop-blur-xl shadow-xl">
@@ -56,7 +65,7 @@ export function HourlyMatrixHeatmap({ sessions = [] }: HourlyMatrixHeatmapProps)
             </h3>
             <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-bold text-amber-400">
               <Zap className="h-3 w-3" />
-              <span>{t.charts?.hourlyMatrix?.bestSendTime || "Best Send Time: Tue 10 AM"}</span>
+              <span>{bestSendText}</span>
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">

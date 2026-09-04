@@ -17,11 +17,15 @@ export function WeeklyKpiDigest({ metrics }: WeeklyKpiDigestProps) {
   const activeNow = metrics?.activeNow || 0;
   const totalDwellHours = metrics?.totalDwellSeconds ? `${(metrics.totalDwellSeconds / 3600).toFixed(1)} hrs` : "0.0 hrs";
 
+  const completionRateVal = metrics?.avgCompletionRate !== undefined
+    ? `${metrics.avgCompletionRate}%`
+    : (totalViews > 0 ? "0%" : "0%");
+
   const cards = [
     {
       title: t.charts?.kpiDigest?.totalDwellHours || "Total Investor Attention",
       value: totalDwellHours,
-      trend: hasRealData ? "+34% this week" : "Live attention tracking",
+      trend: activeNow > 0 ? `${activeNow} active right now` : (totalViews > 0 ? `${totalViews} total views` : "Live attention tracking"),
       icon: Clock,
       color: "text-amber-400",
       bg: "from-amber-500/10 to-amber-500/5",
@@ -30,8 +34,8 @@ export function WeeklyKpiDigest({ metrics }: WeeklyKpiDigestProps) {
     },
     {
       title: t.charts?.kpiDigest?.topPitchDeck || "Most Viewed Link",
-      value: metrics?.topLinkName || (hasRealData ? "Most Viewed Link" : "No links shared yet"),
-      trend: hasRealData ? `${totalViews} unique views` : "Awaiting first view",
+      value: metrics?.topLinkName || (hasRealData ? "All Documents" : "No links shared yet"),
+      trend: hasRealData ? `${totalViews} total views` : "Awaiting first view",
       icon: Award,
       color: "text-cyan-400",
       bg: "from-cyan-500/10 to-cyan-500/5",
@@ -41,7 +45,7 @@ export function WeeklyKpiDigest({ metrics }: WeeklyKpiDigestProps) {
     {
       title: t.charts?.kpiDigest?.avgAttentionSpan || "Avg. Attention Span",
       value: avgDwell,
-      trend: hasRealData ? "+1m 12s vs avg" : "Real-time reading dwell",
+      trend: totalViews > 0 ? "Real-time reading dwell" : "No readings yet",
       icon: Eye,
       color: "text-emerald-400",
       bg: "from-emerald-500/10 to-emerald-500/5",
@@ -50,8 +54,8 @@ export function WeeklyKpiDigest({ metrics }: WeeklyKpiDigestProps) {
     },
     {
       title: t.charts?.kpiDigest?.conversionRate || "Completion Rate",
-      value: hasRealData ? "42.8%" : "0%",
-      trend: hasRealData ? "+8.5% completion" : "Completion telemetry",
+      value: completionRateVal,
+      trend: totalViews > 0 ? "Across all active sessions" : "Completion telemetry",
       icon: CheckCircle2,
       color: "text-purple-400",
       bg: "from-purple-500/10 to-purple-500/5",

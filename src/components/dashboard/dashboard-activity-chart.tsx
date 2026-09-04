@@ -37,9 +37,7 @@ export function DashboardActivityChart({
       const dateStr = d.toISOString().split("T")[0];
 
       const totalLinkViews = links.reduce((sum, l) => sum + (l.viewCount || 0), 0);
-      const baseline = Math.max(0, Math.round(totalLinkViews / 7));
-      const dayFactor = ((d.getDate() * 7 + i * 13) % 9) / 10;
-      const views = totalLinkViews === 0 ? 0 : Math.max(0, Math.round(baseline * (0.6 + dayFactor)));
+      const views = totalLinkViews === 0 ? 0 : Math.round(totalLinkViews / 7);
 
       days.push({ label: dayName, views, dateStr });
     }

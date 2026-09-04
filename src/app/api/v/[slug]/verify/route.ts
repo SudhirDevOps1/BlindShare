@@ -35,6 +35,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const mustRequireAltcha = failures >= 2 || process.env.ALTCHA_REQUIRED === "true";
 
   if (mustRequireAltcha && !altcha) {
+    recordFailure(`link:${slug}`, ip);
     return NextResponse.json(
       { error: "Bot security challenge required. Please complete verification before continuing.", reason: "captcha_required" },
       { status: 400 }
@@ -44,6 +45,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   if (altcha) {
     const isAltchaValid = verifyAltchaPayload(altcha);
     if (!isAltchaValid) {
+      recordFailure(`link:${slug}`, ip);
       return NextResponse.json(
         { error: "Bot security verification failed. Please refresh and try again." },
         { status: 400 }

@@ -1,4 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+import fs from 'fs';
+import path from 'path';
+import sharp from 'sharp';
+
+const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
   <defs>
     <linearGradient id="goldG" x1="0%" y1="0%" x2="100%" y2="100%">
       <stop offset="0%" stop-color="#fde68a" />
@@ -60,3 +64,41 @@
   <circle cx="50" cy="50" r="2.2" fill="url(#goldG)" />
   <polygon points="48.8,50 51.2,50 52,55.5 48,55.5" fill="url(#goldG)" />
 </svg>
+`;
+
+async function main() {
+  console.log('Rendering new BlindShare Gold Document-Padlock Shield icons...');
+
+  // 1. Write the master SVG to public/brand/02-favicon.svg
+  fs.writeFileSync('public/brand/02-favicon.svg', svg.trim());
+  console.log('✓ Wrote public/brand/02-favicon.svg');
+
+  // Also update 05-shield-lock-icon.svg and 10-app-icon-512.svg
+  fs.writeFileSync('public/brand/05-shield-lock-icon.svg', svg.trim());
+  fs.writeFileSync('public/brand/10-app-icon-512.svg', svg.trim());
+
+  const svgBuffer = Buffer.from(svg.trim());
+
+  // 2. Render 512x512 PNGs
+  const png512 = await sharp(svgBuffer).resize(512, 512).png().toBuffer();
+  fs.writeFileSync('src/app/icon.png', png512);
+  fs.writeFileSync('public/brand/icon.png', png512);
+  console.log('✓ Generated 512x512 PNG: src/app/icon.png & public/brand/icon.png');
+
+  // 3. Render 180x180 Apple Touch Icon
+  const png180 = await sharp(svgBuffer).resize(180, 180).png().toBuffer();
+  fs.writeFileSync('src/app/apple-icon.png', png180);
+  console.log('✓ Generated 180x180 PNG: src/app/apple-icon.png');
+
+  // 4. Render 32x32 Favicon PNG
+  const png32 = await sharp(svgBuffer).resize(32, 32).png().toBuffer();
+  fs.writeFileSync('public/favicon.png', png32);
+  console.log('✓ Generated 32x32 PNG: public/favicon.png');
+
+  console.log('All brand icons successfully overhauled with pixel-perfect resolution!');
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});
