@@ -54,6 +54,76 @@ export function ArchitectureShowcase() {
   });
 
   const cardRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Mouse tracking for Option 1 (Laser Pointer) & Option 2 (Cipher Spotlight)
+  const [mousePos, setMousePos] = useState<{ x: number; y: number; active: boolean }>({
+    x: -500,
+    y: -500,
+    active: false,
+  });
+  const [lerpPos, setLerpPos] = useState<{ x: number; y: number }>({ x: -500, y: -500 });
+  const [isHoveringInteractive, setIsHoveringInteractive] = useState<boolean>(false);
+  const [sonarPings, setSonarPings] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  const [isTouchDevice, setIsTouchDevice] = useState<boolean>(false);
+
+  // Detect touch screens or coarse pointers to gracefully disable custom cursor
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const hasTouch = "ontouchstart" in window || navigator.maxTouchPoints > 0;
+      setIsTouchDevice(hasTouch);
+    }
+  }, []);
+
+  // 60 FPS lerp interpolation for smooth inertia halo trailing
+  useEffect(() => {
+    if (isTouchDevice || !mousePos.active) return;
+    let animationFrameId: number;
+    const updateLerp = () => {
+      setLerpPos((prev) => {
+        const dx = mousePos.x - prev.x;
+        const dy = mousePos.y - prev.y;
+        if (Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1) return prev;
+        return {
+          x: prev.x + dx * 0.22,
+          y: prev.y + dy * 0.22,
+        };
+      });
+      animationFrameId = requestAnimationFrame(updateLerp);
+    };
+    animationFrameId = requestAnimationFrame(updateLerp);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [mousePos, isTouchDevice]);
+
+  const handleSectionMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    if (isTouchDevice || !sectionRef.current) return;
+    const rect = sectionRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    setMousePos({ x, y, active: true });
+
+    // Check if hovering interactive controls (buttons, links, pills)
+    const target = e.target as HTMLElement | null;
+    const isInteractive = target?.closest("button, a, [role='button'], input, .cursor-pointer") !== null;
+    setIsHoveringInteractive(isInteractive);
+  };
+
+  const handleSectionMouseLeave = () => {
+    setMousePos((prev) => ({ ...prev, active: false }));
+    setIsHoveringInteractive(false);
+  };
+
+  const handleSectionClick = (e: React.MouseEvent<HTMLElement>) => {
+    if (isTouchDevice || !sectionRef.current) return;
+    const rect = sectionRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const pingId = Date.now();
+    setSonarPings((prev) => [...prev.slice(-3), { id: pingId, x, y }]);
+    setTimeout(() => {
+      setSonarPings((prev) => prev.filter((p) => p.id !== pingId));
+    }, 600);
+  };
 
   const SLIDE_DURATION = 8500; // 8.5s relaxed presentation slideshow pace
 
@@ -279,12 +349,110 @@ export function ArchitectureShowcase() {
   };
 
   return (
-    <section className="relative border-t border-slate-900/80 bg-slate-950/80 py-24 px-4 sm:px-6 overflow-hidden">
+    <section
+      ref={sectionRef}
+      onMouseMove={handleSectionMouseMove}
+      onMouseLeave={handleSectionMouseLeave}
+      onClick={handleSectionClick}
+      className="relative border-t border-slate-900/80 bg-slate-950/80 py-24 px-4 sm:px-6 overflow-hidden select-none sm:select-auto cursor-default"
+    >
       {/* Background ambient lighting */}
       <div className="absolute top-1/4 right-10 -z-10 h-96 w-96 rounded-full bg-amber-500/10 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-10 left-10 -z-10 h-80 w-80 rounded-full bg-blue-500/10 blur-[130px] pointer-events-none" />
 
-      <div className="mx-auto max-w-7xl space-y-8">
+      {/* Option 2: Zero-Knowledge Cipher Spotlight Watermark Matrix */}
+      {!isTouchDevice && mousePos.active && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 z-0 select-none overflow-hidden"
+          style={{
+            WebkitMaskImage: `radial-gradient(380px circle at ${mousePos.x}px ${mousePos.y}px, black 25%, transparent 85%)`,
+            maskImage: `radial-gradient(380px circle at ${mousePos.x}px ${mousePos.y}px, black 25%, transparent 85%)`,
+          }}
+        >
+          {/* Faint Zero-Knowledge Cipher Fragment Watermarks */}
+          <div className="absolute inset-0 flex flex-wrap gap-x-8 gap-y-5 p-6 font-mono text-[10.5px] font-bold uppercase tracking-widest text-amber-400/30 leading-none">
+            {Array.from({ length: 48 }).map((_, i) => (
+              <span key={i} className="inline-flex items-center gap-2">
+                <span className="text-amber-300/40">#k=aes256_gcm_{((i * 1337) % 9999).toString(16)}</span>
+                <span className="text-slate-600">•</span>
+                <span className="text-emerald-400/40">PBKDF2_100k</span>
+                <span className="text-slate-600">•</span>
+                <span className="text-blue-400/35">ZERO_KNOWLEDGE_COURIER</span>
+                <span className="text-slate-600">•</span>
+                <span className="text-amber-400/40">RFC3986_URL_FRAGMENT</span>
+              </span>
+            ))}
+          </div>
+
+          {/* Ambient Radial Spotlight Beam */}
+          <div
+            className="absolute pointer-events-none rounded-full blur-3xl opacity-60"
+            style={{
+              left: `${mousePos.x - 200}px`,
+              top: `${mousePos.y - 200}px`,
+              width: "400px",
+              height: "400px",
+              background: "radial-gradient(circle, rgba(245,158,11,0.18) 0%, rgba(59,130,246,0.06) 45%, transparent 75%)",
+            }}
+          />
+        </div>
+      )}
+
+      {/* Option 1: Cryptographic Laser Pointer + Inertia Halo + Sonar Ping Waves */}
+      {!isTouchDevice && mousePos.active && (
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-40 overflow-hidden select-none">
+          {/* Inertia Laser Halo */}
+          <div
+            className={`absolute rounded-full border transition-transform duration-100 ease-out flex items-center justify-center ${
+              isHoveringInteractive
+                ? "border-amber-400 bg-amber-400/15 shadow-[0_0_22px_rgba(245,158,11,0.55)] scale-125"
+                : "border-amber-500/50 bg-amber-500/5 shadow-[0_0_12px_rgba(245,158,11,0.25)] scale-100"
+            }`}
+            style={{
+              left: `${lerpPos.x - 16}px`,
+              top: `${lerpPos.y - 16}px`,
+              width: "32px",
+              height: "32px",
+              transform: "translate3d(0, 0, 0)",
+            }}
+          >
+            {/* Precision Crosshair Notches */}
+            <div className="absolute top-0 w-0.5 h-1 bg-amber-400/80" />
+            <div className="absolute bottom-0 w-0.5 h-1 bg-amber-400/80" />
+            <div className="absolute left-0 h-0.5 w-1 bg-amber-400/80" />
+            <div className="absolute right-0 h-0.5 w-1 bg-amber-400/80" />
+          </div>
+
+          {/* Precision Laser Center Dot (0-latency tracking) */}
+          <div
+            className="absolute rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b,0_0_14px_#f59e0b]"
+            style={{
+              left: `${mousePos.x - 3}px`,
+              top: `${mousePos.y - 3}px`,
+              width: "6px",
+              height: "6px",
+            }}
+          />
+
+          {/* Click Sonar Ping Waves */}
+          {sonarPings.map((ping) => (
+            <div
+              key={ping.id}
+              className="absolute rounded-full border border-amber-400 bg-amber-400/20 pointer-events-none animate-ping"
+              style={{
+                left: `${ping.x - 30}px`,
+                top: `${ping.y - 30}px`,
+                width: "60px",
+                height: "60px",
+                animationDuration: "0.6s",
+              }}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className="relative z-10 mx-auto max-w-7xl space-y-8">
         {/* Section Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold text-amber-300 backdrop-blur-xl shadow-md">
