@@ -39,27 +39,15 @@ const CIPHER_STREAM = Array.from({ length: 1400 }).map((_, i) => {
   };
 });
 
-interface TuxCyberPetProps {
-  isHovering: boolean;
-  isRunning: boolean;
-  facing: 1 | -1;
-}
-
-function TuxCyberPet({ isHovering, isRunning, facing }: TuxCyberPetProps) {
+const TuxCyberPet = React.forwardRef<HTMLDivElement, {}>(function TuxCyberPet(_, ref) {
   return (
     <div
-      className="relative select-none pointer-events-none transition-transform duration-100"
-      style={{
-        transform: `scaleX(${facing}) rotate(${isRunning ? facing * 12 : 0}deg)`,
-      }}
+      ref={ref}
+      className="tux-pet tux-idle tux-facing-right relative select-none pointer-events-none"
     >
       <svg
         viewBox="0 0 36 42"
-        className={`w-8 h-9 transition-transform duration-200 ${
-          isHovering
-            ? "scale-110 drop-shadow-[0_2px_10px_rgba(245,158,11,0.45)]"
-            : "scale-100 drop-shadow-[0_2px_6px_rgba(16,185,129,0.3)]"
-        }`}
+        className="w-8 h-9 drop-shadow-[0_2px_8px_rgba(245,158,11,0.35)] transition-transform duration-150"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
@@ -67,23 +55,20 @@ function TuxCyberPet({ isHovering, isRunning, facing }: TuxCyberPetProps) {
         <ellipse
           cx="18"
           cy="39"
-          rx={isRunning ? 6 : 4.5}
-          ry={isRunning ? 2.6 : 1.5}
-          fill={isRunning ? "rgba(245,158,11,0.85)" : isHovering ? "rgba(245,158,11,0.5)" : "rgba(56,189,248,0.4)"}
-          className="animate-pulse"
+          rx="4.5"
+          ry="1.6"
+          fill="rgba(56,189,248,0.7)"
+          className="tux-thruster animate-pulse"
         />
 
-        {/* Penguin Little Cyber Feet (running step animation when moving) */}
+        {/* Penguin Little Cyber Feet */}
         <ellipse
           cx="12"
           cy="36"
           rx="3.5"
           ry="1.8"
           fill="#F59E0B"
-          style={{
-            transformOrigin: "12px 36px",
-            animation: isRunning ? "tuxRunFootLeft 0.16s ease-in-out infinite alternate" : undefined,
-          }}
+          className="tux-foot-left"
         />
         <ellipse
           cx="24"
@@ -91,45 +76,28 @@ function TuxCyberPet({ isHovering, isRunning, facing }: TuxCyberPetProps) {
           rx="3.5"
           ry="1.8"
           fill="#F59E0B"
-          style={{
-            transformOrigin: "24px 36px",
-            animation: isRunning ? "tuxRunFootRight 0.16s ease-in-out infinite alternate" : undefined,
-          }}
+          className="tux-foot-right"
         />
 
         {/* Penguin Main Body (Obsidian Cyber Chassis) */}
         <ellipse cx="18" cy="21" rx="13" ry="15" fill="#0F172A" stroke="#334155" strokeWidth="1" />
 
-        {/* Left Flipper / Wing (Flapping) */}
+        {/* Left Flipper / Wing */}
         <path
+          className="tux-wing-left"
           d="M6 16 C3 20, 2 26, 6 29 C7 29, 8 26, 8 22 Z"
           fill="#1E293B"
           stroke="#475569"
           strokeWidth="0.75"
-          style={{
-            transformOrigin: "6px 16px",
-            animation: isRunning
-              ? "tuxWingLeft 0.14s ease-in-out infinite alternate"
-              : isHovering
-              ? "tuxWingLeft 0.25s ease-in-out infinite alternate"
-              : "tuxWingLeft 0.65s ease-in-out infinite alternate",
-          }}
         />
 
-        {/* Right Flipper / Wing (Flapping) */}
+        {/* Right Flipper / Wing */}
         <path
+          className="tux-wing-right"
           d="M30 16 C33 20, 34 26, 30 29 C29 29, 28 26, 28 22 Z"
           fill="#1E293B"
           stroke="#475569"
           strokeWidth="0.75"
-          style={{
-            transformOrigin: "30px 16px",
-            animation: isRunning
-              ? "tuxWingRight 0.14s ease-in-out infinite alternate"
-              : isHovering
-              ? "tuxWingRight 0.25s ease-in-out infinite alternate"
-              : "tuxWingRight 0.65s ease-in-out infinite alternate",
-          }}
         />
 
         {/* Classic Tux White Tummy Plate */}
@@ -154,36 +122,30 @@ function TuxCyberPet({ isHovering, isRunning, facing }: TuxCyberPetProps) {
         {/* Cute Beak */}
         <polygon points="15.5,14 20.5,14 18,17.5" fill="#F59E0B" />
 
-        {/* Eyes (Cute Digital LED Visor Eyes) */}
-        {isHovering || isRunning ? (
-          <>
-            <circle cx="14" cy="11" r="2.2" fill="#020617" />
-            <circle cx="14" cy="11" r="1.2" fill="#F59E0B" className="animate-pulse" />
-            <circle cx="22" cy="11" r="2.2" fill="#020617" />
-            <circle cx="22" cy="11" r="1.2" fill="#F59E0B" className="animate-pulse" />
-          </>
-        ) : (
-          <>
-            <ellipse cx="14" cy="11.5" rx="2" ry="2.6" fill="#020617" />
-            <circle cx="14.5" cy="11" r="1" fill="#38BDF8" />
-            <ellipse cx="22" cy="11.5" rx="2" ry="2.6" fill="#020617" />
-            <circle cx="21.5" cy="11" r="1" fill="#38BDF8" />
-          </>
-        )}
+        {/* Cute Digital LED Visor Eyes with natural blinking & direction tracking */}
+        <g className="tux-eyes">
+          <ellipse cx="14" cy="11.5" rx="2.4" ry="3" fill="#020617" />
+          <circle cx="14.2" cy="11.5" r="1.4" fill="#38BDF8" className="tux-pupil" />
+          <circle cx="14.7" cy="11" r="0.6" fill="#FFFFFF" />
 
-        {/* Cute Head Cyber Antenna with Soft LED Beacon */}
+          <ellipse cx="22" cy="11.5" rx="2.4" ry="3" fill="#020617" />
+          <circle cx="22.2" cy="11.5" r="1.4" fill="#38BDF8" className="tux-pupil" />
+          <circle cx="22.7" cy="11" r="0.6" fill="#FFFFFF" />
+        </g>
+
+        {/* Cute Head Cyber Antenna with Pulsing LED Beacon */}
         <line x1="18" y1="6" x2="18" y2="2.5" stroke="#F59E0B" strokeWidth="1" strokeLinecap="round" />
         <circle
           cx="18"
           cy="2"
           r="1.2"
-          fill={isRunning ? "#F59E0B" : isHovering ? "#F59E0B" : "#10B981"}
-          className="animate-ping"
+          fill="#10B981"
+          className="tux-antenna-led animate-ping"
         />
       </svg>
     </div>
   );
-}
+});
 
 export function CryptoCursor() {
   const pathname = usePathname();
@@ -192,10 +154,6 @@ export function CryptoCursor() {
   const [isHoveringInteractive, setIsHoveringInteractive] = useState<boolean>(false);
   const [sonarPings, setSonarPings] = useState<SonarPing[]>([]);
   const [isVisible, setIsVisible] = useState<boolean>(false);
-  const [petMotion, setPetMotion] = useState<{ isRunning: boolean; facing: 1 | -1 }>({
-    isRunning: false,
-    facing: 1,
-  });
 
   // Check whether cursor is enabled: ON by default in showcase/public, OFF by default in dashboard/admin
   useEffect(() => {
@@ -237,13 +195,13 @@ export function CryptoCursor() {
   const petPhysicsRef = useRef<{
     x: number;
     y: number;
-    facing: 1 | -1;
-    isRunning: boolean;
+    wasRunning: boolean;
+    idleFrames: number;
   }>({
     x: -500,
     y: -500,
-    facing: 1,
-    isRunning: false,
+    wasRunning: false,
+    idleFrames: 0,
   });
   const isHoveringRef = useRef<boolean>(false);
 
@@ -251,6 +209,7 @@ export function CryptoCursor() {
   const laserDotRef = useRef<HTMLDivElement>(null);
   const haloRef = useRef<HTMLDivElement>(null);
   const petRef = useRef<HTMLDivElement>(null);
+  const petInnerRef = useRef<HTMLDivElement>(null);
   const spotlightRef = useRef<HTMLDivElement>(null);
   const matrixSpotlightRef = useRef<HTMLDivElement>(null);
 
@@ -301,46 +260,57 @@ export function CryptoCursor() {
           haloRef.current.style.transform = `translate3d(${lx - 12}px, ${ly - 12}px, 0) scale(${scale})`;
         }
 
-        // 3. Cute Tux Cyber Pet companion running & flowing towards the cursor ("daud ke aaye")
+        // 3. Cute Tux Cyber Pet Chase Sprint Physics ("daud ke aaye")
         const pet = petPhysicsRef.current;
         if (pet.x === -500) {
-          pet.x = tx - 32;
+          pet.x = tx - 45;
           pet.y = ty + 12;
         }
 
-        // Target spot for pet is slightly behind cursor depending on movement direction
-        const petTargetX = tx + (pet.facing === 1 ? -36 : 36);
-        const petTargetY = ty + 12;
+        // Target spot: pet runs to stay at a friendly trailing position
+        const targetSide = tx >= pet.x ? -44 : 44;
+        const targetPetX = tx + targetSide;
+        const targetPetY = ty + 12;
 
-        const petDx = petTargetX - pet.x;
-        const petDy = petTargetY - pet.y;
-        const petDist = Math.hypot(petDx, petDy);
+        const pDx = targetPetX - pet.x;
+        const pDy = targetPetY - pet.y;
+        const pDist = Math.hypot(pDx, pDy);
 
-        if (petDist > 18) {
+        let isRunningNow = false;
+        const facingNow: 1 | -1 = tx >= pet.x ? 1 : -1;
+
+        if (pDist > 14) {
           // Pet is actively running to catch up!
-          const newFacing: 1 | -1 = petDx >= 0 ? 1 : -1;
-          pet.x += petDx * 0.16; // dynamic sprint
-          pet.y += petDy * 0.16;
-
-          if (!pet.isRunning || pet.facing !== newFacing) {
-            pet.isRunning = true;
-            pet.facing = newFacing;
-            setPetMotion({ isRunning: true, facing: newFacing });
-          }
+          isRunningNow = true;
+          // Dynamic chase speed: runs fast (up to 14px/frame) if distant
+          const chaseSpeed = Math.min(14, Math.max(3, pDist * 0.15));
+          const angle = Math.atan2(pDy, pDx);
+          pet.x += Math.cos(angle) * chaseSpeed;
+          pet.y += Math.sin(angle) * chaseSpeed;
+          pet.idleFrames = 0;
         } else {
-          // Pet has arrived at cursor, smooth idle float
-          pet.x += petDx * 0.08;
-          pet.y += petDy * 0.08;
-
-          if (pet.isRunning) {
-            pet.isRunning = false;
-            setPetMotion((prev) => ({ ...prev, isRunning: false }));
+          // Smooth deceleration when close
+          pet.x += pDx * 0.12;
+          pet.y += pDy * 0.12;
+          pet.idleFrames = (pet.idleFrames || 0) + 1;
+          if (pet.idleFrames < 6 && pet.wasRunning) {
+            isRunningNow = true;
           }
         }
+        pet.wasRunning = isRunningNow;
 
         if (petRef.current) {
-          const hoverBob = pet.isRunning ? 0 : Math.sin(Date.now() / 260) * 2.5;
+          const hoverBob = isRunningNow ? 0 : Math.sin(Date.now() / 240) * 3;
           petRef.current.style.transform = `translate3d(${Math.round(pet.x)}px, ${Math.round(pet.y + hoverBob)}px, 0)`;
+
+          // Direct class updates on the pet DOM element (instantaneous, 0 React latency)
+          if (petInnerRef.current) {
+            petInnerRef.current.classList.toggle("tux-running", isRunningNow);
+            petInnerRef.current.classList.toggle("tux-idle", !isRunningNow);
+            petInnerRef.current.classList.toggle("tux-hovering", isHoveringRef.current);
+            petInnerRef.current.classList.toggle("tux-facing-right", facingNow === 1);
+            petInnerRef.current.classList.toggle("tux-facing-left", facingNow === -1);
+          }
         }
 
         // 4. Soft focused flashlight glow (tight circle around cursor)
@@ -416,21 +386,115 @@ export function CryptoCursor() {
   return (
     <>
       <style>{`
-        @keyframes tuxWingLeft {
+        /* ── Tux Pet Base & Direction ── */
+        .tux-pet {
+          transition: transform 0.12s ease-out;
+          will-change: transform;
+        }
+        .tux-pet.tux-facing-right {
+          transform: scaleX(1);
+        }
+        .tux-pet.tux-facing-left {
+          transform: scaleX(-1);
+        }
+        .tux-pet.tux-running.tux-facing-right {
+          transform: scaleX(1) rotate(14deg);
+        }
+        .tux-pet.tux-running.tux-facing-left {
+          transform: scaleX(-1) rotate(14deg);
+        }
+
+        /* ── Eyes Blinking & Running Glow ── */
+        .tux-pet .tux-eyes {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: tuxEyeBlink 3.4s ease-in-out infinite;
+        }
+        @keyframes tuxEyeBlink {
+          0%, 93%, 97%, 100% { transform: scaleY(1); }
+          95% { transform: scaleY(0.1); }
+        }
+        .tux-pet.tux-running .tux-pupil {
+          fill: #F59E0B !important;
+          filter: drop-shadow(0 0 4px #F59E0B);
+        }
+        .tux-pet.tux-hovering .tux-pupil {
+          fill: #10B981 !important;
+          filter: drop-shadow(0 0 4px #10B981);
+        }
+
+        /* ── Wings Flutter & Energetic Run Flap ── */
+        .tux-pet .tux-wing-left {
+          transform-box: fill-box;
+          transform-origin: top right;
+          animation: tuxWingHoverLeft 0.75s ease-in-out infinite alternate;
+        }
+        .tux-pet .tux-wing-right {
+          transform-box: fill-box;
+          transform-origin: top left;
+          animation: tuxWingHoverRight 0.75s ease-in-out infinite alternate;
+        }
+        .tux-pet.tux-running .tux-wing-left {
+          animation: tuxWingRunLeft 0.12s ease-in-out infinite alternate !important;
+        }
+        .tux-pet.tux-running .tux-wing-right {
+          animation: tuxWingRunRight 0.12s ease-in-out infinite alternate !important;
+        }
+
+        @keyframes tuxWingHoverLeft {
           0% { transform: rotate(0deg); }
-          100% { transform: rotate(-24deg); }
+          100% { transform: rotate(-22deg); }
         }
-        @keyframes tuxWingRight {
+        @keyframes tuxWingHoverRight {
           0% { transform: rotate(0deg); }
-          100% { transform: rotate(24deg); }
+          100% { transform: rotate(22deg); }
         }
-        @keyframes tuxRunFootLeft {
-          0% { transform: translateY(0px) rotate(0deg); }
-          100% { transform: translateY(-4px) rotate(-20deg); }
+        @keyframes tuxWingRunLeft {
+          0% { transform: rotate(-10deg) scaleY(0.9); }
+          100% { transform: rotate(-55deg) scaleY(1.15); }
         }
-        @keyframes tuxRunFootRight {
-          0% { transform: translateY(-4px) rotate(-20deg); }
-          100% { transform: translateY(0px) rotate(0deg); }
+        @keyframes tuxWingRunRight {
+          0% { transform: rotate(10deg) scaleY(0.9); }
+          100% { transform: rotate(55deg) scaleY(1.15); }
+        }
+
+        /* ── Running Feet Gait Cycle (Alternating steps) ── */
+        .tux-pet .tux-foot-left,
+        .tux-pet .tux-foot-right {
+          transform-box: fill-box;
+          transform-origin: center top;
+        }
+        .tux-pet.tux-running .tux-foot-left {
+          animation: tuxStepLeft 0.15s ease-in-out infinite alternate !important;
+        }
+        .tux-pet.tux-running .tux-foot-right {
+          animation: tuxStepRight 0.15s ease-in-out infinite alternate !important;
+        }
+
+        @keyframes tuxStepLeft {
+          0% { transform: translate(3px, -5px) rotate(-24deg); }
+          100% { transform: translate(-4px, 2px) rotate(20deg); }
+        }
+        @keyframes tuxStepRight {
+          0% { transform: translate(-4px, 2px) rotate(20deg); }
+          100% { transform: translate(3px, -5px) rotate(-24deg); }
+        }
+
+        /* ── Running Body Bounce & Thruster Boost ── */
+        .tux-pet.tux-running svg {
+          animation: tuxRunBounce 0.15s ease-in-out infinite alternate;
+        }
+        @keyframes tuxRunBounce {
+          0% { transform: translateY(0px); }
+          100% { transform: translateY(-4px); }
+        }
+        .tux-pet.tux-running .tux-thruster {
+          fill: rgba(245, 158, 11, 0.9) !important;
+          transform: scale(1.6, 2.2);
+          filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.8));
+        }
+        .tux-pet.tux-running .tux-antenna-led {
+          fill: #F59E0B !important;
         }
       `}</style>
 
@@ -496,11 +560,7 @@ export function CryptoCursor() {
           ref={petRef}
           className="absolute top-0 left-0 will-change-transform pointer-events-none"
         >
-          <TuxCyberPet
-            isHovering={isHoveringInteractive}
-            isRunning={petMotion.isRunning}
-            facing={petMotion.facing}
-          />
+          <TuxCyberPet ref={petInnerRef} />
         </div>
 
         {/* Click Sonar Ping Waves */}
