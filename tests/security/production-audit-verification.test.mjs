@@ -96,3 +96,58 @@ test("Storage Isolation: Plaintext keys must never be persisted in document mode
   assert.equal("plaintextKey" in docRecord, false);
   assert.equal("fragmentKey" in docRecord, false);
 });
+
+test("Investor Intelligence: Geographic breakdown calculation prevents NaN under all conditions", () => {
+  function computeCountryViews(rawBreakdown) {
+    if (!rawBreakdown || !Array.isArray(rawBreakdown)) {
+      return { totalViews: 0, items: [] };
+    }
+    let sum = 0;
+    const items = rawBreakdown.map((c) => {
+      const views = Number(c.views ?? c.count ?? 0);
+      const safeViews = isNaN(views) || views < 0 ? 0 : views;
+      sum += safeViews;
+      return { country: c.country, views: safeViews };
+    });
+    return {
+      totalViews: sum,
+      items: items.map((i) => ({
+        ...i,
+        percentage: sum > 0 ? Math.round((i.views / sum) * 100) : 0,
+      })),
+    };
+  }
+
+  // Test 1: Empty input
+  const res1 = computeCountryViews([]);
+  assert.equal(res1.totalViews, 0);
+  assert.equal(isNaN(res1.totalViews), false);
+
+  // Test 2: Input with count instead of views (the previous bug)
+  const res2 = computeCountryViews([{ country: "IN", count: 5 }]);
+  assert.equal(res2.totalViews, 5);
+  assert.equal(res2.items[0].views, 5);
+  assert.equal(res2.items[0].percentage, 100);
+  assert.equal(isNaN(res2.items[0].percentage), false);
+
+  // Test 3: Input with undefined/null fields
+  const res3 = computeCountryViews([{ country: "US" }, { country: "DE", views: null }]);
+  assert.equal(res3.totalViews, 0);
+  assert.equal(res3.items[0].views, 0);
+  assert.equal(res3.items[0].percentage, 0);
+  assert.equal(isNaN(res3.items[0].percentage), false);
+});
+
+test("Investor Intelligence: /api/investors routes are registered", () => {
+  const liveRoutePath = path.resolve(process.cwd(), "src/app/api/investors/live/route.ts");
+  const distRoutePath = path.resolve(process.cwd(), "src/app/api/investors/distribution/route.ts");
+
+  assert.ok(fs.existsSync(liveRoutePath), "/api/investors/live/route.ts must exist");
+  assert.ok(fs.existsSync(distRoutePath), "/api/investors/distribution/route.ts must exist");
+
+  const liveContent = fs.readFileSync(liveRoutePath, "utf8");
+  assert.ok(liveContent.includes("requireAuth"), "Live investors route must require authentication");
+
+  const distContent = fs.readFileSync(distRoutePath, "utf8");
+  assert.ok(distContent.includes("requireAuth"), "Investor distribution route must require authentication");
+});

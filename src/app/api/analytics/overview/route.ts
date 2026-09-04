@@ -172,9 +172,14 @@ export async function GET(request: Request) {
 
     // Country list sorted
     const countryBreakdown = Object.entries(countryCounts)
-      .map(([country, count]) => ({ country, count, percentage: Math.round((count / Math.max(1, totalSessions)) * 100) }))
+      .map(([country, count]) => ({
+        country,
+        count,
+        views: count,
+        percentage: totalSessions > 0 ? Math.round((count / totalSessions) * 100) : 0,
+      }))
       .sort((a, b) => b.count - a.count)
-      .slice(0, 6);
+      .slice(0, 10);
 
     // 5. 7-Day Real Daily Views Timeline
     const nowTs = Date.now();

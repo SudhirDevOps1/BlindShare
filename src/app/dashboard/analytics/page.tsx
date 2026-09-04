@@ -334,7 +334,11 @@ export default function GlobalAnalyticsPage() {
         <HourlyMatrixHeatmap sessions={recentSessions || []} />
 
         {/* 4. Global Geographic Radar Map */}
-        <GeoChoroplethMap countryBreakdown={countryBreakdown || []} />
+        <GeoChoroplethMap
+          countryBreakdown={countryBreakdown || []}
+          recentSessions={recentSessions || []}
+          activeNow={metrics?.activeNow || 0}
+        />
 
         {/* 5. Top Performing Pitch Decks Leaderboard */}
         <TopLinksLeaderboard links={topDocuments || []} />
@@ -342,7 +346,7 @@ export default function GlobalAnalyticsPage() {
         {/* 6. Dwell Time Distribution Buckets */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <DwellHistogram sessions={recentSessions || []} />
-          <MetricCorrelationMatrix />
+          <MetricCorrelationMatrix sessions={recentSessions || []} />
         </div>
 
         {/* Live Real-time Activity Feed */}
