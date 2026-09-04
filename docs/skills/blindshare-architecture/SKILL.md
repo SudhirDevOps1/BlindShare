@@ -78,6 +78,8 @@ Follow this protocol during any engineering task on BlindShare:
 | **4** | **Automated Test Invariant** | Always run `npm run typecheck && npm test && npm run lint`. All 34 security tests must pass with 0 errors. |
 | **5** | **Zero PII Logging** | Never output passwords, keys, viewer emails, or filenames to stdout. Use `logger.info/warn/error`. |
 | **6** | **Git Workspace Isolation** | Keep local AI configs (`.agents/`, `.claude/`, `.gemini/`) untracked via `.gitignore` while maintaining master skill docs in `docs/skills/`. |
+| **7** | **Dynamic 12-Graph Vector Suite** | Maintain SVGs 30–41 with 3D perspective tilt, live project mappings, and 100% bilingual parity. |
+| **8** | **Database Schema Integrity** | Maintain all 17 tables (including `auth_tokens`) with idempotent `IF NOT EXISTS` reset scripts. |
 
 ---
 
