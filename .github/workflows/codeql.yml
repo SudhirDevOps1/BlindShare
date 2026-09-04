@@ -20,6 +20,8 @@ jobs:
     permissions:
       security-events: write
       contents: read
+    env:
+      ACTIONS_RUNNER_FORCE_NODE24: "true"
 
     strategy:
       fail-fast: false

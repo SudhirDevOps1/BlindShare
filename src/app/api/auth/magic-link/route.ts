@@ -5,6 +5,7 @@ import { eq, and, gt } from "drizzle-orm";
 import { genId } from "@/lib/ids";
 import { createSessionCookie } from "@/lib/auth/session";
 import { sendEmail, renderMagicLinkEmail } from "@/lib/email";
+import { getRequestOrigin } from "@/lib/auth/request-origin";
 import { parseBody } from "@/lib/validation";
 import { z } from "zod";
 import crypto from "crypto";
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
       isUsed: false,
     });
 
-    const origin = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;
+    const origin = getRequestOrigin(request);
     const magicLinkUrl = `${origin}/api/auth/magic-link?token=${rawToken}`;
 
     const { subject, html, text } = renderMagicLinkEmail({

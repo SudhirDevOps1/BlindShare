@@ -12,7 +12,7 @@ import { rateLimitDistributed } from "@/lib/security/distributed-rate-limiter";
 const PRESIGN_PER_MIN = Number(process.env.PRESIGN_REQ_PER_MIN_PER_IP || "20");
 const VIEWS_PER_HOUR = Number(process.env.VIEWS_PER_HR_PER_LINK || "120");
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const ip =
     request.headers.get("cf-connecting-ip") ||
@@ -131,6 +131,9 @@ export async function middleware(request: NextRequest) {
 
   return response;
 }
+
+export const middleware = proxy;
+export default proxy;
 
 export const config = {
   matcher: ["/((?!_next/static|_next/image|favicon.ico|brand/|manifest.webmanifest|sw.js).*)"],

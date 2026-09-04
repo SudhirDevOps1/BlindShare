@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { parseBody } from "@/lib/validation";
 import { genId, genInviteCode } from "@/lib/ids";
 import { sendEmail, renderInviteEmail } from "@/lib/email";
+import { getRequestOrigin } from "@/lib/auth/request-origin";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
 
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
       isUsed: false,
     });
 
-    const origin = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;
+    const origin = getRequestOrigin(request);
     const signupUrl = `${origin}/signup?invite=${encodeURIComponent(code)}`;
 
     const { subject, html, text } = renderInviteEmail({

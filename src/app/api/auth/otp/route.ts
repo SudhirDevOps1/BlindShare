@@ -13,10 +13,16 @@ const sendOtpSchema = z.object({
   email: z.string().trim().email("Invalid email address").toLowerCase(),
 });
 
-const verifyOtpSchema = z.object({
-  email: z.string().trim().email("Invalid email address").toLowerCase(),
-  code: z.string().trim().min(6).max(6),
-});
+const verifyOtpSchema = z
+  .object({
+    email: z.string().trim().email("Invalid email address").toLowerCase(),
+    code: z.string().trim().min(6).max(6).optional(),
+    otp: z.string().trim().min(6).max(6).optional(),
+  })
+  .refine((data) => Boolean(data.code || data.otp), {
+    message: "6-digit OTP code is required",
+    path: ["code"],
+  });
 
 function hashToken(raw: string): string {
   return crypto.createHash("sha256").update(raw).digest("hex");
@@ -49,7 +55,7 @@ export async function POST(request: Request) {
     // Generate random 6-digit number
     const rawOtp = crypto.randomInt(100000, 999999).toString();
     const tokenHash = hashToken(rawOtp);
-    const expiresInMinutes = 5;
+    const expiresInMinutes = 15;
     const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
 
     await db.insert(authTokens).values({
@@ -87,10 +93,11 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   const parsed = await parseBody(request, verifyOtpSchema);
   if ("errorResponse" in parsed) return parsed.errorResponse;
-  const { email, code } = parsed.data;
+  const email = parsed.data.email;
+  const rawCode = (parsed.data.code || parsed.data.otp)!.trim();
 
   try {
-    const tokenHash = hashToken(code);
+    const tokenHash = hashToken(rawCode);
     const now = new Date();
 
     const [record] = await db

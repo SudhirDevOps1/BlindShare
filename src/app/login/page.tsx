@@ -192,6 +192,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
+          code: otpCode.trim(),
           otp: otpCode.trim(),
         }),
       });
