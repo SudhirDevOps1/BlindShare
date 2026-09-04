@@ -61,6 +61,7 @@ export function AdminPanelView() {
   const [envCategoryFilter, setEnvCategoryFilter] = useState<string>("all");
   const [envSearch, setEnvSearch] = useState<string>("");
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  const [copiedInvite, setCopiedInvite] = useState<string | null>(null);
   const [showTableBreakdown, setShowTableBreakdown] = useState(false);
 
   const [actionMessage, setActionMessage] = useState<string | null>(null);
@@ -181,9 +182,12 @@ export function AdminPanelView() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, role: newRole }),
     });
+    const json = await res.json();
     if (res.ok) {
       setActionMessage(`User role updated to ${newRole}.`);
       fetchUsers();
+    } else {
+      setActionMessage(`Error: ${json.error || "Failed to update user role"}`);
     }
   };
 
@@ -214,26 +218,40 @@ export function AdminPanelView() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         role: newInviteRole,
+        expiryDays: parseInt(newInviteDays, 10),
         expiresInDays: parseInt(newInviteDays, 10),
+        customCode: customInviteCode.trim() || undefined,
         code: customInviteCode.trim() || undefined,
       }),
     });
     const json = await res.json();
     if (res.ok) {
-      setActionMessage(`Invite code created: ${json.invite.code}`);
+      const codeCreated = json.code || json.invite?.code || "Created";
+      setActionMessage(`Invite code created: ${codeCreated}`);
       setCustomInviteCode("");
       fetchInvites();
     } else {
-      setActionMessage(`Error: ${json.error}`);
+      setActionMessage(`Error: ${json.error || "Failed to create invite"}`);
     }
   };
 
   const handleRevokeInvite = async (id: string) => {
     const res = await fetch(`/api/admin/invites?id=${id}`, { method: "DELETE" });
+    const json = await res.json();
     if (res.ok) {
-      setActionMessage("Invite revoked.");
+      setActionMessage("Invite revoked successfully.");
       fetchInvites();
+    } else {
+      setActionMessage(`Error: ${json.error || "Failed to revoke invite"}`);
     }
+  };
+
+  const handleCopyInviteLink = (code: string) => {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const url = `${origin}/signup?invite=${encodeURIComponent(code)}`;
+    navigator.clipboard.writeText(url);
+    setCopiedInvite(code);
+    setTimeout(() => setCopiedInvite(null), 2500);
   };
 
   const handleSaveSettings = async () => {
@@ -1084,34 +1102,72 @@ export function AdminPanelView() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
-                  {invitesList.map((inv) => (
-                    <tr key={inv.id} className="hover:bg-slate-800/30">
-                      <td className="py-3 pl-2 font-mono font-bold text-amber-400">{inv.code}</td>
-                      <td className="py-3 capitalize text-slate-300">{inv.role}</td>
-                      <td className="py-3">
-                        {inv.usedAt ? (
-                          <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400">Used</span>
-                        ) : (
-                          <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
-                            Available
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-3 text-slate-400 font-mono text-[11px]">
-                        {new Date(inv.expiresAt).toLocaleDateString()}
-                      </td>
-                      <td className="py-3 pr-2 text-right">
-                        {!inv.usedAt && (
-                          <button
-                            onClick={() => handleRevokeInvite(inv.id)}
-                            className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-red-400"
+                  {invitesList.map((inv) => {
+                    const isExpired = !inv.isUsed && new Date(inv.expiresAt) < new Date();
+                    return (
+                      <tr key={inv.id} className="hover:bg-slate-800/30">
+                        <td className="py-3 pl-2">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-bold text-amber-400">{inv.code}</span>
+                            <button
+                              type="button"
+                              onClick={() => handleCopyInviteLink(inv.code)}
+                              className="rounded-md bg-slate-800 p-1 text-slate-400 hover:text-white hover:bg-slate-700 transition"
+                              title="Copy Registration Link with Invite"
+                            >
+                              {copiedInvite === inv.code ? (
+                                <Check className="h-3 w-3 text-emerald-400" />
+                              ) : (
+                                <Copy className="h-3 w-3" />
+                              )}
+                            </button>
+                          </div>
+                        </td>
+                        <td className="py-3 capitalize text-slate-300">
+                          <span
+                            className={`inline-block rounded px-2 py-0.5 text-[10px] font-bold ${
+                              inv.role === "super_admin"
+                                ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                                : inv.role === "admin"
+                                ? "bg-blue-500/20 text-blue-300 border border-blue-500/30"
+                                : "bg-slate-800 text-slate-300"
+                            }`}
                           >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                            {inv.role === "super_admin" ? "Super Admin" : inv.role === "admin" ? "Admin" : "Owner"}
+                          </span>
+                        </td>
+                        <td className="py-3">
+                          {inv.isUsed ? (
+                            <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-medium text-slate-400 border border-slate-700">
+                              Claimed / Used
+                            </span>
+                          ) : isExpired ? (
+                            <span className="rounded bg-rose-500/20 px-2 py-0.5 text-[10px] font-bold text-rose-400 border border-rose-500/30">
+                              Expired
+                            </span>
+                          ) : (
+                            <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
+                              Available
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 text-slate-400 font-mono text-[11px]">
+                          {new Date(inv.expiresAt).toLocaleDateString()}
+                        </td>
+                        <td className="py-3 pr-2 text-right">
+                          {!inv.isUsed && (
+                            <button
+                              onClick={() => handleRevokeInvite(inv.id)}
+                              className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-red-400 transition"
+                              title="Revoke / Delete Invite"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

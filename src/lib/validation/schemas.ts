@@ -236,7 +236,9 @@ export const adminUserPatchSchema = z.object({
 export const adminInviteSchema = z.object({
   role: z.enum(["owner", "admin", "super_admin"]).optional(),
   expiryDays: z.union([z.number().int().positive().max(365), z.string()]).optional(),
+  expiresInDays: z.union([z.number().int().positive().max(365), z.string()]).optional(),
   customCode: z.string().trim().max(80).optional(),
+  code: z.string().trim().max(80).optional(),
 });
 
 export const adminSettingsSchema = z.object({

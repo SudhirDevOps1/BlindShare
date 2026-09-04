@@ -42,10 +42,14 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
   } | null>(null);
 
   useEffect(() => {
-    // Check URL parameters for signup/register
+    // Check URL parameters for signup/register and invite codes
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
-      if (params.get("register") === "true" || params.get("signup") === "true" || window.location.pathname.includes("signup")) {
+      const codeFromUrl = params.get("invite") || params.get("code");
+      if (codeFromUrl) {
+        setInviteCode(codeFromUrl.trim());
+        setIsRegister(true);
+      } else if (params.get("register") === "true" || params.get("signup") === "true" || window.location.pathname.includes("signup")) {
         setIsRegister(true);
       }
     }
