@@ -1,29 +1,103 @@
 "use client";
 
-import React, { useState } from "react";
-import { Sparkles, ExternalLink, CheckCircle2, ChevronRight, BarChart3, Activity } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Sparkles,
+  ExternalLink,
+  CheckCircle2,
+  ChevronRight,
+  ChevronLeft,
+  BarChart3,
+  Activity,
+  Maximize2,
+  X,
+  Play,
+  Pause,
+  Layers,
+  Cpu,
+  Eye,
+  Info,
+} from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
 
-export function ArchitectureShowcase() {
-  const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState("zkFlow");
-  const [selectedGraphNum, setSelectedGraphNum] = useState(30);
+interface GraphItemData {
+  num: number;
+  file: string;
+  tag: string;
+}
 
-  const graphList = [
-    { num: 30, file: "30-views-timeline-animated.svg", label: t.charts?.graphItems?.g30?.title || "30-Day Timeline", tag: "Area" },
-    { num: 31, file: "31-hourly-heatmap-animated.svg", label: t.charts?.graphItems?.g31?.title || "24×7 Heatmap", tag: "Matrix" },
-    { num: 32, file: "32-source-donut-animated.svg", label: t.charts?.graphItems?.g32?.title || "UTM Source", tag: "Donut" },
-    { num: 33, file: "33-storage-by-type-animated.svg", label: t.charts?.graphItems?.g33?.title || "Storage Type", tag: "Donut" },
-    { num: 34, file: "34-live-pulse-map-animated.svg", label: t.charts?.graphItems?.g34?.title || "Live Pulse Map", tag: "Map" },
-    { num: 35, file: "35-dwell-histogram-animated.svg", label: t.charts?.graphItems?.g35?.title || "Dwell Histogram", tag: "Histogram" },
-    { num: 36, file: "36-intent-trend-animated.svg", label: t.charts?.graphItems?.g36?.title || "Intent Spline", tag: "Spline" },
-    { num: 37, file: "37-journey-sankey-animated.svg", label: t.charts?.graphItems?.g37?.title || "Journey Funnel", tag: "Sankey" },
-    { num: 38, file: "38-cost-forecast-animated.svg", label: t.charts?.graphItems?.g38?.title || "$0 Cost Gauge", tag: "Gauge" },
-    { num: 39, file: "39-link-leaderboard-animated.svg", label: t.charts?.graphItems?.g39?.title || "Leaderboard", tag: "Ranked" },
-    { num: 40, file: "40-question-density-animated.svg", label: t.charts?.graphItems?.g40?.title || "Question Density", tag: "Density" },
-    { num: 41, file: "41-weekly-digest-animated.svg", label: t.charts?.graphItems?.g41?.title || "Weekly Digest", tag: "Card KPI" },
+export function ArchitectureShowcase() {
+  const { t, lang } = useI18n();
+  const [activeTab, setActiveTab] = useState<string>("zkFlow");
+  const [selectedGraphNum, setSelectedGraphNum] = useState<number>(30);
+  const [isAutoPlaying, setIsAutoPlaying] = useState<boolean>(false);
+  const [isFullscreenModalOpen, setIsFullscreenModalOpen] = useState<boolean>(false);
+  const [tilt, setTilt] = useState<{ x: number; y: number; active: boolean }>({
+    x: 0,
+    y: 0,
+    active: false,
+  });
+
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  const graphList: GraphItemData[] = [
+    { num: 30, file: "30-views-timeline-animated.svg", tag: "Area" },
+    { num: 31, file: "31-hourly-heatmap-animated.svg", tag: "Matrix" },
+    { num: 32, file: "32-source-donut-animated.svg", tag: "Donut" },
+    { num: 33, file: "33-storage-by-type-animated.svg", tag: "Donut" },
+    { num: 34, file: "34-live-pulse-map-animated.svg", tag: "Map" },
+    { num: 35, file: "35-dwell-histogram-animated.svg", tag: "Histogram" },
+    { num: 36, file: "36-intent-trend-animated.svg", tag: "Spline" },
+    { num: 37, file: "37-journey-sankey-animated.svg", tag: "Sankey" },
+    { num: 38, file: "38-cost-forecast-animated.svg", tag: "Gauge" },
+    { num: 39, file: "39-link-leaderboard-animated.svg", tag: "Ranked" },
+    { num: 40, file: "40-question-density-animated.svg", tag: "Density" },
+    { num: 41, file: "41-weekly-digest-animated.svg", tag: "Card KPI" },
   ];
 
+  // Auto-tour rotation timer for the 12 graphs
+  useEffect(() => {
+    if (!isAutoPlaying || activeTab !== "allDataGraphs") return;
+    const interval = setInterval(() => {
+      setSelectedGraphNum((prev) => {
+        const next = prev + 1;
+        return next > 41 ? 30 : next;
+      });
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [isAutoPlaying, activeTab]);
+
+  // Handle 3D Perspective Tilt on Mouse Move
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
+    setTilt({ x: x * 14, y: -y * 14, active: true });
+  };
+
+  const handleMouseLeave = () => {
+    setTilt({ x: 0, y: 0, active: false });
+  };
+
+  // Keyboard navigation for full screen modal & graphs
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsFullscreenModalOpen(false);
+      } else if (activeTab === "allDataGraphs") {
+        if (e.key === "ArrowRight") {
+          setSelectedGraphNum((prev) => (prev >= 41 ? 30 : prev + 1));
+        } else if (e.key === "ArrowLeft") {
+          setSelectedGraphNum((prev) => (prev <= 30 ? 41 : prev - 1));
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeTab]);
+
+  // High-level 7 primary architecture tabs
   const showcaseData: Record<
     string,
     {
@@ -34,37 +108,51 @@ export function ArchitectureShowcase() {
       badge: string;
       description: string;
       bullets: string[];
+      engineTag?: string;
+      projectContext?: string;
     }
   > = {
     zkFlow: {
       id: "zkFlow",
       svgPath: "/brand/03-hero-zero-knowledge-flow.svg",
       ...t.architectureShowcase.tabs.zkFlow,
+      engineTag: "RFC 3986 URL Fragment Encryption",
+      projectContext: "Maps to: Client-Side AES-GCM-256 (Plaintext never touches server)",
     },
     blindCourier: {
       id: "blindCourier",
       svgPath: "/brand/04-blind-courier-illustration.svg",
       ...t.architectureShowcase.tabs.blindCourier,
+      engineTag: "Zero-Knowledge Blind Courier Model",
+      projectContext: "Maps to: Backblaze B2 Ciphertext Store & Zero-PII Relay",
     },
     dataFlow: {
       id: "dataFlow",
       svgPath: "/brand/12-data-flow-diagram.svg",
       ...t.architectureShowcase.tabs.dataFlow,
+      engineTag: "Full Telemetry Pipeline & Neon Postgres",
+      projectContext: "Maps to: Drizzle ORM Relational Schema & view_sessions",
     },
     leadScoring: {
       id: "leadScoring",
       svgPath: "/brand/08-ai-lead-scoring.svg",
       ...t.architectureShowcase.tabs.leadScoring,
+      engineTag: "Catmull-Rom Attention Temperature",
+      projectContext: "Maps to: AI Lead Scoring Engine (Hot 85-100, Warm 60-84)",
     },
     mockup: {
       id: "mockup",
       svgPath: "/brand/07-document-sharing-mockup.svg",
       ...t.architectureShowcase.tabs.mockup,
+      engineTag: "Mozilla PDF.js Super-Sampled Viewer",
+      projectContext: "Maps to: /v/[slug] Interactive In-Doc Reader Studio",
     },
     liveAnalytics: {
       id: "liveAnalytics",
       svgPath: "/brand/22-analytics-live-animated.svg",
       ...t.architectureShowcase.tabs.liveAnalytics,
+      engineTag: "navigator.sendBeacon() 15s Heartbeats",
+      projectContext: "Maps to: /api/analytics/overview & Live Radar Map",
     },
     allDataGraphs: {
       id: "allDataGraphs",
@@ -73,7 +161,43 @@ export function ArchitectureShowcase() {
     },
   };
 
-  const currentItem = showcaseData[activeTab] || showcaseData.zkFlow;
+  // Determine active item data
+  let currentItem = showcaseData[activeTab] || showcaseData.zkFlow;
+
+  // When inside allDataGraphs tab, dynamically override with specific graph info from i18n
+  const graphKey = `g${selectedGraphNum}` as keyof typeof t.charts.graphItems;
+  const currentGraphI18n = t.charts?.graphItems?.[graphKey] as
+    | {
+        title: string;
+        desc: string;
+        badge?: string;
+        subtitle?: string;
+        description?: string;
+        bullets?: string[];
+        engineTag?: string;
+        projectContext?: string;
+      }
+    | undefined;
+
+  if (activeTab === "allDataGraphs" && currentGraphI18n) {
+    currentItem = {
+      id: `graph_${selectedGraphNum}`,
+      svgPath: `/brand/graphs/${graphList.find((g) => g.num === selectedGraphNum)?.file || "30-views-timeline-animated.svg"}`,
+      title: currentGraphI18n.title,
+      subtitle: currentGraphI18n.subtitle || currentGraphI18n.desc,
+      badge: currentGraphI18n.badge || `Vector • #${selectedGraphNum}`,
+      description: currentGraphI18n.description || currentGraphI18n.desc,
+      bullets: currentGraphI18n.bullets || [
+        currentGraphI18n.desc,
+        "Mathematical client-side SVG rendering with zero PII retention",
+        "Seamlessly synchronized with BlindShare DuckDB & PostgreSQL schemas",
+        "100% scalable vector fidelity on any retina/mobile device",
+      ],
+      engineTag: currentGraphI18n.engineTag || "DuckDB + Neon Time-Series Engine",
+      projectContext: currentGraphI18n.projectContext || "Maps to: /api/analytics/overview & Drizzle ORM",
+    };
+  }
+
   const tabKeys = [
     "zkFlow",
     "blindCourier",
@@ -89,13 +213,21 @@ export function ArchitectureShowcase() {
       ? `/brand/graphs/${graphList.find((g) => g.num === selectedGraphNum)?.file || "30-views-timeline-animated.svg"}`
       : currentItem.svgPath;
 
-  return (
-    <section className="relative border-t border-slate-900/80 bg-slate-950/80 py-24 px-4 sm:px-6">
-      {/* Background ambient lighting */}
-      <div className="absolute top-1/3 right-10 -z-10 h-96 w-96 rounded-full bg-amber-500/10 blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-10 left-10 -z-10 h-72 w-72 rounded-full bg-blue-500/10 blur-[120px] pointer-events-none" />
+  const nextGraph = () => {
+    setSelectedGraphNum((prev) => (prev >= 41 ? 30 : prev + 1));
+  };
 
-      <div className="mx-auto max-w-7xl space-y-12">
+  const prevGraph = () => {
+    setSelectedGraphNum((prev) => (prev <= 30 ? 41 : prev - 1));
+  };
+
+  return (
+    <section className="relative border-t border-slate-900/80 bg-slate-950/80 py-24 px-4 sm:px-6 overflow-hidden">
+      {/* Background ambient lighting */}
+      <div className="absolute top-1/4 right-10 -z-10 h-96 w-96 rounded-full bg-amber-500/10 blur-[150px] pointer-events-none" />
+      <div className="absolute bottom-10 left-10 -z-10 h-80 w-80 rounded-full bg-blue-500/10 blur-[130px] pointer-events-none" />
+
+      <div className="mx-auto max-w-7xl space-y-10">
         {/* Section Header */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold text-amber-300 backdrop-blur-xl shadow-md">
@@ -118,10 +250,14 @@ export function ArchitectureShowcase() {
             return (
               <button
                 key={key}
-                onClick={() => setActiveTab(key)}
+                type="button"
+                onClick={() => {
+                  setActiveTab(key);
+                  setIsAutoPlaying(false);
+                }}
                 className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/20 scale-[1.02]"
+                    ? "bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-lg shadow-amber-500/25 scale-[1.02]"
                     : "border border-slate-800 bg-slate-900/60 text-slate-300 hover:bg-slate-800 hover:text-white"
                 }`}
               >
@@ -131,76 +267,213 @@ export function ArchitectureShowcase() {
           })}
         </div>
 
-        {/* All Data Graphs Interactive Carousel / Pill Selector (when tab is active) */}
+        {/* 12-Graph Vector Showcase (SVGs 30–41) Pills when tab is active */}
         {activeTab === "allDataGraphs" && (
-          <div className="p-4 rounded-2xl border border-amber-500/30 bg-slate-900/80 backdrop-blur-xl space-y-3 animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-300 pb-1 border-b border-slate-800">
-              <span className="flex items-center gap-2 text-amber-400">
-                <BarChart3 className="h-4 w-4" />
-                <span>12-Graph Vector Showcase (SVGs 30–41)</span>
-              </span>
-              <span className="font-mono text-[11px] text-slate-400">
-                Selected: #{selectedGraphNum} • {graphList.find((g) => g.num === selectedGraphNum)?.label}
-              </span>
+          <div className="p-4 sm:p-5 rounded-2xl border border-amber-500/30 bg-slate-900/90 backdrop-blur-xl space-y-4 shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2.5 text-xs font-bold text-amber-400">
+                <BarChart3 className="h-4 w-4 text-amber-400" />
+                <span className="tracking-wide">
+                  {lang === "hi"
+                    ? "12-ग्राफ़ वेक्टर एनालिटिक्स सुइट (SVGs 30–41)"
+                    : "12-Graph Vector Showcase (SVGs 30–41)"}
+                </span>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  {lang === "hi" ? "लाइव इंटरैक्टिव" : "Live Interactive"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {/* Auto Tour Button */}
+                <button
+                  type="button"
+                  onClick={() => setIsAutoPlaying((prev) => !prev)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm ${
+                    isAutoPlaying
+                      ? "bg-amber-500 text-slate-950 font-bold animate-pulse"
+                      : "bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white"
+                  }`}
+                  title={lang === "hi" ? "ऑटो टूर चालू/बंद करें" : "Toggle Auto Tour"}
+                >
+                  {isAutoPlaying ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
+                  <span>{isAutoPlaying ? (lang === "hi" ? "ऑटो चल रहा है" : "Auto Tour Active") : (lang === "hi" ? "ऑटो टूर" : "Auto Tour")}</span>
+                </button>
+
+                {/* Prev / Next Arrows */}
+                <button
+                  type="button"
+                  onClick={prevGraph}
+                  className="p-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition"
+                  title={lang === "hi" ? "पिछला ग्राफ़ (←)" : "Previous Graph (←)"}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  onClick={nextGraph}
+                  className="p-1.5 rounded-lg bg-slate-800/80 border border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700 transition"
+                  title={lang === "hi" ? "अगला ग्राफ़ (→)" : "Next Graph (→)"}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+
+                <span className="font-mono text-[11px] text-slate-400 ml-1 hidden sm:inline">
+                  #{selectedGraphNum} / 41
+                </span>
+              </div>
             </div>
 
+            {/* 12 Pill Buttons */}
             <div className="flex flex-wrap items-center gap-2">
-              {graphList.map((g) => (
-                <button
-                  key={g.num}
-                  type="button"
-                  onClick={() => setSelectedGraphNum(g.num)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                    selectedGraphNum === g.num
-                      ? "bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20 scale-105"
-                      : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700"
-                  }`}
-                >
-                  <span className="font-mono opacity-60">#{g.num}</span>
-                  <span>{g.label}</span>
-                  <span className="text-[9px] uppercase px-1 py-0.2 rounded bg-slate-800 text-slate-300">
-                    {g.tag}
-                  </span>
-                </button>
-              ))}
+              {graphList.map((g) => {
+                const isSelected = selectedGraphNum === g.num;
+                const itemI18n = t.charts?.graphItems?.[`g${g.num}` as keyof typeof t.charts.graphItems] as
+                  | { title: string }
+                  | undefined;
+                return (
+                  <button
+                    key={g.num}
+                    type="button"
+                    onClick={() => {
+                      setSelectedGraphNum(g.num);
+                      setIsAutoPlaying(false);
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/30 scale-105 ring-2 ring-amber-400/50"
+                        : "bg-slate-950 border border-slate-800 text-slate-300 hover:text-white hover:border-slate-700 hover:bg-slate-900"
+                    }`}
+                  >
+                    <span className="font-mono opacity-70">#{g.num}</span>
+                    <span>{itemI18n?.title || `Graph #${g.num}`}</span>
+                    <span
+                      className={`text-[9px] uppercase px-1.5 py-0.5 rounded font-mono ${
+                        isSelected ? "bg-slate-900 text-amber-300 font-bold" : "bg-slate-800 text-slate-400"
+                      }`}
+                    >
+                      {g.tag}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
 
-        {/* Featured Showcase Display Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl">
-          {/* Left / Top: High-Resolution Scalable SVG Diagram Display with <object> + <img> fallback */}
+        {/* Featured Showcase Display Card with 3D Tilt Canvas */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center rounded-3xl border border-slate-800/80 bg-slate-900/50 p-6 sm:p-8 backdrop-blur-2xl shadow-2xl relative">
+          
+          {/* Left / Top: High-Resolution Scalable SVG Diagram Display with 3D Perspective Tilt */}
           <div className="lg:col-span-7 relative group">
-            <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-3 shadow-inner flex items-center justify-center min-h-[340px]">
+            <div
+              ref={cardRef}
+              onMouseMove={handleMouseMove}
+              onMouseLeave={handleMouseLeave}
+              style={{
+                transform: tilt.active
+                  ? `perspective(1000px) rotateX(${tilt.y}deg) rotateY(${tilt.x}deg) scale3d(1.015, 1.015, 1.015)`
+                  : "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)",
+                transition: tilt.active ? "transform 0.08s ease-out" : "transform 0.5s ease-out",
+              }}
+              className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-950 p-3 shadow-inner flex items-center justify-center min-h-[360px] group-hover:border-amber-500/50 transition-colors"
+            >
+              {/* Dynamic Glow Spotlight */}
+              {tilt.active && (
+                <div
+                  className="absolute inset-0 pointer-events-none rounded-2xl opacity-20 bg-gradient-to-tr from-amber-500/20 via-transparent to-blue-500/20"
+                  style={{
+                    transform: `translate(${tilt.x * 2}px, ${tilt.y * 2}px)`,
+                  }}
+                />
+              )}
+
               <img
                 src={currentSvgUrl}
                 alt={currentItem.title}
-                className="w-full h-auto max-h-[460px] object-contain rounded-xl transition-transform duration-500 group-hover:scale-[1.01]"
+                className="w-full h-auto max-h-[460px] object-contain rounded-xl transition-all duration-300 select-none pointer-events-none"
                 loading="lazy"
               />
-              <a
-                href={currentSvgUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute bottom-4 right-4 flex items-center gap-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 px-2.5 py-1 text-[11px] font-semibold text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition shadow-md z-10"
-                title={t.architectureShowcase.enlargeVector}
-              >
-                <ExternalLink className="h-3 w-3" />
-                <span>{t.architectureShowcase.enlargeVector}</span>
-              </a>
+
+              {/* Action Overlay Buttons */}
+              <div className="absolute bottom-3 right-3 flex items-center gap-2 z-10">
+                {/* Fullscreen Inspector Modal Trigger */}
+                <button
+                  type="button"
+                  onClick={() => setIsFullscreenModalOpen(true)}
+                  className="flex items-center gap-1.5 rounded-lg bg-slate-900/90 border border-slate-700/80 px-2.5 py-1 text-[11px] font-semibold text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition shadow-md cursor-pointer"
+                  title={lang === "hi" ? "फुलस्क्रीन वेक्टर देखें" : "Inspect Fullscreen Vector"}
+                >
+                  <Maximize2 className="h-3 w-3" />
+                  <span>{lang === "hi" ? "फुलस्क्रीन वेक्टर" : "Fullscreen Inspect"}</span>
+                </button>
+
+                {/* Open Raw SVG */}
+                <a
+                  href={currentSvgUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 rounded-lg bg-slate-900/90 border border-slate-700/80 px-2 py-1 text-[11px] font-semibold text-slate-300 hover:bg-slate-800 hover:text-white transition shadow-md"
+                  title={t.architectureShowcase.enlargeVector}
+                >
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              </div>
+
+              {/* 3D Motion Badge Indicator */}
+              <div className="absolute top-3 left-3 flex items-center gap-1.5 rounded-md bg-slate-900/80 border border-slate-800 px-2 py-0.5 text-[10px] font-mono text-slate-400 pointer-events-none">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                <span>3D Vector Motion</span>
+              </div>
             </div>
+
+            {/* Quick Prev / Next Pill beneath SVG */}
+            {activeTab === "allDataGraphs" && (
+              <div className="flex items-center justify-between mt-3 px-1 text-xs text-slate-400">
+                <button
+                  type="button"
+                  onClick={prevGraph}
+                  className="flex items-center gap-1 hover:text-amber-300 transition cursor-pointer"
+                >
+                  <ChevronLeft className="h-3.5 w-3.5" />
+                  <span>{lang === "hi" ? "पिछला ग्राफ़" : "Previous (#" + (selectedGraphNum <= 30 ? 41 : selectedGraphNum - 1) + ")"}</span>
+                </button>
+
+                <span className="font-mono text-[11px] text-slate-500">
+                  {lang === "hi" ? "कीबोर्ड: Arrow Left/Right" : "Keyboard: Left/Right arrows"}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={nextGraph}
+                  className="flex items-center gap-1 hover:text-amber-300 transition cursor-pointer"
+                >
+                  <span>{lang === "hi" ? "अगला ग्राफ़" : "Next (#" + (selectedGraphNum >= 41 ? 30 : selectedGraphNum + 1) + ")"}</span>
+                  <ChevronRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Right / Bottom: Technical Breakdown & Capabilities */}
+          {/* Right / Bottom: Deep Technical Breakdown & Project Reality Context */}
           <div className="lg:col-span-5 space-y-5">
             <div>
-              <span className="inline-block rounded-full bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-[10px] font-bold text-amber-400 uppercase tracking-wider mb-2">
-                {currentItem.badge}
-              </span>
+              <div className="flex items-center gap-2 flex-wrap mb-2">
+                <span className="inline-block rounded-full bg-amber-500/15 border border-amber-500/30 px-3 py-1 text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+                  {currentItem.badge}
+                </span>
+
+                {currentItem.engineTag && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-400">
+                    <Cpu className="h-2.5 w-2.5" />
+                    <span>{currentItem.engineTag}</span>
+                  </span>
+                )}
+              </div>
+
               <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
                 {currentItem.title}
               </h3>
-              <p className="text-xs font-mono text-amber-400/90 mt-1">
+              <p className="text-xs font-mono text-amber-400/90 mt-1.5 leading-relaxed">
                 {currentItem.subtitle}
               </p>
             </div>
@@ -219,16 +492,121 @@ export function ArchitectureShowcase() {
               ))}
             </div>
 
-            <div className="pt-2">
-              <div className="flex items-center gap-3">
-                <span className="text-[11px] text-slate-400">{t.architectureShowcase.svgScalable}</span>
+            {/* BlindShare Project Implementation Context Pill */}
+            {currentItem.projectContext && (
+              <div className="p-3 rounded-xl border border-slate-800 bg-slate-950/60 flex items-start gap-2.5 text-xs text-slate-300">
+                <Info className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <span className="font-semibold text-amber-300">
+                    {lang === "hi" ? "प्रोजेक्ट आर्किटेक्चर मैपिंग: " : "BlindShare Project Mapping: "}
+                  </span>
+                  <span className="font-mono text-[11px] text-slate-300">
+                    {currentItem.projectContext}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Security Certification Footer */}
+            <div className="pt-2 border-t border-slate-800/80">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                  <Layers className="h-3 w-3 text-slate-500" />
+                  <span>{t.architectureShowcase.svgScalable}</span>
+                </span>
                 <span className="text-slate-600">•</span>
-                <span className="text-[11px] text-emerald-400 font-semibold">{t.architectureShowcase.zkCertified}</span>
+                <span className="text-[11px] text-emerald-400 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3 text-emerald-400" />
+                  <span>{t.architectureShowcase.zkCertified}</span>
+                </span>
+                <span className="text-slate-600">•</span>
+                <span className="text-[11px] font-mono text-amber-400/80">
+                  v1.4.0
+                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Fullscreen High-Resolution SVG Inspector Modal */}
+      {isFullscreenModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/90 backdrop-blur-xl animate-in fade-in duration-200"
+          onClick={() => setIsFullscreenModalOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-5xl rounded-3xl border border-amber-500/40 bg-slate-900 p-6 shadow-2xl flex flex-col gap-4 max-h-[90vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">
+                  {currentItem.badge}
+                </span>
+                <h4 className="text-lg font-bold text-white">{currentItem.title}</h4>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <a
+                  href={currentSvgUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition"
+                  title="Open in new tab"
+                >
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setIsFullscreenModalOpen(false)}
+                  className="p-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-rose-900/50 hover:text-rose-300 transition"
+                  title="Close (Esc)"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Scalable SVG Canvas in Modal */}
+            <div className="flex-1 overflow-auto rounded-2xl bg-slate-950 p-4 flex items-center justify-center border border-slate-800 min-h-[400px]">
+              <img
+                src={currentSvgUrl}
+                alt={currentItem.title}
+                className="w-full h-auto max-h-[75vh] object-contain select-none"
+              />
+            </div>
+
+            {/* Modal Footer with quick switcher if in allDataGraphs */}
+            {activeTab === "allDataGraphs" && (
+              <div className="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={prevGraph}
+                  className="flex items-center gap-1 text-amber-400 hover:underline cursor-pointer"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>{lang === "hi" ? "पिछला ग्राफ़" : "Previous (#" + (selectedGraphNum <= 30 ? 41 : selectedGraphNum - 1) + ")"}</span>
+                </button>
+
+                <span className="font-mono text-slate-500">
+                  #{selectedGraphNum} • {currentItem.subtitle}
+                </span>
+
+                <button
+                  type="button"
+                  onClick={nextGraph}
+                  className="flex items-center gap-1 text-amber-400 hover:underline cursor-pointer"
+                >
+                  <span>{lang === "hi" ? "अगला ग्राफ़" : "Next (#" + (selectedGraphNum >= 41 ? 30 : selectedGraphNum + 1) + ")"}</span>
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

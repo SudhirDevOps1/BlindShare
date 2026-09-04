@@ -459,18 +459,186 @@ export const translations = {
         conversionRate: "Completion Rate",
       },
       graphItems: {
-        g30: { title: "30-Day Views Timeline", desc: "Area gradient tracking daily link views and investor momentum" },
-        g31: { title: "24×7 Hourly Matrix Heatmap", desc: "Optimal pitch deck send time matrix by day and UTC hour" },
-        g32: { title: "Source UTM Donut", desc: "Direct, LinkedIn, DocSend alternative and syndicate traffic breakdown" },
-        g33: { title: "Storage Quota Allocation", desc: "PostgreSQL catalog vs Backblaze B2 ciphertext allocation" },
-        g34: { title: "Live Geographic Pulse Radar", desc: "Worldwide investor geographic distribution with real-time ping beacons" },
-        g35: { title: "Dwell Time Distribution Histogram", desc: "Session categorization into bounce, skim, engaged, and diligence" },
-        g36: { title: "30-Day Intent Velocity Spline", desc: "Algorithmically smoothed investor conviction trendline" },
-        g37: { title: "Retention Journey Sankey Funnel", desc: "Multi-stage conversion pipeline from link click to final slide" },
-        g38: { title: "Cost & Quota Circular Gauge", desc: "Always $0 free-tier compute, egress, and storage limits" },
-        g39: { title: "Top Pitch Decks Leaderboard", desc: "Ranked deck velocity comparison by total reads and deal score" },
-        g40: { title: "Slide Question Density Heatmap", desc: "Per-slide inquiry friction pins highlighting key discussion slides" },
-        g41: { title: "Executive Weekly KPI Digest", desc: "Consolidated intelligence card deck with live sparkline momentum" },
+        g30: {
+          title: "30-Day Views Timeline",
+          desc: "Area gradient tracking daily link views and investor momentum",
+          badge: "Timeline • #30",
+          subtitle: "Long-Range Reader Engagement Velocity & Deal Pipeline Momentum",
+          description: "Tracks 30-day link view trajectories using smooth area gradient vectors. Identifies investor sharing spikes when decks are forwarded internally among partners, syndicates, and angel networks.",
+          bullets: [
+            "Continuous 30-day time-series aggregated from view_sessions.started_at",
+            "Multi-point inflection markers highlighting partner meeting spikes",
+            "Zero-Knowledge fragment keys (#k=...) are never logged during view tracking",
+            "DuckDB-compatible mathematical smoothing for clear trend forecasting"
+          ],
+          engineTag: "Neon PostgreSQL + DuckDB Time-Series",
+          projectContext: "Maps to: /api/analytics/overview & 30-day timeline chart"
+        },
+        g31: {
+          title: "24×7 Hourly Matrix Heatmap",
+          desc: "Optimal pitch deck send time matrix by day and UTC hour",
+          badge: "Hourly Matrix • #31",
+          subtitle: "Temporal Investor Focus Patterns & Best Send Time Predictor",
+          description: "A 7x24 matrix visualizing when investors actually open and review pitch decks. Identifies the peak focus window (e.g. Tuesday 10:00 AM UTC) to maximize initial open rates and partner attention.",
+          bullets: [
+            "168 hourly cells tracking viewer session frequency across all 7 days",
+            "Automatic time zone normalization to UTC and founder local time",
+            "Color intensity gradient reflecting investor concentration levels",
+            "Enables founders to schedule email dispatches for highest open probability"
+          ],
+          engineTag: "Temporal Aggregation • 168-Cell Matrix",
+          projectContext: "Maps to: HourlyMatrixHeatmap component & sessions table"
+        },
+        g32: {
+          title: "Source UTM Donut & Channel Attribution",
+          desc: "Direct, LinkedIn, DocSend alternative and syndicate traffic breakdown",
+          badge: "Attribution • #32",
+          subtitle: "Campaign & Channel Origin Tracking for Multi-Channel Outreach",
+          description: "Categorizes pitch deck readers across inbound channels: Direct Email, LinkedIn Outreach, VC Syndicates, AngelList, and DocSend Migration links. Measures which channels generate true diligence reads.",
+          bullets: [
+            "Real-time UTM parameter parsing (utm_source, utm_medium, utm_campaign)",
+            "Concentric donut slice breakdown showing proportional read volumes",
+            "Isolates forwarded deck links to identify viral investor syndication",
+            "Zero PII exposure with anonymous referrer domain hashing"
+          ],
+          engineTag: "UTM Channel Attribution • Vector Donut",
+          projectContext: "Maps to: links.slug referrer analytics & source categorization"
+        },
+        g33: {
+          title: "Storage Quota Allocation",
+          desc: "PostgreSQL catalog vs Backblaze B2 ciphertext allocation",
+          badge: "Zero-Cost Quota • #33",
+          subtitle: "Hybrid Storage Split: Structured Neon DB vs S3-Compatible Backblaze B2",
+          description: "Visualizes the physical division of BlindShare's zero-knowledge storage architecture: lightweight relational metadata in Neon PostgreSQL vs heavy encrypted ciphertext blobs in Backblaze B2.",
+          bullets: [
+            "Neon DB holds only cipher metadata, salts, and audit trails (<0.3 GB used)",
+            "Backblaze B2 stores encrypted document blobs (AES-GCM-256) at $0.00/mo",
+            "Automatic TOAST zstd compression active on large text/NDA columns",
+            "Real-time headroom monitoring ensuring 100% ₹0 free-tier compliance"
+          ],
+          engineTag: "Hybrid Storage • Neon + Backblaze B2",
+          projectContext: "Maps to: S3 client adapter & documents.storage_key"
+        },
+        g34: {
+          title: "Live Geographic Pulse Radar",
+          desc: "Worldwide investor geographic distribution with real-time ping beacons",
+          badge: "Live Geo Radar • #34",
+          subtitle: "Global Investor Presence Radar & Real-Time Country Dwell Heatmap",
+          description: "Displays live investor beacons across global financial hubs (San Francisco, New York, London, Bangalore, Singapore). Shows where partners are actively reading your deck right now with zero cookie tracking.",
+          bullets: [
+            "Real-time beacon radar pings via privacy-preserving IP geolocation",
+            "Live country dwell ranking (US, UK, India, Germany, Singapore)",
+            "Zero PII: IP addresses are salted and hashed with SHA-256 before lookup",
+            "Instant founder notification when an overseas VC opens a confidential deck"
+          ],
+          engineTag: "GeoLite / Header Geo • Animated Radar Beacons",
+          projectContext: "Maps to: view_sessions.country & /api/investors live map"
+        },
+        g35: {
+          title: "Dwell Time Distribution Histogram",
+          desc: "Session categorization into bounce, skim, engaged, and diligence",
+          badge: "Attention Buckets • #35",
+          subtitle: "Investor Reading Depth Categorization (<15s Bounce to >5m Diligence)",
+          description: "Splits viewer sessions into mathematical duration buckets. Distinguishes between quick casual bounces, skimming analysts, deeply engaged partners, and serious investment committee diligence sessions.",
+          bullets: [
+            "5-tier duration classification: Bounce (<15s), Skim (15s-45s), Engaged (45s-2m), Deep (2m-5m), Diligence (>5m)",
+            "Logarithmic session volume scaling with clear drop-off visibility",
+            "Eliminates average dwell skew caused by abandoned open browser tabs",
+            "Identifies high-priority VC leads ready for immediate partner follow-up"
+          ],
+          engineTag: "DuckDB Percentile Bucketing • 5-Tier Histogram",
+          projectContext: "Maps to: DwellHistogram component & page_events dwell data"
+        },
+        g36: {
+          title: "30-Day Intent Velocity Spline",
+          desc: "Algorithmically smoothed investor conviction trendline",
+          badge: "Catmull-Rom Spline • #36",
+          subtitle: "AI Lead Conviction Momentum & Deal Closing Probability",
+          description: "A mathematically smoothed Catmull-Rom cubic bezier curve charting deal momentum. Combines return visits, repeat page dwell on financials, and question pins to compute an aggregate deal temperature.",
+          bullets: [
+            "Cubic spline interpolation eliminating jagged day-to-day noise",
+            "Composite scoring factoring total dwell, completed pages, and signature events",
+            "Visual inflection alerts when investor conviction crosses Hot threshold (85+)",
+            "Gives founders mathematical clarity on fundraising round velocity"
+          ],
+          engineTag: "Catmull-Rom Cubic Spline • Predictive Analytics",
+          projectContext: "Maps to: AI Lead Scoring Engine (Hot 85-100, Warm 60-84)"
+        },
+        g37: {
+          title: "Retention Journey Sankey Funnel",
+          desc: "Multi-stage conversion pipeline from link click to final slide",
+          badge: "Sankey Funnel • #37",
+          subtitle: "Complete Reader Journey: Click → Gate → NDA → Read → In-Doc Q&A",
+          description: "Traces investor flow across every access and reading milestone. Shows precisely where investors drop off: at the email gate, NDA clickwrap, financial slide, or final call-to-action.",
+          bullets: [
+            "Multi-stage pipeline tracking: Link Opened → NDA Signed → Page 1 → Midpoint → Completed",
+            "Instant drop-off cliff visualization highlighting deck friction slides",
+            "Tracks conversion through access gates (email capture, password, NDA)",
+            "Proven to help founders restructure pitch decks for 3x higher completion"
+          ],
+          engineTag: "Sankey Flow Diagram • Multi-Stage Retention",
+          projectContext: "Maps to: RetentionFunnelSankey component & view_sessions"
+        },
+        g38: {
+          title: "Cost & Quota Circular Gauge",
+          desc: "Always $0 free-tier compute, egress, and storage limits",
+          badge: "₹0 Budget Gauge • #38",
+          subtitle: "Real-Time Free-Tier Telemetry & Headroom Safety Monitoring",
+          description: "Monitors consumption across all 5 zero-cost cloud pillars (Vercel Serverless, Neon Postgres, Backblaze B2, Google Apps Script, GitHub CI). Guarantees the platform operates forever at $0.00 / mo.",
+          bullets: [
+            "Circular gauge measuring Vercel fluid compute (0.22% used), Neon CU (25.8% proj)",
+            "Backblaze B2 egress safety tracking (30 GB/mo free via Bandwidth Alliance)",
+            "Google Apps Script email quota gauge (100 free emails/day forever)",
+            "Automatic alerts if any quota approaches 80% of free-tier allocation"
+          ],
+          engineTag: "Multi-Cloud Quota Telemetry • Circular Vector Gauges",
+          projectContext: "Maps to: ProductionLedger & #live-quotas benchmark ledger"
+        },
+        g39: {
+          title: "Top Pitch Decks Leaderboard",
+          desc: "Ranked deck velocity comparison by total reads and deal score",
+          badge: "Ranked Matrix • #39",
+          subtitle: "Comparative Pitch Deck Performance & Deal Conviction Scoreboard",
+          description: "Ranks all active share links and pitch deck versions. Compares total reads, average dwell time, bounce rates, and AI deal score (85-100) to reveal your highest-performing deck variations.",
+          bullets: [
+            "Ranked table comparing Series A Deck vs Seed Memo vs Customer Case Study",
+            "Calculates deal temperature (🔥 Hot, ⚡ Warm, ❄️ Cold) per individual link",
+            "One-click copy, live analytics inspection, and link revocation controls",
+            "Enables A/B testing of pitch deck hooks, slide counts, and financial models"
+          ],
+          engineTag: "Ranked Performance Matrix • Deal Score Aggregation",
+          projectContext: "Maps to: TopLinksLeaderboard & /api/links overview"
+        },
+        g40: {
+          title: "Slide Question Density Heatmap",
+          desc: "Per-slide inquiry friction pins highlighting key discussion slides",
+          badge: "Friction Pins • #40",
+          subtitle: "In-Document Slide Q&A Inquiries & Founder Discussion Hotspots",
+          description: "Maps where investors drop pin questions directly on specific slides. Identifies unclear financial assumptions, market sizing questions, and technical architecture inquiries in real time.",
+          bullets: [
+            "Visual pin heatmap showing question counts per slide page (e.g. Slide 7: 5 pins)",
+            "Direct founder-to-investor reply threading stored in page_questions table",
+            "Coordinate-based pin placement (posX%, posY%) on PDF.js canvas",
+            "Eliminates back-and-forth email confusion by pinning discussion directly to slides"
+          ],
+          engineTag: "In-Doc Real-Time Q&A • Drizzle page_questions Table",
+          projectContext: "Maps to: page_questions table & viewer interactive pin layer"
+        },
+        g41: {
+          title: "Executive Weekly KPI Digest",
+          desc: "Consolidated intelligence card deck with live sparkline momentum",
+          badge: "Executive Intel • #41",
+          subtitle: "Automated Monday Morning Intelligence Snapshot for Slack & WhatsApp",
+          description: "Generates a zero-PII shareable weekly digest card ready for Slack, WhatsApp, or co-founder updates. Automatically tallies deck views, unique funds, top engagement slides, and hot leads (e.g. a16z, Sarah) without exposing sensitive keys.",
+          bullets: [
+            "Live +18% WoW view momentum tracker with unique reader breakdown",
+            "Top Intent Deal Finder: Automatically spotlights highest conviction investors (Score 84+)",
+            "Slide Friction Radar: Highlights hottest discussion slides (e.g. Slide 7 Moat, 5 Q&A pins)",
+            "1-Click Zero-Dependency PNG Export: Instant sharing to Slack channels or Co-founder DMs"
+          ],
+          engineTag: "Automated Weekly Card • html2canvas / PNG Export",
+          projectContext: "Maps to: WeeklyKpiDigest component & Google Apps Script emailer"
+        },
       },
     },
   },
@@ -932,18 +1100,186 @@ export const translations = {
         conversionRate: "पूर्णता दर",
       },
       graphItems: {
-        g30: { title: "30-दिवसीय दृश्य समयरेखा", desc: "दैनिक लिंक दृश्य और निवेशक गति को ट्रैक करने वाला एरिया ग्रेडिएंट" },
-        g31: { title: "24×7 प्रति-घंटे हीटमैप मैट्रिक्स", desc: "दिन और UTC घंटे के अनुसार सर्वोत्तम पिच डेक भेजने का समय" },
-        g32: { title: "ट्रैफ़िक स्रोत UTM डोनट", desc: "डायरेक्ट, लिंक्डइन, डॉकसेंड विकल्प और सिंडिकेट ट्रैफ़िक विभाजन" },
-        g33: { title: "स्टोरेज कोटा आवंटन डोनट", desc: "PostgreSQL डेटाबेस बनाम Backblaze B2 सिफरटेक्स्ट आवंटन" },
-        g34: { title: "लाइव भौगोलिक पल्स रडार", desc: "रीयल-टाइम पिंग बीकन के साथ विश्वव्यापी निवेशक वितरण" },
-        g35: { title: "पाठन समय वितरण हिस्टोग्राम", desc: "बाउंस, स्किम, एंगेज्ड और डिलिजेंस में सत्रों का वर्गीकरण" },
-        g36: { title: "30-दिवसीय इंटेंट गति स्प्लाइन", desc: "एल्गोरिथम द्वारा स्मूथ की गई निवेशक दृढ़ता ट्रेंडलाइन" },
-        g37: { title: "प्रतिधारण यात्रा सैंकी फ़नल", desc: "लिंक क्लिक से लेकर अंतिम स्लाइड तक बहु-स्तरीय रूपांतरण पाइपलाइन" },
-        g38: { title: "लागत एवं कोटा सर्कुलर गेज", desc: "सदैव ₹0 फ्री-टियर कम्प्यूट, इग्रेस और स्टोरेज सीमाएं" },
-        g39: { title: "शीर्ष पिच डेक लीडरबोर्ड", desc: "कुल पाठन और डील स्कोर के आधार पर रैंक तुलना" },
-        g40: { title: "प्रति-स्लाइड प्रश्न घनत्व हीटमैप", desc: "मुख्य चर्चा वाले पृष्ठों को उजागर करने वाले इन-डॉक प्रश्न पिन" },
-        g41: { title: "कार्यकारी साप्ताहिक KPI डाइजेस्ट", desc: "लाइव स्पार्कलाइन गति के साथ समेकित इंटेलिजेंस कार्ड डेक" },
+        g30: {
+          title: "30-दिवसीय दृश्य समयरेखा (Area Spline)",
+          desc: "दैनिक लिंक दृश्य और निवेशक गति को ट्रैक करने वाला एरिया ग्रेडिएंट",
+          badge: "समयरेखा • #30",
+          subtitle: "दीर्घकालिक पाठक जुड़ाव गति एवं डील पाइपलाइन मोमेंटम",
+          description: "स्मूथ एरिया ग्रेडिएंट वैक्टर के साथ 30-दिवसीय लिंक दृश्य प्रक्षेपवक्र को ट्रैक करता है। जब पिच डेक साझेदारों, सिंडिकेट्स और एंजेल नेटवर्क के बीच साझा किया जाता है, तो यह स्पाइक्स की तुरंत पहचान करता है।",
+          bullets: [
+            "view_sessions.started_at से समेकित निरंतर 30-दिवसीय समय-श्रृंखला",
+            "पार्टनर मीटिंग स्पाइक्स को उजागर करने वाले मल्टी-पॉइंट मार्कर",
+            "शून्य-ज्ञान फ्रैगमेंट की (#k=...) दृश्य ट्रैकिंग के दौरान कभी लॉग नहीं होती",
+            "सटीक ट्रेंड पूर्वानुमान के लिए DuckDB-संगत गणितीय स्मूथिंग"
+          ],
+          engineTag: "Neon PostgreSQL + DuckDB टाइम-सीरीज़",
+          projectContext: "मैपिंग: /api/analytics/overview और 30-दिवसीय टाइमलाइन चार्ट"
+        },
+        g31: {
+          title: "24×7 प्रति-घंटे हीटमैप मैट्रिक्स",
+          desc: "दिन और UTC घंटे के अनुसार सर्वोत्तम पिच डेक भेजने का समय",
+          badge: "प्रति-घंटा मैट्रिक्स • #31",
+          subtitle: "अस्थायी निवेशक फोकस पैटर्न और सर्वोत्तम भेजने का समय",
+          description: "7x24 मैट्रिक्स जो दर्शाता है कि निवेशक वास्तव में पिच डेक कब खोलते और समीक्षा करते हैं। ओपन रेट और ध्यान को अधिकतम करने के लिए सर्वोत्तम समय विंडो (उदा. मंगलवार 10:00 AM UTC) बताता है।",
+          bullets: [
+            "सभी 7 दिनों में सत्र आवृत्ति को ट्रैक करने वाले 168 प्रति-घंटे सेल",
+            "UTC और संस्थापक के स्थानीय समय में स्वचालित समय क्षेत्र सामान्यीकरण",
+            "निवेशक एकाग्रता स्तर को दर्शाने वाला रंग तीव्रता ग्रेडिएंट",
+            "संस्थापकों को उच्चतम ओपन संभावना के लिए ईमेल भेजने में सक्षम बनाता है"
+          ],
+          engineTag: "टेम्पोरल एग्रीगेशन • 168-सेल मैट्रिक्स",
+          projectContext: "मैपिंग: HourlyMatrixHeatmap घटक और सेशन्स तालिका"
+        },
+        g32: {
+          title: "ट्रैफ़िक स्रोत UTM डोनट एवं चैनल एट्रिब्यूशन",
+          desc: "डायरेक्ट, लिंक्डइन, डॉकसेंड विकल्प और सिंडिकेट ट्रैफ़िक विभाजन",
+          badge: "एट्रिब्यूशन • #32",
+          subtitle: "मल्टी-चैनल आउटरीच के लिए अभियान और चैनल मूल ट्रैकिंग",
+          description: "इनबाउंड चैनलों में पिच डेक पाठकों को वर्गीकृत करता है: डायरेक्ट ईमेल, लिंक्डइन, वीसी सिंडिकेट्स, एंजेललिस्ट, और डॉकसेंड माइग्रेशन लिंक्स। कौन से चैनल वास्तविक डिलिजेंस लाते हैं, यह मापता है।",
+          bullets: [
+            "रीयल-टाइम UTM पैरामीटर पार्सिंग (utm_source, utm_medium, utm_campaign)",
+            "आनुपातिक पठन मात्रा दर्शाने वाला संकेंद्रित डोनट स्लाइस विभाजन",
+            "वायरल निवेशक सिंडिकेशन की पहचान के लिए फॉरवर्ड किए गए लिंक्स को अलग करता है",
+            "गुमनाम रेफ़रर डोमेन हैशिंग के साथ शून्य व्यक्तिगत डेटा प्रकटीकरण"
+          ],
+          engineTag: "UTM चैनल एट्रिब्यूशन • वेक्टर डोनट",
+          projectContext: "मैपिंग: links.slug रेफ़रर एनालिटिक्स और स्रोत वर्गीकरण"
+        },
+        g33: {
+          title: "स्टोरेज कोटा आवंटन डोनट",
+          desc: "PostgreSQL डेटाबेस बनाम Backblaze B2 सिफरटेक्स्ट आवंटन",
+          badge: "शून्य-लागत कोटा • #33",
+          subtitle: "हाइब्रिड स्टोरेज विभाजन: संरचित Neon DB बनाम S3-संगत Backblaze B2",
+          description: "BlindShare के शून्य-ज्ञान स्टोरेज आर्किटेक्चर के भौतिक विभाजन की कल्पना करता है: Neon PostgreSQL में हल्का रिलेशनल मेटाडेटा बनाम Backblaze B2 में भारी एन्क्रिप्टेड सिफरटेक्स्ट ब्लॉब्स।",
+          bullets: [
+            "Neon DB केवल सिफर मेटाडेटा, साल्ट और ऑडिट ट्रेल्स रखता है (<0.3 GB प्रयुक्त)",
+            "Backblaze B2 $0.00/माह पर एन्क्रिप्टेड दस्तावेज़ ब्लॉब्स (AES-GCM-256) स्टोर करता है",
+            "बड़े टेक्स्ट/NDA कॉलम पर स्वचालित TOAST zstd कम्प्रेशन सक्रिय",
+            "100% ₹0 फ्री-टियर अनुपालन सुनिश्चित करने वाली रीयल-टाइम हेडरूम मॉनिटरिंग"
+          ],
+          engineTag: "हाइब्रिड स्टोरेज • Neon + Backblaze B2",
+          projectContext: "मैपिंग: S3 क्लाइंट अडैप्टर और documents.storage_key"
+        },
+        g34: {
+          title: "लाइव भौगोलिक पल्स रडार",
+          desc: "रीयल-टाइम पिंग बीकन के साथ विश्वव्यापी निवेशक वितरण",
+          badge: "लाइव जियो रडार • #34",
+          subtitle: "वैश्विक निवेशक उपस्थिति रडार और रीयल-टाइम देश पठन हीटमैप",
+          description: "वैश्विक वित्तीय केंद्रों (सैन फ्रांसिस्को, न्यूयॉर्क, लंदन, बैंगलोर, सिंगापुर) में लाइव निवेशक बीकन प्रदर्शित करता है। बिना कुकी ट्रैकिंग के दिखाता है कि इस समय कौन आपके डेक को पढ़ रहा है।",
+          bullets: [
+            "गोपनीयता-संरक्षित IP जियोलोकेशन के माध्यम से रीयल-टाइम बीकन रडार पिंग्स",
+            "लाइव देश पठन रैंकिंग (अमेरिका, यूके, भारत, जर्मनी, सिंगापुर)",
+            "शून्य PII: लुकअप से पहले IP पतों को SHA-256 से साल्ट और हैश किया जाता है",
+            "जब कोई विदेशी वीसी गोपनीय डेक खोलता है तो संस्थापक को तत्काल सूचना"
+          ],
+          engineTag: "जियो पल्स बीकन • एनिमेटेड रडार मैप",
+          projectContext: "मैपिंग: view_sessions.country और /api/investors लाइव मैप"
+        },
+        g35: {
+          title: "पाठन समय वितरण हिस्टोग्राम",
+          desc: "बाउंस, स्किम, एंगेज्ड और डिलिजेंस में सत्रों का वर्गीकरण",
+          badge: "अटेंशन बकेट्स • #35",
+          subtitle: "निवेशक पठन गहराई वर्गीकरण (<15s बाउंस से >5m डिलिजेंस)",
+          description: "दर्शक सत्रों को गणितीय अवधि बकेट्स में विभाजित करता है। त्वरित बाउंस, स्किम करने वाले विश्लेषकों, गहराई से जुड़े साझेदारों और गंभीर निवेश समिति सत्रों के बीच अंतर करता है।",
+          bullets: [
+            "5-स्तरीय अवधि वर्गीकरण: बाउंस (<15s), स्किम (15s-45s), एंगेज्ड (45s-2m), डीप (2m-5m), डिलिजेंस (>5m)",
+            "स्पष्ट ड्रॉप-ऑफ दृश्यता के साथ लॉगरिदमिक सत्र स्केलिंग",
+            "खुले छोड़े गए ब्राउज़र टैब से होने वाले औसत भटकाव को समाप्त करता है",
+            "तत्काल पार्टनर फॉलो-अप के लिए तैयार उच्च-प्राथमिकता वीसी लीड्स की पहचान"
+          ],
+          engineTag: "DuckDB पर्सेंटाइल बकेटिंग • 5-स्तरीय हिस्टोग्राम",
+          projectContext: "मैपिंग: DwellHistogram घटक और page_events ड्वेल डेटा"
+        },
+        g36: {
+          title: "30-दिवसीय इंटेंट गति स्प्लाइन",
+          desc: "एल्गोरिथम द्वारा स्मूथ की गई निवेशक दृढ़ता ट्रेंडलाइन",
+          badge: "कैटमुल-रोम स्प्लाइन • #36",
+          subtitle: "AI लीड दृढ़ता गति और डील क्लोजिंग संभावना",
+          description: "डील मोमेंटम को मापने वाला कैटमुल-रोम क्यूबिक बेज़ियर वक्र। कुल डील तापमान की गणना के लिए रिटर्न विज़िट, वित्तीय स्लाइड पर ध्यान, और प्रश्न पिन को जोड़ता है।",
+          bullets: [
+            "दैनिक उतार-चढ़ाव वाले शोर को समाप्त करने वाला क्यूबिक स्प्लाइन इंटरपोलेशन",
+            "कुल ध्यान, पूर्ण किए गए पृष्ठ और हस्ताक्षर घटनाओं को शामिल करने वाला समग्र स्कोर",
+            "निवेशक दृढ़ता हॉट थ्रेशोल्ड (85+) पार करने पर विज़ुअल अलर्ट",
+            "संस्थापकों को धन जुटाने की गति पर गणितीय स्पष्टता देता है"
+          ],
+          engineTag: "क्यूबिक स्प्लाइन • प्रिडिक्टिव एनालिटिक्स",
+          projectContext: "मैपिंग: AI Lead Scoring Engine (हॉट 85-100, वॉर्म 60-84)"
+        },
+        g37: {
+          title: "प्रतिधारण यात्रा सैंकी फ़नल",
+          desc: "लिंक क्लिक से लेकर अंतिम स्लाइड तक बहु-स्तरीय रूपांतरण पाइपलाइन",
+          badge: "सैंकी फ़नल • #37",
+          subtitle: "संपूर्ण पाठक यात्रा: क्लिक → गेट → NDA → पठन → इन-डॉक प्रश्नोत्तर",
+          description: "प्रत्येक एक्सेस और पठन मील के पत्थर पर निवेशक प्रवाह को ट्रैक करता है। दिखाता है कि निवेशक कहां छोड़ते हैं: ईमेल गेट पर, NDA पर, वित्तीय स्लाइड पर, या अंतिम स्लाइड पर।",
+          bullets: [
+            "मल्टी-स्टेज पाइपलाइन: लिंक खोला → NDA हस्ताक्षरित → पृष्ठ 1 → मध्य बिंदु → पूर्ण",
+            "डेक घर्षण पृष्ठों को उजागर करने वाला तत्काल ड्रॉप-ऑफ क्लिफ विज़ुअलाइज़ेशन",
+            "सुरक्षा गेट्स (ईमेल कैप्चर, पासवर्ड, NDA) के माध्यम से रूपांतरण को ट्रैक करता है",
+            "3x उच्च पूर्णता दर के लिए पिच डेक को पुनर्गठित करने में सिद्ध मददगार"
+          ],
+          engineTag: "सैंकी फ्लो डायग्राम • मल्टी-स्टेज रिटेंशन",
+          projectContext: "मैपिंग: RetentionFunnelSankey घटक और view_sessions"
+        },
+        g38: {
+          title: "लागत एवं कोटा सर्कुलर गेज ($0 फ्री टियर)",
+          desc: "सदैव ₹0 फ्री-टियर कम्प्यूट, इग्रेस और स्टोरेज सीमाएं",
+          badge: "₹0 बजट गेज • #38",
+          subtitle: "रीयल-टाइम फ्री-टियर टेलीमेट्री और हेडरूम सुरक्षा निगरानी",
+          description: "सभी 5 शून्य-लागत क्लाउड स्तंभों (Vercel, Neon Postgres, Backblaze B2, Google Apps Script, GitHub CI) में खपत की निगरानी करता है। $0.00/माह पर आजीवन संचालन सुनिश्चित करता है।",
+          bullets: [
+            "सर्कुलर गेज: Vercel फ्लूइड कम्प्यूट (0.22% प्रयुक्त), Neon CU (25.8% अनुमानित)",
+            "Backblaze B2 इग्रेस ट्रैकिंग (Bandwidth Alliance के साथ 30 GB/माह मुफ़्त)",
+            "Google Apps Script ईमेल कोटा (आजीवन 100 निःशुल्क ईमेल/दिन)",
+            "यदि कोई कोटा 80% सीमा के करीब पहुंचता है तो स्वचालित पूर्व-चेतावनी"
+          ],
+          engineTag: "मल्टी-क्लाउड कोटा टेलीमेट्री • सर्कुलर वेक्टर गेज",
+          projectContext: "मैपिंग: ProductionLedger और #live-quotas बेंचमार्क लेजर"
+        },
+        g39: {
+          title: "शीर्ष पिच डेक लीडरबोर्ड",
+          desc: "कुल पाठन और डील स्कोर के आधार पर रैंक तुलना",
+          badge: "रैंक्ड मैट्रिक्स • #39",
+          subtitle: "तुलनात्मक पिच डेक प्रदर्शन और डील दृढ़ता स्कोरबोर्ड",
+          description: "सभी सक्रिय शेयर लिंक और पिच डेक संस्करणों को रैंक करता है। कुल पठन, औसत समय, बाउंस दर और AI डील स्कोर (85-100) की तुलना करके आपके सर्वश्रेष्ठ प्रदर्शन करने वाले डेक को प्रकट करता है।",
+          bullets: [
+            "सीरीज़ A डेक बनाम सीड मेमो बनाम ग्राहक केस स्टडी की तुलना तालिका",
+            "प्रत्येक व्यक्तिगत लिंक के लिए डील तापमान (🔥 हॉट, ⚡ वॉर्म, ❄️ कोल्ड) की गणना",
+            "एक-क्लिक कॉपी, लाइव एनालिटिक्स निरीक्षण और लिंक निरस्तीकरण नियंत्रण",
+            "पिच डेक हुक, स्लाइड गणना और वित्तीय मॉडल के A/B परीक्षण में सक्षम"
+          ],
+          engineTag: "रैंक्ड प्रदर्शन मैट्रिक्स • डील स्कोर समेकन",
+          projectContext: "मैपिंग: TopLinksLeaderboard और /api/links अवलोकन"
+        },
+        g40: {
+          title: "प्रति-स्लाइड प्रश्न घनत्व हीटमैप",
+          desc: "मुख्य चर्चा वाले पृष्ठों को उजागर करने वाले इन-डॉक प्रश्न पिन",
+          badge: "घर्षण पिन • #40",
+          subtitle: "इन-डॉक रीयल-टाइम प्रश्नोत्तर पूछताछ और संस्थापक चर्चा हॉटस्पॉट",
+          description: "नक्शा बनाता है कि निवेशक किन विशिष्ट स्लाइडों पर प्रश्न पिन छोड़ते हैं। अस्पष्ट वित्तीय मान्यताओं, बाज़ार आकार के प्रश्नों और तकनीकी वास्तुकला पूछताछ की तुरंत पहचान करता है।",
+          bullets: [
+            "प्रति स्लाइड प्रश्न संख्या दर्शाने वाला विज़ुअल पिन हीटमैप (उदा. स्लाइड 7: 5 पिन)",
+            "page_questions तालिका में संग्रहीत सीधा संस्थापक-से-निवेशक उत्तर थ्रेड",
+            "PDF.js कैनवास पर सटीक निर्देशांक-आधारित पिन प्लेसमेंट (posX%, posY%)",
+            "स्लाइड्स पर सीधे चर्चा को पिन करके ईमेल के भटकाव को पूरी तरह समाप्त करता है"
+          ],
+          engineTag: "इन-डॉक रीयल-टाइम Q&A • Drizzle page_questions तालिका",
+          projectContext: "मैपिंग: page_questions तालिका और व्यूअर इंटरैक्टिव पिन लेयर"
+        },
+        g41: {
+          title: "कार्यकारी साप्ताहिक KPI डाइजेस्ट (निर्यात योग्य कार्ड)",
+          desc: "लाइव स्पार्कलाइन गति के साथ समेकित इंटेलिजेंस कार्ड डेक",
+          badge: "कार्यकारी डाइजेस्ट • #41",
+          subtitle: "Slack और WhatsApp के लिए स्वचालित सोमवार सुबह का इंटेलिजेंस स्नैपशॉट",
+          description: "Slack, WhatsApp या को-फाउंडर अपडेट के लिए तैयार शून्य-PII साझा करने योग्य साप्ताहिक डाइजेस्ट कार्ड उत्पन्न करता है। संवेदनशील कुंजियों को उजागर किए बिना डेक दृश्य, अद्वितीय फंड, शीर्ष एंगेजमेंट स्लाइड और हॉट लीड्स (उदा. a16z, सारा) को जोड़ता है।",
+          bullets: [
+            "अद्वितीय पाठक विश्लेषण के साथ लाइव +18% सप्ताह-दर-सप्ताह दृश्य ट्रैकर",
+            "शीर्ष दृढ़ता डील खोजक: स्वचालित रूप से उच्चतम दृढ़ता वाले निवेशकों (स्कोर 84+) को खोजता है",
+            "स्लाइड घर्षण रडार: सबसे गर्म चर्चा वाली स्लाइडों को उजागर करता है (उदा. स्लाइड 7, 5 प्रश्न पिन)",
+            "1-क्लिक शून्य-निर्भरता PNG निर्यात: Slack चैनलों या WhatsApp समूहों पर त्वरित साझाकरण"
+          ],
+          engineTag: "स्वचालित साप्ताहिक कार्ड • html2canvas / PNG निर्यात",
+          projectContext: "मैपिंग: WeeklyKpiDigest घटक और Google Apps Script ईमेलर"
+        },
       },
     },
   },
