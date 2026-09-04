@@ -70,6 +70,7 @@ export function AdminPanelView() {
   const [newInviteRole, setNewInviteRole] = useState("owner");
   const [newInviteDays, setNewInviteDays] = useState("7");
   const [customInviteCode, setCustomInviteCode] = useState("");
+  const [inviteRecipientEmail, setInviteRecipientEmail] = useState("");
 
   const fetchMetrics = async () => {
     try {
@@ -213,21 +214,37 @@ export function AdminPanelView() {
 
   const handleCreateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    const res = await fetch("/api/admin/invites", {
+    const isEmailInvite = Boolean(inviteRecipientEmail.trim());
+    const endpoint = isEmailInvite ? "/api/admin/invites/send" : "/api/admin/invites";
+    const payload = isEmailInvite
+      ? {
+          role: newInviteRole,
+          expiresInDays: parseInt(newInviteDays, 10),
+          recipientEmail: inviteRecipientEmail.trim(),
+          customCode: customInviteCode.trim() || undefined,
+        }
+      : {
+          role: newInviteRole,
+          expiryDays: parseInt(newInviteDays, 10),
+          expiresInDays: parseInt(newInviteDays, 10),
+          customCode: customInviteCode.trim() || undefined,
+          code: customInviteCode.trim() || undefined,
+        };
+
+    const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        role: newInviteRole,
-        expiryDays: parseInt(newInviteDays, 10),
-        expiresInDays: parseInt(newInviteDays, 10),
-        customCode: customInviteCode.trim() || undefined,
-        code: customInviteCode.trim() || undefined,
-      }),
+      body: JSON.stringify(payload),
     });
     const json = await res.json();
     if (res.ok) {
       const codeCreated = json.code || json.invite?.code || "Created";
-      setActionMessage(`Invite code created: ${codeCreated}`);
+      if (isEmailInvite) {
+        setActionMessage(`Invite code created & emailed to ${inviteRecipientEmail.trim()}: ${codeCreated}`);
+        setInviteRecipientEmail("");
+      } else {
+        setActionMessage(`Invite code created: ${codeCreated}`);
+      }
       setCustomInviteCode("");
       fetchInvites();
     } else {
@@ -685,8 +702,8 @@ export function AdminPanelView() {
               </button>
             </div>
 
-            {/* 3 Real-time Diagnostics Pillars */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+            {/* 4 Real-time Diagnostics Pillars */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
               {/* Database */}
               <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
                 <div className="flex items-center justify-between">
@@ -752,6 +769,26 @@ export function AdminPanelView() {
                 </div>
                 <p className="text-[11px] text-slate-400">
                   AES-GCM-256 client decrypt + PBKDF2 (100k rounds) operational.
+                </p>
+              </div>
+
+              {/* Email Engine */}
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-amber-400" />
+                    <span className="text-xs font-bold text-white">Email Engine</span>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    diagnosticsData?.diagnostics?.email?.status === "operational"
+                      ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                      : "text-amber-400 bg-amber-500/10 border-amber-500/20"
+                  }`}>
+                    {diagnosticsData?.diagnostics?.email?.provider ? diagnosticsData.diagnostics.email.provider.toUpperCase() : "AUTO"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 truncate" title={diagnosticsData?.diagnostics?.email?.details}>
+                  {diagnosticsData?.diagnostics?.email?.details || "Cascading Fallback ($0 GAS / Resend / Brevo / SMTP)"}
                 </p>
               </div>
             </div>
@@ -1079,11 +1116,25 @@ export function AdminPanelView() {
                 />
               </div>
 
+              <div>
+                <label className="block text-xs text-slate-400 mb-1">Send Direct to Email (Optional)</label>
+                <input
+                  type="email"
+                  value={inviteRecipientEmail}
+                  onChange={(e) => setInviteRecipientEmail(e.target.value)}
+                  placeholder="colleague@company.com"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                />
+                <p className="mt-1 text-[10px] text-slate-500">
+                  If entered, BlindShare immediately dispatches an email invite with a 1-click registration link.
+                </p>
+              </div>
+
               <button
                 type="submit"
                 className="w-full rounded-xl bg-amber-500 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition"
               >
-                Generate Invite Code
+                {inviteRecipientEmail.trim() ? "Generate & Email Invitation" : "Generate Invite Code"}
               </button>
             </form>
           </div>

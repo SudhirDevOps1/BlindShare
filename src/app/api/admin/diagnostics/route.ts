@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth/rbac";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
+import { getActiveEmailProvider } from "@/lib/email/email-dispatcher";
 
 export type EnvCategory =
   | "Database"
@@ -73,6 +74,9 @@ export async function GET() {
     storageOperational = false;
     storageError = err?.message || "Storage probe failed";
   }
+
+  // 3. Email Provider Status
+  const emailInfo = getActiveEmailProvider();
 
   // Helper to safely mask secrets so no sensitive credentials leak to logs/UI
   const maskSecret = (val?: string): string | null => {
@@ -360,6 +364,41 @@ export async function GET() {
 
     // 📧 Email & Webhooks
     {
+      key: "EMAIL_PROVIDER",
+      category: "Email & Webhooks",
+      required: false,
+      isSet: Boolean(process.env.EMAIL_PROVIDER),
+      status: "healthy",
+      maskedValue: process.env.EMAIL_PROVIDER || "auto (default)",
+      description: "Master email routing strategy ('auto', 'gas', 'resend', 'brevo', 'smtp', 'mock').",
+      guide: "Set to 'gas' for zero-DNS Google Apps Script, 'resend', 'brevo', or 'smtp'",
+      diagnosticTest: `Active: ${emailInfo.details}`,
+      isWorking: true,
+    },
+    {
+      key: "GAS_WEBAPP_URL",
+      category: "Email & Webhooks",
+      required: false,
+      isSet: Boolean(process.env.GAS_WEBAPP_URL),
+      status: Boolean(process.env.GAS_WEBAPP_URL) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.GAS_WEBAPP_URL),
+      description: "Google Apps Script Web App HTTPS URL for 100% free ($0) email relay without custom domain DNS.",
+      guide: "Deploy GAS Web App -> Set Who has access: Anyone -> Copy /exec URL",
+      diagnosticTest: Boolean(process.env.GAS_WEBAPP_URL) ? "GAS Web App Configured" : "Unset",
+      isWorking: Boolean(process.env.GAS_WEBAPP_URL),
+    },
+    {
+      key: "GAS_SECRET_TOKEN",
+      category: "Email & Webhooks",
+      required: Boolean(process.env.GAS_WEBAPP_URL),
+      isSet: Boolean(process.env.GAS_SECRET_TOKEN),
+      status: Boolean(process.env.GAS_SECRET_TOKEN) ? "healthy" : Boolean(process.env.GAS_WEBAPP_URL) ? "warning" : "optional_unset",
+      maskedValue: maskSecret(process.env.GAS_SECRET_TOKEN),
+      description: "Shared secret token verifying incoming requests between BlindShare and your Google Apps Script.",
+      guide: "Matching secret passphrase specified in Code.gs and your .env",
+      isWorking: Boolean(process.env.GAS_SECRET_TOKEN),
+    },
+    {
       key: "RESEND_API_KEY",
       category: "Email & Webhooks",
       required: false,
@@ -368,8 +407,31 @@ export async function GET() {
       maskedValue: maskSecret(process.env.RESEND_API_KEY),
       description: "Resend transactional email API key for recipient view alerts, OTP codes, and invite links.",
       guide: "https://resend.com -> API Keys -> Create Key (3,000 free emails/month)",
-      diagnosticTest: Boolean(process.env.RESEND_API_KEY) ? "Resend API Configured" : "Email Dispatch Disabled",
+      diagnosticTest: Boolean(process.env.RESEND_API_KEY) ? "Resend API Configured" : "Unset",
       isWorking: Boolean(process.env.RESEND_API_KEY),
+    },
+    {
+      key: "BREVO_API_KEY",
+      category: "Email & Webhooks",
+      required: false,
+      isSet: Boolean(process.env.BREVO_API_KEY),
+      status: Boolean(process.env.BREVO_API_KEY) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.BREVO_API_KEY),
+      description: "Brevo (formerly Sendinblue) transactional email API key (300 free emails/day).",
+      guide: "https://app.brevo.com -> SMTP & API -> API Keys",
+      diagnosticTest: Boolean(process.env.BREVO_API_KEY) ? "Brevo API Configured" : "Unset",
+      isWorking: Boolean(process.env.BREVO_API_KEY),
+    },
+    {
+      key: "SMTP_HOST",
+      category: "Email & Webhooks",
+      required: false,
+      isSet: Boolean(process.env.SMTP_HOST),
+      status: Boolean(process.env.SMTP_HOST) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.SMTP_HOST),
+      description: "Custom SMTP server hostname (e.g. smtp.gmail.com).",
+      guide: "SMTP Host for custom mail servers or Gmail App Passwords",
+      isWorking: Boolean(process.env.SMTP_HOST),
     },
     {
       key: "SLACK_WEBHOOK_URL",
@@ -664,6 +726,11 @@ export async function GET() {
         algorithm: "AES-GCM-256 (WebCrypto CSPRNG)",
         kdf: "PBKDF2-HMAC-SHA256 (100,000 rounds)",
         vault: "Enterprise-Grade Zero-Knowledge Owner Master Key Vault",
+      },
+      email: {
+        status: emailInfo.configured ? "operational" : "warning",
+        provider: emailInfo.provider,
+        details: emailInfo.details,
       },
       runtime: {
         nodeEnv: process.env.NODE_ENV || "development",

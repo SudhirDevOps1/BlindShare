@@ -32,6 +32,16 @@ export const invites = pgTable("invites", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
+export const authTokens = pgTable("auth_tokens", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull(),
+  tokenHash: text("token_hash").notNull(),
+  type: text("type").notNull(), // magic_link | otp | password_reset
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  isUsed: boolean("is_used").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 export const documents = pgTable("documents", {
   id: text("id").primaryKey(),
   ownerId: text("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),

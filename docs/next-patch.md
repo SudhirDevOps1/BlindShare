@@ -663,4 +663,18 @@ pm test 24/24, git status only M on 3-4 files — no D.
 - **[F-7] Admin Invite Token Lifecycle & Management Hardening:** Fixed invite generation payload interoperability (`expiryDays`/`expiresInDays`, `customCode`/`code`), added missing `DELETE /api/admin/invites` endpoint to allow admins to revoke/delete active invite tokens, corrected invite claimed/expired status badges (`isUsed` instead of `usedAt`), added a 1-click Copy button for invite links (`/signup?invite=...`), and enabled auto-fill of invite codes on the registration page from query parameters. — ✅ [IMPLEMENTED & VERIFIED]
 - **[F-8] RBAC Role Hierarchy Error Transparency:** Added visible UI error toast feedback when non-super-admins attempt unauthorized role changes, maintaining strict RBAC where only Super Admins can promote/demote user roles or delete user accounts. — ✅ [IMPLEMENTED & VERIFIED]
 
+---
+
+## Part G: Multi-Provider Email & Zero-Cost Passwordless Auth Engine (v1.4.0)
+
+- **[G-1] Zero-DNS Google Apps Script ($0 Free) Email Relay:** Implemented private Google Apps Script Web App dispatcher (`src/lib/email/providers/gas-provider.ts`) requiring zero custom domain DNS/DKIM/SPF configuration. Relays transactional emails directly through personal Gmail (100/day free) or Google Workspace (1,500/day free) using a shared HMAC secret token (`GAS_WEBAPP_URL`, `GAS_SECRET_TOKEN`). — ✅ [IMPLEMENTED & VERIFIED]
+- **[G-2] Multi-Provider Email Core with Cascading Fallback:** Created unified email engine (`src/lib/email/email-dispatcher.ts`) supporting Google Apps Script (`gas`), Resend REST API (`resend`), Brevo REST API (`brevo`), standard SMTP (`smtp`), and local development mock logger (`mock`). Automatically cascades to backup providers if the primary provider fails or exhausts its quota. — ✅ [IMPLEMENTED & VERIFIED]
+- **[G-3] Zero-Knowledge Courier Invariant Preservation:** Strictly verified that one-time auth tokens, magic links, OTP codes, and password reset links never contain, touch, log, or transmit document encryption keys (`#k=...`). Client-side E2EE decryption remains 100% intact. — ✅ [IMPLEMENTED & VERIFIED]
+- **[G-4] Database Token Ledger (PostgreSQL & SQLite):** Added `authTokens` table to PostgreSQL (`src/db/schema.ts`), SQLite (`src/db/sqlite-schema.ts`), and auto-migration runner (`src/db/auto-migrate.ts`) storing single-use, timing-safe SHA-256 hashed tokens with 15-minute expiration for Magic Link and OTP verification. — ✅ [IMPLEMENTED & VERIFIED]
+- **[G-5] 1-Click Magic Link & 6-Digit Email OTP Authentication:** Built `/api/auth/magic-link` and `/api/auth/otp` endpoints supporting passwordless login. Users receive instant login links or 6-digit numeric codes in dark-mode branded email templates. — ✅ [IMPLEMENTED & VERIFIED]
+- **[G-6] Self-Service Password Reset Flow:** Implemented `/api/auth/forgot-password` and standalone `/reset-password` UI page allowing users to securely reset account passwords. Upon reset, `sessionVersion` is automatically incremented in the database to invalidate all active stolen sessions across devices. — ✅ [IMPLEMENTED & VERIFIED]
+- **[G-7] Admin Invite Email Delivery:** Added `/api/admin/invites/send` and integrated recipient email delivery into the Admin Panel (`src/components/admin/admin-panel-view.tsx`), allowing admins to directly dispatch email invitations with embedded registration links in 1 click. — ✅ [IMPLEMENTED & VERIFIED]
+- **[G-8] Admin Diagnostics Live Email Verification:** Added active email provider health checks (`diagnostics.email`) and environment variable status indicators in both `/api/admin/diagnostics` and Admin Panel Diagnostics tab. — ✅ [IMPLEMENTED & VERIFIED]
+
+
 

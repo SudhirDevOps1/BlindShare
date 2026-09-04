@@ -36,6 +36,16 @@ export async function ensureDatabaseSchema(pool: Pool) {
           created_at timestamp with time zone NOT NULL DEFAULT now()
         );
 
+        CREATE TABLE IF NOT EXISTS auth_tokens (
+          id text PRIMARY KEY,
+          email text NOT NULL,
+          token_hash text NOT NULL,
+          type text NOT NULL,
+          expires_at timestamp with time zone NOT NULL,
+          is_used boolean NOT NULL DEFAULT false,
+          created_at timestamp with time zone NOT NULL DEFAULT now()
+        );
+
         CREATE TABLE IF NOT EXISTS documents (
           id text PRIMARY KEY,
           owner_id text NOT NULL REFERENCES users(id) ON DELETE CASCADE,

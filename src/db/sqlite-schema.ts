@@ -35,6 +35,16 @@ export const invites = sqliteTable("invites", {
   createdAt: integer("created_at", { mode: "timestamp_ms" }).default(sql`(strftime('%s', 'now') * 1000)`).notNull(),
 });
 
+export const authTokens = sqliteTable("auth_tokens", {
+  id: text("id").primaryKey(),
+  email: text("email").notNull(),
+  tokenHash: text("token_hash").notNull(),
+  type: text("type").notNull(), // magic_link | otp | password_reset
+  expiresAt: integer("expires_at", { mode: "timestamp_ms" }).notNull(),
+  isUsed: integer("is_used", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).default(sql`(strftime('%s', 'now') * 1000)`).notNull(),
+});
+
 export const documents = sqliteTable("documents", {
   id: text("id").primaryKey(),
   ownerId: text("owner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
