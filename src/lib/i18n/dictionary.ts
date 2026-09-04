@@ -249,6 +249,9 @@ export const translations = {
       cursor: {
         brandBadge: "BlindShare • ZK-SECURE",
         brandInspect: "BlindShare • ZK-INSPECT",
+        petName: "B-Bot",
+        petStatusNormal: "B-Bot • ZK-SECURE",
+        petStatusInspect: "B-Bot • SCANNING...",
       },
       slideshow: {
         slide: "Slide",
@@ -906,6 +909,9 @@ export const translations = {
       cursor: {
         brandBadge: "BlindShare • शून्य-ज्ञान सुरक्षित",
         brandInspect: "BlindShare • शून्य-ज्ञान जांच",
+        petName: "बी-बॉट",
+        petStatusNormal: "बी-बॉट • शून्य-ज्ञान रक्षक",
+        petStatusInspect: "बी-बॉट • स्कैनिंग...",
       },
       slideshow: {
         slide: "स्लाइड",

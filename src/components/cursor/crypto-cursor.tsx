@@ -9,15 +9,35 @@ interface SonarPing {
   y: number;
 }
 
-// Precomputed 160 cipher watermark tokens to fill full viewport up to 4K displays with 0 GC overhead
-const CIPHER_TOKENS = Array.from({ length: 160 }).map((_, i) => ({
-  key: `#k=aes256_gcm_${((i * 1337) % 9999).toString(16)}`,
-  pbkdf2: "PBKDF2_100k",
-  zkCourier: "ZERO_KNOWLEDGE_COURIER",
-  fragment: "RFC3986_FRAGMENT",
-  ram: "CLIENT_SIDE_RAM",
-  telemetry: "DUCKDB_TELEMETRY",
-}));
+// Granular cryptographic fragment definitions
+const FRAGMENT_DEFS = [
+  { gen: (i: number) => `#k=aes256_gcm_${((i * 1337) % 9999).toString(16)}`, color: "text-amber-300/55" },
+  { gen: () => "•", color: "text-slate-600/70" },
+  { gen: () => "PBKDF2_100K", color: "text-emerald-400/55" },
+  { gen: () => "•", color: "text-slate-600/70" },
+  { gen: () => "ZERO_KNOWLEDGE_COURIER", color: "text-blue-400/50" },
+  { gen: () => "•", color: "text-slate-600/70" },
+  { gen: () => "RFC3986_FRAGMENT", color: "text-amber-400/55" },
+  { gen: () => "•", color: "text-slate-600/70" },
+  { gen: () => "CLIENT_SIDE_RAM", color: "text-emerald-300/50" },
+  { gen: () => "•", color: "text-slate-600/70" },
+  { gen: () => "DUCKDB_TELEMETRY", color: "text-indigo-400/50" },
+  { gen: () => "•", color: "text-slate-600/70" },
+  { gen: () => "AES_GCM_256", color: "text-cyan-400/50" },
+  { gen: () => "•", color: "text-slate-600/70" },
+  { gen: () => "ZERO_PII_VAULT", color: "text-amber-400/50" },
+  { gen: () => "•", color: "text-slate-600/70" },
+];
+
+// Precomputed 1200 granular tokens to densely fill entire screen wall-to-wall up to 4K displays
+const CIPHER_STREAM = Array.from({ length: 1200 }).map((_, i) => {
+  const def = FRAGMENT_DEFS[i % FRAGMENT_DEFS.length];
+  return {
+    id: i,
+    text: def.gen(i),
+    color: def.color,
+  };
+});
 
 export function CryptoCursor() {
   const { t } = useI18n();
@@ -26,7 +46,7 @@ export function CryptoCursor() {
   const [sonarPings, setSonarPings] = useState<SonarPing[]>([]);
   const [isVisible, setIsVisible] = useState<boolean>(false);
 
-  // High-performance mutable coords in refs to prevent React re-renders on mousemove
+  // High-performance mutable coordinates in refs to prevent React re-renders on mousemove
   const coordsRef = useRef<{ x: number; y: number; active: boolean }>({
     x: -500,
     y: -500,
@@ -35,10 +55,10 @@ export function CryptoCursor() {
   const lerpRef = useRef<{ x: number; y: number }>({ x: -500, y: -500 });
   const isHoveringRef = useRef<boolean>(false);
 
-  // Direct element references for 60-144 FPS GPU transforms
+  // Direct element references for 60-144 FPS hardware-accelerated transforms
   const laserDotRef = useRef<HTMLDivElement>(null);
   const haloRef = useRef<HTMLDivElement>(null);
-  const badgeRef = useRef<HTMLDivElement>(null);
+  const petRef = useRef<HTMLDivElement>(null);
   const spotlightRef = useRef<HTMLDivElement>(null);
   const matrixRef = useRef<HTMLDivElement>(null);
 
@@ -78,30 +98,31 @@ export function CryptoCursor() {
         const tx = target.x;
         const ty = target.y;
 
-        // Zero-latency center laser dot (instant)
+        // 1. Zero-latency center laser dot (instant)
         if (laserDotRef.current) {
           laserDotRef.current.style.transform = `translate3d(${tx - 3}px, ${ty - 3}px, 0)`;
         }
 
-        // Inertia laser halo with magnetic scale
+        // 2. Inertia laser halo with magnetic scale
         if (haloRef.current) {
           const scale = isHoveringRef.current ? 1.35 : 1.0;
           haloRef.current.style.transform = `translate3d(${lx - 16}px, ${ly - 16}px, 0) scale(${scale})`;
         }
 
-        // Micro brand badge floating alongside halo
-        if (badgeRef.current) {
-          badgeRef.current.style.transform = `translate3d(${lx + 20}px, ${ly - 10}px, 0)`;
+        // 3. Cyber Robot Pet Companion floating alongside with organic levitation
+        if (petRef.current) {
+          const hoverBob = Math.sin(Date.now() / 260) * 3.5;
+          petRef.current.style.transform = `translate3d(${lx + 24}px, ${ly - 18 + hoverBob}px, 0)`;
         }
 
-        // Ambient cipher spotlight beam
+        // 4. Ambient cipher spotlight beam
         if (spotlightRef.current) {
-          spotlightRef.current.style.transform = `translate3d(${tx - 250}px, ${ty - 250}px, 0)`;
+          spotlightRef.current.style.transform = `translate3d(${tx - 260}px, ${ty - 260}px, 0)`;
         }
 
-        // Global Zero-Knowledge Cipher Spotlight Watermark Matrix mask
+        // 5. Global Zero-Knowledge Cipher Spotlight Watermark Matrix mask
         if (matrixRef.current) {
-          const mask = `radial-gradient(380px circle at ${tx}px ${ty}px, black 25%, transparent 85%)`;
+          const mask = `radial-gradient(420px circle at ${tx}px ${ty}px, black 25%, transparent 85%)`;
           matrixRef.current.style.webkitMaskImage = mask;
           matrixRef.current.style.maskImage = mask;
         }
@@ -134,7 +155,7 @@ export function CryptoCursor() {
       setIsVisible(false);
       setIsHoveringInteractive(false);
       if (matrixRef.current) {
-        const mask = `radial-gradient(380px circle at -500px -500px, black 25%, transparent 85%)`;
+        const mask = `radial-gradient(420px circle at -500px -500px, black 25%, transparent 85%)`;
         matrixRef.current.style.webkitMaskImage = mask;
         matrixRef.current.style.maskImage = mask;
       }
@@ -163,38 +184,28 @@ export function CryptoCursor() {
     return null;
   }
 
-  const brandBadgeText =
-    t.architectureShowcase?.cursor?.brandBadge || "BlindShare • ZK-SECURE";
-  const brandInspectText =
-    t.architectureShowcase?.cursor?.brandInspect || "BlindShare • ZK-INSPECT";
+  const petNormalText =
+    t.architectureShowcase?.cursor?.petStatusNormal || "B-Bot • ZK-SECURE";
+  const petInspectText =
+    t.architectureShowcase?.cursor?.petStatusInspect || "B-Bot • SCANNING...";
 
   return (
     <>
-      {/* Option 2: Global Zero-Knowledge Cipher Spotlight Watermark Matrix (Full Web) */}
+      {/* Option 2: Global Full-Screen Zero-Knowledge Cipher Spotlight Matrix */}
       <div
         ref={matrixRef}
         aria-hidden="true"
-        className="pointer-events-none fixed inset-0 z-[35] select-none overflow-hidden mix-blend-screen opacity-75"
+        className="pointer-events-none fixed inset-0 z-[35] select-none overflow-hidden mix-blend-screen opacity-80"
         style={{
-          WebkitMaskImage: `radial-gradient(380px circle at -500px -500px, black 25%, transparent 85%)`,
-          maskImage: `radial-gradient(380px circle at -500px -500px, black 25%, transparent 85%)`,
+          WebkitMaskImage: `radial-gradient(420px circle at -500px -500px, black 25%, transparent 85%)`,
+          maskImage: `radial-gradient(420px circle at -500px -500px, black 25%, transparent 85%)`,
         }}
       >
-        {/* Repeating Cryptographic Matrix Grid */}
-        <div className="absolute inset-0 flex flex-wrap gap-x-8 gap-y-5 p-6 font-mono text-[10.5px] font-bold uppercase tracking-widest leading-none">
-          {CIPHER_TOKENS.map((token, i) => (
-            <span key={i} className="inline-flex items-center gap-2">
-              <span className="text-amber-300/50">{token.key}</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-emerald-400/50">{token.pbkdf2}</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-blue-400/45">{token.zkCourier}</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-amber-400/50">{token.fragment}</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-emerald-300/45">{token.ram}</span>
-              <span className="text-slate-600">•</span>
-              <span className="text-indigo-400/45">{token.telemetry}</span>
+        {/* Continuous Fluid Typography Grid Covering 100vw × 100vh with Zero Empty Margins */}
+        <div className="absolute inset-0 p-5 font-mono text-[10.5px] font-bold uppercase tracking-widest leading-loose select-none overflow-hidden break-words text-justify">
+          {CIPHER_STREAM.map((item) => (
+            <span key={item.id} className={`${item.color} mr-2 inline-block`}>
+              {item.text}
             </span>
           ))}
         </div>
@@ -204,14 +215,14 @@ export function CryptoCursor() {
       <div
         ref={spotlightRef}
         aria-hidden="true"
-        className="pointer-events-none fixed top-0 left-0 z-[99990] w-[500px] h-[500px] rounded-full will-change-transform opacity-70 transition-opacity duration-300"
+        className="pointer-events-none fixed top-0 left-0 z-[99990] w-[520px] h-[520px] rounded-full will-change-transform opacity-75 transition-opacity duration-300"
         style={{
           background:
-            "radial-gradient(circle, rgba(245, 158, 11, 0.045) 0%, rgba(59, 130, 246, 0.02) 45%, transparent 75%)",
+            "radial-gradient(circle, rgba(245, 158, 11, 0.055) 0%, rgba(59, 130, 246, 0.025) 45%, transparent 75%)",
         }}
       />
 
-      {/* Option 1: Cryptographic Laser Pointer Overlays */}
+      {/* Option 1: Cryptographic Laser Pointer & Cyber Robot Pet Companion Overlays */}
       <div
         aria-hidden="true"
         className="pointer-events-none fixed inset-0 z-[99999] overflow-hidden select-none"
@@ -221,7 +232,7 @@ export function CryptoCursor() {
           ref={haloRef}
           className={`absolute top-0 left-0 w-8 h-8 rounded-full border transition-colors duration-150 flex items-center justify-center will-change-transform ${
             isHoveringInteractive
-              ? "border-amber-400 bg-amber-400/15 shadow-[0_0_24px_rgba(245,158,11,0.6)]"
+              ? "border-amber-400 bg-amber-400/15 shadow-[0_0_24px_rgba(245,158,11,0.65)]"
               : "border-amber-500/50 bg-amber-500/5 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
           }`}
         >
@@ -238,21 +249,76 @@ export function CryptoCursor() {
           className="absolute top-0 left-0 w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_#f59e0b,0_0_14px_#f59e0b] will-change-transform"
         />
 
-        {/* 3. Subtle Brand Name & Cryptographic Context Micro-Badge */}
+        {/* 3. Cyber Robot Pet Companion Drone ("B-Bot") */}
         <div
-          ref={badgeRef}
-          className={`absolute top-0 left-0 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[9.5px] font-mono font-semibold tracking-wider uppercase transition-all duration-150 backdrop-blur-md will-change-transform shadow-md ${
-            isHoveringInteractive
-              ? "bg-amber-950/80 border-amber-400/60 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.3)]"
-              : "bg-slate-950/70 border-slate-800 text-slate-400"
-          }`}
+          ref={petRef}
+          className="absolute top-0 left-0 flex items-center gap-2 will-change-transform"
         >
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              isHoveringInteractive ? "bg-amber-400 animate-ping" : "bg-emerald-400"
+          {/* Robot Droid Chassis */}
+          <div
+            className={`relative flex flex-col items-center justify-center w-7 h-7 rounded-xl border transition-all duration-200 backdrop-blur-md shadow-lg ${
+              isHoveringInteractive
+                ? "bg-slate-950/95 border-amber-400 shadow-[0_0_18px_rgba(245,158,11,0.6)] scale-110"
+                : "bg-slate-950/90 border-slate-700/80 shadow-[0_0_10px_rgba(16,185,129,0.3)] scale-100"
             }`}
-          />
-          <span>{isHoveringInteractive ? brandInspectText : brandBadgeText}</span>
+          >
+            {/* Robot Antenna with Blinking LED Beacon */}
+            <div className="absolute -top-2 flex flex-col items-center">
+              <div
+                className={`w-1.5 h-1.5 rounded-full ${
+                  isHoveringInteractive
+                    ? "bg-amber-400 animate-ping shadow-[0_0_8px_#f59e0b]"
+                    : "bg-emerald-400 animate-pulse shadow-[0_0_6px_#10b981]"
+                }`}
+              />
+              <div className="w-0.5 h-1 bg-slate-400" />
+            </div>
+
+            {/* Robot Dual Cybernetic LED Visor Eyes */}
+            <div className="flex items-center gap-1.5 px-1 py-0.5 rounded-md bg-slate-900/90 border border-slate-800">
+              <div
+                className={`rounded-full transition-all duration-150 ${
+                  isHoveringInteractive
+                    ? "w-1.5 h-1.5 bg-amber-400 shadow-[0_0_8px_#f59e0b] ring-1 ring-amber-300 animate-pulse"
+                    : "w-1.5 h-1.5 bg-emerald-400 shadow-[0_0_6px_#10b981]"
+                }`}
+              />
+              <div
+                className={`rounded-full transition-all duration-150 ${
+                  isHoveringInteractive
+                    ? "w-1.5 h-1.5 bg-amber-400 shadow-[0_0_8px_#f59e0b] ring-1 ring-amber-300 animate-pulse"
+                    : "w-1.5 h-1.5 bg-emerald-400 shadow-[0_0_6px_#10b981]"
+                }`}
+              />
+            </div>
+
+            {/* Robot Micro Ion Thruster Flame */}
+            <div className="absolute -bottom-1.5 flex justify-center">
+              <div
+                className={`w-1.5 h-1.5 rounded-b-full blur-[0.5px] animate-pulse ${
+                  isHoveringInteractive
+                    ? "bg-gradient-to-b from-amber-400 to-transparent h-2"
+                    : "bg-gradient-to-b from-cyan-400 to-transparent"
+                }`}
+              />
+            </div>
+          </div>
+
+          {/* Robot Dialogue / Status HUD Speech Bubble */}
+          <div
+            className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg border text-[9.5px] font-mono font-semibold tracking-wider uppercase transition-all duration-150 backdrop-blur-md shadow-md ${
+              isHoveringInteractive
+                ? "bg-amber-950/85 border-amber-400/70 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.35)]"
+                : "bg-slate-950/80 border-slate-800 text-slate-300"
+            }`}
+          >
+            <span
+              className={`w-1.5 h-1.5 rounded-full ${
+                isHoveringInteractive ? "bg-amber-400 animate-ping" : "bg-emerald-400"
+              }`}
+            />
+            <span>{isHoveringInteractive ? petInspectText : petNormalText}</span>
+          </div>
         </div>
 
         {/* 4. Click Sonar Ping Waves */}
@@ -273,3 +339,4 @@ export function CryptoCursor() {
     </>
   );
 }
+
