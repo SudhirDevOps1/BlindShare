@@ -55,8 +55,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
   - Stamped indelible diagonal security matrix watermarks directly into exported PDF bytes when downloads are permitted.
 - **Signed NDA Execution Certificate Generation (`src/app/api/v/[slug]/nda-cert`):**
   - Standalone cryptographic PDF certificate verifying NDA execution timestamps, signer identity, and audit hash.
-- **First-Time Key Copy Benchmark & Resilient Clipboard (`src/components/pdf-viewer/pdf-renderer.tsx`):**
-  - Live PBKDF2 WebCrypto key derivation benchmark timing display with fallback clipboard copying.
+- **Database-Backed Developer Social Suite & Custom Branding (`src/components/landing/footer.tsx`, `src/app/admin/settings/page.tsx`, `src/app/api/public-settings/route.ts`):**
+  - Configurable developer name and multi-channel social media suite (GitHub, LinkedIn, Twitter/X, Instagram, Facebook, Discord, YouTube, Telegram) in the landing footer.
+  - Admin settings panel integration allowing founders to toggle active links and customize profile URLs stored in PostgreSQL (`app_settings`), with safe fallback to `.env` variables (`NEXT_PUBLIC_DEVELOPER_NAME`, `NEXT_PUBLIC_SOCIAL_*`).
+  - Authentic official vector brand SVG icons with accessible tooltips, secure external links (`rel="noopener noreferrer"`), and tamper-proof protection for the core repository.
+- **Extended Office & Document Format Support (`src/components/viewer/media-renderer.tsx`):**
+  - Expanded zero-knowledge viewing and client-side rendering for legacy and modern formats: `.ppt`, `.pptx`, `.xls`, `.xlsx`, `.odt`, `.ods`, `.csv`, `.tsv`, `.txt`, `.md`, `.json`, `.svg`, and raster graphics.
+- **Self-Healing Document Page Count & PDF Truncation Fix (`src/app/api/docs/[id]/route.ts`, `src/components/upload/doc-uploader.tsx`):**
+  - Self-heals document `pageCount` in the database during upload and viewing, preventing slide truncation and zero-page indexing bugs.
+- **Viewer Ergonomics & Scroll Polish (`src/components/pdf-viewer/pdf-renderer.tsx`):**
+  - Fullscreen single-page scroll cutoff and wheel flip fixes with smooth continuous vertical scrolling.
+- **UI Streamlining for Presentation Controls & Trust Bar (`src/components/landing/architecture-showcase.tsx`, `src/components/landing/trust-bar.tsx`):**
+  - Streamlined bulky presentation controls and ticker pause button using `sr-only` to keep the UI clean, modern, and uncluttered while preserving 100% background auto-play, hover-pause, and accessibility.
+- **React Hydration Error #418 & Ad-Blocker Resilience (`src/app/layout.tsx`):**
+  - Eliminated root `<html>` hydration mismatch (React error #418) by removing redundant manual `<head>` in App Router and using Next.js `Metadata` API.
+  - Migrated telemetry to Next.js `Script` (`strategy="afterInteractive"`) with robust error handling for silent degradation against browser ad-blockers (`ERR_BLOCKED_BY_CLIENT`).
+  - Added `suppressHydrationWarning` to `<body>` to prevent third-party extension injection warnings.
 
 ### 🛡️ Security Hardening
 - **Tiered Edge Abuse Limiting & Tab Visibility Guard (`src/proxy.ts`, `src/app/v/[slug]/page.tsx`):**
