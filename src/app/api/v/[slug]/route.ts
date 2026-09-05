@@ -157,12 +157,8 @@ export async function GET(
       dataroom: dataroomData,
     });
 
-    // Edge cache public metadata for 15s with 45s stale-while-revalidate to eliminate repeat DB round-trips
-    if (!link.burnAfterReading && link.maxViews === null) {
-      res.headers.set("Cache-Control", "public, s-maxage=15, stale-while-revalidate=45");
-    } else {
-      res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
-    }
+    // Privacy invariant: Never cache link metadata in public CDNs or intermediate proxies
+    res.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
 
     return res;
   } catch (err: any) {

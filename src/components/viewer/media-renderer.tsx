@@ -2,7 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useI18n } from "@/lib/i18n/context";
-import { fragmentToDocKey, decryptBytes, hexToBuffer, bufferToHex } from "@/lib/crypto-core";
+import { fragmentToDocKey, decryptBytes, hexToBuffer, bufferToHex, zeroizeBuffer } from "@/lib/crypto-core";
 import { applyMicroDotWatermark } from "@/lib/watermark/forensic-stego";
 import {
   detectFormat,
@@ -503,6 +503,16 @@ export function MediaRenderer({
   useEffect(() => {
     let cancelled = false;
     let createdUrl: string | null = null;
+    let currentDocKey: Uint8Array | null = null;
+
+    const handleBeforeUnload = () => {
+      if (currentDocKey) {
+        zeroizeBuffer(currentDocKey);
+      }
+    };
+    if (typeof window !== "undefined") {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+    }
 
     async function run() {
       try {
@@ -524,8 +534,11 @@ export function MediaRenderer({
                 const hex = bufferToHex(docKey);
                 sessionStorage.setItem(`blindshare_key_${docData.id}`, hex);
                 sessionStorage.setItem(`blindshare_key_${slug}`, hex);
-                localStorage.setItem(`blindshare_key_${docData.id}`, hex);
-                localStorage.setItem(`blindshare_link_key_${slug}`, hex);
+                // Tab-isolated by default: only persist to localStorage if user explicitly opted in
+                if (localStorage.getItem("blindshare_remember_keys") === "true") {
+                  localStorage.setItem(`blindshare_key_${docData.id}`, hex);
+                  localStorage.setItem(`blindshare_link_key_${slug}`, hex);
+                }
               } catch {}
             }
           }
@@ -538,6 +551,7 @@ export function MediaRenderer({
             localStorage.getItem(`blindshare_key_${docData.id}`);
           if (stored) docKey = hexToBuffer(stored);
         }
+        currentDocKey = docKey;
         if (!docKey && docData.encryptionMode === "e2ee-fragment") {
           throw new Error(t.viewer.noKeyFragment);
         }
@@ -605,6 +619,12 @@ export function MediaRenderer({
     return () => {
       cancelled = true;
       if (createdUrl) URL.revokeObjectURL(createdUrl);
+      if (typeof window !== "undefined") {
+        window.removeEventListener("beforeunload", handleBeforeUnload);
+      }
+      if (currentDocKey) {
+        zeroizeBuffer(currentDocKey);
+      }
     };
   }, [docData, docKeyOverride, format, slug, t.viewer.noKeyFragment, reloadTrigger]);
 
@@ -1094,7 +1114,7 @@ export function MediaRenderer({
                 <iframe
                   srcDoc={textContent}
                   title="HTML Preview"
-                  sandbox="allow-same-origin"
+                  sandbox=""
                   className="w-full h-full border-0"
                 />
               </div>
@@ -1335,7 +1355,7 @@ export function MediaRenderer({
             ) : format.kind === "html" ? (
               <iframe
                 srcDoc={textContent}
-                sandbox="allow-same-origin"
+                sandbox=""
                 className="w-[85vw] h-[80vh] rounded-lg bg-white"
                 title="HTML Presentation"
               />

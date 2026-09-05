@@ -216,6 +216,30 @@ export default function ViewerPage({ params }: { params: Promise<{ slug: string 
             allowedDomains={link.allowedDomains}
             onVerified={handleVerified}
           />
+          {/* Zero-Knowledge Explainer & RAM-Only Proof Card */}
+          <div className="mx-auto max-w-md px-4 pb-12 pt-4">
+            <div className="flex items-center gap-3 rounded-2xl border border-slate-800/80 bg-slate-900/60 p-3.5 backdrop-blur-xl">
+              <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+                <object
+                  data="/brand/06-aes-gcm-badge.svg"
+                  type="image/svg+xml"
+                  className="h-8 w-8 pointer-events-none"
+                  aria-label="AES-GCM"
+                />
+              </div>
+              <div className="text-left">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                  <span>Zero-Knowledge Courier</span>
+                  <span className="rounded-full bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-mono font-medium text-emerald-400 border border-emerald-500/20">
+                    RAM-Only Key
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-400 mt-0.5">
+                  Decryption key resides strictly in your URL #fragment. The BlindShare server sees 0 plaintext bytes.
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       );
     }

@@ -74,6 +74,14 @@ export default function LinksPage() {
           document.body.removeChild(ta);
         } catch {}
       });
+      // Privacy enhancement: Auto-clear clipboard after 30s to prevent secret fragment key leakage
+      if (text.includes("#k=")) {
+        setTimeout(() => {
+          try {
+            navigator.clipboard?.writeText("");
+          } catch {}
+        }, 30000);
+      }
     } else if (typeof document !== "undefined") {
       try {
         const ta = document.createElement("textarea");

@@ -228,6 +228,14 @@ export function CreateLinkModal({
     navigator.clipboard.writeText(createdUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
+    // Auto-clear clipboard after 30s for zero-knowledge links
+    if (createdUrl.includes("#k=")) {
+      setTimeout(() => {
+        try {
+          navigator.clipboard?.writeText("");
+        } catch {}
+      }, 30000);
+    }
   };
 
   return (

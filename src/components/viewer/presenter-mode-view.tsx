@@ -221,8 +221,15 @@ export function PresenterModeView({
         }`}
       >
         <div className="flex items-center gap-3">
-          {brandLogoUrl ? (
-            <img src={brandLogoUrl} alt="Logo" className="h-7 w-auto max-w-[120px] object-contain" />
+          {brandLogoUrl && /^https:\/\//i.test(brandLogoUrl) && !brandLogoUrl.toLowerCase().includes("javascript:") ? (
+            <img
+              src={brandLogoUrl}
+              alt="Logo"
+              className="h-7 w-auto max-w-[120px] object-contain"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
           ) : (
             <div className="flex items-center gap-2 font-bold tracking-tight text-amber-400">
               <Sparkles className="h-5 w-5" />

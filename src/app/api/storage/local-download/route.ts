@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { getStorageAdapter } from "@/lib/storage";
+import { requireAuth } from "@/lib/auth/rbac";
 
 export async function GET(request: Request) {
   try {
+    const auth = await requireAuth();
+    if ("errorResponse" in auth) return auth.errorResponse;
+
     const { searchParams } = new URL(request.url);
     const key = searchParams.get("key");
     if (!key || !/^[a-zA-Z0-9_\-\.\/]+$/.test(key) || key.includes("..")) {

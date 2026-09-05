@@ -78,6 +78,25 @@ export function setOwnerMasterKey(key: CryptoKey | null): void {
 }
 
 /**
+ * Explicitly locks and wipes the in-memory Master Vault.
+ */
+export function lockOwnerVault(): void {
+  inMemoryMasterKey = null;
+  if (typeof window !== "undefined") {
+    try {
+      sessionStorage.removeItem("blindshare_master_vault_token");
+    } catch {}
+  }
+}
+
+// Auto-register beforeunload listener in browser to wipe RAM reference upon tab close
+if (typeof window !== "undefined") {
+  window.addEventListener("beforeunload", () => {
+    inMemoryMasterKey = null;
+  });
+}
+
+/**
  * Check if the master vault is currently unlocked in this browser session.
  */
 export function isVaultUnlocked(): boolean {

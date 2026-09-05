@@ -1494,11 +1494,14 @@ export function PdfRenderer({
       <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 bg-slate-950/90 px-4 py-2.5 backdrop-blur-md flex-shrink-0">
         {/* Document Title & Brand */}
         <div className="flex items-center gap-3">
-          {linkData.brandLogoUrl ? (
+          {linkData.brandLogoUrl && /^https:\/\//i.test(linkData.brandLogoUrl) && !linkData.brandLogoUrl.toLowerCase().includes("javascript:") ? (
             <img
               src={linkData.brandLogoUrl}
               alt="Brand Logo"
               className="h-7 w-auto max-w-[120px] object-contain rounded"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
             />
           ) : (
             <BrandIcon size="sm" />
