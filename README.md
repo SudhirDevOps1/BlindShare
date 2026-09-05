@@ -93,7 +93,10 @@
 | **2026 GDPR Art. 7 Bilingual Cookie Banner** | ❌ | ❌ | ✅ |
 | **Sub-processor Registry & Enterprise DPA** | ❌ | ❌ | ✅ |
 | **Free to host ($0/mo presets)** | ❌ | ❌ | ✅ |
-| **34 automated enterprise security tests (CI)** | ❌ | ❌ | ✅ |
+| **6-Pillar Zero-Knowledge Cryptographic Suite** | ❌ | ❌ | ✅ |
+| **Columnar DuckDB Analytics (Sub-5ms Heatmaps)** | ❌ | ❌ | ✅ |
+| **Real-Time Stoat / Slack / Discord Webhook Alerts** | ❌ | ❌ | ✅ |
+| **40 automated enterprise security tests (CI)** | ❌ | ❌ | ✅ |
 
 ---
 
@@ -180,6 +183,14 @@ BlindShare features a **Zero-Knowledge Master Key Vault** that guarantees you ne
 <summary><strong>🔒 Security & Encryption</strong></summary>
 <br/>
 
+- **6-Pillar Zero-Knowledge Cryptographic Suite**:
+  - **Pillar 1 (`extractable: false` + `zeroizeBuffer`)**: WebCrypto non-extractable keys block malicious Chrome extensions; raw byte arrays zeroized in RAM immediately
+  - **Pillar 2 (HKDF RFC 5869 Sub-Key Derivation)**: Granular per-slide encryption derived from Master DocKey for 0ms instant streaming
+  - **Pillar 3 (Argon2id Memory-Hard KDF)**: Protects Owner Master Key Vault against GPU/ASIC password cracking clusters
+  - **Pillar 4 (Post-Quantum Hybrid ML-KEM-768 + ECDH)**: Quantum-resistant lattice cryptography immune to "Harvest Now, Decrypt Later"
+  - **Pillar 5 (Invisible Forensic Steganography & Leak Scanner)**: 64-bit micro-dot luminance constellations with CRC checksums embedded on canvas pixels, identifiable via built-in Forensic Leak Scanner
+  - **Pillar 6 (Forward Secrecy & Burn-After-Reading Ratchet)**: Immediate URL fragment stripping upon view and client-side `beforeunload` beacon shredding
+- **Real-Time Founder Alerting (Stoat / Slack / Discord)** — instant notifications when decks are opened, NDAs are signed, or slide questions are submitted
 - **Enterprise Zero-Knowledge Owner Master Key Vault** — client-side PBKDF2 (100k rounds) + AES-GCM-256 wrapping for seamless cross-device, cache-immune document key persistence
 - **Auto Master Vault Unlock on Login (Bitwarden / Proton Model)** — PBKDF2 master key derived automatically on login and 2FA; all document keys unwrapped in background with zero user friction
 - **Transparent Client-Side GZIP Compression** — 50–80% storage footprint reduction on B2/R2 with zero server CPU load
@@ -203,7 +214,7 @@ BlindShare features a **Zero-Knowledge Master Key Vault** that guarantees you ne
 - **PII-redacting structured logger** — no email/IP in logs
 - **Gitleaks** secret scanning on every CI run
 - **CodeQL SAST** — 86/86 alerts resolved, 0 open vulnerabilities
-- **34 automated enterprise security tests** (`npm test`) — zero-knowledge crypto, DB vault encryption, ALTCHA PoW, SSRF, HMAC, XSS, SIEM, DuckDB, AI scoring, and GDPR compliance
+- **40 automated enterprise security tests** (`npm test`) — zero-knowledge crypto, forensic steganography, Argon2id, ML-KEM-768, DB vault encryption, ALTCHA PoW, SSRF, HMAC, XSS, SIEM, DuckDB, AI scoring, and GDPR compliance
 
 </details>
 

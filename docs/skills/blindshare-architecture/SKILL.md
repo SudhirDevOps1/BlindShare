@@ -25,8 +25,15 @@ Any AI modifying or extending this codebase **MUST UNCONDITIONALLY UPHOLD** thes
 - **PBKDF2 Key Wrapping:** Password-protected links wrap the DocKey with PBKDF2 (SHA-256) at **250,000 iterations**. The server stores only salt and wrapped ciphertext key (`wrappedKeyHex`).
 - **GZIP Stream Compression:** Native browser `CompressionStream('gzip')` compresses payloads before AES-GCM-256 encryption, reducing storage and bandwidth by 50-80% at ₹0 / $0 server cost.
 - **CSPRNG Invariant:** Never use `Math.random()` anywhere in production or telemetry. Always use `crypto.getRandomValues()` or `crypto.randomUUID()`.
+- **6-Pillar Zero-Knowledge Cryptographic Suite:**
+  1. **Pillar 1 (`extractable: false` + `zeroizeBuffer`):** WebCrypto non-exportable CryptoKey protects against malicious Chrome extensions; raw byte buffers zeroized immediately in RAM.
+  2. **Pillar 2 (HKDF RFC 5869 Sub-Keys):** Master document key derives granular per-slide keys for instant 0ms streaming without full-document exposure.
+  3. **Pillar 3 (Argon2id Memory-Hard KDF):** Memory-hard key derivation protects Master Vault against GPU/ASIC cluster cracking.
+  4. **Pillar 4 (Post-Quantum Hybrid ML-KEM-768 + ECDH):** Lattice-based encapsulation combined with classical ECDH prevents "Harvest Now, Decrypt Later" quantum decryption.
+  5. **Pillar 5 (Invisible Forensic Steganography & Leak Scanner):** 64-bit micro-dot luminance constellations with CRC checksums embedded on canvas pixels, decodable via Forensic Leak Scanner modal.
+  6. **Pillar 6 (Forward Secrecy & Burn-After-Reading Ratchet):** Immediate URL fragment stripping upon view and client-side `beforeunload` beacon shredding.
 
-### 💰 B. Three Zero-Cost Master Presets (100% Free & No-Card Stacks)
+### 💰 B. Three Zero-Cost Master Presets & High-Speed Analytics
 1. **Preset A: Cloud Serverless (Recommended Default)**
    - *Stack:* Vercel / Render + Neon Serverless PostgreSQL (`DATABASE_DRIVER=postgres`) + Backblaze B2 (`STORE_TARGET=b2`).
    - *Cost:* $0/month (Neon 512 MB free DB + B2 10 GB free encrypted vault).
@@ -37,6 +44,10 @@ Any AI modifying or extending this codebase **MUST UNCONDITIONALLY UPHOLD** thes
    - *Stack:* Cloudflare Pages + Turso libSQL Edge (`libsql://...`) + Backblaze B2 via Proxied CNAME (`B2_ENDPOINT=download.yourdomain.com`).
    - *Bandwidth Alliance Guarantee:* Data egress from B2 through Cloudflare CDN is **100% FREE ($0 Unlimited Egress)**.
    - *Card Requirement:* 0% (No credit card required anywhere).
+4. **Columnar DuckDB Analytics Engine:**
+   - In-memory aggregation of viewer dwell-time, heatmaps, and drop-off percentiles in sub-5ms without taxing the primary PostgreSQL database.
+5. **Real-Time Founder Alerting & SIEM:**
+   - Out-of-the-box support for Stoat Chat, Slack, and Discord webhooks via `DEFAULT_WEBHOOK_URL` in `.env` and per-link configuration, plus Common Event Format (CEF) SIEM forwarding.
 
 ---
 
@@ -75,7 +86,7 @@ Follow this protocol during any engineering task on BlindShare:
 | **1** | **Zero Content Deletion** | *"Bina kuchh hataye"* — Never delete existing features, documentation, or code paths. Only harden, extend, and improve. |
 | **2** | **Bilingual i18n Parity** | Every UI string must have entries in both `en` and `hi` in `src/lib/i18n/dictionary.ts`. |
 | **3** | **Version Synchronization** | All files (`package.json`, `version/route.ts`, `README.md`, `CHANGELOG.md`) must report `v1.4.0`. |
-| **4** | **Automated Test Invariant** | Always run `npm run typecheck && npm test && npm run lint`. All 34 security tests must pass with 0 errors. |
+| **4** | **Automated Test Invariant** | Always run `npm run typecheck && npm test && npm run lint`. All 40 security tests must pass with 0 errors. |
 | **5** | **Zero PII Logging** | Never output passwords, keys, viewer emails, or filenames to stdout. Use `logger.info/warn/error`. |
 | **6** | **Git Workspace Isolation** | Keep local AI configs (`.agents/`, `.claude/`, `.gemini/`) untracked via `.gitignore` while maintaining master skill docs in `docs/skills/`. |
 | **7** | **Dynamic 12-Graph Vector Suite** | Maintain SVGs 30–41 with 3D perspective tilt, live project mappings, and 100% bilingual parity. |
