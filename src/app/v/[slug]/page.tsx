@@ -220,11 +220,12 @@ export default function ViewerPage({ params }: { params: Promise<{ slug: string 
           <div className="mx-auto max-w-md px-4 pb-12 pt-4">
             <div className="flex items-center gap-3 rounded-2xl border border-slate-800/80 bg-slate-900/60 p-3.5 backdrop-blur-xl">
               <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-                <object
-                  data="/brand/06-aes-gcm-badge.svg"
-                  type="image/svg+xml"
+                <img
+                  src="/brand/06-aes-gcm-badge.svg"
+                  alt="AES-GCM"
+                  width={32}
+                  height={32}
                   className="h-8 w-8 pointer-events-none"
-                  aria-label="AES-GCM"
                 />
               </div>
               <div className="text-left">

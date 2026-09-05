@@ -30,6 +30,26 @@ export interface EnvItem {
   isWorking?: boolean;
 }
 
+function detectWebhookProvider(url?: string | null): string {
+  if (!url) return "None";
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.toLowerCase();
+    if (host === "stoat.chat" || host.endsWith(".stoat.chat") || host === "revolt.chat" || host.endsWith(".revolt.chat")) {
+      return "Stoat Chat";
+    }
+    if (host === "discord.com" || host.endsWith(".discord.com") || host === "discordapp.com" || host.endsWith(".discordapp.com")) {
+      return "Discord";
+    }
+    if (host === "slack.com" || host.endsWith(".slack.com") || host === "hooks.slack.com") {
+      return "Slack";
+    }
+    return "Custom Webhook";
+  } catch {
+    return "Custom Webhook";
+  }
+}
+
 export async function GET() {
   const auth = await requireAuth();
   if ("errorResponse" in auth) return auth.errorResponse;
@@ -774,15 +794,12 @@ export async function GET() {
       webhook: {
         status: (process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL || process.env.BOT_WEBHOOK_URL) ? "operational" : "optional_unset",
         configured: Boolean(process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL || process.env.BOT_WEBHOOK_URL),
-        provider: (process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL || "")?.includes("stoat.chat")
-          ? "Stoat Chat"
-          : (process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL || "")?.includes("discord.com")
-          ? "Discord"
-          : (process.env.SLACK_WEBHOOK_URL || (process.env.DEFAULT_WEBHOOK_URL || "").includes("slack.com"))
-          ? "Slack"
-          : (process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL)
-          ? "Custom Webhook"
-          : "None",
+        provider: detectWebhookProvider(
+          process.env.DEFAULT_WEBHOOK_URL ||
+          process.env.WEBHOOK_URL ||
+          process.env.SLACK_WEBHOOK_URL ||
+          process.env.BOT_WEBHOOK_URL
+        ),
         target: maskSecret(process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL || process.env.BOT_WEBHOOK_URL),
       },
       runtime: {

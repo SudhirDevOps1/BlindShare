@@ -80,6 +80,21 @@ export function CreateLinkModal({
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
 
+  // Strictly sanitize and validate brand logo URL to prevent DOM XSS / text reinterpretation
+  const safeBrandLogoUrl = React.useMemo(() => {
+    const trimmed = brandLogoUrl.trim();
+    if (!trimmed) return null;
+    try {
+      const parsed = new URL(trimmed);
+      if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+        return parsed.href;
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }, [brandLogoUrl]);
+
   // Auto-fetch user's documents and datarooms if not launched from a specific document card
   React.useEffect(() => {
     if (!docId && !dataroomId) {
@@ -169,7 +184,7 @@ export function CreateLinkModal({
           requiresSignature,
           signaturePrompt: signaturePrompt.trim() || undefined,
           webhookUrl: webhookUrl.trim() || undefined,
-          brandLogoUrl: brandLogoUrl.trim() || undefined,
+          brandLogoUrl: safeBrandLogoUrl || undefined,
           brandAccentColor: brandAccentColor.trim() || undefined,
           antiLeakBlurEnabled,
           antiSpyShieldEnabled,
@@ -583,12 +598,12 @@ export function CreateLinkModal({
                         placeholder="https://mycompany.com/logo.png"
                         className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-white placeholder-slate-600"
                       />
-                      {brandLogoUrl.trim() && (
+                      {safeBrandLogoUrl && (
                         <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 p-1.5">
                           <span className="text-[10px] text-slate-500">Preview:</span>
                           <div className="h-6 max-w-[120px] flex items-center justify-center overflow-hidden rounded bg-white/5 px-2">
                             <img
-                              src={brandLogoUrl}
+                              src={safeBrandLogoUrl}
                               alt="Logo preview"
                               className="h-5 w-auto object-contain"
                               onError={(e) => {
