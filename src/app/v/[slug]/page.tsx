@@ -307,7 +307,7 @@ export default function ViewerPage({ params }: { params: Promise<{ slug: string 
   };
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative h-screen h-[100dvh] max-h-screen overflow-hidden flex flex-col bg-slate-950">
       {/* Anti-Spy Tab-Switch Obfuscation Shield */}
       {isWindowBlurred && (
         <div

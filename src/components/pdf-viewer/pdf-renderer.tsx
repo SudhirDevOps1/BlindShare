@@ -396,18 +396,21 @@ export function PdfRenderer({
   const lastWheelTimeRef = useRef(0);
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     const container = pageScrollContainerRef.current || e.currentTarget;
-    const isScrollable = container.scrollHeight > container.clientHeight + 10;
+    const isScrollable = container ? container.scrollHeight > container.clientHeight + 10 : false;
+    const isCanvasTaller = canvasRef.current
+      ? canvasRef.current.clientHeight > (typeof window !== "undefined" ? window.innerHeight - 120 : 600)
+      : false;
 
-    // If the page is scrollable vertically (e.g. A4 document / Hindi book / novel / zoomed in),
-    // let native vertical scrolling happen completely naturally without hijacking vertical delta!
-    // The reader can scroll smoothly from Header to Footer and back from Footer to Header.
-    if (isScrollable) {
-      // Allow slide navigation via intentional horizontal swipe or Shift + Wheel
-      if (Math.abs(e.deltaX) > 40 || (e.shiftKey && Math.abs(e.deltaY) > 40)) {
+    // If the page is scrollable vertically (e.g. A4 document / Hindi novel / book / zoomed in),
+    // NEVER switch slides on vertical mouse wheel scroll (deltaY)!
+    // Let the reader scroll smoothly from Header to Footer and back from Footer to Header.
+    if (isScrollable || isCanvasTaller) {
+      // Allow intentional slide navigation via horizontal swipe or Shift + Wheel
+      if (Math.abs(e.deltaX) > 45 || (e.shiftKey && Math.abs(e.deltaY) > 45)) {
         const now = performance.now();
         if (now - lastWheelTimeRef.current > 350) {
           lastWheelTimeRef.current = now;
-          const delta = Math.abs(e.deltaX) > 40 ? e.deltaX : e.deltaY;
+          const delta = Math.abs(e.deltaX) > 45 ? e.deltaX : e.deltaY;
           if (delta > 0) {
             setCurrentPage((p) => Math.min(totalPages, p + 1));
           } else {
@@ -415,13 +418,13 @@ export function PdfRenderer({
           }
         }
       }
-      return;
+      return; // Absolute guard: never hijack vertical wheel scroll when reading a page!
     }
 
-    // Only if the document fits completely on screen without vertical scrolling (e.g. 16:9 presentation slide or Fit Page mode):
-    if (Math.abs(e.deltaY) > 20) {
+    // Only if the document fits 100% on screen without vertical scrolling (e.g. 16:9 presentation slide or Fit Page mode):
+    if (Math.abs(e.deltaY) > 25) {
       const now = performance.now();
-      if (now - lastWheelTimeRef.current > 280) {
+      if (now - lastWheelTimeRef.current > 300) {
         lastWheelTimeRef.current = now;
         if (e.deltaY > 0) {
           setCurrentPage((p) => Math.min(totalPages, p + 1));
@@ -1427,9 +1430,9 @@ export function PdfRenderer({
   }
 
   return (
-    <div ref={viewerContainerRef} className="flex flex-col min-h-screen bg-slate-950">
+    <div ref={viewerContainerRef} className="flex flex-col h-screen h-[100dvh] max-h-screen overflow-hidden bg-slate-950">
       {/* Top Floating Control Toolbar */}
-      <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 bg-slate-950/90 px-4 py-2.5 backdrop-blur-md">
+      <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 bg-slate-950/90 px-4 py-2.5 backdrop-blur-md flex-shrink-0">
         {/* Document Title & Brand */}
         <div className="flex items-center gap-3">
           {linkData.brandLogoUrl ? (
@@ -1768,7 +1771,6 @@ export function PdfRenderer({
           watermarkText={linkData.watermarkEnabled ? (linkData.watermarkText || viewerIdentity || "CONFIDENTIAL") : null}
         >
           <div
-            onWheel={handleWheel}
             style={{
               filter:
                 readingComfort === "dark"
@@ -1852,36 +1854,37 @@ export function PdfRenderer({
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className={`flex-1 overflow-y-auto overflow-x-auto p-2.5 sm:p-6 md:p-8 flex flex-col items-center justify-start min-h-0 relative select-text scroll-smooth ${antiLeakActive ? "blur-xl" : ""}`}
+            className={`flex-1 overflow-y-auto overflow-x-auto min-h-0 w-full relative select-text scroll-smooth ${antiLeakActive ? "blur-xl" : ""}`}
           >
-          {/* Question Mode Helper Banner */}
-          {isAddingPin && (
-            <div className="mb-3 flex-shrink-0 flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-950/40 px-3.5 py-1.5 text-xs text-amber-200 animate-pulse">
-              <MessageSquarePlus className="h-4 w-4 text-amber-400" />
-              <span>Click anywhere on this slide to drop a private question / feedback pin</span>
-              <button
-                onClick={() => setIsAddingPin(false)}
-                className="ml-2 rounded-md bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300 hover:text-white"
-              >
-                Cancel
-              </button>
-            </div>
-          )}
+            <div className="w-full min-h-full flex flex-col items-center justify-start p-2.5 sm:p-6 md:p-8">
+              {/* Question Mode Helper Banner */}
+              {isAddingPin && (
+                <div className="mb-3 flex-shrink-0 flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-950/40 px-3.5 py-1.5 text-xs text-amber-200 animate-pulse">
+                  <MessageSquarePlus className="h-4 w-4 text-amber-400" />
+                  <span>Click anywhere on this slide to drop a private question / feedback pin</span>
+                  <button
+                    onClick={() => setIsAddingPin(false)}
+                    className="ml-2 rounded-md bg-slate-800 px-2 py-0.5 text-[10px] text-slate-300 hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
 
-          <div
-            style={{
-              transform: isSwiping ? `translate3d(${swipeOffset}px, 0, 0)` : "translate3d(0, 0, 0)",
-              transition: isSwiping ? "none" : "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
-              filter:
-                readingComfort === "dark"
-                  ? "invert(0.9) hue-rotate(180deg) contrast(1.05)"
-                  : readingComfort === "sepia"
-                  ? "sepia(0.35) contrast(0.95) brightness(0.97)"
-                  : "none",
-            }}
-            className={`my-auto relative shadow-2xl rounded-lg overflow-hidden border border-slate-800 bg-slate-900 ${
-              isAddingPin ? "cursor-crosshair ring-2 ring-amber-500/50" : ""
-            }`}
+              <div
+                style={{
+                  transform: isSwiping ? `translate3d(${swipeOffset}px, 0, 0)` : "translate3d(0, 0, 0)",
+                  transition: isSwiping ? "none" : "transform 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
+                  filter:
+                    readingComfort === "dark"
+                      ? "invert(0.9) hue-rotate(180deg) contrast(1.05)"
+                      : readingComfort === "sepia"
+                      ? "sepia(0.35) contrast(0.95) brightness(0.97)"
+                      : "none",
+                }}
+                className={`relative shadow-2xl rounded-lg overflow-hidden border border-slate-800 bg-slate-900 flex-shrink-0 ${
+                  isAddingPin ? "cursor-crosshair ring-2 ring-amber-500/50" : ""
+                }`}
             onClick={(e) => {
               if (!isAddingPin) return;
               const rect = e.currentTarget.getBoundingClientRect();
@@ -1962,6 +1965,7 @@ export function PdfRenderer({
                   )}
                 </div>
               ))}
+            </div>
           </div>
 
           {/* New Question Pin Form Modal */}
@@ -2063,7 +2067,7 @@ export function PdfRenderer({
       </div>
 
       {/* Bottom Floating Footer / Watermark Deterrent Disclaimer */}
-      <div className="border-t border-slate-900 bg-slate-950 px-4 py-2 text-center text-[11px] text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+      <div className="border-t border-slate-900 bg-slate-950 px-4 py-2 text-center text-[11px] text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Shield className="h-3.5 w-3.5 text-amber-500" />
           <span>
