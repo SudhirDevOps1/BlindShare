@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
 import { BrandIcon } from "./brand-icon";
-import { ShieldCheck, Heart, Lock, Code2, ServerOff, Star, Scale } from "lucide-react";
+import { ShieldCheck, Heart, Lock, Code2, ServerOff, Star, Scale, Globe } from "lucide-react";
 
 function GithubIcon({ className = "h-4 w-4" }: { className?: string }) {
   return (
@@ -14,8 +14,57 @@ function GithubIcon({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
+function TwitterIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+function LinkedinIcon({ className = "h-4 w-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.45 1.45 0 1 0 0-2.9 1.45 1.45 0 0 0 0 2.9m1.4 9.74v-8.37H5.06v8.37z" />
+    </svg>
+  );
+}
+
 export function BrandFooter() {
   const { t, appName, lang, setLang } = useI18n();
+
+  const [devProfile, setDevProfile] = React.useState({
+    name: process.env.NEXT_PUBLIC_DEVELOPER_NAME || "SudhirDevOps1",
+    url: process.env.NEXT_PUBLIC_DEVELOPER_URL || "https://github.com/SudhirDevOps1",
+    github: process.env.NEXT_PUBLIC_DEVELOPER_GITHUB || "https://github.com/SudhirDevOps1",
+    twitter: process.env.NEXT_PUBLIC_DEVELOPER_TWITTER || "",
+    linkedin: process.env.NEXT_PUBLIC_DEVELOPER_LINKEDIN || "",
+    portfolio: process.env.NEXT_PUBLIC_DEVELOPER_PORTFOLIO || "",
+  });
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const loadProfile = () => {
+        try {
+          const raw = localStorage.getItem("blindshare_custom_developer_profile");
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            setDevProfile((prev) => ({
+              name: parsed.name || prev.name,
+              url: parsed.url || prev.url,
+              github: parsed.github || prev.github,
+              twitter: parsed.twitter !== undefined ? parsed.twitter : prev.twitter,
+              linkedin: parsed.linkedin !== undefined ? parsed.linkedin : prev.linkedin,
+              portfolio: parsed.portfolio !== undefined ? parsed.portfolio : prev.portfolio,
+            }));
+          }
+        } catch {}
+      };
+      loadProfile();
+      window.addEventListener("blindshare-devprofile-updated", loadProfile);
+      return () => window.removeEventListener("blindshare-devprofile-updated", loadProfile);
+    }
+  }, []);
 
   return (
     <footer className="border-t border-slate-800/80 bg-slate-950/90 text-slate-400 text-xs backdrop-blur-xl relative z-10">
@@ -138,6 +187,84 @@ export function BrandFooter() {
                 <span>WebCrypto AES-GCM-256 Engine</span>
               </li>
             </ul>
+          </div>
+        </div>
+
+        {/* Architect & Developer Branding Card */}
+        <div className="mt-8 rounded-2xl border border-slate-800/80 bg-gradient-to-r from-slate-900/90 via-slate-900/60 to-slate-950 p-4 sm:p-5 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-inner">
+              <Code2 className="h-5 w-5" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-1.5 text-xs text-slate-200">
+                <span>Architected &amp; Developed with</span>
+                <Heart className="h-3.5 w-3.5 fill-rose-500 text-rose-500 animate-pulse" />
+                <span>by</span>
+                <a
+                  href={devProfile.url || devProfile.github || "https://github.com/SudhirDevOps1"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-amber-400 hover:text-amber-300 hover:underline transition-colors ml-0.5"
+                >
+                  {devProfile.name}
+                </a>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Lead Creator &amp; Maintainer • Zero-Knowledge Document Vault Platform
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {devProfile.github && (
+              <a
+                href={devProfile.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700/80 bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-slate-200 hover:text-white hover:border-slate-500 hover:bg-slate-800 transition shadow-sm"
+                title={`${devProfile.name} on GitHub`}
+              >
+                <GithubIcon className="h-3.5 w-3.5 text-slate-300" />
+                <span>GitHub</span>
+              </a>
+            )}
+            {devProfile.twitter && (
+              <a
+                href={devProfile.twitter}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700/80 bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-slate-200 hover:text-white hover:border-sky-500/50 hover:bg-slate-800 transition shadow-sm"
+                title={`${devProfile.name} on X / Twitter`}
+              >
+                <TwitterIcon className="h-3.5 w-3.5 text-sky-400" />
+                <span>X / Twitter</span>
+              </a>
+            )}
+            {devProfile.linkedin && (
+              <a
+                href={devProfile.linkedin}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700/80 bg-slate-900 px-3 py-1.5 text-[11px] font-semibold text-slate-200 hover:text-white hover:border-blue-500/50 hover:bg-slate-800 transition shadow-sm"
+                title={`${devProfile.name} on LinkedIn`}
+              >
+                <LinkedinIcon className="h-3.5 w-3.5 text-blue-400" />
+                <span>LinkedIn</span>
+              </a>
+            )}
+            {devProfile.portfolio && (
+              <a
+                href={devProfile.portfolio}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-[11px] font-semibold text-amber-300 hover:bg-amber-500/20 hover:border-amber-500/50 transition shadow-sm"
+                title={`${devProfile.name} Portfolio`}
+              >
+                <Globe className="h-3.5 w-3.5 text-amber-400" />
+                <span>Portfolio</span>
+              </a>
+            )}
           </div>
         </div>
 

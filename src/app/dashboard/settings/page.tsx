@@ -24,6 +24,8 @@ import {
   Save,
   Mail,
   Send,
+  Code2,
+  Heart,
 } from "lucide-react";
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
 import { TwoFactorModal } from "@/components/auth/two-factor-modal";
@@ -63,12 +65,62 @@ export default function SettingsPage() {
   // Cursor FX & Cyber Pet State (OFF by default in dashboard, ON in showcase)
   const [cursorFxEnabled, setCursorFxEnabled] = useState(false);
 
+  // Developer Profile & Social Media State
+  const [devName, setDevName] = useState("SudhirDevOps1");
+  const [devGithub, setDevGithub] = useState("https://github.com/SudhirDevOps1");
+  const [devTwitter, setDevTwitter] = useState("");
+  const [devLinkedin, setDevLinkedin] = useState("");
+  const [devPortfolio, setDevPortfolio] = useState("");
+  const [savingDevProfile, setSavingDevProfile] = useState(false);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const pref = localStorage.getItem("blindshare_crypto_cursor_dashboard");
       setCursorFxEnabled(pref === "true");
+
+      try {
+        const raw = localStorage.getItem("blindshare_custom_developer_profile");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed.name) setDevName(parsed.name);
+          if (parsed.github) setDevGithub(parsed.github);
+          if (parsed.twitter !== undefined) setDevTwitter(parsed.twitter);
+          if (parsed.linkedin !== undefined) setDevLinkedin(parsed.linkedin);
+          if (parsed.portfolio !== undefined) setDevPortfolio(parsed.portfolio);
+        } else if (process.env.NEXT_PUBLIC_DEVELOPER_NAME) {
+          setDevName(process.env.NEXT_PUBLIC_DEVELOPER_NAME);
+          if (process.env.NEXT_PUBLIC_DEVELOPER_GITHUB) setDevGithub(process.env.NEXT_PUBLIC_DEVELOPER_GITHUB);
+          if (process.env.NEXT_PUBLIC_DEVELOPER_TWITTER) setDevTwitter(process.env.NEXT_PUBLIC_DEVELOPER_TWITTER);
+          if (process.env.NEXT_PUBLIC_DEVELOPER_LINKEDIN) setDevLinkedin(process.env.NEXT_PUBLIC_DEVELOPER_LINKEDIN);
+          if (process.env.NEXT_PUBLIC_DEVELOPER_PORTFOLIO) setDevPortfolio(process.env.NEXT_PUBLIC_DEVELOPER_PORTFOLIO);
+        }
+      } catch {}
     }
   }, []);
+
+  const handleSaveDevProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingDevProfile(true);
+    const profile = {
+      name: devName.trim() || "SudhirDevOps1",
+      url: devGithub.trim() || devPortfolio.trim() || "https://github.com/SudhirDevOps1",
+      github: devGithub.trim(),
+      twitter: devTwitter.trim(),
+      linkedin: devLinkedin.trim(),
+      portfolio: devPortfolio.trim(),
+    };
+    localStorage.setItem("blindshare_custom_developer_profile", JSON.stringify(profile));
+    window.dispatchEvent(new Event("blindshare-devprofile-updated"));
+    setTimeout(() => {
+      setSavingDevProfile(false);
+      setMessage({
+        type: "success",
+        text: lang === "hi"
+          ? "डेवलपर और सोशल मीडिया प्रोफाइल सुरक्षित हो गई! सभी पेजों के फुटर में लाइव अपडेट हो गया।"
+          : "Developer profile saved! Live updated across all footers.",
+      });
+    }, 150);
+  };
 
   const handleToggleCursorFx = () => {
     const next = !cursorFxEnabled;
@@ -643,7 +695,113 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* 4. Language & Sessions */}
+        {/* 4. Developer Branding & Social Profile Attribution */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-white">
+              <Code2 className="h-4 w-4 text-amber-400" />
+              <span>{lang === "hi" ? "डेवलपर और सोशल मीडिया ब्रांडिंग (फुटर प्रोफाइल)" : "Developer & Social Media Attribution (Footer Profile)"}</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>{lang === "hi" ? "लाइव फुटर सिंक" : "Live Footer Sync"}</span>
+            </div>
+          </div>
+
+          <p className="text-xs text-slate-300 leading-relaxed">
+            {lang === "hi"
+              ? "यहाँ अपना नाम और सोशल मीडिया प्रोफाइल्स दर्ज करें। यह जानकारी सभी पेजों के फुटर में 'Architected & Developed with ❤️ by [आपका नाम]' के साथ तुरंत लाइव प्रदर्शित होगी। इसे .env फ़ाइल या सीधे यहाँ ब्राउज़र से कभी भी बदला जा सकता है।"
+              : "Customize your developer name and social links. This attribution appears across all footers with direct clickable links. Values can be seeded via .env variables or updated anytime here in your browser."}
+          </p>
+
+          <form onSubmit={handleSaveDevProfile} className="space-y-4 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold text-slate-300">
+                  {lang === "hi" ? "डेवलपर / क्रिएटर नाम" : "Developer / Creator Name"}
+                </label>
+                <input
+                  type="text"
+                  value={devName}
+                  onChange={(e) => setDevName(e.target.value)}
+                  placeholder="e.g. SudhirDevOps1"
+                  required
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold text-slate-300">
+                  GitHub Profile URL
+                </label>
+                <input
+                  type="url"
+                  value={devGithub}
+                  onChange={(e) => setDevGithub(e.target.value)}
+                  placeholder="https://github.com/SudhirDevOps1"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold text-slate-300">
+                  Twitter / X Profile URL
+                </label>
+                <input
+                  type="url"
+                  value={devTwitter}
+                  onChange={(e) => setDevTwitter(e.target.value)}
+                  placeholder="https://x.com/yourhandle"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-[11px] font-semibold text-slate-300">
+                  LinkedIn Profile URL
+                </label>
+                <input
+                  type="url"
+                  value={devLinkedin}
+                  onChange={(e) => setDevLinkedin(e.target.value)}
+                  placeholder="https://linkedin.com/in/yourprofile"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="mb-1 block text-[11px] font-semibold text-slate-300">
+                  Portfolio / Personal Website URL
+                </label>
+                <input
+                  type="url"
+                  value={devPortfolio}
+                  onChange={(e) => setDevPortfolio(e.target.value)}
+                  placeholder="https://yourportfolio.com"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-2">
+              <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                <Heart className="h-3.5 w-3.5 text-rose-500 fill-rose-500" />
+                <span>{lang === "hi" ? "फुटर में 'Developed with ❤️ by " + (devName || "SudhirDevOps1") + "' दिखेगा" : "Footer renders 'Developed with ❤️ by " + (devName || "SudhirDevOps1") + "'"}</span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={savingDevProfile}
+                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors shadow-sm disabled:opacity-50"
+              >
+                <Save className="h-3.5 w-3.5" />
+                <span>{savingDevProfile ? (lang === "hi" ? "सेव हो रहा है..." : "Saving...") : (lang === "hi" ? "प्रोफाइल सेव करें" : "Save Attribution")}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* 5. Language & Sessions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-3">
             <div className="flex items-center gap-2 text-sm font-bold text-white">
