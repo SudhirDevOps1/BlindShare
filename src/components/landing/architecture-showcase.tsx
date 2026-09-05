@@ -34,6 +34,8 @@ const TAB_KEYS = [
   "mockup",
   "liveAnalytics",
   "allDataGraphs",
+  "securityBadges",
+  "enterpriseFlows",
 ] as const;
 
 type TabKey = (typeof TAB_KEYS)[number];
@@ -217,8 +219,36 @@ export function ArchitectureShowcase() {
     },
     allDataGraphs: {
       id: "allDataGraphs",
-      svgPath: `/brand/graphs/${graphList.find((g) => g.num === selectedGraphNum)?.file || "30-views-timeline-animated.svg"}`,
+      svgPath: "/brand/graphs/30-41",
       ...t.architectureShowcase.tabs.allDataGraphs,
+    },
+    securityBadges: {
+      id: "securityBadges",
+      svgPath: "/brand/05-shield-lock-icon.svg",
+      title: (t.architectureShowcase.tabs as any).securityBadges?.title || "Security Badges",
+      subtitle: (t.architectureShowcase.tabs as any).securityBadges?.subtitle || "AES • Shield • E2EE Pulse",
+      badge: (t.architectureShowcase.tabs as any).securityBadges?.badge || "Badges",
+      description: (t.architectureShowcase.tabs as any).securityBadges?.description || "Brand SVGs 05-shield-lock, 06-aes-gcm-badge (AES-GCM-256 WebCrypto), 11-security-checkmark, 14-e2ee-pulse — now visible beyond TrustBar pill. AES-GCM true at crypto-core/index.ts:150 (24×).",
+      bullets: (t.architectureShowcase.tabs as any).securityBadges?.bullets || [
+        "05 Shield Lock — glassmorphic shield + lock, orbit particles",
+        "06 AES-GCM Badge — WebCrypto AES-GCM-256, PBKDF2 250k wrap, active pulse",
+        "11 Security Checkmark — E2EE Active verified",
+        "14 E2EE Pulse — concentric 1.6s rings",
+      ],
+    },
+    enterpriseFlows: {
+      id: "enterpriseFlows",
+      svgPath: "/brand/18-vault-unlock-animated.svg",
+      title: (t.architectureShowcase.tabs as any).enterpriseFlows?.title || "Enterprise Flows",
+      subtitle: (t.architectureShowcase.tabs as any).enterpriseFlows?.subtitle || "Vault • Watermark • Q&A • Upload",
+      badge: (t.architectureShowcase.tabs as any).enterpriseFlows?.badge || "Flows",
+      description: (t.architectureShowcase.tabs as any).enterpriseFlows?.description || "Showcase 18-vault-unlock (PBKDF2 100k + Argon2id opt-in), 19-watermark-burn (pdf-lib), 20-qa-live-pins, 21-upload-encrypt (GZIP+AES), 23-security-matrix, 24-deployment-presets, 25-viewer, 28-stats, 29-ultra-demo — all 11 previously orphaned sequential SVGs now in carousel.",
+      bullets: (t.architectureShowcase.tabs as any).enterpriseFlows?.bullets || [
+        "18 Vault Unlock — PBKDF2 100k default, Argon2id opt-in (argon2id.ts:31)",
+        "19 Watermark Burn — indelible pdf-lib diagonal + forensic stego",
+        "20 Q&A Live Pins — click-to-pin, 3s watchdog, altcha PoW",
+        "21 Upload Encrypt — GZIP 50-80% → AES-GCM → B2 presign",
+      ],
     },
   };
 
@@ -418,8 +448,8 @@ export function ArchitectureShowcase() {
                 }`}
               >
                 <span
-                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded ${
-                    isActive ? "bg-slate-950/25 text-slate-950 font-black" : "bg-slate-800 text-slate-400"
+                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full transition-all duration-300 ${
+                    isActive ? "bg-amber-500 text-slate-950 font-black scale-110 shadow-md shadow-amber-500/30 animate-pulse" : "bg-slate-800 text-slate-400"
                   }`}
                 >
                   {idx + 1}

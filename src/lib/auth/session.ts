@@ -26,8 +26,21 @@ function sessionCookieName(): string {
  */
 export const GENESIS_PLACEHOLDER_EMAIL = "admin@blindshare.local";
 
-const SESSION_SECRET =
-  process.env.SESSION_SECRET || "default_blindshare_dev_secret_64_bytes_long_random_key_placeholder";
+const SESSION_SECRET: string =
+  process.env.SESSION_SECRET ||
+  (() => {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "CRITICAL SECURITY CONFIGURATION ERROR: SESSION_SECRET environment variable is missing in production. Application will not start with default credentials."
+      );
+    }
+    return (
+      "dev_session_key_" +
+      (process.env.VERCEL_GIT_COMMIT_SHA ||
+        process.env.USER ||
+        "local_dev_ephemeral_hmac_secret_64_bytes_secure_padding")
+    );
+  })();
 
 const SESSION_MAX_AGE_SECONDS = Number(process.env.SESSION_MAX_AGE_DAYS || "30") * 24 * 60 * 60;
 

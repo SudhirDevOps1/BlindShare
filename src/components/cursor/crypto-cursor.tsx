@@ -283,15 +283,15 @@ export function CryptoCursor() {
         let isRunningNow = false;
         const facingNow: 1 | -1 = tx >= pet.x ? 1 : -1;
 
-        // Follow threshold: Only follow/run when cursor moves away beyond comfortable distance
-        const shouldStartRunning = pDist > 48 || distFromCursor > 125;
-        const shouldKeepRunning = pet.wasRunning && pDist > 16;
+        // Follow threshold: Improved — more responsive, follows closer (was 48/125, now 32/100)
+        const shouldStartRunning = pDist > 32 || distFromCursor > 100;
+        const shouldKeepRunning = pet.wasRunning && pDist > 12;
 
         if (shouldStartRunning || shouldKeepRunning) {
           // Pet is actively running to catch up to its 80px spot!
           isRunningNow = true;
-          // Dynamic chase speed: runs fast (up to 14px/frame) if distant
-          const chaseSpeed = Math.min(14, Math.max(3.2, pDist * 0.15));
+          // Dynamic chase speed: improved — faster and smoother (up to 16px/frame)
+          const chaseSpeed = Math.min(16, Math.max(3.5, pDist * 0.18));
           const angle = Math.atan2(pDy, pDx);
           pet.x += Math.cos(angle) * chaseSpeed;
           pet.y += Math.sin(angle) * chaseSpeed;
@@ -327,15 +327,15 @@ export function CryptoCursor() {
           }
         }
 
-        // 4. Soft focused flashlight glow (tight 180px circle centered around cursor)
+        // 4. Soft focused flashlight glow (tight 220px circle centered around cursor — improved)
         if (spotlightRef.current) {
-          spotlightRef.current.style.transform = `translate3d(${Math.round(tx - 90)}px, ${Math.round(ty - 90)}px, 0)`;
+          spotlightRef.current.style.transform = `translate3d(${Math.round(tx - 110)}px, ${Math.round(ty - 110)}px, 0)`;
         }
 
-        // 5. Circular Spotlight Mask: ONLY where cursor is, inside tight circle of radius 125px!
-        // Outside the circle: 100% invisible/dark!
+        // 5. Circular Spotlight Mask: ONLY where cursor is, inside tight circle of radius 150px — improved visibility!
+        // Outside the circle: 100% invisible/dark — now larger and more contrast for better showcase!
         if (matrixSpotlightRef.current) {
-          const mask = `radial-gradient(circle 125px at ${tx}px ${ty}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 50%, transparent 100%)`;
+          const mask = `radial-gradient(circle 150px at ${tx}px ${ty}px, rgba(0,0,0,1) 0%, rgba(0,0,0,0.95) 60%, transparent 100%)`;
           matrixSpotlightRef.current.style.webkitMaskImage = mask;
           matrixSpotlightRef.current.style.maskImage = mask;
         }
@@ -531,14 +531,14 @@ export function CryptoCursor() {
         </div>
       </div>
 
-      {/* ── 2. Focused Radial Spotlight Aura (Tight 180px, Soft Amber/Emerald Beam) ── */}
+      {/* ── 2. Focused Radial Spotlight Aura (Tight 220px, Soft Amber/Emerald Beam — improved) ── */}
       <div
         ref={spotlightRef}
         aria-hidden="true"
-        className="pointer-events-none fixed top-0 left-0 z-[99990] w-[180px] h-[180px] rounded-full will-change-transform opacity-35 transition-opacity duration-300"
+        className="pointer-events-none fixed top-0 left-0 z-[99990] w-[220px] h-[220px] rounded-full will-change-transform opacity-45 transition-opacity duration-300"
         style={{
           background:
-            "radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, rgba(16, 185, 129, 0.04) 50%, transparent 75%)",
+            "radial-gradient(circle, rgba(245, 158, 11, 0.18) 0%, rgba(16, 185, 129, 0.06) 50%, transparent 75%)",
         }}
       />
 

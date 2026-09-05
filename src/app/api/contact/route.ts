@@ -34,8 +34,9 @@ export async function POST(request: Request) {
 
     const { name, email, subject, message, website } = parsed.data;
 
-    // Silent drop for honeypot bots
+    // Silent drop for honeypot bots (count against rate limit budget)
     if (website && website.trim().length > 0) {
+      recordFailure(`contact:${ip}`, ip);
       return NextResponse.json({ success: true, message: "Message received." });
     }
 
@@ -58,9 +59,11 @@ export async function POST(request: Request) {
         }),
       });
     } catch (dbErr) {
-      recordFailure(`contact:${ip}`, ip);
       logger.error("Failed to write contact message to auditLog", { error: String(dbErr) });
     }
+
+    // Rate limit accounting: record submission to enforce cool-down threshold per IP
+    recordFailure(`contact:${ip}`, ip);
 
     return NextResponse.json({
       success: true,

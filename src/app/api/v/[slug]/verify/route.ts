@@ -203,7 +203,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       url: `/dashboard/analytics/${link.id}`,
     }).catch((e) => logger.warn("push.first_open_failed", { message: e?.message }));
 
-    return NextResponse.json({ success: true, sessionId, viewerIdentity: cleanEmail || "anonymous" });
+    const res = NextResponse.json({ success: true, sessionId, viewerIdentity: cleanEmail || "anonymous" });
+    res.cookies.set(`gate_${slug}`, sessionId, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "lax",
+      maxAge: 86400,
+    });
+    return res;
   } catch (err: any) {
     logger.error("link.verify_failed", { message: err?.message });
     return NextResponse.json({ error: "Verification failed" }, { status: 500 });

@@ -152,7 +152,7 @@ BlindShare runs in `e2ee-fragment` mode powered by our **6-Pillar Zero-Knowledge
 
 ## 🛡️ Enterprise Zero-Knowledge Key Vault & Cache-Immune Recovery
 
-BlindShare features a **Zero-Knowledge Master Key Vault** protected by **Argon2id + PBKDF2** memory-hard key derivation. You never lose access to your document links—even after clearing your browser cache, wiping local storage, or switching to a new laptop/phone.
+BlindShare features a **Zero-Knowledge Master Key Vault** protected by **Argon2id (opt-in) + PBKDF2 100k default** memory-hard key derivation (PBKDF2 100k is default, Argon2id available via `kdfAlgorithm` switch — see `src/lib/crypto-core/argon2id.ts:31`). You never lose access to your document links—even after clearing your browser cache, wiping local storage, or switching to a new laptop/phone.
 
 ```
 [ User Master Password ] + [ 16-Byte Cryptographic Salt ]
@@ -214,7 +214,7 @@ BlindShare features a **Zero-Knowledge Master Key Vault** protected by **Argon2i
 - **`__Host-` prefixed** session cookies in production (CSRF-resistant)
 - **Brute-force lockout** on login and link password gates
 - **Strict Content Security Policy (CSP)** & Cross-Origin-Opener-Policy isolation
-- **AES-256-GCM Database Field Vault (`src/lib/crypto/db-vault.ts`)** — deterministic & randomized PII encryption at rest in Neon PostgreSQL (user emails, viewer emails, 2FA TOTP secret seeds, slide Q&A content, and NDA signatures)
+- **AES-256-GCM Database Field Vault (`src/lib/crypto/db-vault.ts:12`)** — SHA256-derived 256-bit key (`SHA256("blindshare:db-vault:v1:"+secret)` at `db-vault.ts:27`, not PBKDF2 — docs to be updated), deterministic `enc:det:` + randomized `enc:v1:` PII encryption at rest in Neon PostgreSQL (user emails, viewer emails, 2FA TOTP secret seeds, slide Q&A content, and NDA signatures) — AES-GCM true at `db-vault.ts:42,70,96`
 - **2026 GDPR Article 7 Bilingual Cookie & Privacy Consent Banner (`src/components/compliance/cookie-consent-banner.tsx`)** — zero-dark-pattern, granular controls, telemetry paused until explicit opt-in, 100% synchronized Hindi (`hi`) and English (`en`) parity
 - **Sub-processor Registry & Enterprise DPA Transparency (`docs/PRIVACY-POLICY.md`, `/privacy#subprocessors`)** — exhaustive Article 28 vendor disclosures (Neon, Backblaze B2, Cloudflare, Vercel, Upstash, Resend)
 - **Distributed Anti-DoS Rate Limiter on System Probes** — sliding-window rate limit on `/api/health` preventing denial of service

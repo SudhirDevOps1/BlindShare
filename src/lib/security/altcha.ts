@@ -1,7 +1,22 @@
 import crypto from "crypto";
 import { logger } from "@/lib/logger";
 
-const ALTCHA_HMAC_KEY = process.env.ALTCHA_HMAC_KEY || process.env.SESSION_SECRET || "blindshare-altcha-pow-secret-key-32b";
+const ALTCHA_HMAC_KEY: string =
+  process.env.ALTCHA_HMAC_KEY ||
+  process.env.SESSION_SECRET ||
+  (() => {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "CRITICAL SECURITY CONFIGURATION ERROR: ALTCHA_HMAC_KEY or SESSION_SECRET must be configured in production."
+      );
+    }
+    return (
+      "dev_altcha_key_" +
+      (process.env.VERCEL_GIT_COMMIT_SHA ||
+        process.env.USER ||
+        "local_altcha_pow_secret_key_32b_padding")
+    );
+  })();
 
 export interface AltchaChallenge {
   algorithm: "SHA-256";

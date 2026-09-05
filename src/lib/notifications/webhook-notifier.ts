@@ -1,4 +1,5 @@
-import { isSafeWebhookUrl } from "@/lib/security/ssrf-validator";
+import dns from "dns";
+import { isSafeWebhookUrl, isPrivateIPv4, isPrivateIPv6, parseIPv4 } from "@/lib/security/ssrf-validator";
 
 /**
  * Webhook notification dispatcher.
@@ -50,6 +51,37 @@ export async function sendWebhookNotificationDetailed(
     const parsed = new URL(webhookUrl.trim());
     const host = parsed.hostname.toLowerCase();
     let path = parsed.pathname;
+
+    // Anti-DNS Rebinding Pre-Flight Defense
+    try {
+      const hostToResolve = host.replace(/^\[|\]$/g, "");
+      // Only perform DNS lookup for domain names (non-IP literals)
+      if (!parseIPv4(hostToResolve) && !hostToResolve.includes(":")) {
+        const addresses = await dns.promises.lookup(hostToResolve, { all: true });
+        for (const addr of addresses) {
+          if (addr.family === 4 && isPrivateIPv4(addr.address)) {
+            return {
+              success: false,
+              error: `Blocked by SSRF security policy (DNS resolved to private IP: ${addr.address})`,
+              latencyMs: Date.now() - t0,
+            };
+          }
+          if (addr.family === 6 && isPrivateIPv6(addr.address)) {
+            return {
+              success: false,
+              error: `Blocked by SSRF security policy (DNS resolved to private IPv6: ${addr.address})`,
+              latencyMs: Date.now() - t0,
+            };
+          }
+        }
+      }
+    } catch (dnsErr: any) {
+      return {
+        success: false,
+        error: `Blocked by SSRF security policy (Host DNS unresolvable: ${dnsErr?.message || "Lookup failed"})`,
+        latencyMs: Date.now() - t0,
+      };
+    }
 
     // Auto-normalize Stoat / Revolt URLs if /api/ prefix was omitted
     if ((host === "stoat.chat" || host === "app.stoat.chat" || host.endsWith(".stoat.chat") || host === "revolt.chat") && path.startsWith("/webhooks/")) {

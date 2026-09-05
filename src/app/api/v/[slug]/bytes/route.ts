@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { links, documents } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { links, documents, viewSessions } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
 
 export async function GET(
@@ -17,6 +17,9 @@ export async function GET(
         docId: links.docId,
         isActive: links.isActive,
         isRevoked: links.isRevoked,
+        passwordHash: links.passwordHash,
+        requiresEmail: links.requiresEmail,
+        requiresNda: links.requiresNda,
         expiresAt: links.expiresAt,
         maxViews: links.maxViews,
         viewCount: links.viewCount,
@@ -40,6 +43,65 @@ export async function GET(
 
     if (link.maxViews !== null && link.viewCount >= link.maxViews) {
       return NextResponse.json({ error: "Share link has reached its maximum view limit" }, { status: 410 });
+    }
+
+    // Gate access defense: If link requires password, email, or NDA, verify active session
+    const hasGate = Boolean(link.passwordHash || link.requiresEmail || link.requiresNda);
+
+    // Extract session ID from headers (x-session-id, authorization), query params (?sid, ?sessionId), or cookies
+    const url = new URL(request.url);
+    const authHeader = request.headers.get("authorization");
+    const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.slice(7).trim() : null;
+    const cookieHeader = request.headers.get("cookie") || "";
+    const cookieMatch = cookieHeader.match(new RegExp(`(?:^|;\\s*)gate_${slug}=([^;]+)`));
+    const cookieSessionId = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
+
+    const sessionId =
+      request.headers.get("x-session-id") ||
+      bearerToken ||
+      url.searchParams.get("sid") ||
+      url.searchParams.get("sessionId") ||
+      cookieSessionId;
+
+    if (hasGate && !sessionId) {
+      return NextResponse.json(
+        { error: "Access denied. Document access gate verification required before retrieving content." },
+        { status: 403 }
+      );
+    }
+
+    if (sessionId) {
+      const [session] = await db
+        .select({
+          id: viewSessions.id,
+          ndaAgreedAt: viewSessions.ndaAgreedAt,
+          viewerEmail: viewSessions.viewerEmail,
+        })
+        .from(viewSessions)
+        .where(and(eq(viewSessions.id, sessionId), eq(viewSessions.linkId, link.id)))
+        .limit(1);
+
+      if (hasGate && !session) {
+        return NextResponse.json(
+          { error: "Invalid or expired viewing session. Please verify document access." },
+          { status: 403 }
+        );
+      }
+
+      if (session) {
+        if (link.requiresNda && !session.ndaAgreedAt) {
+          return NextResponse.json(
+            { error: "NDA confidentiality agreement must be accepted before viewing document content." },
+            { status: 403 }
+          );
+        }
+        if (link.requiresEmail && !session.viewerEmail) {
+          return NextResponse.json(
+            { error: "Email verification is required before viewing document content." },
+            { status: 403 }
+          );
+        }
+      }
     }
 
     if (!link.docId) {

@@ -20,6 +20,14 @@ const PRIVATE_SUBNETS = [
   "metadata.google.internal",
   "subdomain.local",
   "intranet.corp",
+  "0x7f.0.0.1",
+  "0177.0.0.1",
+  "2130706433",
+  "0x7f000001",
+  "::ffff:127.0.0.1",
+  "::ffff:7f00:1",
+  "::ffff:169.254.169.254",
+  "::1",
 ];
 
 const DISPOSABLE_DOMAINS = new Set([
@@ -37,7 +45,7 @@ const DISPOSABLE_DOMAINS = new Set([
 
 function isPrivateOrLocalhost(domainOrIp) {
   const clean = domainOrIp.toLowerCase().trim();
-  const PRIVATE_DOMAIN_REGEX = /^(localhost|.*\.local|.*\.internal|.*\.lan|.*\.corp|.*\.home|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|169\.254\.)/i;
+  const PRIVATE_DOMAIN_REGEX = /^(localhost|.*\.local|.*\.internal|.*\.lan|.*\.corp|.*\.home|127\.|10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.|169\.254\.|::1|::ffff:|0x|0177|2130706433)/i;
   return PRIVATE_DOMAIN_REGEX.test(clean) || !clean.includes(".");
 }
 

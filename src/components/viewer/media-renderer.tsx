@@ -543,7 +543,12 @@ export function MediaRenderer({
         }
 
         setStep("Downloading ciphertext from blind storage…");
-        const res = await fetch(`/api/v/${slug}/bytes`);
+        const bytesUrl = sessionId
+          ? `/api/v/${slug}/bytes?sid=${encodeURIComponent(sessionId)}`
+          : `/api/v/${slug}/bytes`;
+        const res = await fetch(bytesUrl, {
+          headers: sessionId ? { "x-session-id": sessionId } : {},
+        });
         if (!res.ok) {
           const j = await res.json().catch(() => ({}));
           throw new Error(j.error || "Failed to download ciphertext");
