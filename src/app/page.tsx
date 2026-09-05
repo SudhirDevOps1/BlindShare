@@ -2,17 +2,48 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { useI18n } from "@/lib/i18n/context";
-import { CryptoInteractiveDemo } from "@/components/landing/crypto-interactive-demo";
-import { FeaturesShowcase } from "@/components/landing/features-showcase";
-import { StatsCounter } from "@/components/landing/stats-counter";
-import { WorkflowTimeline } from "@/components/landing/workflow-timeline";
-import { ArchitectureShowcase } from "@/components/landing/architecture-showcase";
-import { ProductionLedger } from "@/components/landing/production-ledger";
 import { CTABanner } from "@/components/landing/cta-banner";
-import { TrustBar } from "@/components/landing/trust-bar";
+
+// Next.js dynamic client-side imports with sleek skeleton loading
+// Prevents SSR hydration mismatch (Minified React error #418) and drops initial JS bundle weight
+const DynamicSectionSkeleton = () => (
+  <div className="mx-auto max-w-6xl p-8 my-8 rounded-3xl border border-slate-800/60 bg-slate-900/30 animate-pulse h-48 flex items-center justify-center">
+    <div className="h-5 w-32 rounded-full bg-slate-800/80" />
+  </div>
+);
+
+const CryptoInteractiveDemo = dynamic(
+  () => import("@/components/landing/crypto-interactive-demo").then((m) => m.CryptoInteractiveDemo),
+  { ssr: false, loading: () => <DynamicSectionSkeleton /> }
+);
+const FeaturesShowcase = dynamic(
+  () => import("@/components/landing/features-showcase").then((m) => m.FeaturesShowcase),
+  { ssr: false, loading: () => <DynamicSectionSkeleton /> }
+);
+const StatsCounter = dynamic(
+  () => import("@/components/landing/stats-counter").then((m) => m.StatsCounter),
+  { ssr: false, loading: () => <DynamicSectionSkeleton /> }
+);
+const WorkflowTimeline = dynamic(
+  () => import("@/components/landing/workflow-timeline").then((m) => m.WorkflowTimeline),
+  { ssr: false, loading: () => <DynamicSectionSkeleton /> }
+);
+const ArchitectureShowcase = dynamic(
+  () => import("@/components/landing/architecture-showcase").then((m) => m.ArchitectureShowcase),
+  { ssr: false, loading: () => <DynamicSectionSkeleton /> }
+);
+const ProductionLedger = dynamic(
+  () => import("@/components/landing/production-ledger").then((m) => m.ProductionLedger),
+  { ssr: false, loading: () => <DynamicSectionSkeleton /> }
+);
+const TrustBar = dynamic(
+  () => import("@/components/landing/trust-bar").then((m) => m.TrustBar),
+  { ssr: false, loading: () => <DynamicSectionSkeleton /> }
+);
 import {
   Lock,
   ShieldCheck,

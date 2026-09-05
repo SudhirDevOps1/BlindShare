@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import DOMPurify from "dompurify";
 import { useI18n } from "@/lib/i18n/context";
 import { fragmentToDocKey, decryptBytes, hexToBuffer, bufferToHex, zeroizeBuffer } from "@/lib/crypto-core";
 import { applyMicroDotWatermark } from "@/lib/watermark/forensic-stego";
@@ -356,7 +357,19 @@ function renderMarkdownRich(md: string): string {
   if (inList) out.push("</ul>");
   if (inTable) out.push("</tbody></table></div>");
   if (inCode) out.push("</code></pre></div>");
-  return out.join("\n");
+
+  const rawHtml = out.join("\n");
+  if (typeof window !== "undefined" && DOMPurify?.sanitize) {
+    return DOMPurify.sanitize(rawHtml, {
+      ALLOWED_TAGS: [
+        "h1", "h2", "h3", "h4", "h5", "h6", "p", "a", "ul", "ol", "li", "b", "i", "strong", "em",
+        "strike", "code", "hr", "br", "div", "table", "thead", "tbody", "tr", "th", "td",
+        "pre", "span", "blockquote", "input"
+      ],
+      ALLOWED_ATTR: ["class", "href", "target", "rel", "type", "disabled", "checked"],
+    });
+  }
+  return rawHtml;
 }
 
 function inlineMd(text: string): string {

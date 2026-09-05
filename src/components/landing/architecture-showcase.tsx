@@ -72,7 +72,7 @@ export function ArchitectureShowcase() {
   // Auto-slideshow timer cycling indefinitely through the 7 primary architecture tabs
   useEffect(() => {
     if (isPaused) return; // Pauses when hovered or manually paused
-    const tickRate = 340; // Smooth 340ms interval (25 ticks per 8.5s slide)
+    const tickRate = 500; // Smooth 500ms interval (17 ticks per 8.5s slide)
     const interval = setInterval(() => {
       setSlideProgress((prev) => {
         const next = prev + (tickRate / SLIDE_DURATION) * 100;
