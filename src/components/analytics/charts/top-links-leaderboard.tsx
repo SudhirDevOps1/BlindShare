@@ -11,7 +11,7 @@ import {
   fragmentToDocKey,
   unwrapDocKeyForOwner,
 } from "@/lib/crypto-core";
-import { syncVaultDocumentKeys, unlockOwnerVault } from "@/lib/vault/master-vault";
+import { syncVaultDocumentKeys, unlockOwnerVault, autoWrapDocKeyForOwner } from "@/lib/vault/master-vault";
 
 interface TopLinksLeaderboardProps {
   links?: any[];
@@ -29,6 +29,7 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
   const [keyError, setKeyError] = React.useState<string | null>(null);
   const [recovering, setRecovering] = React.useState(false);
   const [restoreSuccess, setRestoreSuccess] = React.useState<{ url: string; elapsedMs: number } | null>(null);
+  const [memoryKeys, setMemoryKeys] = React.useState<Record<string, string>>({});
 
   const perfMap = React.useMemo(() => {
     const map = new Map<string, any>();
@@ -68,6 +69,9 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
   const maxViews = Math.max(...topItems.map((item) => item.viewCount || 1), 1);
 
   const getStoredKeyHex = (item: any): string | null => {
+    if (item.id && memoryKeys[item.id]) return memoryKeys[item.id];
+    if (item.code && memoryKeys[item.code]) return memoryKeys[item.code];
+    if (item.docId && memoryKeys[item.docId]) return memoryKeys[item.docId];
     if (typeof window === "undefined") return null;
     return (
       (item.docId && sessionStorage.getItem(`blindshare_key_${item.docId}`)) ||
@@ -243,19 +247,30 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
 
       if (docKey && docKey.length === 32) {
         const hex = bufferToHex(docKey);
-        if (typeof window !== "undefined") {
-          if (keyRecoveryTarget.docId) {
-            sessionStorage.setItem(`blindshare_key_${keyRecoveryTarget.docId}`, hex);
-            localStorage.setItem(`blindshare_key_${keyRecoveryTarget.docId}`, hex);
-          }
-          if (keyRecoveryTarget.id) {
-            sessionStorage.setItem(`blindshare_key_${keyRecoveryTarget.id}`, hex);
-            localStorage.setItem(`blindshare_key_${keyRecoveryTarget.id}`, hex);
-          }
-          if (keyRecoveryTarget.code) {
-            sessionStorage.setItem(`blindshare_link_key_${keyRecoveryTarget.code}`, hex);
-            localStorage.setItem(`blindshare_link_key_${keyRecoveryTarget.code}`, hex);
-          }
+
+        // Store in transient memory state (strictly avoids clear-text storage of sensitive credentials in web storage)
+        setMemoryKeys((prev) => ({
+          ...prev,
+          ...(keyRecoveryTarget.id ? { [keyRecoveryTarget.id]: hex } : {}),
+          ...(keyRecoveryTarget.code ? { [keyRecoveryTarget.code]: hex } : {}),
+          ...(keyRecoveryTarget.docId ? { [keyRecoveryTarget.docId]: hex } : {}),
+        }));
+
+        // If vault is unlocked, securely wrap with AES-GCM-256 for Master Vault in DB so key is safely persisted across devices
+        if (keyRecoveryTarget.docId) {
+          try {
+            const wrapped = await autoWrapDocKeyForOwner(docKey);
+            if (wrapped) {
+              await fetch(`/api/docs/${keyRecoveryTarget.docId}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  ownerEncryptedKeyHex: wrapped.ownerEncryptedKeyHex,
+                  ownerEncryptedKeyIvHex: wrapped.ownerEncryptedKeyIvHex,
+                }),
+              }).catch(() => {});
+            }
+          } catch {}
         }
 
         // eslint-disable-next-line react-hooks/purity

@@ -54,6 +54,7 @@ export default function LinksPage() {
   const [recovering, setRecovering] = useState(false);
   const [showKeyInput, setShowKeyInput] = useState(false);
   const [restoreSuccess, setRestoreSuccess] = useState<{ url: string; elapsedMs: number } | null>(null);
+  const [memoryKeys, setMemoryKeys] = useState<Record<string, string>>({});
 
   const copyTextFallback = (text: string) => {
     if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
@@ -115,6 +116,9 @@ export default function LinksPage() {
   }, []);
 
   const getStoredKeyHex = (link: any): string | null => {
+    if (link.id && memoryKeys[link.id]) return memoryKeys[link.id];
+    if (link.slug && memoryKeys[link.slug]) return memoryKeys[link.slug];
+    if (link.docId && memoryKeys[link.docId]) return memoryKeys[link.docId];
     if (typeof window === "undefined") return null;
     return (
       (link.docId && sessionStorage.getItem(`blindshare_key_${link.docId}`)) ||
@@ -283,31 +287,35 @@ export default function LinksPage() {
       }
 
       const hex = bufferToHex(docKey);
-      if (keyRecoveryTarget.docId) {
-        localStorage.setItem(`blindshare_key_${keyRecoveryTarget.docId}`, hex);
-        sessionStorage.setItem(`blindshare_key_${keyRecoveryTarget.docId}`, hex);
 
-        // If vault is unlocked, auto-back up ownerEncryptedKey to DB so user never needs to restore again
-        autoWrapDocKeyForOwner(docKey)
-          .then((wrapped) => {
-            if (wrapped && keyRecoveryTarget.docId) {
-              fetch(`/api/docs/${keyRecoveryTarget.docId}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  ownerEncryptedKeyHex: wrapped.ownerEncryptedKeyHex,
-                  ownerEncryptedKeyIvHex: wrapped.ownerEncryptedKeyIvHex,
-                }),
-              }).catch(() => {});
-            }
-          })
-          .catch(() => {});
+      // Store in transient memory state (strictly avoids clear-text storage of sensitive credentials in web storage)
+      setMemoryKeys((prev) => ({
+        ...prev,
+        [keyRecoveryTarget.id]: hex,
+        ...(keyRecoveryTarget.docId ? { [keyRecoveryTarget.docId]: hex } : {}),
+        ...(keyRecoveryTarget.slug ? { [keyRecoveryTarget.slug]: hex } : {}),
+      }));
+
+      // If vault is unlocked, securely wrap with AES-GCM-256 for Master Vault in DB so key is safely persisted across devices
+      if (keyRecoveryTarget.docId) {
+        try {
+          const wrapped = await autoWrapDocKeyForOwner(docKey);
+          if (wrapped) {
+            await fetch(`/api/docs/${keyRecoveryTarget.docId}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ownerEncryptedKeyHex: wrapped.ownerEncryptedKeyHex,
+                ownerEncryptedKeyIvHex: wrapped.ownerEncryptedKeyIvHex,
+              }),
+            }).catch(() => {});
+          }
+        } catch {}
       }
-      localStorage.setItem(`blindshare_link_key_${keyRecoveryTarget.slug}`, hex);
-      sessionStorage.setItem(`blindshare_link_key_${keyRecoveryTarget.slug}`, hex);
 
       const elapsedMs = Math.max(1, Date.now() - startTime);
-      const url = buildFullUrl(keyRecoveryTarget);
+      const origin = typeof window !== "undefined" ? window.location.origin : "";
+      const url = `${origin}/v/${keyRecoveryTarget.slug}#k=${docKeyToFragment(docKey)}`;
       copyTextFallback(url);
       setCopiedId(keyRecoveryTarget.id);
       setTimeout(() => setCopiedId(null), 2500);
