@@ -36,6 +36,7 @@ import {
   Save,
   Radio,
   BellRing,
+  X,
 } from "lucide-react";
 import {
   DeveloperProfile,
@@ -50,7 +51,7 @@ import {
 import { renderRealSocialIcon } from "@/components/social-icons";
 
 export function AdminPanelView() {
-  const { t, appName } = useI18n();
+  const { t, appName, lang } = useI18n();
 
   const [tab, setTab] = useState<"overview" | "users" | "invites" | "audit" | "maintenance" | "settings" | "diagnostics">("overview");
   const [loading, setLoading] = useState(true);
@@ -81,6 +82,7 @@ export function AdminPanelView() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [copiedInvite, setCopiedInvite] = useState<string | null>(null);
   const [showTableBreakdown, setShowTableBreakdown] = useState(false);
+  const [dismissedVercelNotice, setDismissedVercelNotice] = useState(false);
 
   const [actionMessage, setActionMessage] = useState<string | null>(null);
 
@@ -938,17 +940,47 @@ export function AdminPanelView() {
             </div>
 
             {/* Vercel Environment Deployment Notice Banner */}
-            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3.5 flex items-start gap-3 text-xs text-slate-300">
-              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="font-semibold text-white">
-                  ⚡ Vercel Deployment Note (Environment Variable Refresh):
-                </p>
-                <p className="text-[11px] text-slate-400 leading-relaxed">
-                  When you add or update Environment Variables in the Vercel Dashboard (such as <code className="text-amber-400 font-mono">DEFAULT_WEBHOOK_URL</code> or <code className="text-amber-400 font-mono">DATABASE_URL</code>), Vercel <strong>does not update already-running serverless functions</strong>. You must trigger a <strong>Redeploy</strong> in Vercel (or push a new commit) for the lambda runtime to load the new variables.
-                </p>
+            {!dismissedVercelNotice && (
+              <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3.5 flex items-start justify-between gap-3 text-xs text-slate-300 transition">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <p className="font-semibold text-white">
+                      {lang === "hi"
+                        ? "⚡ Vercel डिप्लॉयमेंट गाइड (Environment Variables रिफ्रेश):"
+                        : "⚡ Vercel Deployment Note (Environment Variable Refresh):"}
+                    </p>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      {lang === "hi" ? (
+                        <>
+                          जब आप Vercel डैशबोर्ड में कोई Environment Variable (जैसे{" "}
+                          <code className="text-amber-400 font-mono">DEFAULT_WEBHOOK_URL</code> या{" "}
+                          <code className="text-amber-400 font-mono">DATABASE_URL</code>) जोड़ते या बदलते हैं, तो Vercel{" "}
+                          <strong>पहले से चल रहे सर्वरलेस फंक्शन्स को ऑटोमैटिकली अपडेट नहीं करता</strong>। नए वेरिएबल्स
+                          लोड करने के लिए Vercel में <strong>Redeploy</strong> पर क्लिक करें (या नया Git Commit पुश करें)।
+                        </>
+                      ) : (
+                        <>
+                          When you add or update Environment Variables in the Vercel Dashboard (such as{" "}
+                          <code className="text-amber-400 font-mono">DEFAULT_WEBHOOK_URL</code> or{" "}
+                          <code className="text-amber-400 font-mono">DATABASE_URL</code>), Vercel{" "}
+                          <strong>does not update already-running serverless functions</strong>. You must trigger a{" "}
+                          <strong>Redeploy</strong> in Vercel (or push a new commit) for the lambda runtime to load the new variables.
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDismissedVercelNotice(true)}
+                  className="text-slate-500 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition shrink-0"
+                  title={lang === "hi" ? "सूचना बंद करें" : "Dismiss notice"}
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-            </div>
+            )}
           </div>
 
           {/* Filter Bar, Quick Search & Category Pills */}
