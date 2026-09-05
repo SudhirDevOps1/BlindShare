@@ -19,11 +19,19 @@ import crypto from "crypto";
  */
 
 function getMasterKey(): Buffer {
-  const secret =
+  let secret =
     process.env.DB_ENCRYPTION_KEY ||
     process.env.AUTH_SECRET ||
-    process.env.SESSION_SECRET ||
-    "blindshare-neon-db-master-vault-default-secret-salt-2026";
+    process.env.SESSION_SECRET;
+
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(
+        "CRITICAL SECURITY CONFIGURATION ERROR: DB_ENCRYPTION_KEY, AUTH_SECRET, or SESSION_SECRET must be configured in production. DB Vault refuses to operate with fallback default secret."
+      );
+    }
+    secret = "blindshare-neon-db-master-vault-default-secret-salt-2026";
+  }
   return crypto.createHash("sha256").update(`blindshare:db-vault:v1:${secret}`).digest();
 }
 

@@ -72,7 +72,7 @@ export function ArchitectureShowcase() {
   // Auto-slideshow timer cycling indefinitely through the 7 primary architecture tabs
   useEffect(() => {
     if (isPaused) return; // Pauses when hovered or manually paused
-    const tickRate = 85; // 100 ticks across 8500ms
+    const tickRate = 340; // Smooth 340ms interval (25 ticks per 8.5s slide)
     const interval = setInterval(() => {
       setSlideProgress((prev) => {
         const next = prev + (tickRate / SLIDE_DURATION) * 100;
@@ -312,7 +312,7 @@ export function ArchitectureShowcase() {
       {/* Top Slide Progress Bar */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-slate-900/60 overflow-hidden z-20">
         <div
-          className={`h-full bg-gradient-to-r from-amber-500 via-amber-300 to-amber-500 transition-all duration-100 ease-linear ${
+          className={`h-full bg-gradient-to-r from-amber-500 via-amber-300 to-amber-500 transition-all duration-300 ease-linear ${
             isPaused ? "opacity-60" : "opacity-100"
           }`}
           style={{ width: `${Math.min(100, Math.max(0, slideProgress))}%` }}
@@ -320,8 +320,8 @@ export function ArchitectureShowcase() {
       </div>
 
       {/* Background ambient lighting */}
-      <div className="absolute top-1/4 right-10 -z-10 h-96 w-96 rounded-full bg-amber-500/10 blur-[150px] pointer-events-none" />
-      <div className="absolute bottom-10 left-10 -z-10 h-80 w-80 rounded-full bg-blue-500/10 blur-[130px] pointer-events-none" />
+      <div className="absolute top-1/4 right-10 -z-10 h-96 w-96 rounded-full bg-amber-500/10 blur-[80px] will-change-transform pointer-events-none" />
+      <div className="absolute bottom-10 left-10 -z-10 h-80 w-80 rounded-full bg-blue-500/10 blur-[70px] will-change-transform pointer-events-none" />
 
       <div className="relative z-10 mx-auto max-w-7xl space-y-8">
         {/* Section Header */}

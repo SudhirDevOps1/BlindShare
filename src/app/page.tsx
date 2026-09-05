@@ -58,9 +58,9 @@ export default function HomePage() {
         {/* Hero Section */}
         <section className="relative overflow-hidden px-4 py-20 sm:px-6 lg:py-28 aurora-bg">
           {/* Subtle Ambient Background Gradients */}
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[350px] bg-amber-500/15 blur-[140px] pointer-events-none rounded-full animate-float" />
-          <div className="absolute bottom-10 right-10 w-[450px] h-[250px] bg-blue-500/10 blur-[120px] pointer-events-none rounded-full" />
-          <div className="absolute top-20 left-10 w-[300px] h-[200px] bg-emerald-500/10 blur-[100px] pointer-events-none rounded-full" />
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[350px] bg-amber-500/15 blur-[80px] will-change-transform pointer-events-none rounded-full animate-float" />
+          <div className="absolute bottom-10 right-10 w-[450px] h-[250px] bg-blue-500/10 blur-[70px] will-change-transform pointer-events-none rounded-full" />
+          <div className="absolute top-20 left-10 w-[300px] h-[200px] bg-emerald-500/10 blur-[60px] will-change-transform pointer-events-none rounded-full" />
 
           <div className="relative mx-auto max-w-5xl text-center space-y-8">
             <div className="inline-flex flex-wrap items-center justify-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-xs font-semibold text-amber-300 backdrop-blur-xl shadow-lg shadow-amber-500/5 shimmer-badge hover:border-amber-500/50 transition-all">
