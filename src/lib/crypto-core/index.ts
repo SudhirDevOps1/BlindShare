@@ -399,3 +399,98 @@ export async function unwrapDocKeyForOwner(
   return new Uint8Array(decryptedKey);
 }
 
+/**
+ * Securely zeroize sensitive raw key byte buffers in memory
+ */
+export function zeroizeBuffer(buf: Uint8Array): void {
+  try {
+    buf.fill(0);
+  } catch {}
+}
+
+/**
+ * Import a 256-bit raw DocKey as a Non-Extractable CryptoKey (extractable: false)
+ * Guarantees that client-side scripts, XSS attacks, or browser extensions cannot exfiltrate raw key bytes
+ */
+export async function importNonExtractableDocKey(
+  rawKey: Uint8Array,
+  usages: KeyUsage[] = ["decrypt"]
+): Promise<CryptoKey> {
+  const cryptoSubtle = crypto.subtle;
+  if (!cryptoSubtle) {
+    throw new Error("WebCrypto SubtleCrypto is not supported in this environment");
+  }
+
+  return await cryptoSubtle.importKey(
+    "raw",
+    rawKey as ArrayBufferView<ArrayBuffer>,
+    { name: "AES-GCM" },
+    false, // Strictly non-extractable
+    usages
+  );
+}
+
+/**
+ * Decrypt document bytes directly using a non-extractable CryptoKey (with transparent decompression)
+ */
+export async function decryptWithCryptoKey(
+  ciphertext: ArrayBuffer | Uint8Array,
+  cryptoKey: CryptoKey,
+  iv: Uint8Array
+): Promise<ArrayBuffer> {
+  const cryptoSubtle = crypto.subtle;
+  if (!cryptoSubtle) {
+    throw new Error("WebCrypto SubtleCrypto is not supported in this environment");
+  }
+
+  const decrypted = await cryptoSubtle.decrypt(
+    {
+      name: "AES-GCM",
+      iv: iv as ArrayBufferView<ArrayBuffer>,
+      tagLength: 128,
+    },
+    cryptoKey,
+    ciphertext as ArrayBufferView<ArrayBuffer>
+  );
+
+  const decompressed = await decompressBytes(new Uint8Array(decrypted));
+  return decompressed.buffer as ArrayBuffer;
+}
+
+/**
+ * HKDF Sub-Key Derivation (RFC 5869):
+ * Deterministically derives a per-slide / per-asset sub-key from a Master DocKey
+ */
+export async function deriveSlideKey(
+  masterDocKey: Uint8Array,
+  slideIndex: number
+): Promise<CryptoKey> {
+  const cryptoSubtle = crypto.subtle;
+  if (!cryptoSubtle) {
+    throw new Error("WebCrypto SubtleCrypto is not supported in this environment");
+  }
+
+  const baseKey = await cryptoSubtle.importKey(
+    "raw",
+    masterDocKey as ArrayBufferView<ArrayBuffer>,
+    { name: "HKDF" },
+    false,
+    ["deriveKey"]
+  );
+
+  const info = new TextEncoder().encode(`blindshare-slide-v1.4.0-${slideIndex}`);
+  const salt = new TextEncoder().encode("blindshare-hkdf-salt-2026");
+
+  return await cryptoSubtle.deriveKey(
+    {
+      name: "HKDF",
+      hash: "SHA-256",
+      salt,
+      info,
+    },
+    baseKey,
+    { name: "AES-GCM", length: 256 },
+    false, // Non-extractable
+    ["encrypt", "decrypt"]
+  );
+}

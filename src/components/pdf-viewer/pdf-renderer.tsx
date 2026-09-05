@@ -13,6 +13,7 @@ import {
   unwrapDocKeyForOwner,
 } from "@/lib/crypto-core";
 import { restoreOwnerVaultFromSession } from "@/lib/vault/master-vault";
+import { applyMicroDotWatermark } from "@/lib/watermark/forensic-stego";
 import {
   ChevronLeft,
   ChevronRight,
@@ -816,8 +817,16 @@ export function PdfRenderer({
       ctx.textBaseline = "bottom";
       ctx.fillText(`🔒 FORENSIC TRACE #${forensicToken} • ${identityLabel} • ${timeStr}`, canvasWidth - 14, canvasHeight - 10);
       ctx.restore();
+
+      // Invisible Forensic Steganography Layer (Micro-Dots imperceptibly embedded into canvas pixels)
+      applyMicroDotWatermark(ctx, canvasWidth, canvasHeight, {
+        viewerIdentity: identityLabel,
+        slug,
+        sessionId,
+        timestamp: Date.now(),
+      });
     },
-    [linkData.watermarkEnabled, linkData.watermarkText, viewerIdentity, slug]
+    [linkData.watermarkEnabled, linkData.watermarkText, viewerIdentity, slug, sessionId]
   );
 
   // Render current PDF page

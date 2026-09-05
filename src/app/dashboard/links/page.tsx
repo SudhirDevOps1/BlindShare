@@ -7,6 +7,7 @@ import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { CreateLinkModal } from "@/components/link-studio/create-link-modal";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { ForensicLeakScannerModal } from "@/components/analytics/forensic-leak-scanner-modal";
 import { TopLinksLeaderboard } from "@/components/analytics/charts/top-links-leaderboard";
 import { useI18n } from "@/lib/i18n/context";
 import {
@@ -19,6 +20,7 @@ import {
   Lock,
   Mail,
   Shield,
+  ShieldAlert,
   Download,
   Trash2,
   Plus,
@@ -42,6 +44,7 @@ export default function LinksPage() {
   const [activeModal, setActiveModal] = useState(false);
   const [qrModal, setQrModal] = useState<{ url: string; name: string } | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [forensicScannerOpen, setForensicScannerOpen] = useState(false);
 
   // In-App Link Delete Confirmation Dialog State
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -378,13 +381,24 @@ export default function LinksPage() {
             </div>
           </div>
 
-          <button
-            onClick={() => setActiveModal(true)}
-            className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Create New Link</span>
-          </button>
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setForensicScannerOpen(true)}
+              className="flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-2.5 text-xs font-bold text-amber-300 hover:bg-amber-500/20 transition-all shadow-sm"
+              title="Scan Leaked Screenshot for Invisible Micro-Dots & Leaker ID"
+            >
+              <ShieldAlert className="h-4 w-4 text-amber-400" />
+              <span>Forensic Leak Scanner</span>
+            </button>
+
+            <button
+              onClick={() => setActiveModal(true)}
+              className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Create New Link</span>
+            </button>
+          </div>
         </div>
 
         {/* Visual Link Performance: Top Leaderboard & Traffic Source UTM Donut (32) */}
@@ -801,6 +815,22 @@ export default function LinksPage() {
           </div>
         </div>
       )}
+
+      {/* Invisible Steganography Forensic Leak Scanner Modal */}
+      <ForensicLeakScannerModal
+        isOpen={forensicScannerOpen}
+        onClose={() => setForensicScannerOpen(false)}
+        onRevokeLink={async (detectedSlug) => {
+          const target = links.find(
+            (l) => l.slug?.toLowerCase() === detectedSlug?.toLowerCase() ||
+                   detectedSlug?.toLowerCase().includes(l.slug?.toLowerCase())
+          );
+          if (target) {
+            await handleToggleRevoke(target.id, target.isRevoked);
+            setForensicScannerOpen(false);
+          }
+        }}
+      />
     </div>
   );
 }

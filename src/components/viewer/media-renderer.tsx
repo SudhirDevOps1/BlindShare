@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { fragmentToDocKey, decryptBytes, hexToBuffer, bufferToHex } from "@/lib/crypto-core";
+import { applyMicroDotWatermark } from "@/lib/watermark/forensic-stego";
 import {
   detectFormat,
   FormatKind,
@@ -672,6 +673,26 @@ export function MediaRenderer({
     viewerIdentity || "CONFIDENTIAL"
   } • ${new Date().toISOString().substring(0, 16).replace("T", " ")} • ${slug.substring(0, 8)}`;
 
+  const stegoCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Invisible Forensic Steganography for Media Renderer
+  useEffect(() => {
+    if (!linkData.watermarkEnabled || !stegoCanvasRef.current) return;
+    const canvas = stegoCanvasRef.current;
+    const width = 1200;
+    const height = 900;
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    applyMicroDotWatermark(ctx, width, height, {
+      viewerIdentity: viewerIdentity || "CONFIDENTIAL",
+      slug,
+      sessionId,
+      timestamp: Date.now(),
+    });
+  }, [linkData.watermarkEnabled, viewerIdentity, slug, sessionId]);
+
   // Table filtering & sorting
   const filteredRows = useMemo(() => {
     if (tableRows.length <= 1) return tableRows;
@@ -973,20 +994,27 @@ export function MediaRenderer({
 
       {/* Main Content Area */}
       <div className="relative min-h-[60vh] max-h-[85vh] overflow-auto p-4 sm:p-6 bg-slate-950/60">
-        {/* Dynamic Watermark Overlay (Clean Staggered Forensic Matrix) */}
+        {/* Dynamic Watermark Overlay (Clean Staggered Forensic Matrix + Stego Micro-Dots) */}
         {linkData.watermarkEnabled && (
-          <div
-            className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center overflow-hidden select-none"
-            aria-hidden="true"
-          >
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-32 gap-y-20 opacity-15 rotate-[-25deg] text-center font-mono text-xs font-bold text-slate-300 whitespace-nowrap">
-              {Array.from({ length: 18 }).map((_, i) => (
-                <div key={i} className={i % 2 === 1 ? "translate-x-12" : ""}>
-                  {watermarkLabel}
-                </div>
-              ))}
+          <>
+            <canvas
+              ref={stegoCanvasRef}
+              className="pointer-events-none absolute inset-0 z-20 w-full h-full select-none"
+              aria-hidden="true"
+            />
+            <div
+              className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center overflow-hidden select-none"
+              aria-hidden="true"
+            >
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-x-32 gap-y-20 opacity-15 rotate-[-25deg] text-center font-mono text-xs font-bold text-slate-300 whitespace-nowrap">
+                {Array.from({ length: 18 }).map((_, i) => (
+                  <div key={i} className={i % 2 === 1 ? "translate-x-12" : ""}>
+                    {watermarkLabel}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          </>
         )}
 
         {/* 1. Markdown with Mermaid */}
