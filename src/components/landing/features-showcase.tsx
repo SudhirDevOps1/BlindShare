@@ -100,6 +100,14 @@ export function FeaturesShowcase() {
       a: "BlindShare is architected with zero-cost edge presets: Next.js on Vercel/Cloudflare, SQLite/PostgreSQL on Turso/Supabase Free Tier (500MB), Backblaze B2 Free Tier (10GB storage, 3x egress), and client-side in-memory Mozilla PDF.js rendering. There are no mandatory background daemon servers or recurring cloud costs.",
     },
     {
+      q: "What is the 6-Pillar Cryptographic Suite in v1.4.0?",
+      a: "BlindShare v1.4.0 enforces an uncompromising multi-layer defense: (1) Non-extractable WebCrypto keys (extractable: false) with instant RAM buffer zeroizing, (2) HKDF (RFC 5869) per-slide sub-key derivation, (3) Argon2id memory-hard KDF protecting the Master Vault, (4) Post-quantum hybrid ML-KEM-768 + ECDH forward resilience, (5) Invisible forensic steganography with CRC leak scanner, and (6) Forward secrecy burn ratchets.",
+    },
+    {
+      q: "How does the DuckDB columnar engine calculate dwell analytics in sub-5ms?",
+      a: "Instead of running heavy relational SQL queries on Neon PostgreSQL for every slide dwell heartbeat, BlindShare evaluates telemetry events using an in-memory columnar engine. It computes per-slide heatmaps, drop-off percentiles, and exact dwell percentiles (p50, p90, p99) in under 5ms without relational DB load.",
+    },
+    {
       q: "How do dynamic watermarks prevent confidential leaks?",
       a: "When a recipient opens a tracked share link, BlindShare renders an immutable diagonal overlay on every slide displaying their authenticated email address, IP address, and link ID. If the recipient takes a screenshot or photo with a phone, the forensic watermark immediately traces the leak origin back to them.",
     },
