@@ -38,6 +38,7 @@ import {
   SOCIAL_PLATFORMS_META,
   SocialPlatformKey,
 } from "@/lib/developer-profile";
+import { renderRealSocialIcon } from "@/components/social-icons";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -792,6 +793,9 @@ export default function SettingsPage() {
                             onChange={(e) => handleTogglePlatform(meta.key, e.target.checked)}
                             className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
                           />
+                          <span className="flex h-5 w-5 items-center justify-center rounded bg-slate-900 border border-slate-800">
+                            {renderRealSocialIcon(meta.key, `h-3.5 w-3.5 ${meta.colorClass}`)}
+                          </span>
                           <span className={`text-xs font-semibold ${plat.enabled ? "text-white" : "text-slate-400"}`}>
                             {meta.name}
                           </span>
