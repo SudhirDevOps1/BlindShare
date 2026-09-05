@@ -8,6 +8,7 @@ import { sendPushToUser } from "@/lib/push";
 import { logger } from "@/lib/logger";
 import { rateLimitDistributed } from "@/lib/security/distributed-rate-limiter";
 import { encryptField, decryptField } from "@/lib/crypto/db-vault";
+import { getSession } from "@/lib/auth/session";
 
 export async function GET(
   request: Request,
@@ -17,7 +18,7 @@ export async function GET(
 
   try {
     const [link] = await db
-      .select({ id: links.id, isRevoked: links.isRevoked, isActive: links.isActive })
+      .select({ id: links.id, ownerId: links.ownerId, isRevoked: links.isRevoked, isActive: links.isActive })
       .from(links)
       .where(eq(links.slug, slug))
       .limit(1);
@@ -26,14 +27,24 @@ export async function GET(
       return NextResponse.json({ error: "Link not found" }, { status: 404 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const rawSessionId = searchParams.get("sessionId")?.trim() || null;
+    const rawViewerEmail = searchParams.get("viewerEmail")?.trim().toLowerCase() || null;
+
+    // Check if the current viewer is the authenticated link owner / founder
+    const currentUser = await getSession();
+    const isOwner = Boolean(currentUser?.id && currentUser.id === link.ownerId);
+
     const questions = await db
       .select({
         id: pageQuestions.id,
+        sessionId: pageQuestions.sessionId,
         pageNumber: pageQuestions.pageNumber,
         posXPercent: pageQuestions.posXPercent,
         posYPercent: pageQuestions.posYPercent,
         questionText: pageQuestions.questionText,
         askerName: pageQuestions.askerName,
+        askerEmail: pageQuestions.askerEmail,
         replyText: pageQuestions.replyText,
         repliedAt: pageQuestions.repliedAt,
         isResolved: pageQuestions.isResolved,
@@ -41,12 +52,32 @@ export async function GET(
       })
       .from(pageQuestions)
       .where(eq(pageQuestions.linkId, link.id))
-    const decryptedQuestions = questions.map((q) => ({
-      ...q,
-      questionText: decryptField(q.questionText),
-      askerName: decryptField(q.askerName),
-      replyText: q.replyText ? decryptField(q.replyText) : null,
-    }));
+      .orderBy(desc(pageQuestions.createdAt));
+
+    const decryptedQuestions = questions
+      .map((q) => {
+        const decryptedEmail = q.askerEmail ? decryptField(q.askerEmail)?.toLowerCase() : null;
+        const isOwn =
+          isOwner ||
+          Boolean(rawViewerEmail && decryptedEmail && decryptedEmail === rawViewerEmail) ||
+          Boolean(rawSessionId && q.sessionId && q.sessionId === rawSessionId);
+
+        return {
+          id: q.id,
+          pageNumber: q.pageNumber,
+          posXPercent: q.posXPercent,
+          posYPercent: q.posYPercent,
+          questionText: decryptField(q.questionText),
+          askerName: decryptField(q.askerName),
+          replyText: q.replyText ? decryptField(q.replyText) : null,
+          repliedAt: q.repliedAt,
+          isResolved: q.isResolved,
+          createdAt: q.createdAt,
+          isOwn,
+        };
+      })
+      // Enforce investor/reader privacy: readers only see their own questions and replies
+      .filter((q) => isOwner || q.isOwn);
 
     return NextResponse.json({ questions: decryptedQuestions });
   } catch (err: any) {

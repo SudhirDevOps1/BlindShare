@@ -262,3 +262,34 @@
 .stagger-3 { animation-delay: 0.24s !important; }
 .stagger-4 { animation-delay: 0.32s !important; }
 .stagger-5 { animation-delay: 0.40s !important; }
+
+/* Mozilla PDF.js & Text Layer Selection & Highlighting */
+.pdf-text-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  line-height: 1;
+  user-select: text;
+  -webkit-user-select: text;
+  pointer-events: auto;
+  opacity: 0.85;
+}
+.pdf-text-layer > span {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+  pointer-events: all;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.pdf-text-layer ::selection {
+  background: rgba(245, 158, 11, 0.45);
+  color: transparent;
+}
+.pdf-text-layer span::selection {
+  background: rgba(245, 158, 11, 0.45);
+  color: transparent;
+}
+

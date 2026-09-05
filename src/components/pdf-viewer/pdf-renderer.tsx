@@ -175,7 +175,11 @@ export function PdfRenderer({
 
     // Poller function for question pins & founder replies
     const fetchPins = () => {
-      fetch(`/api/v/${slug}/questions`)
+      const qParams = new URLSearchParams();
+      if (sessionId) qParams.set("sessionId", sessionId);
+      if (viewerIdentity) qParams.set("viewerEmail", viewerIdentity);
+
+      fetch(`/api/v/${slug}/questions?${qParams.toString()}`)
         .then((r) => r.json())
         .then((d) => {
           if (!cancelled && d.questions) {
@@ -198,7 +202,7 @@ export function PdfRenderer({
       cancelled = true;
       clearInterval(pinPoller);
     };
-  }, [docData.id, slug]);
+  }, [docData.id, slug, sessionId, viewerIdentity]);
 
   // Live Presenter Sync Watchdog
   useEffect(() => {
@@ -369,6 +373,90 @@ export function PdfRenderer({
   const [showTextModal, setShowTextModal] = useState(false);
   const [copiedText, setCopiedText] = useState(false);
   const [pdfLinksCount, setPdfLinksCount] = useState(0);
+
+  // Mouse Wheel Scroll Navigation (Debounced, smooth slide advance)
+  const lastWheelTimeRef = useRef(0);
+  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const container = e.currentTarget;
+    const isScrollable = container.scrollHeight > container.clientHeight;
+
+    if (isScrollable) {
+      const atTop = container.scrollTop <= 2;
+      const atBottom = Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight - 6;
+
+      if (e.deltaY > 25 && atBottom) {
+        const now = performance.now();
+        if (now - lastWheelTimeRef.current > 300) {
+          lastWheelTimeRef.current = now;
+          setCurrentPage((p) => Math.min(totalPages, p + 1));
+        }
+      } else if (e.deltaY < -25 && atTop) {
+        const now = performance.now();
+        if (now - lastWheelTimeRef.current > 300) {
+          lastWheelTimeRef.current = now;
+          setCurrentPage((p) => Math.max(1, p - 1));
+        }
+      }
+      return;
+    }
+
+    if (Math.abs(e.deltaY) > 20) {
+      const now = performance.now();
+      if (now - lastWheelTimeRef.current > 280) {
+        lastWheelTimeRef.current = now;
+        if (e.deltaY > 0) {
+          setCurrentPage((p) => Math.min(totalPages, p + 1));
+        } else {
+          setCurrentPage((p) => Math.max(1, p - 1));
+        }
+      }
+    }
+  };
+
+  // Safe Fallback Clipboard Helper for Slide Text Selection
+  const copySlideTextToClipboard = async () => {
+    let textToCopy = "";
+    if (typeof window !== "undefined") {
+      const selection = window.getSelection()?.toString();
+      if (selection && selection.trim().length > 0) {
+        textToCopy = selection.trim();
+      }
+    }
+    if (!textToCopy) {
+      textToCopy = currentSlideText;
+    }
+
+    if (!textToCopy) return;
+
+    let success = false;
+    if (typeof navigator !== "undefined" && navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        success = true;
+      } catch {}
+    }
+
+    if (!success && typeof document !== "undefined") {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = textToCopy;
+        ta.style.position = "fixed";
+        ta.style.top = "0";
+        ta.style.left = "0";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        success = document.execCommand("copy");
+        document.body.removeChild(ta);
+      } catch {}
+    }
+
+    if (success) {
+      setCopiedText(true);
+      setTimeout(() => setCopiedText(false), 2500);
+    }
+  };
 
   // Decrypted PDF array buffer in browser memory
   const decryptedDataRef = useRef<ArrayBuffer | null>(null);
@@ -1311,7 +1399,7 @@ export function PdfRenderer({
   }
 
   return (
-    <div ref={viewerContainerRef} className="flex flex-col min-h-screen bg-slate-950 select-none">
+    <div ref={viewerContainerRef} className="flex flex-col min-h-screen bg-slate-950">
       {/* Top Floating Control Toolbar */}
       <div className="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 bg-slate-950/90 px-4 py-2.5 backdrop-blur-md">
         {/* Document Title & Brand */}
@@ -1416,13 +1504,9 @@ export function PdfRenderer({
           {/* Extract / Copy Slide Text Button */}
           {currentSlideText && (
             <button
-              onClick={() => {
-                navigator.clipboard.writeText(currentSlideText);
-                setCopiedText(true);
-                setTimeout(() => setCopiedText(false), 2500);
-              }}
+              onClick={copySlideTextToClipboard}
               className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:text-white hover:border-amber-400/50 transition shadow-sm"
-              title="Copy extracted text from this slide to clipboard"
+              title="Copy selected text or slide content to clipboard"
             >
               {copiedText ? (
                 <>
@@ -1627,6 +1711,7 @@ export function PdfRenderer({
           watermarkText={linkData.watermarkEnabled ? (linkData.watermarkText || viewerIdentity || "CONFIDENTIAL") : null}
         >
           <div
+            onWheel={handleWheel}
             style={{
               filter:
                 readingComfort === "dark"
@@ -1705,6 +1790,7 @@ export function PdfRenderer({
           )}
 
           <div
+            onWheel={handleWheel}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
@@ -1753,7 +1839,7 @@ export function PdfRenderer({
             <div ref={textLayerRef} className="pdf-text-layer" />
 
             {/* Interactive Clickable Hyperlinks Layer */}
-            <div ref={annotationLayerRef} className="absolute inset-0 pointer-events-auto z-10" />
+            <div ref={annotationLayerRef} className="absolute inset-0 pointer-events-none z-10" />
 
             {/* Dynamic Live Watermark Overlay Canvas */}
             {linkData.watermarkEnabled && (

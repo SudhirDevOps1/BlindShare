@@ -29,6 +29,8 @@ export default function QuestionsPage() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<"all" | "pending" | "resolved">("all");
+  const [selectedLink, setSelectedLink] = useState<string>("all");
+  const [selectedReader, setSelectedReader] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [replyTextMap, setReplyTextMap] = useState<Record<string, string>>({});
   const [submittingId, setSubmittingId] = useState<string | null>(null);
@@ -118,9 +120,33 @@ export default function QuestionsPage() {
   };
 
   // Filter & Search Logic
+  const uniqueLinks = React.useMemo(() => {
+    const map = new Map<string, { id: string; name: string }>();
+    questions.forEach((q) => {
+      if (q.linkId && !map.has(q.linkId)) {
+        map.set(q.linkId, {
+          id: q.linkId,
+          name: q.docTitle || q.linkName || q.linkSlug || "Share Link",
+        });
+      }
+    });
+    return Array.from(map.values());
+  }, [questions]);
+
+  const uniqueReaders = React.useMemo(() => {
+    const set = new Set<string>();
+    questions.forEach((q) => {
+      const email = q.askerEmail?.trim();
+      if (email) set.add(email);
+    });
+    return Array.from(set);
+  }, [questions]);
+
   const filtered = questions.filter((q) => {
     if (filter === "pending" && q.isResolved) return false;
     if (filter === "resolved" && !q.isResolved) return false;
+    if (selectedLink !== "all" && q.linkId !== selectedLink) return false;
+    if (selectedReader !== "all" && q.askerEmail !== selectedReader) return false;
     if (search.trim()) {
       const term = search.toLowerCase();
       const matchDoc = q.docTitle?.toLowerCase().includes(term);
@@ -174,9 +200,9 @@ export default function QuestionsPage() {
         </div>
 
         {/* Filter & Search Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 mb-6">
           {/* Segmented Filter */}
-          <div className="flex items-center rounded-xl bg-slate-900 border border-slate-800 p-1 w-full sm:w-auto">
+          <div className="flex items-center rounded-xl bg-slate-900 border border-slate-800 p-1 w-full lg:w-auto">
             <button
               onClick={() => setFilter("all")}
               className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition ${
@@ -203,16 +229,50 @@ export default function QuestionsPage() {
             </button>
           </div>
 
-          {/* Search Box */}
-          <div className="relative w-full sm:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search questions or askers..."
-              className="w-full rounded-xl border border-slate-800 bg-slate-900/90 pl-9 pr-3.5 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-            />
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Filter by Document / Pitch Deck */}
+            {uniqueLinks.length > 1 && (
+              <select
+                value={selectedLink}
+                onChange={(e) => setSelectedLink(e.target.value)}
+                className="rounded-xl border border-slate-800 bg-slate-900/90 px-3 py-1.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"
+              >
+                <option value="all">All Pitch Decks ({uniqueLinks.length})</option>
+                {uniqueLinks.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {l.name}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {/* Filter by Reader */}
+            {uniqueReaders.length > 1 && (
+              <select
+                value={selectedReader}
+                onChange={(e) => setSelectedReader(e.target.value)}
+                className="rounded-xl border border-slate-800 bg-slate-900/90 px-3 py-1.5 text-xs text-slate-200 focus:border-amber-500 focus:outline-none"
+              >
+                <option value="all">All Readers ({uniqueReaders.length})</option>
+                {uniqueReaders.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            )}
+
+            {/* Search Box */}
+            <div className="relative flex-1 sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search questions or askers..."
+                className="w-full rounded-xl border border-slate-800 bg-slate-900/90 pl-9 pr-3.5 py-1.5 text-xs text-slate-100 placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+              />
+            </div>
           </div>
         </div>
 
