@@ -1,11 +1,17 @@
 "use client";
 
 import React from "react";
-import { Trophy, ExternalLink, Copy, Check, BarChart2 } from "lucide-react";
+import { Trophy, ExternalLink, Copy, Check, BarChart2, Lock, Eye, EyeOff, KeyRound } from "lucide-react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
-import { hexToBuffer, docKeyToFragment } from "@/lib/crypto-core";
-import { syncVaultDocumentKeys } from "@/lib/vault/master-vault";
+import {
+  hexToBuffer,
+  bufferToHex,
+  docKeyToFragment,
+  fragmentToDocKey,
+  unwrapDocKeyForOwner,
+} from "@/lib/crypto-core";
+import { syncVaultDocumentKeys, unlockOwnerVault } from "@/lib/vault/master-vault";
 
 interface TopLinksLeaderboardProps {
   links?: any[];
@@ -15,6 +21,13 @@ interface TopLinksLeaderboardProps {
 export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLinksLeaderboardProps) {
   const { t } = useI18n();
   const [copiedId, setCopiedId] = React.useState<string | null>(null);
+
+  // Key Recovery Dialog State
+  const [keyRecoveryTarget, setKeyRecoveryTarget] = React.useState<any | null>(null);
+  const [keyInput, setKeyInput] = React.useState("");
+  const [showKeyInput, setShowKeyInput] = React.useState(false);
+  const [keyError, setKeyError] = React.useState<string | null>(null);
+  const [recovering, setRecovering] = React.useState(false);
 
   const perfMap = React.useMemo(() => {
     const map = new Map<string, any>();
@@ -93,10 +106,138 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
       } catch {}
     }
 
+    // If still missing and it's an E2EE doc without password, open recovery modal
+    if (!storedHex && item.docId && !item.hasPassword) {
+      setKeyRecoveryTarget(item);
+      setKeyInput("");
+      setKeyError(null);
+      return;
+    }
+
     const url = buildFullUrl(item);
     navigator.clipboard.writeText(url);
     setCopiedId(item.id);
     setTimeout(() => setCopiedId(null), 2500);
+  };
+
+  const handleSaveRecoveredKey = async () => {
+    if (!keyRecoveryTarget || !keyInput.trim()) return;
+
+    try {
+      setRecovering(true);
+      setKeyError(null);
+
+      let docKey: Uint8Array | null = null;
+      const trimmed = keyInput.trim();
+
+      // Case A: User pasted a URL or key fragment directly (#k=..., k=..., /v/..., or raw 32-byte hex)
+      const looksLikeFragment =
+        trimmed.includes("#k=") ||
+        trimmed.includes("/v/") ||
+        trimmed.startsWith("k=") ||
+        /^[a-zA-Z0-9_-]{43,44}$/.test(trimmed) ||
+        /^[0-9a-fA-F]{64}$/.test(trimmed);
+
+      if (looksLikeFragment) {
+        try {
+          if (trimmed.includes("#k=")) {
+            docKey = fragmentToDocKey(trimmed.substring(trimmed.indexOf("#k=")));
+          } else if (trimmed.includes("/v/")) {
+            const hashIdx = trimmed.indexOf("#");
+            if (hashIdx !== -1) {
+              docKey = fragmentToDocKey(trimmed.substring(hashIdx));
+            }
+          } else if (trimmed.startsWith("k=")) {
+            docKey = fragmentToDocKey(`#${trimmed}`);
+          } else if (/^[0-9a-fA-F]{64}$/.test(trimmed)) {
+            docKey = hexToBuffer(trimmed);
+          } else {
+            docKey = fragmentToDocKey(`#k=${trimmed}`);
+          }
+        } catch {}
+      }
+
+      // Case B: If not a fragment, or fragment parsing failed, treat as account password
+      if (!docKey) {
+        const verifyRes = await fetch("/api/auth/verify-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: trimmed }),
+        });
+
+        const verifyData = await verifyRes.json().catch(() => ({}));
+
+        if (!verifyRes.ok || !verifyData.valid) {
+          setKeyError("Incorrect password or invalid key fragment. Please check your account password or paste the share link URL / #k=... fragment.");
+          setRecovering(false);
+          return;
+        }
+
+        const masterKey = await unlockOwnerVault(trimmed, verifyData.masterKeySaltHex);
+
+        let encKeyHex = keyRecoveryTarget.ownerEncryptedKeyHex;
+        let encIvHex = keyRecoveryTarget.ownerEncryptedKeyIvHex;
+
+        const docsRes = await fetch("/api/docs");
+        const docsJson = await docsRes.json().catch(() => ({}));
+        const allDocs = Array.isArray(docsJson.documents) ? docsJson.documents : [];
+        const targetDoc = allDocs.find((d: any) => d.id === keyRecoveryTarget.docId);
+
+        if (!encKeyHex && targetDoc) {
+          encKeyHex = targetDoc.ownerEncryptedKeyHex;
+          encIvHex = targetDoc.ownerEncryptedKeyIvHex;
+        }
+
+        if (encKeyHex && encIvHex) {
+          try {
+            docKey = await unwrapDocKeyForOwner(encKeyHex, encIvHex, masterKey);
+          } catch {
+            setKeyError("Password verified, but Master Vault decryption tag did not match. Please paste the original share link or #k=... fragment.");
+            setRecovering(false);
+            return;
+          }
+        }
+
+        await syncVaultDocumentKeys(allDocs, links);
+
+        if (!docKey) {
+          setKeyError("Account password verified! However, this document key was not backed up in the Master Vault. Please paste the share link URL or #k=... fragment.");
+          setRecovering(false);
+          return;
+        }
+      }
+
+      if (docKey && docKey.length === 32) {
+        const hex = bufferToHex(docKey);
+        if (typeof window !== "undefined") {
+          if (keyRecoveryTarget.docId) {
+            sessionStorage.setItem(`blindshare_key_${keyRecoveryTarget.docId}`, hex);
+            localStorage.setItem(`blindshare_key_${keyRecoveryTarget.docId}`, hex);
+          }
+          if (keyRecoveryTarget.id) {
+            sessionStorage.setItem(`blindshare_key_${keyRecoveryTarget.id}`, hex);
+            localStorage.setItem(`blindshare_key_${keyRecoveryTarget.id}`, hex);
+          }
+          if (keyRecoveryTarget.code) {
+            sessionStorage.setItem(`blindshare_link_key_${keyRecoveryTarget.code}`, hex);
+            localStorage.setItem(`blindshare_link_key_${keyRecoveryTarget.code}`, hex);
+          }
+        }
+
+        const origin = typeof window !== "undefined" ? window.location.origin : "";
+        const fullUrl = `${origin}/v/${keyRecoveryTarget.code}#k=${docKeyToFragment(docKey)}`;
+        navigator.clipboard.writeText(fullUrl);
+        setCopiedId(keyRecoveryTarget.id);
+        setTimeout(() => setCopiedId(null), 2500);
+
+        setKeyRecoveryTarget(null);
+        setKeyInput("");
+      }
+    } catch (err: any) {
+      setKeyError(err.message || "Failed to restore decryption key.");
+    } finally {
+      setRecovering(false);
+    }
   };
 
   return (
@@ -193,6 +334,99 @@ export function TopLinksLeaderboard({ links = [], linkPerformance = [] }: TopLin
           );
         })}
       </div>
+      )}
+
+      {/* Key Recovery / Restore Dialog */}
+      {keyRecoveryTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                <Lock className="h-5 w-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-white">Restore Decryption Key</h3>
+                <p className="text-xs text-slate-400">
+                  Link: <span className="text-slate-300 font-semibold">{keyRecoveryTarget.title || keyRecoveryTarget.code}</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-slate-400 space-y-1.5">
+              <p className="text-slate-300 font-medium">Zero-Knowledge Vault Recovery</p>
+              <p className="leading-relaxed">
+                Enter your <span className="text-amber-400 font-semibold">Account Password</span> to automatically unlock and restore all document keys from your Zero-Knowledge Master Vault, or paste the share link / <code className="text-amber-400">#k=...</code> fragment.
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-300">
+                Account Password, Decryption Key, or Link
+              </label>
+              <div className="relative">
+                <input
+                  type={showKeyInput ? "text" : "password"}
+                  value={keyInput}
+                  onChange={(e) => {
+                    setKeyInput(e.target.value);
+                    setKeyError(null);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && keyInput.trim() && !recovering) {
+                      handleSaveRecoveredKey();
+                    }
+                  }}
+                  placeholder="Enter account password or paste #k=... fragment"
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 pr-10 text-xs text-white placeholder-slate-600 focus:border-amber-500 focus:outline-none"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowKeyInput(!showKeyInput)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors"
+                  tabIndex={-1}
+                  aria-label={showKeyInput ? "Hide key" : "Show key"}
+                >
+                  {showKeyInput ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+              {keyError && (
+                <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-2.5 text-xs text-red-300 leading-relaxed">
+                  {keyError}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setKeyRecoveryTarget(null)}
+                disabled={recovering}
+                className="rounded-xl px-4 py-2 text-xs font-medium text-slate-400 hover:text-white disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveRecoveredKey}
+                disabled={!keyInput.trim() || recovering}
+                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 shadow-md shadow-amber-500/10"
+              >
+                {recovering ? (
+                  <>
+                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+                    <span>Unwrapping...</span>
+                  </>
+                ) : (
+                  <>
+                    <KeyRound className="h-3.5 w-3.5" />
+                    <span>Restore & Copy Link</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

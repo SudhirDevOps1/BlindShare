@@ -13,8 +13,24 @@ export async function GET(request: Request) {
   try {
     const userId = auth.user.id;
 
-    // 1. Fetch all user links
-    const userLinks = await db
+    // 1. Fetch all user documents
+    const userDocs = await db
+      .select({
+        id: documents.id,
+        title: documents.title,
+        pageCount: documents.pageCount,
+        sizeBytes: documents.sizeBytes,
+        ownerEncryptedKeyHex: documents.ownerEncryptedKeyHex,
+        ownerEncryptedKeyIvHex: documents.ownerEncryptedKeyIvHex,
+        createdAt: documents.createdAt,
+      })
+      .from(documents)
+      .where(eq(documents.ownerId, userId));
+
+    const docMap = new Map(userDocs.map((d) => [d.id, d]));
+
+    // 2. Fetch all user links
+    const rawUserLinks = await db
       .select({
         id: links.id,
         name: links.name,
@@ -23,10 +39,32 @@ export async function GET(request: Request) {
         isActive: links.isActive,
         isRevoked: links.isRevoked,
         viewCount: links.viewCount,
+        passwordHash: links.passwordHash,
+        passwordSaltHex: links.passwordSaltHex,
+        wrappedKeyHex: links.wrappedKeyHex,
         createdAt: links.createdAt,
       })
       .from(links)
       .where(eq(links.ownerId, userId));
+
+    const userLinks = rawUserLinks.map((l) => {
+      const doc = l.docId ? docMap.get(l.docId) : null;
+      return {
+        id: l.id,
+        name: l.name,
+        slug: l.slug,
+        docId: l.docId,
+        isActive: l.isActive,
+        isRevoked: l.isRevoked,
+        viewCount: l.viewCount,
+        hasPassword: Boolean(l.passwordHash),
+        passwordSaltHex: l.passwordSaltHex,
+        wrappedKeyHex: l.wrappedKeyHex,
+        ownerEncryptedKeyHex: doc?.ownerEncryptedKeyHex || null,
+        ownerEncryptedKeyIvHex: doc?.ownerEncryptedKeyIvHex || null,
+        createdAt: l.createdAt,
+      };
+    });
 
     const linkIds = userLinks.map((l) => l.id);
 
@@ -39,8 +77,9 @@ export async function GET(request: Request) {
           avgDwellSeconds: 0,
           activeNow: 0,
           totalLinks: 0,
-          totalDocuments: 0,
+          totalDocuments: userDocs.length,
         },
+        links: [],
         topDocuments: [],
         recentSessions: [],
         deviceBreakdown: { desktop: 0, mobile: 0, tablet: 0 },
@@ -48,19 +87,6 @@ export async function GET(request: Request) {
       });
     }
 
-    // 2. Fetch all user documents
-    const userDocs = await db
-      .select({
-        id: documents.id,
-        title: documents.title,
-        pageCount: documents.pageCount,
-        sizeBytes: documents.sizeBytes,
-        createdAt: documents.createdAt,
-      })
-      .from(documents)
-      .where(eq(documents.ownerId, userId));
-
-    const docMap = new Map(userDocs.map((d) => [d.id, d]));
     const linkMap = new Map(userLinks.map((l) => [l.id, l]));
 
     // 3. Fetch view sessions across all user links
@@ -252,6 +278,7 @@ export async function GET(request: Request) {
         topLinkName,
         dbSizeBytes,
       },
+      links: userLinks,
       topDocuments,
       recentSessions: recentSessions.slice(0, 20),
       deviceBreakdown: deviceCounts,

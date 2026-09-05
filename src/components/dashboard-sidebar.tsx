@@ -61,6 +61,22 @@ export function DashboardSidebar({ user, onLogout }: DashboardSidebarProps) {
   const [collapsed, setCollapsed]   = useState(false);
   const [twoFAOpen, setTwoFAOpen]   = useState(false);
   const [hoveredHref, setHoveredHref] = useState<string | null>(null);
+  const [vaultActive, setVaultActive] = useState(false);
+
+  // Check vault status
+  useEffect(() => {
+    const checkVault = () => {
+      try {
+        const token = sessionStorage.getItem("blindshare_master_vault_token");
+        setVaultActive(Boolean(token && token.length === 64));
+      } catch {
+        setVaultActive(false);
+      }
+    };
+    checkVault();
+    const interval = setInterval(checkVault, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Clear stale collapsed keys from previous versions — always start expanded
   useEffect(() => {
@@ -157,7 +173,7 @@ export function DashboardSidebar({ user, onLogout }: DashboardSidebarProps) {
                   <div style={{ fontWeight: 800, fontSize: 15, color: "#f8fafc", letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
                     {appName}
                   </div>
-                  <div style={{ marginTop: 3, display: "flex", alignItems: "center", gap: 5 }}>
+                  <div style={{ marginTop: 3, display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
                     <span style={{
                       display: "inline-flex", alignItems: "center", gap: 4,
                       background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.28)",
@@ -166,6 +182,24 @@ export function DashboardSidebar({ user, onLogout }: DashboardSidebarProps) {
                     }}>
                       <Zap style={{ width: 8, height: 8, fill: "#fbbf24" }} />
                       v1.4.0 E2EE
+                    </span>
+                    <span
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 4,
+                        background: vaultActive ? "rgba(16,185,129,0.12)" : "rgba(100,116,139,0.15)",
+                        border: vaultActive ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(100,116,139,0.25)",
+                        borderRadius: 999, padding: "2px 7px",
+                        fontSize: 9, fontWeight: 700,
+                        color: vaultActive ? "#34d399" : "#94a3b8",
+                        whiteSpace: "nowrap",
+                      }}
+                      title={vaultActive ? "Zero-Knowledge Master Vault Unlocked & Synchronized" : "Master Vault Locked"}
+                    >
+                      <span style={{
+                        width: 5, height: 5, borderRadius: "50%",
+                        background: vaultActive ? "#34d399" : "#64748b",
+                      }} />
+                      {vaultActive ? "Vault Active" : "Vault Idle"}
                     </span>
                   </div>
                 </div>

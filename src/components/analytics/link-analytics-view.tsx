@@ -280,6 +280,45 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
         </div>
       </div>
 
+      {/* Deal Signal: Link Forwarding & Syndicate Reshare Detection */}
+      {metrics?.forwarding?.isForwarded && (
+        <div className="rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-950/40 via-amber-900/20 to-slate-900/60 p-4 backdrop-blur-xl shadow-lg shadow-amber-500/5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/30 flex-shrink-0 animate-pulse">
+                <Flame className="h-5 w-5 text-amber-400" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-white tracking-tight">
+                    🔥 Syndicate Forwarding Detected
+                  </span>
+                  <span className="rounded-full bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-300 border border-amber-500/30">
+                    High Deal Conviction Signal
+                  </span>
+                </div>
+                <p className="text-xs text-slate-300 mt-0.5">
+                  This deck has been reshared and accessed across{" "}
+                  <strong className="text-white">{metrics.forwarding.forwardCount} distinct investor devices</strong>{" "}
+                  and <strong className="text-white">{metrics.forwarding.distinctLocations} geographic location(s)</strong>.
+                  Confidence: <span className="text-amber-400 font-semibold">{metrics.forwarding.confidence}</span>.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <a
+                href={`/api/links/${linkId}/analytics?format=csv`}
+                download
+                className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 transition"
+              >
+                <Download className="h-3.5 w-3.5" />
+                <span>Export Investor Trail</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 4 Summary Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">

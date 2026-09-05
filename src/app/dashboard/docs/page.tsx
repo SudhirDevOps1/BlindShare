@@ -33,6 +33,7 @@ export default function DocsPage() {
   const [activeModalDoc, setActiveModalDoc] = useState<any | null>(null);
   const [versionDoc, setVersionDoc] = useState<any | null>(null);
   const [versionHistory, setVersionHistory] = useState<any[]>([]);
+  const [uploadingVersionForDoc, setUploadingVersionForDoc] = useState<any | null>(null);
 
   // In-app Delete Confirmation Dialog State
   const [deleteDocTarget, setDeleteDocTarget] = useState<{ id: string; title: string } | null>(null);
@@ -169,6 +170,36 @@ export default function DocsPage() {
           </div>
         )}
 
+        {/* Version Upload Modal / Section */}
+        {uploadingVersionForDoc && (
+          <div className="rounded-2xl border border-purple-500/40 bg-slate-900/95 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                  <Upload className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Upload New Version</h3>
+                  <p className="text-xs text-slate-400">Target: {uploadingVersionForDoc.title}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setUploadingVersionForDoc(null)}
+                className="text-xs text-slate-400 hover:text-white rounded-lg p-1 hover:bg-slate-800"
+              >
+                Close
+              </button>
+            </div>
+            <DocUploader
+              targetDoc={uploadingVersionForDoc}
+              onUploadSuccess={() => {
+                fetchDocs();
+                setUploadingVersionForDoc(null);
+              }}
+            />
+          </div>
+        )}
+
         {/* Docs Table */}
         <div className="glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800/80">
           {loading && docs.length === 0 ? (
@@ -296,6 +327,14 @@ export default function DocsPage() {
                         </button>
 
                         <button
+                          onClick={() => setUploadingVersionForDoc(doc)}
+                          className="rounded-xl border border-slate-700 bg-slate-800/80 p-2 text-slate-300 hover:text-white hover:bg-slate-700 hover:border-slate-600 transition-all hover:scale-105"
+                          title={`Upload new version (v${(doc.currentVersion || 1) + 1})`}
+                        >
+                          <Upload className="h-3.5 w-3.5" />
+                        </button>
+
+                        <button
                           onClick={() => promptDelete(doc.id, doc.title)}
                           className="rounded-xl p-2 text-slate-400 hover:text-red-300 hover:bg-red-950/40 hover:border-red-500/30 border border-transparent transition-all hover:scale-105"
                           title="Delete Document"
@@ -358,6 +397,19 @@ export default function DocsPage() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="pt-3 border-t border-slate-800">
+              <button
+                onClick={() => {
+                  setUploadingVersionForDoc(versionDoc);
+                  setVersionDoc(null);
+                }}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10 transition"
+              >
+                <Upload className="h-3.5 w-3.5" />
+                <span>Upload New Version (v{(versionDoc.currentVersion || 1) + 1})</span>
+              </button>
             </div>
           </div>
         </div>

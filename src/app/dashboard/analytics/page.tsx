@@ -86,9 +86,11 @@ export default function GlobalAnalyticsPage() {
     );
   }
 
-  const { metrics, topDocuments, recentSessions, deviceBreakdown, countryBreakdown } = data || {
+  const { metrics, topDocuments, links, linkPerformance, recentSessions, deviceBreakdown, countryBreakdown } = data || {
     metrics: { totalViews: 0, uniqueViewers: 0, totalDwellSeconds: 0, avgDwellSeconds: 0, activeNow: 0, totalLinks: 0, totalDocuments: 0 },
     topDocuments: [],
+    links: [],
+    linkPerformance: [],
     recentSessions: [],
     deviceBreakdown: { desktop: 0, mobile: 0, tablet: 0 },
     countryBreakdown: [],
@@ -341,7 +343,10 @@ export default function GlobalAnalyticsPage() {
         />
 
         {/* 5. Top Performing Pitch Decks Leaderboard */}
-        <TopLinksLeaderboard links={topDocuments || []} />
+        <TopLinksLeaderboard
+          links={links && links.length > 0 ? links : topDocuments || []}
+          linkPerformance={linkPerformance || []}
+        />
 
         {/* 6. Dwell Time Distribution Buckets */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

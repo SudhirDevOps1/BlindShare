@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth/rbac";
 import { db } from "@/db";
 import { links, documents, viewSessions, pageEvents } from "@/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, or, desc, sql } from "drizzle-orm";
 import { generateCsv, formatDuration } from "@/lib/analytics";
 import { computeReaderIntent } from "@/lib/analytics/intent-scorer";
 import { decryptField } from "@/lib/crypto/db-vault";
@@ -19,7 +19,7 @@ export async function GET(
   const format = searchParams.get("format");
 
   try {
-    const [link] = await db
+    let [link] = await db
       .select({
         id: links.id,
         name: links.name,
@@ -37,6 +37,36 @@ export async function GET(
       .from(links)
       .where(and(eq(links.id, id), eq(links.ownerId, auth.user.id)))
       .limit(1);
+
+    // Flexible fallback: If not found by direct ID, search by slug or docId
+    if (!link) {
+      const [fallback] = await db
+        .select({
+          id: links.id,
+          name: links.name,
+          slug: links.slug,
+          docId: links.docId,
+          ownerId: links.ownerId,
+          isActive: links.isActive,
+          isRevoked: links.isRevoked,
+          requiresEmail: links.requiresEmail,
+          viewCount: links.viewCount,
+          maxViews: links.maxViews,
+          expiresAt: links.expiresAt,
+          createdAt: links.createdAt,
+        })
+        .from(links)
+        .where(
+          and(
+            eq(links.ownerId, auth.user.id),
+            or(eq(links.slug, id), eq(links.docId, id))
+          )
+        )
+        .orderBy(desc(links.viewCount))
+        .limit(1);
+
+      if (fallback) link = fallback;
+    }
 
     if (!link) {
       return NextResponse.json({ error: "Link not found" }, { status: 404 });
@@ -59,11 +89,11 @@ export async function GET(
 
     const totalPages = docInfo?.pageCount || 1;
 
-    // Fetch view sessions
+    // Fetch view sessions using resolved link.id
     const sessions = await db
       .select()
       .from(viewSessions)
-      .where(eq(viewSessions.linkId, id))
+      .where(eq(viewSessions.linkId, link.id))
       .orderBy(desc(viewSessions.startedAt));
 
     // Fetch all page events for this link
@@ -75,7 +105,7 @@ export async function GET(
         dwellSeconds: pageEvents.dwellSeconds,
       })
       .from(pageEvents)
-      .where(eq(pageEvents.linkId, id));
+      .where(eq(pageEvents.linkId, link.id));
 
     // Aggregate per-page dwell events across all sessions
     const pageStatsMap = new Map<number, { pageNumber: number; dwellSeconds: number; viewCount: number }>();
@@ -211,6 +241,11 @@ export async function GET(
       });
     }
 
+    const distinctEmails = new Set(enrichedSessions.map((s) => s.viewerEmail).filter(Boolean)).size;
+    const distinctLocations = Object.keys(countryCounts).length;
+    const isForwarded = (uniqueIps > 1 || distinctEmails > 1 || distinctLocations > 1) && totalSessions > 1;
+    const forwardCount = Math.max(uniqueIps, distinctEmails, 1);
+
     return NextResponse.json({
       link,
       document: docInfo,
@@ -221,6 +256,13 @@ export async function GET(
         avgCompletionPercent,
         totalDwellSeconds: totalDwellAll,
         activeNow,
+        forwarding: {
+          isForwarded,
+          forwardCount,
+          distinctLocations,
+          distinctEmails,
+          confidence: distinctEmails > 1 ? "High (Multiple Emails Verified)" : (uniqueIps > 1 ? "High (Multiple Investor Devices)" : "Normal"),
+        },
       },
       pageStats,
       sessions: enrichedSessions,

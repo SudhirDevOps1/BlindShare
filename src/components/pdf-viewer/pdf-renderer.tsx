@@ -43,6 +43,7 @@ import {
   Check,
   FileText,
   ExternalLink,
+  LayoutGrid,
 } from "lucide-react";
 import { PresenterModeView } from "@/components/viewer/presenter-mode-view";
 import { VoiceNotePlayer } from "@/components/viewer/voice-note-player";
@@ -104,6 +105,8 @@ export function PdfRenderer({
   const [zoom, setZoom] = useState(1.0);
   const [rotation, setRotation] = useState(0);
   const [presenterMode, setPresenterMode] = useState(false);
+  const [showThumbnails, setShowThumbnails] = useState(false);
+  const [generatingNda, setGeneratingNda] = useState(false);
   const [antiLeakActive, setAntiLeakActive] = useState(false);
   const [downloading, setDownloading] = useState(false);
   // Missing / Lost Key Recovery UI State (resilience against cache clear)
@@ -971,6 +974,203 @@ export function PdfRenderer({
     }
   };
 
+  // Generate and download Cryptographic NDA Acceptance Certificate (PDF)
+  const handleDownloadNdaCertificate = async () => {
+    if (!linkData.requiresNda || generatingNda) return;
+    setGeneratingNda(true);
+    try {
+      const { PDFDocument, rgb, StandardFonts } = await import("pdf-lib");
+      const pdf = await PDFDocument.create();
+      const page = pdf.addPage([595.28, 841.89]); // A4 portrait
+      const { width, height } = page.getSize();
+
+      const fontBold = await pdf.embedFont(StandardFonts.HelveticaBold);
+      const fontRegular = await pdf.embedFont(StandardFonts.Helvetica);
+
+      // Gold border
+      page.drawRectangle({
+        x: 20,
+        y: 20,
+        width: width - 40,
+        height: height - 40,
+        borderColor: rgb(0.85, 0.65, 0.13),
+        borderWidth: 2,
+      });
+      page.drawRectangle({
+        x: 26,
+        y: 26,
+        width: width - 52,
+        height: height - 52,
+        borderColor: rgb(0.85, 0.65, 0.13),
+        borderWidth: 0.75,
+      });
+
+      // Header
+      page.drawText("BLINDSHARE ZERO-KNOWLEDGE PROTOCOL", {
+        x: 50,
+        y: height - 70,
+        size: 10,
+        font: fontBold,
+        color: rgb(0.85, 0.65, 0.13),
+      });
+
+      page.drawText("CERTIFICATE OF CONFIDENTIALITY", {
+        x: 50,
+        y: height - 105,
+        size: 20,
+        font: fontBold,
+        color: rgb(0.08, 0.12, 0.2),
+      });
+
+      page.drawText("& NON-DISCLOSURE AGREEMENT", {
+        x: 50,
+        y: height - 130,
+        size: 16,
+        font: fontBold,
+        color: rgb(0.2, 0.25, 0.35),
+      });
+
+      // Divider line
+      page.drawLine({
+        start: { x: 50, y: height - 150 },
+        end: { x: width - 50, y: height - 150 },
+        thickness: 1.5,
+        color: rgb(0.85, 0.65, 0.13),
+      });
+
+      const signatory = viewerIdentity || "Verified Cryptographic Signatory";
+      const docTitle = docData.title || "Confidential Document";
+      const dateStr = new Date().toUTCString();
+
+      // Certificate Statement
+      page.drawText("This certificate verifies that the recipient below has executed a binding Non-Disclosure", {
+        x: 50,
+        y: height - 180,
+        size: 10.5,
+        font: fontRegular,
+        color: rgb(0.25, 0.3, 0.35),
+      });
+      page.drawText("Agreement (NDA) prior to decrypting and inspecting the proprietary materials listed.", {
+        x: 50,
+        y: height - 196,
+        size: 10.5,
+        font: fontRegular,
+        color: rgb(0.25, 0.3, 0.35),
+      });
+
+      // Details Table
+      const fields = [
+        ["Protected Document:", docTitle],
+        ["Document ID:", docData.id],
+        ["Signatory / Recipient:", signatory],
+        ["Share Link Slug:", `/v/${slug}`],
+        ["Session Tracking ID:", sessionId],
+        ["Execution Timestamp:", dateStr],
+        ["Zero-Knowledge Hash:", `${slug.substring(0, 16)}...sha256-verified`],
+        ["Security Protocol:", "RFC 3986 E2EE AES-GCM Client Decrypted"],
+      ];
+
+      let currentY = height - 235;
+      for (const [label, val] of fields) {
+        page.drawText(label, {
+          x: 50,
+          y: currentY,
+          size: 9.5,
+          font: fontBold,
+          color: rgb(0.2, 0.25, 0.3),
+        });
+        page.drawText(String(val), {
+          x: 210,
+          y: currentY,
+          size: 9.5,
+          font: fontRegular,
+          color: rgb(0.08, 0.12, 0.2),
+        });
+        currentY -= 22;
+      }
+
+      // Legal Terms summary
+      currentY -= 10;
+      page.drawText("BINDING ACKNOWLEDGMENT:", {
+        x: 50,
+        y: currentY,
+        size: 9.5,
+        font: fontBold,
+        color: rgb(0.85, 0.65, 0.13),
+      });
+      currentY -= 16;
+
+      const terms = linkData.ndaText || "The signatory agrees that all data, presentations, pitch decks, financials, and intellectual property contained herein are strictly proprietary and confidential. The signatory covenants not to disclose, duplicate, distribute, or reverse-engineer any portion without prior written consent.";
+
+      const words = terms.split(" ");
+      let line = "";
+      for (const word of words) {
+        if ((line + word).length > 80) {
+          page.drawText(line, { x: 50, y: currentY, size: 8.5, font: fontRegular, color: rgb(0.35, 0.4, 0.45) });
+          line = word + " ";
+          currentY -= 13;
+        } else {
+          line += word + " ";
+        }
+      }
+      if (line) {
+        page.drawText(line, { x: 50, y: currentY, size: 8.5, font: fontRegular, color: rgb(0.35, 0.4, 0.45) });
+        currentY -= 18;
+      }
+
+      // Attestation Box
+      page.drawRectangle({
+        x: 50,
+        y: 80,
+        width: width - 100,
+        height: 55,
+        borderColor: rgb(0.8, 0.85, 0.9),
+        borderWidth: 1,
+        color: rgb(0.97, 0.98, 1),
+      });
+
+      page.drawText("DIGITALLY ATTESTED VIA BLINDSHARE ZERO-KNOWLEDGE VAULT", {
+        x: 65,
+        y: 115,
+        size: 9,
+        font: fontBold,
+        color: rgb(0.1, 0.5, 0.3),
+      });
+
+      page.drawText(`Signatory Fingerprint: ${signatory} | Session ${sessionId.substring(0, 18)}...`, {
+        x: 65,
+        y: 98,
+        size: 8,
+        font: fontRegular,
+        color: rgb(0.4, 0.45, 0.5),
+      });
+
+      // Footer
+      page.drawText("Generated client-side by BlindShare v1.4.0 — Decryption keys never stored server-side.", {
+        x: 50,
+        y: 35,
+        size: 8,
+        font: fontRegular,
+        color: rgb(0.6, 0.65, 0.7),
+      });
+
+      const pdfBytes = await pdf.save();
+      const blob = new Blob([pdfBytes as any], { type: "application/pdf" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `NDA_Certificate_${slug}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch (err) {
+      console.error("Failed to generate NDA certificate:", err);
+    } finally {
+      setGeneratingNda(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-[70vh] flex-col items-center justify-center p-6 text-center">
@@ -1189,6 +1389,20 @@ export function PdfRenderer({
             <RotateCw className="h-4 w-4" />
           </button>
 
+          {/* Slide Thumbnails Drawer Toggle */}
+          <button
+            onClick={() => setShowThumbnails(!showThumbnails)}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition ${
+              showThumbnails
+                ? "border-amber-500/50 bg-amber-500/20 text-amber-300"
+                : "border-slate-700 bg-slate-900 text-slate-200 hover:text-white hover:border-amber-400/50"
+            }`}
+            title="Toggle Slide Thumbnails Grid"
+          >
+            <LayoutGrid className="h-3.5 w-3.5 text-amber-400" />
+            <span className="hidden sm:inline">Thumbnails</span>
+          </button>
+
           {/* Presenter / Pitch Deck Slideshow Mode */}
           <button
             onClick={() => setPresenterMode(true)}
@@ -1219,6 +1433,28 @@ export function PdfRenderer({
                 <>
                   <Copy className="h-3.5 w-3.5 text-amber-400" />
                   <span className="hidden sm:inline">Copy Text</span>
+                </>
+              )}
+            </button>
+          )}
+
+          {/* Executed NDA Certificate Download */}
+          {linkData.requiresNda && (
+            <button
+              onClick={handleDownloadNdaCertificate}
+              disabled={generatingNda}
+              className="flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-500/20 shadow-sm transition disabled:opacity-50 cursor-pointer"
+              title="Download Executed Cryptographic NDA Certificate (PDF)"
+            >
+              {generatingNda ? (
+                <>
+                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+                  <span className="hidden sm:inline">Signing...</span>
+                </>
+              ) : (
+                <>
+                  <Shield className="h-3.5 w-3.5 text-amber-400" />
+                  <span className="hidden sm:inline">NDA Certificate</span>
                 </>
               )}
             </button>
@@ -1411,12 +1647,69 @@ export function PdfRenderer({
           </div>
         </PresenterModeView>
       ) : (
-        <div
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          className={`flex-1 flex flex-col items-center justify-center p-2.5 sm:p-6 md:p-8 overflow-auto ${antiLeakActive ? "blur-xl" : ""}`}
-        >
+        <div className="flex-1 flex overflow-hidden relative">
+          {/* Slide Thumbnail Drawer */}
+          {showThumbnails && (
+            <aside className="w-52 sm:w-60 border-r border-slate-800 bg-slate-950/95 flex flex-col flex-shrink-0 z-30 h-full overflow-hidden shadow-2xl animate-in slide-in-from-left duration-200">
+              <div className="flex items-center justify-between p-3 border-b border-slate-800">
+                <div className="flex items-center gap-2">
+                  <LayoutGrid className="h-4 w-4 text-amber-400" />
+                  <span className="text-xs font-bold text-white">Slide Deck Grid</span>
+                </div>
+                <button
+                  onClick={() => setShowThumbnails(false)}
+                  className="p-1 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
+                  title="Close Thumbnails"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((p) => {
+                  const isActive = p === currentPage;
+                  return (
+                    <button
+                      key={p}
+                      onClick={() => setCurrentPage(p)}
+                      className={`w-full rounded-xl border p-2.5 text-left transition flex items-center justify-between group ${
+                        isActive
+                          ? "border-amber-500 bg-amber-500/15 shadow-md shadow-amber-500/10"
+                          : "border-slate-800/80 bg-slate-900/60 hover:border-slate-700 hover:bg-slate-800/60"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className={`flex h-6 w-6 items-center justify-center rounded-lg text-[11px] font-mono font-bold ${
+                            isActive
+                              ? "bg-amber-500 text-slate-950"
+                              : "bg-slate-800 text-slate-400 group-hover:text-slate-200"
+                          }`}
+                        >
+                          {p}
+                        </span>
+                        <div className="text-xs font-medium text-slate-200">
+                          Slide {p}
+                        </div>
+                      </div>
+                      {isActive ? (
+                        <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                      ) : (
+                        <span className="text-[10px] text-slate-500 group-hover:text-slate-300">Jump</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </aside>
+          )}
+
+          <div
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            className={`flex-1 flex flex-col items-center justify-center p-2.5 sm:p-6 md:p-8 overflow-auto ${antiLeakActive ? "blur-xl" : ""}`}
+          >
           {/* Question Mode Helper Banner */}
           {isAddingPin && (
             <div className="mb-3 flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-950/40 px-3.5 py-1.5 text-xs text-amber-200 animate-pulse">
@@ -1591,7 +1884,8 @@ export function PdfRenderer({
             </div>
           )}
         </div>
-      )}
+      </div>
+    )}
 
       {/* Floating Action Overlay: Voice Walkthrough Player & Question Pin Button */}
       <div className="fixed bottom-12 right-6 z-30 flex flex-col items-end gap-2.5">

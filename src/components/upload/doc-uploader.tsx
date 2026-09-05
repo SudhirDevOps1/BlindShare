@@ -26,9 +26,14 @@ import {
 
 interface DocUploaderProps {
   onUploadSuccess?: (doc: any, keyFragment: string) => void;
+  targetDoc?: {
+    id: string;
+    title: string;
+    currentVersion: number;
+  } | null;
 }
 
-export function DocUploader({ onUploadSuccess }: DocUploaderProps) {
+export function DocUploader({ onUploadSuccess, targetDoc }: DocUploaderProps) {
   const { t, appName } = useI18n();
 
   const [dragActive, setDragActive] = useState(false);
@@ -125,6 +130,46 @@ export function DocUploader({ onUploadSuccess }: DocUploaderProps) {
 
       setStatusMessage("Wrapping key for Owner Master Vault...");
       const vaultWrapped = await autoWrapDocKeyForOwner(docKey);
+
+      if (targetDoc) {
+        setStatusMessage(`Saving Version v${targetDoc.currentVersion + 1}...`);
+        const res = await fetch(`/api/docs/${targetDoc.id}/versions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sizeBytes: file.size,
+            pageCount,
+            ivHex: bufferToHex(encrypted.iv),
+            changelog: `Uploaded v${targetDoc.currentVersion + 1} (${file.name})`,
+            directCiphertextBase64,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || "Version upload failed");
+        }
+
+        setUploadProgress(100);
+        setStatusMessage("Version Updated!");
+
+        if (typeof window !== "undefined") {
+          const hexKey = bufferToHex(docKey);
+          sessionStorage.setItem(`blindshare_key_${targetDoc.id}`, hexKey);
+          localStorage.setItem(`blindshare_key_${targetDoc.id}`, hexKey);
+        }
+
+        setSuccessData({
+          docId: targetDoc.id,
+          keyFragment,
+          title: `v${targetDoc.currentVersion + 1}: ${targetDoc.title}`,
+        });
+
+        if (onUploadSuccess) {
+          onUploadSuccess({ documentId: targetDoc.id, ...data }, keyFragment);
+        }
+        return;
+      }
 
       setStatusMessage("Saving metadata and ciphertext...");
       const res = await fetch("/api/docs", {
@@ -230,6 +275,27 @@ export function DocUploader({ onUploadSuccess }: DocUploaderProps) {
           <span>AES-GCM-256</span>
         </div>
       </div>
+
+      {/* Target Document Versioning Alert */}
+      {targetDoc && (
+        <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-purple-500/40 bg-purple-950/30 p-3.5 text-xs text-purple-200">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/30">
+              <FileText className="h-4 w-4" />
+            </div>
+            <div>
+              <span className="font-bold text-white">Updating Document: </span>
+              <span className="text-purple-300">{targetDoc.title}</span>
+              <div className="text-[10px] text-slate-400">
+                Current: <strong className="text-white">v{targetDoc.currentVersion}</strong> → Next: <strong className="text-amber-400">v{targetDoc.currentVersion + 1}</strong>
+              </div>
+            </div>
+          </div>
+          <span className="rounded-full bg-purple-500/20 px-2.5 py-0.5 text-[10px] font-bold text-purple-300 border border-purple-500/30">
+            v{targetDoc.currentVersion + 1}
+          </span>
+        </div>
+      )}
 
       {error && (
         <div className="mb-4 flex items-start gap-2.5 rounded-2xl border border-red-500/30 bg-red-950/40 p-4 text-xs text-red-300 shadow-lg">
