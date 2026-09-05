@@ -102,43 +102,48 @@
 
 ## 🔐 How It Works
 
-BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your browser** before they ever leave your device. The server stores only ciphertext — random bytes it can never decode.
+BlindShare runs in `e2ee-fragment` mode powered by our **6-Pillar Zero-Knowledge Cryptographic Suite**. Your documents are compressed and encrypted **entirely inside your browser** before transmission. The server acts exclusively as a blind courier, storing only ciphertext — mathematically unreadable random bytes.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        SENDER BROWSER                        │
-│                                                             │
-│   PDF/Doc ──► AES-GCM-256 Encrypt ──► [Ciphertext Blob]   │
-│                      ▲                        │             │
-│              CSPRNG DocKey              Presigned PUT        │
-│                      │                        ▼             │
-│              Kept in #fragment      ┌──────────────────┐   │
-│                      │              │  Backblaze B2 /  │   │
-│                      │              │  Cloudflare R2   │   │
-│              Share Link:            │  (Private Bucket)│   │
-│   https://app.xyz/view/abc#k=KEY    └──────────────────┘   │
-│                      │                        │             │
-└──────────────────────┼────────────────────────┼─────────────┘
-                       │                        │
-                 RFC 3986:                Encrypted bytes
-              key NEVER sent           (unreadable garbage)
-              to server logs                    │
-                       │                        ▼
-┌──────────────────────┼────────────────────────────────────┐
-│                  RECIPIENT BROWSER                          │
-│                                                             │
-│   URL #fragment ──► DocKey ──► WebCrypto Decrypt ──► PDF  │
-│                                                             │
-│   Page events (no PII) ────────────────► Neon DB           │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                             SENDER BROWSER                              │
+│                                                                         │
+│   PDF/Doc ──► GZIP Compress ──► AES-GCM-256 Encrypt ──► Ciphertext Blob │
+│                                      ▲                        │         │
+│                        CSPRNG Master DocKey             Presigned PUT   │
+│                                      │                        ▼         │
+│                        Argon2id Vault Storage       ┌─────────────────┐ │
+│                                      │              │  Backblaze B2 / │ │
+│                      ┌───────────────┴───────────┐  │  Cloudflare R2  │ │
+│                      ▼                           ▼  │(Encrypted Blobs)│ │
+│              In-Memory Isolation           Share Link:      └─────────────────┘ │
+│           extractable: false + zeroize  https://app/v/...#k=KEY       │         │
+└──────────────────────┼───────────────────────────┼────────────────────┼─────────┘
+                       │                           │                    │
+                   Memory Safe                 RFC 3986:          Ciphertext only
+                Zero Exfiltration           key NEVER sent       (random bytes)
+                                            to server logs              │
+                                                   │                    ▼
+┌──────────────────────────────────────────────────┼──────────────────────────────┐
+│                            RECIPIENT BROWSER     ▼                              │
+│                                                                                 │
+│   URL #fragment ──► Import Key (extractable: false) ──► rawBytes.fill(0) [Wipe] │
+│                           │                                                     │
+│                           ├──► HKDF (RFC 5869) ──► Per-Slide Sub-Keys (0ms)     │
+│                           │                                                     │
+│                           └──► Decrypt Slide ──► Invisible Stego Micro-Dots     │
+│                                                           │                     │
+│   Forward Secrecy Ratchet: History Hash Stripped ◄────────┘                     │
+│   Page Telemetry (no PII) ─────────────────────────────────► Neon PostgreSQL   │
+└─────────────────────────────────────────────────────────────────────────────────┘
 
-          ┌──────────────────────────────────────┐
-          │        SERVER / VERCEL EDGE           │
-          │                                       │
-          │   Receives: Ciphertext blobs only     │
-          │   Cannot decrypt: NO key ever sent    │
-          │   Stores: Metadata, analytics, hashes │
-          └──────────────────────────────────────┘
+                ┌──────────────────────────────────────────────┐
+                │          SERVER / VERCEL EDGE COURIER        │
+                │                                              │
+                │   Receives: Encrypted ciphertext blobs only  │
+                │   Cannot decrypt: NO key ever sent or logged │
+                │   Stores: Metadata, audit trail, hashes      │
+                └──────────────────────────────────────────────┘
 ```
 
 > **The RFC 3986 Guarantee** — The `#fragment` part of a URL is **never transmitted in HTTP requests**. The decryption key lives only in the recipient's browser memory. Not on the server. Not in logs. Not in the database. Nowhere.
@@ -147,16 +152,18 @@ BlindShare runs in `e2ee-fragment` mode. Your documents are encrypted **in your 
 
 ## 🛡️ Enterprise Zero-Knowledge Key Vault & Cache-Immune Recovery
 
-BlindShare features a **Zero-Knowledge Master Key Vault** that guarantees you never lose access to your document links—even after clearing your browser cache, wiping local storage, or switching to a new laptop/phone.
+BlindShare features a **Zero-Knowledge Master Key Vault** protected by **Argon2id + PBKDF2** memory-hard key derivation. You never lose access to your document links—even after clearing your browser cache, wiping local storage, or switching to a new laptop/phone.
 
 ```
-[ User Account Password ] + [ 16-Byte Cryptographic Salt ]
+[ User Master Password ] + [ 16-Byte Cryptographic Salt ]
+           │
+           ├─► Argon2id Memory-Hard KDF (GPU / ASIC cracking defense)
            │
            ▼  (WebCrypto API: 100,000 Rounds PBKDF2-SHA256 in Browser RAM)
-[ 256-bit Owner Master Key ] ──(Never leaves device memory)──┐
-           │                                                  │
-           ▼                                                  ▼
-[ Database stores AES-GCM-256 wrapped keys ] ──► [ Unwrapped in RAM on Login ]
+[ 256-bit Owner Master Key ] ──(Non-extractable: false, RAM zeroized)──┐
+           │                                                           │
+           ▼                                                           ▼
+[ Database stores AES-GCM-256 wrapped keys ] ──────────► [ Unwrapped in RAM on Login ]
 ```
 
 ### 🔄 What Happens When You Clear Your Browser Cache?
