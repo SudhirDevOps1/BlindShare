@@ -20,20 +20,42 @@ export interface WebhookEventPayload {
   timestamp: string;
 }
 
-export async function sendWebhookNotification(webhookUrl: string, payload: WebhookEventPayload): Promise<boolean> {
-  if (!webhookUrl) return false;
+export interface WebhookDispatchResult {
+  success: boolean;
+  status?: number;
+  error?: string;
+  latencyMs: number;
+}
+
+export async function sendWebhookNotificationDetailed(
+  webhookUrl: string,
+  payload: WebhookEventPayload
+): Promise<WebhookDispatchResult> {
+  const t0 = Date.now();
+  if (!webhookUrl) {
+    return { success: false, error: "Empty webhook target URL", latencyMs: 0 };
+  }
 
   // SSRF Protection: verify destination is public and safe before making request
   const check = isSafeWebhookUrl(webhookUrl);
   if (!check.safe) {
-    console.warn(`[WebhookNotifier] Blocked unsafe webhook target (${check.reason}):`, webhookUrl);
-    return false;
+    return {
+      success: false,
+      error: `Blocked by SSRF security policy (${check.reason || "Forbidden destination"})`,
+      latencyMs: Date.now() - t0,
+    };
   }
 
   try {
-    const parsed = new URL(webhookUrl);
+    const parsed = new URL(webhookUrl.trim());
     const host = parsed.hostname.toLowerCase();
-    const path = parsed.pathname;
+    let path = parsed.pathname;
+
+    // Auto-normalize Stoat / Revolt URLs if /api/ prefix was omitted
+    if ((host === "stoat.chat" || host === "app.stoat.chat" || host.endsWith(".stoat.chat") || host === "revolt.chat") && path.startsWith("/webhooks/")) {
+      parsed.pathname = "/api" + path;
+      path = parsed.pathname;
+    }
 
     const isDiscord =
       (host === "discord.com" || host.endsWith(".discord.com") || host === "discordapp.com" || host.endsWith(".discordapp.com")) &&
@@ -41,6 +63,8 @@ export async function sendWebhookNotification(webhookUrl: string, payload: Webho
     const isSlack =
       (host === "hooks.slack.com" || host.endsWith(".slack.com")) &&
       path.startsWith("/services");
+    const isStoat =
+      host === "stoat.chat" || host === "app.stoat.chat" || host.endsWith(".stoat.chat") || host === "revolt.chat" || host.endsWith(".revolt.chat");
 
     let body: any;
 
@@ -52,7 +76,7 @@ export async function sendWebhookNotification(webhookUrl: string, payload: Webho
           {
             title: `🔔 ${getEventTitle(payload.event)}: ${payload.linkName}`,
             description: `A viewer interacted with your secure link **${payload.linkName}** (${payload.docTitle || "Document"}).`,
-            color: payload.event === "signature_submitted" ? 0x10b981 : 0x6366f1, // emerald or indigo
+            color: payload.event === "signature_submitted" ? 0x10b981 : 0x6366f1,
             fields: [
               { name: "Viewer", value: payload.viewerEmail || payload.signedName || "Anonymous", inline: true },
               { name: "Location", value: payload.viewerCountry || "Unknown", inline: true },
@@ -77,8 +101,15 @@ export async function sendWebhookNotification(webhookUrl: string, payload: Webho
           },
         ],
       };
+    } else if (isStoat) {
+      // Stoat (Revolt) message payload (content string)
+      const eventTitle = getEventTitle(payload.event);
+      const summaryText = `🔔 **[BlindShare] ${eventTitle}: ${payload.linkName}**\n📄 Document: *${payload.docTitle || "Document"}*\n👤 Viewer: **${payload.viewerEmail || payload.signedName || "Anonymous"}** (${payload.viewerCountry || "Unknown"}, ${payload.viewerDevice || "Desktop"})${payload.dwellSeconds ? `\n⏱ Time Spent: ${payload.dwellSeconds}s` : ""}${payload.questionText ? `\n💬 Question: "${payload.questionText}"` : ""}`;
+      body = {
+        content: summaryText,
+      };
     } else {
-      // Generic JSON Webhook & Chat endpoints (Stoat, Mattermost, custom endpoints)
+      // Generic JSON Webhook & Chat endpoints
       const eventTitle = getEventTitle(payload.event);
       const summaryText = `🔔 [BlindShare] ${eventTitle}: "${payload.linkName}" (${payload.docTitle || "Document"})\n👤 Viewer: ${payload.viewerEmail || payload.signedName || "Anonymous"} (${payload.viewerCountry || "Unknown"}, ${payload.viewerDevice || "Desktop"})${payload.dwellSeconds ? `\n⏱ Time Spent: ${payload.dwellSeconds}s` : ""}${payload.questionText ? `\n💬 Question: "${payload.questionText}"` : ""}`;
 
@@ -90,19 +121,46 @@ export async function sendWebhookNotification(webhookUrl: string, payload: Webho
       };
     }
 
-    const response = await fetch(webhookUrl, {
+    const response = await fetch(parsed.toString(), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(4000), // 4s timeout to avoid blocking requests
+      signal: AbortSignal.timeout(4000),
     });
 
-    return response.ok;
-  } catch (err) {
-    // Non-blocking fire-and-forget
-    console.error("[WebhookNotifier] Failed to dispatch webhook:", err);
-    return false;
+    const latencyMs = Math.max(1, Date.now() - t0);
+
+    if (response.ok) {
+      return { success: true, status: response.status, latencyMs };
+    }
+
+    let errorDetail = `Remote server returned HTTP ${response.status}`;
+    if (response.status === 404) {
+      errorDetail = "Remote server returned 404 Not Found. This means the Webhook ID or Token does not exist on the server (the webhook URL is a test/dummy/fake URL). Please create a live webhook inside your Stoat, Slack, or Discord channel and paste its real URL.";
+    } else if (response.status === 401 || response.status === 403) {
+      errorDetail = "Remote server returned 401/403 Unauthorized. The token in your webhook URL is invalid or has expired.";
+    } else if (response.status === 429) {
+      errorDetail = "Remote server returned 429 Too Many Requests (Rate limit reached).";
+    }
+
+    return {
+      success: false,
+      status: response.status,
+      error: errorDetail,
+      latencyMs,
+    };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err?.message || "Network request failed",
+      latencyMs: Math.max(1, Date.now() - t0),
+    };
   }
+}
+
+export async function sendWebhookNotification(webhookUrl: string, payload: WebhookEventPayload): Promise<boolean> {
+  const res = await sendWebhookNotificationDetailed(webhookUrl, payload);
+  return res.success;
 }
 
 function getEventTitle(event: WebhookEventPayload["event"]): string {

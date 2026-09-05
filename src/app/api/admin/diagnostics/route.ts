@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
 import { getActiveEmailProvider } from "@/lib/email/email-dispatcher";
-import { sendWebhookNotification } from "@/lib/notifications/webhook-notifier";
+import { sendWebhookNotification, sendWebhookNotificationDetailed } from "@/lib/notifications/webhook-notifier";
 
 export type EnvCategory =
   | "Database"
@@ -822,8 +822,7 @@ export async function POST(req: Request) {
       }, { status: 400 });
     }
 
-    const t0 = Date.now();
-    const success = await sendWebhookNotification(testUrl, {
+    const result = await sendWebhookNotificationDetailed(testUrl, {
       event: "link_opened",
       linkName: "BlindShare Health & Webhook Diagnostic Check",
       linkSlug: "admin-diag-probe",
@@ -835,24 +834,23 @@ export async function POST(req: Request) {
       timestamp: new Date().toISOString(),
     });
 
-    const latencyMs = Math.max(1, Date.now() - t0);
+    const masked = testUrl.length > 25 ? `${testUrl.substring(0, 18)}...${testUrl.substring(testUrl.length - 6)}` : testUrl;
 
-    if (!success) {
+    if (!result.success) {
       return NextResponse.json({
         success: false,
-        latencyMs,
-        error: "Webhook ping failed to deliver. Ensure the endpoint URL is reachable and permits incoming HTTP POST JSON payloads.",
-      }, { status: 502 });
+        latencyMs: result.latencyMs,
+        status: result.status,
+        target: masked,
+        error: result.error || "Webhook ping failed to deliver.",
+      }, { status: 200 });
     }
-
-    // Mask for response
-    const masked = testUrl.length > 25 ? `${testUrl.substring(0, 18)}...${testUrl.substring(testUrl.length - 6)}` : testUrl;
 
     return NextResponse.json({
       success: true,
-      latencyMs,
+      latencyMs: result.latencyMs,
       target: masked,
-      message: `Diagnostic webhook ping delivered successfully in ${latencyMs}ms!`,
+      message: `Diagnostic webhook ping delivered successfully in ${result.latencyMs}ms!`,
     });
   } catch (err: any) {
     return NextResponse.json({
