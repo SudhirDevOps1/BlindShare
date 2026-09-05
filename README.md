@@ -211,7 +211,15 @@ BlindShare features a **Zero-Knowledge Master Key Vault** that guarantees you ne
 <summary><strong>📄 Document Management & Viewer</strong></summary>
 <br/>
 
-- Upload **any file type**: PDF, Images (PNG, JPG, WebP, GIF, AVIF, BMP), SVG, Markdown, CSV/Spreadsheet, Audio, Video, ZIP bundles
+- **Universal Multi-Format Ingestion & E2EE Rendering** — Upload and share **any file type**:
+  - **Presentations & Slide Decks:** PowerPoint (`.pptx`, `.ppt`), OpenDocument Presentation (`.odp`), PDF pitch decks with per-slide dwell tracking
+  - **Office Documents & Word:** Microsoft Word (`.docx`, `.doc`), OpenDocument Text (`.odt`)
+  - **Spreadsheets & Data Grids:** Microsoft Excel (`.xlsx`, `.xls`), OpenDocument Spreadsheet (`.ods`), CSV (`.csv`), TSV (`.tsv`) with searchable in-browser data grid
+  - **High-Resolution Images:** PNG, JPG, JPEG, WebP, GIF, AVIF, BMP, ICO with pan/zoom and dynamic forensic watermarks
+  - **Vectors & Diagrams:** Sanitized SVG vector rendering with 3D perspective tilt and XSS protection
+  - **Markdown & Code:** Rich Markdown with Mermaid flowchart diagrams, syntax highlighting across 25+ programming languages (JS, TS, PY, RS, GO, SQL, etc.)
+  - **Audio & Video:** Streaming HTML5 encrypted playback (`.mp4`, `.webm`, `.mp3`, `.wav`, `.m4a`, `.ogg`)
+  - **Encrypted Archives:** ZIP bundle archives (`.zip`) decrypted in browser RAM
 - **Permanent Indelible PDF Watermark on Download** — `pdf-lib` burns diagonal multi-layer watermarks (email, timestamp, slug, custom text) permanently into every page stream before export
 - **Tab-Level Decrypted Session Cache** — 10ms (0.01s) instant F5 refresh reloads using ephemeral `sessionStorage` buffer; auto-wiped on tab close, zero re-download or re-decrypt
 - **In-Doc Interactive Question Pins & Live Q&A** — reader click-to-pin question overlay on slides; real-time 3-second watchdog syncs founder replies without requiring page reload

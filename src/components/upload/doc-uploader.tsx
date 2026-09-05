@@ -336,7 +336,7 @@ export function DocUploader({ onUploadSuccess, targetDoc }: DocUploaderProps) {
             <input
               ref={fileInputRef}
               type="file"
-              accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.avif,.bmp,.ico,.svg,.md,.markdown,.txt,.log,.json,.csv,.tsv,.docx,.doc,.pptx,.odp,.xlsx,.mp3,.wav,.ogg,.m4a,.mp4,.webm,.zip"
+              accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.avif,.bmp,.ico,.svg,.md,.markdown,.txt,.log,.json,.csv,.tsv,.docx,.doc,.odt,.pptx,.ppt,.odp,.xlsx,.xls,.ods,.mp3,.wav,.ogg,.m4a,.mp4,.webm,.zip,.js,.jsx,.ts,.tsx,.py,.css,.scss,.sql,.rs,.go,.sh,.bash,.yaml,.yml,.xml,.c,.cpp,.h,.java,.php,.rb,.swift,.kt,.html,.htm"
               onChange={(e) => e.target.files?.[0] && handleFiles(e.target.files[0])}
               className="hidden"
             />

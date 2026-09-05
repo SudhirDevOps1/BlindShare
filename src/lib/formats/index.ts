@@ -93,9 +93,13 @@ const MAP: Record<string, FormatKind> = {
   // Office Decks & Docs
   docx: { kind: "office", label: "Word Document", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", renderer: "Office Bundle Deck", analyticsUnit: "none" },
   doc: { kind: "office", label: "Word Document (legacy)", mime: "application/msword", renderer: "Office Bundle Deck", analyticsUnit: "none" },
+  odt: { kind: "office", label: "OpenDocument Text", mime: "application/vnd.oasis.opendocument.text", renderer: "Office Bundle Deck", analyticsUnit: "none" },
   pptx: { kind: "office", label: "PowerPoint Deck", mime: "application/vnd.openxmlformats-officedocument.presentationml.presentation", renderer: "Office Presentation Deck", analyticsUnit: "none" },
+  ppt: { kind: "office", label: "PowerPoint Deck (legacy)", mime: "application/vnd.ms-powerpoint", renderer: "Office Presentation Deck", analyticsUnit: "none" },
   odp: { kind: "office", label: "OpenDocument Deck", mime: "application/vnd.oasis.opendocument.presentation", renderer: "Office Presentation Deck", analyticsUnit: "none" },
   xlsx: { kind: "office", label: "Excel Workbook", mime: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", renderer: "Office Spreadsheet Deck", analyticsUnit: "none" },
+  xls: { kind: "office", label: "Excel Workbook (legacy)", mime: "application/vnd.ms-excel", renderer: "Office Spreadsheet Deck", analyticsUnit: "none" },
+  ods: { kind: "office", label: "OpenDocument Spreadsheet", mime: "application/vnd.oasis.opendocument.spreadsheet", renderer: "Office Spreadsheet Deck", analyticsUnit: "none" },
 
   // Audio
   mp3: { kind: "audio", label: "MP3 Audio", mime: "audio/mpeg", renderer: "High-Fidelity Audio Player", analyticsUnit: "segment" },
