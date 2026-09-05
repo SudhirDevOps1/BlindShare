@@ -177,14 +177,20 @@ export function PdfRenderer({
 
     // Poller function for question pins & founder replies
     const fetchPins = () => {
+      // Pause polling when browser tab is inactive / backgrounded to conserve rate limits
+      if (typeof document !== "undefined" && document.hidden) return;
+
       const qParams = new URLSearchParams();
       if (sessionId) qParams.set("sessionId", sessionId);
       if (viewerIdentity) qParams.set("viewerEmail", viewerIdentity);
 
       fetch(`/api/v/${slug}/questions?${qParams.toString()}`)
-        .then((r) => r.json())
+        .then((r) => {
+          if (!r.ok) return null;
+          return r.json();
+        })
         .then((d) => {
-          if (!cancelled && d.questions) {
+          if (!cancelled && d?.questions) {
             setQuestionPins(d.questions);
             // Live update currently open question pin popover with founder reply in real time!
             setActivePin((curr: any) => {
@@ -198,7 +204,7 @@ export function PdfRenderer({
     };
 
     fetchPins();
-    const pinPoller = setInterval(fetchPins, 3000);
+    const pinPoller = setInterval(fetchPins, 5000);
 
     return () => {
       cancelled = true;
@@ -209,6 +215,9 @@ export function PdfRenderer({
   // Live Presenter Sync Watchdog
   useEffect(() => {
     const roomPoll = setInterval(async () => {
+      // Pause polling when browser tab is inactive / backgrounded
+      if (typeof document !== "undefined" && document.hidden) return;
+
       try {
         const r = await fetch(`/api/v/${slug}/room`);
         if (r.ok) {
@@ -219,7 +228,7 @@ export function PdfRenderer({
           }
         }
       } catch {}
-    }, 2500);
+    }, 4000);
 
     return () => clearInterval(roomPoll);
   }, [slug, followPresenter, currentPage]);

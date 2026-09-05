@@ -10,7 +10,7 @@ import { rateLimitDistributed } from "@/lib/security/distributed-rate-limiter";
  */
 
 const PRESIGN_PER_MIN = Number(process.env.PRESIGN_REQ_PER_MIN_PER_IP || "20");
-const VIEWS_PER_HOUR = Number(process.env.VIEWS_PER_HR_PER_LINK || "120");
+const VIEWS_PER_HOUR = Number(process.env.VIEWS_PER_HR_PER_LINK || "300");
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -42,15 +42,20 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith("/api/v/")) {
-    const slug = pathname.split("/")[3] || "unknown";
-    const check = await rateLimitDistributed(`view:${slug}`, VIEWS_PER_HOUR, 3_600_000);
-    if (!check.allowed) {
-      return NextResponse.json(
-        { error: "This link has received too many requests this hour." },
-        { status: 429, headers: { "Retry-After": "600" } }
-      );
-    }
-    if (pathname.endsWith("/verify")) {
+    const parts = pathname.split("/");
+    const slug = parts[3] || "unknown";
+    const subRoute = parts[4] || "";
+
+    // 1) Initial link view / metadata resolution (/api/v/[slug] directly):
+    if (!subRoute) {
+      const check = await rateLimitDistributed(`view:${slug}`, VIEWS_PER_HOUR, 3_600_000);
+      if (!check.allowed) {
+        return NextResponse.json(
+          { error: "This link has received too many requests this hour." },
+          { status: 429, headers: { "Retry-After": "600" } }
+        );
+      }
+    } else if (subRoute === "verify") {
       // password-gate lockout pressure valve (5 tries / 15 min per IP+link)
       const tries = Number(process.env.PWD_GATE_LOCKOUT_TRIES || "5");
       const gateCheck = await rateLimitDistributed(`gate:${ip}:${slug}`, Math.max(tries * 4, 20), 900_000);
@@ -58,6 +63,16 @@ export async function proxy(request: NextRequest) {
         return NextResponse.json(
           { error: "Too many access attempts. Try again in 15 minutes." },
           { status: 429, headers: { "Retry-After": "900" } }
+        );
+      }
+    } else {
+      // In-session active reading telemetry & polling (questions, room, session, bytes):
+      // Generous quota (2,400/hr) per IP+slug so legitimate active readers never get throttled
+      const pollCheck = await rateLimitDistributed(`poll:${ip}:${slug}`, 2400, 3_600_000);
+      if (!pollCheck.allowed) {
+        return NextResponse.json(
+          { error: "Too many requests. Please slow down." },
+          { status: 429, headers: { "Retry-After": "60" } }
         );
       }
     }

@@ -99,15 +99,29 @@ export default function ViewerPage({ params }: { params: Promise<{ slug: string 
   useEffect(() => {
     if (!verified) return;
     const watchdog = setInterval(async () => {
+      // Pause watchdog check when browser tab is inactive / backgrounded
+      if (typeof document !== "undefined" && document.hidden) return;
+
       try {
         const res = await fetch(`/api/v/${slug}`);
-        if (!res.ok) {
+        // Only block if explicitly revoked or expired (404/410 or explicit JSON payload)
+        // NEVER terminate an active reading session on temporary 429 rate limits or network blips!
+        if (res.status === 404 || res.status === 410) {
           const json = await res.json().catch(() => ({}));
           setBlocked({
             kind: json.isRevoked ? "revoked" : "expired",
             message: json.error || t.viewer.revokedDesc,
           });
           setVerified(null);
+        } else if (res.ok) {
+          const json = await res.json().catch(() => ({}));
+          if (json.isRevoked || json.isExpired) {
+            setBlocked({
+              kind: json.isRevoked ? "revoked" : "expired",
+              message: json.error || (json.isRevoked ? t.viewer.revokedDesc : t.viewer.expiredDesc),
+            });
+            setVerified(null);
+          }
         }
       } catch {
         /* offline — keep reading, next tick re-checks */
