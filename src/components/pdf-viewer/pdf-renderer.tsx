@@ -103,9 +103,11 @@ export function PdfRenderer({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(docData.pageCount || 1);
   const [zoom, setZoom] = useState(1.0);
+  const [fitMode, setFitMode] = useState<"width" | "page">("width");
   const [rotation, setRotation] = useState(0);
   const [presenterMode, setPresenterMode] = useState(false);
   const [showThumbnails, setShowThumbnails] = useState(false);
+  const pageScrollContainerRef = useRef<HTMLDivElement | null>(null);
   const [generatingNda, setGeneratingNda] = useState(false);
   const [antiLeakActive, setAntiLeakActive] = useState(false);
   const [downloading, setDownloading] = useState(false);
@@ -374,32 +376,40 @@ export function PdfRenderer({
   const [copiedText, setCopiedText] = useState(false);
   const [pdfLinksCount, setPdfLinksCount] = useState(0);
 
-  // Mouse Wheel Scroll Navigation (Debounced, smooth slide advance)
+  // Automatically reset scroll to the very top (Header) whenever page changes
+  useEffect(() => {
+    if (pageScrollContainerRef.current) {
+      pageScrollContainerRef.current.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, [currentPage]);
+
+  // Mouse Wheel Scroll Navigation (Smooth reading: allows full Header-to-Footer scroll without accidental slide flips)
   const lastWheelTimeRef = useRef(0);
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    const container = e.currentTarget;
-    const isScrollable = container.scrollHeight > container.clientHeight;
+    const container = pageScrollContainerRef.current || e.currentTarget;
+    const isScrollable = container.scrollHeight > container.clientHeight + 10;
 
+    // If the page is scrollable vertically (e.g. A4 document / Hindi book / novel / zoomed in),
+    // let native vertical scrolling happen completely naturally without hijacking vertical delta!
+    // The reader can scroll smoothly from Header to Footer and back from Footer to Header.
     if (isScrollable) {
-      const atTop = container.scrollTop <= 2;
-      const atBottom = Math.ceil(container.scrollTop + container.clientHeight) >= container.scrollHeight - 6;
-
-      if (e.deltaY > 25 && atBottom) {
+      // Allow slide navigation via intentional horizontal swipe or Shift + Wheel
+      if (Math.abs(e.deltaX) > 40 || (e.shiftKey && Math.abs(e.deltaY) > 40)) {
         const now = performance.now();
-        if (now - lastWheelTimeRef.current > 300) {
+        if (now - lastWheelTimeRef.current > 350) {
           lastWheelTimeRef.current = now;
-          setCurrentPage((p) => Math.min(totalPages, p + 1));
-        }
-      } else if (e.deltaY < -25 && atTop) {
-        const now = performance.now();
-        if (now - lastWheelTimeRef.current > 300) {
-          lastWheelTimeRef.current = now;
-          setCurrentPage((p) => Math.max(1, p - 1));
+          const delta = Math.abs(e.deltaX) > 40 ? e.deltaX : e.deltaY;
+          if (delta > 0) {
+            setCurrentPage((p) => Math.min(totalPages, p + 1));
+          } else {
+            setCurrentPage((p) => Math.max(1, p - 1));
+          }
         }
       }
       return;
     }
 
+    // Only if the document fits completely on screen without vertical scrolling (e.g. 16:9 presentation slide or Fit Page mode):
     if (Math.abs(e.deltaY) > 20) {
       const now = performance.now();
       if (now - lastWheelTimeRef.current > 280) {
@@ -831,13 +841,22 @@ export function PdfRenderer({
           const scaleH = maxH / unscaledViewport.height;
           targetScale = Math.min(scaleW, scaleH);
         } else if (typeof window !== "undefined") {
-          // Mobile-first optimal reading width (fits cleanly on 320px mobile to 4K desktop)
           const isMobile = window.innerWidth < 640;
-          const containerTargetWidth = isMobile
-            ? Math.max(window.innerWidth - 24, 280)
-            : Math.min(window.innerWidth * 0.85, 960);
-          const autoFitScale = containerTargetWidth / unscaledViewport.width;
-          targetScale = zoom * (isMobile ? autoFitScale : Math.max(autoFitScale, 1.25));
+          if (fitMode === "page") {
+            // Fit entire page (height & width) inside screen viewport for full visibility
+            const availableH = Math.max(window.innerHeight - 130, 300);
+            const availableW = Math.max(window.innerWidth - (isMobile ? 24 : 120), 280);
+            const scaleH = availableH / unscaledViewport.height;
+            const scaleW = availableW / unscaledViewport.width;
+            targetScale = zoom * Math.min(scaleH, scaleW);
+          } else {
+            // Mobile-first optimal reading width (Header to Footer smooth scroll mode)
+            const containerTargetWidth = isMobile
+              ? Math.max(window.innerWidth - 24, 280)
+              : Math.min(window.innerWidth * 0.85, 960);
+            const autoFitScale = containerTargetWidth / unscaledViewport.width;
+            targetScale = zoom * (isMobile ? autoFitScale : Math.max(autoFitScale, 1.25));
+          }
         }
 
         // Render at ultra-high resolution canvas backing store (super-sampled for zero blur)
@@ -986,7 +1005,7 @@ export function PdfRenderer({
         renderTaskRef.current.cancel();
       }
     };
-  }, [pdfDoc, currentPage, zoom, rotation, drawWatermark, presenterMode]);
+  }, [pdfDoc, currentPage, zoom, rotation, drawWatermark, presenterMode, fitMode]);
 
   // Handle Download (Only if allowDownload is enabled) - Permanently Burns Indelible Watermark
   const handleDownload = async () => {
@@ -1453,21 +1472,50 @@ export function PdfRenderer({
         <div className="flex items-center gap-1.5">
           <div className="hidden sm:flex items-center gap-1 bg-slate-900 rounded-lg p-0.5 border border-slate-800">
             <button
-              onClick={() => setZoom((z) => Math.max(0.6, z - 0.2))}
-              className="p-1.5 text-slate-400 hover:text-white rounded"
+              onClick={() => setZoom((z) => Math.max(0.6, Number((z - 0.2).toFixed(1))))}
+              className="p-1.5 text-slate-400 hover:text-white rounded transition"
               title={t.viewer.zoomOut}
             >
               <ZoomOut className="h-3.5 w-3.5" />
             </button>
-            <span className="text-[11px] font-medium text-slate-300 px-1">{Math.round(zoom * 100)}%</span>
             <button
-              onClick={() => setZoom((z) => Math.min(2.5, z + 0.2))}
-              className="p-1.5 text-slate-400 hover:text-white rounded"
+              onClick={() => setZoom(1.0)}
+              className="text-[11px] font-medium text-slate-300 px-1 hover:text-amber-400 transition"
+              title="Click to reset zoom to 100%"
+            >
+              {Math.round(zoom * 100)}%
+            </button>
+            <button
+              onClick={() => setZoom((z) => Math.min(2.5, Number((z + 0.2).toFixed(1))))}
+              className="p-1.5 text-slate-400 hover:text-white rounded transition"
               title={t.viewer.zoomIn}
             >
               <ZoomIn className="h-3.5 w-3.5" />
             </button>
           </div>
+
+          {/* Fit Mode Toggle: Fit to Width (Scrollable Header-to-Footer) vs Fit to Page (Full Page on Screen) */}
+          <button
+            onClick={() => setFitMode((m) => (m === "width" ? "page" : "width"))}
+            className={`hidden sm:flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-semibold transition ${
+              fitMode === "page"
+                ? "border-amber-500/50 bg-amber-500/20 text-amber-300 shadow-sm"
+                : "border-slate-800 bg-slate-900 text-slate-400 hover:text-white hover:border-slate-700"
+            }`}
+            title={fitMode === "page" ? `${(t.viewer as any).fitWidth || "Fit Width"} (Scroll Header to Footer)` : `${(t.viewer as any).fitPage || "Fit Page"} (View Entire Page on Screen)`}
+          >
+            {fitMode === "page" ? (
+              <>
+                <BookOpen className="h-3.5 w-3.5 text-amber-400" />
+                <span>{(t.viewer as any).fitPage || "Fit Page"}</span>
+              </>
+            ) : (
+              <>
+                <FileText className="h-3.5 w-3.5 text-slate-300" />
+                <span>{(t.viewer as any).fitWidth || "Fit Width"}</span>
+              </>
+            )}
+          </button>
 
           <button
             onClick={() => setRotation((r) => (r + 90) % 360)}
@@ -1790,15 +1838,16 @@ export function PdfRenderer({
           )}
 
           <div
+            ref={pageScrollContainerRef}
             onWheel={handleWheel}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            className={`flex-1 flex flex-col items-center justify-center p-2.5 sm:p-6 md:p-8 overflow-auto ${antiLeakActive ? "blur-xl" : ""}`}
+            className={`flex-1 overflow-y-auto overflow-x-auto p-2.5 sm:p-6 md:p-8 flex flex-col items-center justify-start min-h-0 relative select-text scroll-smooth ${antiLeakActive ? "blur-xl" : ""}`}
           >
           {/* Question Mode Helper Banner */}
           {isAddingPin && (
-            <div className="mb-3 flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-950/40 px-3.5 py-1.5 text-xs text-amber-200 animate-pulse">
+            <div className="mb-3 flex-shrink-0 flex items-center gap-2 rounded-xl border border-amber-500/40 bg-amber-950/40 px-3.5 py-1.5 text-xs text-amber-200 animate-pulse">
               <MessageSquarePlus className="h-4 w-4 text-amber-400" />
               <span>Click anywhere on this slide to drop a private question / feedback pin</span>
               <button
@@ -1821,7 +1870,7 @@ export function PdfRenderer({
                   ? "sepia(0.35) contrast(0.95) brightness(0.97)"
                   : "none",
             }}
-            className={`relative shadow-2xl rounded-lg overflow-hidden border border-slate-800 bg-slate-900 ${
+            className={`my-auto relative shadow-2xl rounded-lg overflow-hidden border border-slate-800 bg-slate-900 ${
               isAddingPin ? "cursor-crosshair ring-2 ring-amber-500/50" : ""
             }`}
             onClick={(e) => {
