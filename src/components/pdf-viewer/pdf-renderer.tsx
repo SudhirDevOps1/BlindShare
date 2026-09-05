@@ -712,6 +712,7 @@ export function PdfRenderer({
           maxPageReached: maxPageReachedRef.current,
           completedPages: maxPageReachedRef.current,
           totalDwellSeconds: totalDwellRef.current,
+          totalPages: totalPages || undefined,
         });
 
         if (navigator.sendBeacon) {

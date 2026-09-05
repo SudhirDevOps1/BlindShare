@@ -87,8 +87,6 @@ export async function GET(
       docInfo = doc;
     }
 
-    const totalPages = docInfo?.pageCount || 1;
-
     // Fetch view sessions using resolved link.id
     const sessions = await db
       .select()
@@ -106,6 +104,24 @@ export async function GET(
       })
       .from(pageEvents)
       .where(eq(pageEvents.linkId, link.id));
+
+    // Self-healing page count: if sessions or page events reveal a higher page number than initial estimate
+    const maxObservedPage = Math.max(
+      docInfo?.pageCount || 1,
+      ...sessions.map((s) => s.maxPageReached || 1),
+      ...allPageEvents.map((ev) => ev.pageNumber || 1)
+    );
+    const totalPages = Math.max(docInfo?.pageCount || 1, maxObservedPage);
+
+    // If database pageCount was undercounted (e.g. truncated buffer at upload), self-heal the DB record
+    if (docInfo?.id && totalPages > (docInfo.pageCount || 1)) {
+      await db
+        .update(documents)
+        .set({ pageCount: totalPages })
+        .where(eq(documents.id, docInfo.id))
+        .catch(() => {});
+      docInfo.pageCount = totalPages;
+    }
 
     // Aggregate per-page dwell events across all sessions
     const pageStatsMap = new Map<number, { pageNumber: number; dwellSeconds: number; viewCount: number }>();

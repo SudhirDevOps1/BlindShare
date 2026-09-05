@@ -87,7 +87,19 @@ export function DocUploader({ onUploadSuccess, targetDoc }: DocUploaderProps) {
     const fmt = detectFormat(filename);
     if (fmt.kind !== "pdf") return 1;
     try {
-      const text = new TextDecoder("latin1").decode(buffer.slice(0, Math.min(buffer.byteLength, 1000000)));
+      if (typeof window !== "undefined" && (window as any).pdfjsLib) {
+        try {
+          const pdf = await (window as any).pdfjsLib.getDocument({ data: new Uint8Array(buffer.slice(0)) }).promise;
+          if (pdf && pdf.numPages > 0) return pdf.numPages;
+        } catch {}
+      }
+      const text = new TextDecoder("latin1").decode(buffer);
+      const countMatch =
+        text.match(/\/Type\s*\/Pages[^>]*\/Count\s+(\d+)/) ||
+        text.match(/\/Count\s+(\d+)[^>]*\/Type\s*\/Pages/);
+      if (countMatch && parseInt(countMatch[1], 10) > 0) {
+        return parseInt(countMatch[1], 10);
+      }
       const matches = text.match(/\/Type\s*\/Page[^s]/g);
       return matches && matches.length > 0 ? matches.length : 1;
     } catch {

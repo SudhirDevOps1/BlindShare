@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { viewSessions, pageEvents, links } from "@/db/schema";
+import { viewSessions, pageEvents, links, documents } from "@/db/schema";
 import { and } from "drizzle-orm";
 import { eq, sql } from "drizzle-orm";
 import { parseBody } from "@/lib/validation";
@@ -12,7 +12,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
   const { slug } = await params;
   const parsed = await parseBody(request, sessionHeartbeatSchema);
   if ("errorResponse" in parsed) return parsed.errorResponse;
-  const { sessionId, events, maxPageReached, completedPages, totalDwellSeconds } = parsed.data;
+  const { sessionId, events, maxPageReached, completedPages, totalDwellSeconds, totalPages } = parsed.data;
 
   try {
     const [link] = await db
@@ -44,6 +44,18 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
         completedPages: Math.max(session.completedPages, completedPages || 1),
       })
       .where(eq(viewSessions.id, sessionId));
+
+    // Self-heal documents.pageCount if a higher page was read or full PDF length was reported by client PDF.js
+    if (session.docId) {
+      const highestPage = Math.max(maxPageReached || 1, totalPages || 1);
+      if (highestPage > 1) {
+        await db
+          .update(documents)
+          .set({ pageCount: sql`GREATEST(${documents.pageCount}, ${highestPage})` })
+          .where(eq(documents.id, session.docId))
+          .catch(() => {});
+      }
+    }
 
     if (Array.isArray(events) && events.length > 0) {
       const pageEventRows = events.map((ev) => ({

@@ -219,6 +219,7 @@ export const sessionHeartbeatSchema = z.object({
   maxPageReached: z.number().int().min(1).max(20000).optional(),
   completedPages: z.number().int().min(0).max(20000).optional(),
   totalDwellSeconds: z.number().int().min(0).max(86400 * 30).optional(),
+  totalPages: z.number().int().min(1).max(20000).optional(),
 });
 
 // ── Datarooms ────────────────────────────────────────────────────────────────

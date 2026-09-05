@@ -122,7 +122,7 @@ export async function GET(request: Request) {
       countryCounts[cty] = (countryCounts[cty] || 0) + 1;
 
       // Engagement scoring
-      const totalPages = doc?.pageCount || 1;
+      const totalPages = Math.max(doc?.pageCount || 1, s.maxPageReached || 1);
       const completionRate = Math.min(100, Math.round((s.maxPageReached / totalPages) * 100));
       let intent: "high" | "medium" | "low" = "low";
       if (completionRate >= 75 || s.totalDwellSeconds >= 120) {
