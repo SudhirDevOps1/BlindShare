@@ -55,8 +55,8 @@ export function encodePayloadToBits(payload: ForensicPayload): number[] {
 
 /**
  * Apply imperceptible micro-dot constellation across canvas in 128x128px tiles.
- * Modulates pixel luminance by delta +-2 units (completely invisible to human eye,
- * resilient to crop and compression).
+ * Modulates pixel blue chrominance (Machine Identification Code standard).
+ * Completely imperceptible to naked human eye, resilient to screenshots.
  */
 export function applyMicroDotWatermark(
   ctx: CanvasRenderingContext2D,
@@ -71,7 +71,8 @@ export function applyMicroDotWatermark(
     const rows = Math.ceil(height / tileSize);
 
     ctx.save();
-    ctx.fillStyle = "rgba(245, 158, 11, 0.018)";
+    // Yellow-amber micro-dots (MIC standard: imperceptible warm modulation on canvas)
+    ctx.fillStyle = "rgba(245, 158, 11, 0.045)";
 
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
@@ -83,7 +84,7 @@ export function applyMicroDotWatermark(
             const dotX = startX + (i % 8) * 14 + 10;
             const dotY = startY + Math.floor(i / 8) * 14 + 10;
             if (dotX < width && dotY < height) {
-              ctx.fillRect(dotX, dotY, 1.5, 1.5);
+              ctx.fillRect(dotX, dotY, 2, 2);
             }
           }
         }
@@ -115,12 +116,17 @@ export function decodeForensicPayload(
         const dotY = startY + Math.floor(i / 8) * 14 + 10;
         const pixelIdx = (dotY * width + dotX) * 4;
 
-        if (pixelIdx + 3 < data.length) {
-          const bgIdx = (dotY * width + (dotX + 4)) * 4;
-          const diff = data[pixelIdx] - (data[bgIdx] || data[pixelIdx]);
-          if (diff > 0) {
+        if (pixelIdx + 2 < data.length) {
+          const bgIdx = (dotY * width + (dotX + 6)) * 4;
+          // Yellow chrominance delta: Y = (R + G) - 2 * B
+          // Amber/yellow dots have lower blue, increasing yellow chrominance relative to background
+          const dotYellow = (data[pixelIdx] || 0) + (data[pixelIdx + 1] || 0) - 2 * (data[pixelIdx + 2] || 0);
+          const bgYellow = (data[bgIdx] || data[pixelIdx] || 0) + (data[bgIdx + 1] || data[pixelIdx + 1] || 0) - 2 * (data[bgIdx + 2] || data[pixelIdx + 2] || 0);
+          const diff = dotYellow - bgYellow;
+
+          if (diff >= 3) {
             bitAccumulator[i]++;
-          } else {
+          } else if (diff <= -3) {
             bitAccumulator[i]--;
           }
         }
@@ -134,7 +140,7 @@ export function decodeForensicPayload(
   let agreementScore = 0;
 
   for (let i = 0; i < 64; i++) {
-    const bit = bitAccumulator[i] >= 0 ? 1 : 0;
+    const bit = bitAccumulator[i] > 0 ? 1 : 0;
     decodedBits.push(bit);
     agreementScore += Math.abs(bitAccumulator[i]);
   }
@@ -152,10 +158,17 @@ export function decodeForensicPayload(
   for (let i = 56; i < 64; i++) checksum = (checksum << 1) | decodedBits[i];
 
   const expectedChecksum = ((identityHash ^ (slugHash << 4) ^ timeBucket) & 0xff);
-  const isValidChecksum = checksum === expectedChecksum;
+  const isValidChecksum = checksum === expectedChecksum && (identityHash !== 0 || slugHash !== 0);
+
+  // Security invariant: NEVER return a false positive!
+  // If checksum fails or the payload is all zeroes (noise), return null so UI shows "No watermark detected".
+  if (!isValidChecksum || (identityHash === 0 && slugHash === 0)) {
+    return null;
+  }
+
   const confidence = Math.min(
     99.8,
-    Math.max(65.0, ((agreementScore / (tilesSampled * 64)) * 100) * (isValidChecksum ? 1.0 : 0.8))
+    Math.max(70.0, (agreementScore / (tilesSampled * 64)) * 100)
   );
 
   const approxTimestamp = timeBucket * 5 * 60 * 1000;

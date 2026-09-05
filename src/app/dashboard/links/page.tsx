@@ -828,6 +828,7 @@ export default function LinksPage() {
       <ForensicLeakScannerModal
         isOpen={forensicScannerOpen}
         onClose={() => setForensicScannerOpen(false)}
+        knownLinks={links}
         onRevokeLink={async (detectedSlug) => {
           const target = links.find(
             (l) => l.slug?.toLowerCase() === detectedSlug?.toLowerCase() ||

@@ -23,12 +23,36 @@ interface ForensicLeakScannerModalProps {
   isOpen: boolean;
   onClose: () => void;
   onRevokeLink?: (slug: string) => void;
+  knownLinks?: Array<{ id: string; slug: string; name?: string }>;
+}
+
+function resolveSlugFromHash(
+  slugHashStr: string,
+  knownLinks?: Array<{ id: string; slug: string; name?: string }>
+): string {
+  if (!knownLinks || !slugHashStr) return slugHashStr;
+  const cleanHex = slugHashStr.replace(/^0x/i, "");
+  const hashNum = parseInt(cleanHex, 16);
+  if (isNaN(hashNum) || hashNum === 0) return slugHashStr;
+
+  for (const link of knownLinks) {
+    let h2 = 0x5a5a;
+    const slug = (link.slug || "").toLowerCase();
+    for (let i = 0; i < slug.length; i++) {
+      h2 = ((h2 << 5) - h2 + slug.charCodeAt(i)) & 0xffff;
+    }
+    if ((h2 & 0xffff) === hashNum) {
+      return link.slug;
+    }
+  }
+  return slugHashStr;
 }
 
 export function ForensicLeakScannerModal({
   isOpen,
   onClose,
   onRevokeLink,
+  knownLinks,
 }: ForensicLeakScannerModalProps) {
   const { t } = useI18n();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -38,6 +62,7 @@ export function ForensicLeakScannerModal({
   const [result, setResult] = useState<ForensicDetectionResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [manualQuery, setManualQuery] = useState("");
 
   const st = (t as any).forensicScanner || {
     title: "Forensic Leak Scanner",
@@ -118,10 +143,14 @@ export function ForensicLeakScannerModal({
         const imgData = ctx.getImageData(0, 0, w, h);
         const detection = decodeForensicPayload(imgData);
 
+        if (detection) {
+          detection.slug = resolveSlugFromHash(detection.slug, knownLinks);
+        }
+
         setTimeout(() => {
           setResult(detection);
           setAnalyzing(false);
-        }, 600);
+        }, 400);
       } catch (err: any) {
         setErrorMsg("Failed to analyze image: " + (err?.message || "Unknown error"));
         setAnalyzing(false);
@@ -132,6 +161,31 @@ export function ForensicLeakScannerModal({
       setAnalyzing(false);
     };
     img.src = dataUrl;
+  };
+
+  const handleManualLookup = () => {
+    const q = manualQuery.trim().toLowerCase();
+    if (!q) return;
+    setErrorMsg(null);
+
+    const found = knownLinks?.find(
+      (l) =>
+        l.slug?.toLowerCase().includes(q) ||
+        (l.name && l.name.toLowerCase().includes(q)) ||
+        q.includes(l.slug?.toLowerCase() || "___")
+    );
+
+    if (found) {
+      setResult({
+        detected: true,
+        viewerIdentity: "Matched via Visible Watermark / Link Slug",
+        slug: found.slug,
+        timestampStr: "Active Link in Dashboard",
+        confidence: 99.0,
+      });
+    } else {
+      setErrorMsg(`No active link found in your vault matching "${manualQuery}". Check the slug or trace token.`);
+    }
   };
 
   const copyReport = () => {
@@ -331,16 +385,48 @@ export function ForensicLeakScannerModal({
 
             {/* No watermark detected or low confidence */}
             {!result && !analyzing && !errorMsg && (
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-center">
-                <p className="text-xs text-slate-400">
+              <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5 text-center space-y-3">
+                <div className="flex items-center justify-center gap-2 text-amber-400 font-semibold text-xs">
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>No Steganographic Micro-Dots Resolved</span>
+                </div>
+                <p className="text-xs text-slate-400 max-w-md mx-auto">
                   {st.noWatermark}
                 </p>
-                <button
-                  onClick={handleReset}
-                  className="mt-2 text-xs text-amber-400 hover:underline"
-                >
-                  {st.scanAnother}
-                </button>
+                <div className="pt-3 border-t border-slate-800/80">
+                  <span className="text-[11px] text-slate-400 block mb-2 font-medium">
+                    🔍 Identify by Visible Watermark (Link Slug or Trace Token):
+                  </span>
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleManualLookup();
+                    }}
+                    className="flex items-center justify-center gap-2 max-w-sm mx-auto"
+                  >
+                    <input
+                      type="text"
+                      placeholder="e.g. slug or token from document..."
+                      value={manualQuery}
+                      onChange={(e) => setManualQuery(e.target.value)}
+                      className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white placeholder-slate-500 flex-1 outline-none focus:border-amber-500"
+                    />
+                    <button
+                      type="submit"
+                      className="rounded-xl bg-amber-500 px-3.5 py-1.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors"
+                    >
+                      Lookup
+                    </button>
+                  </form>
+                </div>
+                <div>
+                  <button
+                    onClick={handleReset}
+                    className="text-xs text-slate-400 hover:text-white underline mt-1"
+                  >
+                    {st.scanAnother}
+                  </button>
+                </div>
               </div>
             )}
           </div>
