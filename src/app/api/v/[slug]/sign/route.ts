@@ -47,8 +47,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       ipHash,
     });
 
-    if (link.webhookUrl) {
-      sendWebhookNotification(link.webhookUrl, {
+    const targetWebhook = link.webhookUrl || process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL;
+    if (targetWebhook) {
+      sendWebhookNotification(targetWebhook, {
         event: "signature_submitted",
         linkName: link.name,
         linkSlug: link.slug,

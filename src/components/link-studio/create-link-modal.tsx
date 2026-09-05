@@ -404,13 +404,13 @@ export function CreateLinkModal({
                 {/* Real-time Webhook Alerts */}
                 <div className="rounded-xl border border-slate-800 bg-slate-950 p-3.5 space-y-2">
                   <div>
-                    <label className="block text-xs font-medium text-white mb-0.5">Real-time Webhook URL (Slack/Discord)</label>
-                    <p className="text-[10px] text-slate-400 mb-2">Get instant alerts when someone opens or reads this deck</p>
+                    <label className="block text-xs font-medium text-white mb-0.5">Real-time Webhook URL (Stoat / Slack / Discord)</label>
+                    <p className="text-[10px] text-slate-400 mb-2">Get instant alerts in Stoat, Slack, or Discord when someone opens, signs, or reads this deck</p>
                     <input
                       type="url"
                       value={webhookUrl}
                       onChange={(e) => setWebhookUrl(e.target.value)}
-                      placeholder="https://discord.com/api/webhooks/... or https://hooks.slack.com/..."
+                      placeholder="https://stoat.chat/webhooks/... or Discord / Slack webhook"
                       className="w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs text-white placeholder-slate-600"
                     />
                   </div>

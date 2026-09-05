@@ -173,8 +173,9 @@ export async function POST(
     });
 
     // Notify document owner via Webhook & WebPush
-    if (link.webhookUrl) {
-      sendWebhookNotification(link.webhookUrl, {
+    const targetWebhook = link.webhookUrl || process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL;
+    if (targetWebhook) {
+      sendWebhookNotification(targetWebhook, {
         event: "question_asked",
         linkName: link.name,
         linkSlug: slug,

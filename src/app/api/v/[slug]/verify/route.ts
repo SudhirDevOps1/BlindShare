@@ -183,8 +183,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     const docTitle = ownerDoc?.title || link.name;
     const viewerDisplay = cleanEmail ? cleanEmail : `Anonymous (${parsedUa.device} in ${country})`;
 
-    if (link.webhookUrl) {
-      sendWebhookNotification(link.webhookUrl, {
+    const targetWebhook = link.webhookUrl || process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL;
+    if (targetWebhook) {
+      sendWebhookNotification(targetWebhook, {
         event: ndaAgreed ? "nda_signed" : "link_opened",
         linkName: link.name,
         linkSlug: link.slug,

@@ -78,8 +78,16 @@ export async function sendWebhookNotification(webhookUrl: string, payload: Webho
         ],
       };
     } else {
-      // Generic JSON Webhook
-      body = payload;
+      // Generic JSON Webhook & Chat endpoints (Stoat, Mattermost, custom endpoints)
+      const eventTitle = getEventTitle(payload.event);
+      const summaryText = `🔔 [BlindShare] ${eventTitle}: "${payload.linkName}" (${payload.docTitle || "Document"})\n👤 Viewer: ${payload.viewerEmail || payload.signedName || "Anonymous"} (${payload.viewerCountry || "Unknown"}, ${payload.viewerDevice || "Desktop"})${payload.dwellSeconds ? `\n⏱ Time Spent: ${payload.dwellSeconds}s` : ""}${payload.questionText ? `\n💬 Question: "${payload.questionText}"` : ""}`;
+
+      body = {
+        ...payload,
+        text: summaryText,
+        content: summaryText,
+        message: summaryText,
+      };
     }
 
     const response = await fetch(webhookUrl, {
