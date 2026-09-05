@@ -421,7 +421,8 @@ export const TrustBar = memo(function TrustBar() {
         <button
           type="button"
           onClick={() => setIsManualPaused((prev) => !prev)}
-          className="ml-2 text-[10px] font-mono px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 text-slate-400 hover:text-amber-300 hover:border-amber-500/30 transition cursor-pointer"
+          className="sr-only"
+          aria-label={isManualPaused ? "Resume ticker" : "Pause ticker"}
           title="Click to toggle manual pause"
         >
           {isManualPaused ? "▶ Resume" : isHovered ? "⏸ Hover Paused" : "⏸ Pause"}

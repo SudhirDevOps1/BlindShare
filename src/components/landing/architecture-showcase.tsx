@@ -298,8 +298,8 @@ export function ArchitectureShowcase() {
           </p>
         </div>
 
-        {/* Presentation Slideshow Control & Navigation Bar */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl border border-slate-800/90 bg-slate-900/80 backdrop-blur-xl shadow-xl">
+        {/* Presentation Slideshow Control & Navigation Bar (Preserved for accessibility, visually hidden) */}
+        <div className="sr-only">
           {/* Left: Slide Counter & Auto-Play Status */}
           <div className="flex items-center gap-3 flex-wrap justify-center sm:justify-start">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300 shadow-sm">
@@ -389,8 +389,8 @@ export function ArchitectureShowcase() {
           </div>
         </div>
 
-        {/* Slideshow Ambient Countdown Bar */}
-        <div className="w-full h-1.5 bg-slate-800/80 rounded-full overflow-hidden relative shadow-inner">
+        {/* Slideshow Ambient Countdown Bar (Preserved, visually hidden) */}
+        <div className="sr-only">
           <div
             className={`h-full rounded-full transition-all duration-100 ease-linear ${
               !isPaused
