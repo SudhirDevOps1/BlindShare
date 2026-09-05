@@ -29,6 +29,15 @@ import {
 } from "lucide-react";
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
 import { TwoFactorModal } from "@/components/auth/two-factor-modal";
+import {
+  DeveloperProfile,
+  loadDeveloperProfile,
+  saveDeveloperProfile,
+  saveDeveloperProfileToDb,
+  fetchDeveloperProfileFromDb,
+  SOCIAL_PLATFORMS_META,
+  SocialPlatformKey,
+} from "@/lib/developer-profile";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -65,61 +74,69 @@ export default function SettingsPage() {
   // Cursor FX & Cyber Pet State (OFF by default in dashboard, ON in showcase)
   const [cursorFxEnabled, setCursorFxEnabled] = useState(false);
 
-  // Developer Profile & Social Media State
-  const [devName, setDevName] = useState("SudhirDevOps1");
-  const [devGithub, setDevGithub] = useState("https://github.com/SudhirDevOps1");
-  const [devTwitter, setDevTwitter] = useState("");
-  const [devLinkedin, setDevLinkedin] = useState("");
-  const [devPortfolio, setDevPortfolio] = useState("");
+  // Developer Profile & Social Media Suite State
+  const [devProfile, setDevProfile] = useState<DeveloperProfile>(loadDeveloperProfile);
   const [savingDevProfile, setSavingDevProfile] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const pref = localStorage.getItem("blindshare_crypto_cursor_dashboard");
       setCursorFxEnabled(pref === "true");
-
-      try {
-        const raw = localStorage.getItem("blindshare_custom_developer_profile");
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed.name) setDevName(parsed.name);
-          if (parsed.github) setDevGithub(parsed.github);
-          if (parsed.twitter !== undefined) setDevTwitter(parsed.twitter);
-          if (parsed.linkedin !== undefined) setDevLinkedin(parsed.linkedin);
-          if (parsed.portfolio !== undefined) setDevPortfolio(parsed.portfolio);
-        } else if (process.env.NEXT_PUBLIC_DEVELOPER_NAME) {
-          setDevName(process.env.NEXT_PUBLIC_DEVELOPER_NAME);
-          if (process.env.NEXT_PUBLIC_DEVELOPER_GITHUB) setDevGithub(process.env.NEXT_PUBLIC_DEVELOPER_GITHUB);
-          if (process.env.NEXT_PUBLIC_DEVELOPER_TWITTER) setDevTwitter(process.env.NEXT_PUBLIC_DEVELOPER_TWITTER);
-          if (process.env.NEXT_PUBLIC_DEVELOPER_LINKEDIN) setDevLinkedin(process.env.NEXT_PUBLIC_DEVELOPER_LINKEDIN);
-          if (process.env.NEXT_PUBLIC_DEVELOPER_PORTFOLIO) setDevPortfolio(process.env.NEXT_PUBLIC_DEVELOPER_PORTFOLIO);
-        }
-      } catch {}
+      setDevProfile(loadDeveloperProfile());
+      fetchDeveloperProfileFromDb().then((dbProf) => {
+        if (dbProf) setDevProfile(dbProf);
+      });
     }
   }, []);
 
-  const handleSaveDevProfile = (e: React.FormEvent) => {
+  const handleUpdatePlatformUrl = (key: SocialPlatformKey, url: string) => {
+    setDevProfile((prev) => ({
+      ...prev,
+      platforms: {
+        ...prev.platforms,
+        [key]: {
+          ...prev.platforms[key],
+          url,
+        },
+      },
+    }));
+  };
+
+  const handleTogglePlatform = (key: SocialPlatformKey, enabled: boolean) => {
+    setDevProfile((prev) => ({
+      ...prev,
+      platforms: {
+        ...prev.platforms,
+        [key]: {
+          ...prev.platforms[key],
+          enabled,
+        },
+      },
+    }));
+  };
+
+  const handleSaveDevProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingDevProfile(true);
-    const profile = {
-      name: devName.trim() || "SudhirDevOps1",
-      url: devGithub.trim() || devPortfolio.trim() || "https://github.com/SudhirDevOps1",
-      github: devGithub.trim(),
-      twitter: devTwitter.trim(),
-      linkedin: devLinkedin.trim(),
-      portfolio: devPortfolio.trim(),
+    const cleanedProfile: DeveloperProfile = {
+      name: devProfile.name.trim() || "SudhirDevOps1",
+      tagline: devProfile.tagline.trim() || "Lead Creator & Maintainer • Zero-Knowledge Document Vault Platform",
+      url: devProfile.url.trim() || devProfile.platforms.github?.url || "https://github.com/SudhirDevOps1",
+      platforms: { ...devProfile.platforms },
     };
-    localStorage.setItem("blindshare_custom_developer_profile", JSON.stringify(profile));
-    window.dispatchEvent(new Event("blindshare-devprofile-updated"));
-    setTimeout(() => {
-      setSavingDevProfile(false);
-      setMessage({
-        type: "success",
-        text: lang === "hi"
-          ? "डेवलपर और सोशल मीडिया प्रोफाइल सुरक्षित हो गई! सभी पेजों के फुटर में लाइव अपडेट हो गया।"
-          : "Developer profile saved! Live updated across all footers.",
-      });
-    }, 150);
+    const res = await saveDeveloperProfileToDb(cleanedProfile);
+    setSavingDevProfile(false);
+    setMessage({
+      type: "success",
+      text:
+        lang === "hi"
+          ? res.success
+            ? "डेवलपर और सोशल मीडिया प्रोफाइल डेटाबेस में सुरक्षित हो गई! सभी पेजों के फुटर में लाइव अपडेट हो गया।"
+            : "प्रोफाइल सुरक्षित हो गई! सभी पेजों के फुटर में लाइव अपडेट हो गया।"
+          : res.success
+          ? "Developer attribution and social media channels saved to Database! Live updated across all footers."
+          : "Developer attribution saved! Live updated across all footers.",
+    });
   };
 
   const handleToggleCursorFx = () => {
@@ -714,7 +731,7 @@ export default function SettingsPage() {
               : "Customize your developer name and social links. This attribution appears across all footers with direct clickable links. Values can be seeded via .env variables or updated anytime here in your browser."}
           </p>
 
-          <form onSubmit={handleSaveDevProfile} className="space-y-4 pt-1">
+          <form onSubmit={handleSaveDevProfile} className="space-y-5 pt-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="mb-1 block text-[11px] font-semibold text-slate-300">
@@ -722,8 +739,8 @@ export default function SettingsPage() {
                 </label>
                 <input
                   type="text"
-                  value={devName}
-                  onChange={(e) => setDevName(e.target.value)}
+                  value={devProfile.name}
+                  onChange={(e) => setDevProfile((prev) => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g. SudhirDevOps1"
                   required
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
@@ -732,70 +749,98 @@ export default function SettingsPage() {
 
               <div>
                 <label className="mb-1 block text-[11px] font-semibold text-slate-300">
-                  GitHub Profile URL
+                  {lang === "hi" ? "टैगलाइन / पदवी" : "Tagline / Role Title"}
                 </label>
                 <input
-                  type="url"
-                  value={devGithub}
-                  onChange={(e) => setDevGithub(e.target.value)}
-                  placeholder="https://github.com/SudhirDevOps1"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-[11px] font-semibold text-slate-300">
-                  Twitter / X Profile URL
-                </label>
-                <input
-                  type="url"
-                  value={devTwitter}
-                  onChange={(e) => setDevTwitter(e.target.value)}
-                  placeholder="https://x.com/yourhandle"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-[11px] font-semibold text-slate-300">
-                  LinkedIn Profile URL
-                </label>
-                <input
-                  type="url"
-                  value={devLinkedin}
-                  onChange={(e) => setDevLinkedin(e.target.value)}
-                  placeholder="https://linkedin.com/in/yourprofile"
-                  className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="sm:col-span-2">
-                <label className="mb-1 block text-[11px] font-semibold text-slate-300">
-                  Portfolio / Personal Website URL
-                </label>
-                <input
-                  type="url"
-                  value={devPortfolio}
-                  onChange={(e) => setDevPortfolio(e.target.value)}
-                  placeholder="https://yourportfolio.com"
+                  type="text"
+                  value={devProfile.tagline}
+                  onChange={(e) => setDevProfile((prev) => ({ ...prev, tagline: e.target.value }))}
+                  placeholder="e.g. Lead Creator & Maintainer • Zero-Knowledge Vault"
                   className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            {/* Social Media Channels Suite */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                  {lang === "hi" ? "सोशल मीडिया चैनल और लिंक्स (Allow / Toggle)" : "Social Channels & Links (Allow / Toggle)"}
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  {lang === "hi" ? "चेक बॉक्स से फुटर में ऑन / ऑफ करें" : "Toggle checkbox to allow in footer"}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {SOCIAL_PLATFORMS_META.map((meta) => {
+                  const plat = devProfile.platforms[meta.key] || { enabled: false, url: "" };
+                  return (
+                    <div
+                      key={meta.key}
+                      className={`rounded-xl border p-3 transition-all ${
+                        plat.enabled
+                          ? "border-slate-700 bg-slate-950/80 shadow-sm"
+                          : "border-slate-800/60 bg-slate-950/30 opacity-70"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2 mb-2">
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={plat.enabled}
+                            onChange={(e) => handleTogglePlatform(meta.key, e.target.checked)}
+                            className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                          />
+                          <span className={`text-xs font-semibold ${plat.enabled ? "text-white" : "text-slate-400"}`}>
+                            {meta.name}
+                          </span>
+                        </label>
+                        <span
+                          className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                            plat.enabled
+                              ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                              : "bg-slate-800 text-slate-400"
+                          }`}
+                        >
+                          {plat.enabled ? (lang === "hi" ? "सक्रिय (Allowed)" : "Allowed") : (lang === "hi" ? "छिपा हुआ" : "Hidden")}
+                        </span>
+                      </div>
+
+                      <input
+                        type="url"
+                        value={plat.url}
+                        onChange={(e) => handleUpdatePlatformUrl(meta.key, e.target.value)}
+                        placeholder={meta.placeholder}
+                        className="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
               <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
                 <Heart className="h-3.5 w-3.5 text-rose-500 fill-rose-500" />
-                <span>{lang === "hi" ? "फुटर में 'Developed with ❤️ by " + (devName || "SudhirDevOps1") + "' दिखेगा" : "Footer renders 'Developed with ❤️ by " + (devName || "SudhirDevOps1") + "'"}</span>
+                <span>
+                  {lang === "hi"
+                    ? `फुटर में 'Developed with ❤️ by ${devProfile.name || "SudhirDevOps1"}' दिखेगा`
+                    : `Footer renders 'Developed with ❤️ by ${devProfile.name || "SudhirDevOps1"}'`}
+                </span>
               </div>
 
               <button
                 type="submit"
                 disabled={savingDevProfile}
-                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors shadow-sm disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/20 disabled:opacity-50"
               >
-                <Save className="h-3.5 w-3.5" />
-                <span>{savingDevProfile ? (lang === "hi" ? "सेव हो रहा है..." : "Saving...") : (lang === "hi" ? "प्रोफाइल सेव करें" : "Save Attribution")}</span>
+                <Save className="h-4 w-4" />
+                <span>
+                  {savingDevProfile
+                    ? (lang === "hi" ? "सेव हो रहा है..." : "Saving...")
+                    : (lang === "hi" ? "प्रोफाइल व चैनल सुरक्षित करें" : "Save Developer Attribution")}
+                </span>
               </button>
             </div>
           </form>

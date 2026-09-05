@@ -31,7 +31,20 @@ import {
   AlertCircle,
   HelpCircle,
   Search,
+  Heart,
+  Code2,
+  Save,
 } from "lucide-react";
+import {
+  DeveloperProfile,
+  loadDeveloperProfile,
+  saveDeveloperProfile,
+  saveDeveloperProfileToDb,
+  fetchDeveloperProfileFromDb,
+  mergeDeveloperProfile,
+  SOCIAL_PLATFORMS_META,
+  SocialPlatformKey,
+} from "@/lib/developer-profile";
 
 export function AdminPanelView() {
   const { t, appName } = useI18n();
@@ -72,6 +85,54 @@ export function AdminPanelView() {
   const [customInviteCode, setCustomInviteCode] = useState("");
   const [inviteRecipientEmail, setInviteRecipientEmail] = useState("");
 
+  // Developer Profile & Social Media Suite State
+  const [devProfile, setDevProfile] = useState<DeveloperProfile>(loadDeveloperProfile);
+  const [savingDevProfile, setSavingDevProfile] = useState(false);
+
+  const handleUpdateDevPlatformUrl = (key: SocialPlatformKey, url: string) => {
+    setDevProfile((prev) => ({
+      ...prev,
+      platforms: {
+        ...prev.platforms,
+        [key]: {
+          ...prev.platforms[key],
+          url,
+        },
+      },
+    }));
+  };
+
+  const handleToggleDevPlatform = (key: SocialPlatformKey, enabled: boolean) => {
+    setDevProfile((prev) => ({
+      ...prev,
+      platforms: {
+        ...prev.platforms,
+        [key]: {
+          ...prev.platforms[key],
+          enabled,
+        },
+      },
+    }));
+  };
+
+  const handleSaveDevProfileAdmin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingDevProfile(true);
+    const cleaned: DeveloperProfile = {
+      name: devProfile.name.trim() || "SudhirDevOps1",
+      tagline: devProfile.tagline.trim() || "Lead Creator & Maintainer • Zero-Knowledge Document Vault Platform",
+      url: devProfile.url.trim() || devProfile.platforms.github?.url || "https://github.com/SudhirDevOps1",
+      platforms: { ...devProfile.platforms },
+    };
+    const res = await saveDeveloperProfileToDb(cleaned);
+    setSavingDevProfile(false);
+    if (res.success) {
+      setActionMessage("Developer Profile & Social Media Allowlist saved to Database! Changes are live across all page footers.");
+    } else {
+      setActionMessage(`Notice: Saved locally in browser. DB note: ${res.error}`);
+    }
+  };
+
   const fetchMetrics = async () => {
     try {
       setLoading(true);
@@ -110,7 +171,15 @@ export function AdminPanelView() {
     try {
       const res = await fetch("/api/admin/settings");
       const json = await res.json();
-      if (res.ok) setSettings(json.settings || {});
+      if (res.ok) {
+        setSettings(json.settings || {});
+        if (json.settings?.developer_profile) {
+          try {
+            const parsed = JSON.parse(json.settings.developer_profile);
+            setDevProfile(mergeDeveloperProfile(parsed));
+          } catch {}
+        }
+      }
     } catch {}
   };
 
@@ -1477,48 +1546,176 @@ export function AdminPanelView() {
 
       {/* Tab 6: System Controls */}
       {tab === "settings" && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-6">
-          <h3 className="text-sm font-bold text-white mb-3">Platform Broadcast & Maintenance Controls</h3>
+        <div className="space-y-6">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-6">
+            <h3 className="text-sm font-bold text-white mb-3">Platform Broadcast & Maintenance Controls</h3>
 
-          {/* Maintenance Mode */}
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 flex items-center justify-between">
-            <div>
-              <div className="text-sm font-semibold text-white">{t.admin.maintenance}</div>
-              <div className="text-xs text-slate-400">
-                When active, non-admin viewers will see a maintenance notice.
+            {/* Maintenance Mode */}
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 flex items-center justify-between">
+              <div>
+                <div className="text-sm font-semibold text-white">{t.admin.maintenance}</div>
+                <div className="text-xs text-slate-400">
+                  When active, non-admin viewers will see a maintenance notice.
+                </div>
               </div>
+              <input
+                type="checkbox"
+                checked={settings.maintenance_mode === "true"}
+                onChange={(e) =>
+                  setSettings({ ...settings, maintenance_mode: e.target.checked ? "true" : "false" })
+                }
+                className="h-5 w-5 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+              />
             </div>
-            <input
-              type="checkbox"
-              checked={settings.maintenance_mode === "true"}
-              onChange={(e) =>
-                setSettings({ ...settings, maintenance_mode: e.target.checked ? "true" : "false" })
-              }
-              className="h-5 w-5 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
-            />
+
+            {/* Broadcast Banner */}
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2">
+              <div className="text-sm font-semibold text-white">{t.admin.broadcastBanner}</div>
+              <p className="text-xs text-slate-400">
+                Optional announcement banner shown at top of viewer and dashboard.
+              </p>
+              <input
+                type="text"
+                value={settings.broadcast_banner || ""}
+                onChange={(e) => setSettings({ ...settings, broadcast_banner: e.target.value })}
+                placeholder="e.g. Scheduled maintenance tonight at 02:00 UTC."
+                className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs text-white"
+              />
+            </div>
+
+            <button
+              onClick={handleSaveSettings}
+              className="rounded-xl bg-amber-500 px-6 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10"
+            >
+              {t.admin.saveSettings}
+            </button>
           </div>
 
-          {/* Broadcast Banner */}
-          <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2">
-            <div className="text-sm font-semibold text-white">{t.admin.broadcastBanner}</div>
-            <p className="text-xs text-slate-400">
-              Optional announcement banner shown at top of viewer and dashboard.
-            </p>
-            <input
-              type="text"
-              value={settings.broadcast_banner || ""}
-              onChange={(e) => setSettings({ ...settings, broadcast_banner: e.target.value })}
-              placeholder="e.g. Scheduled maintenance tonight at 02:00 UTC."
-              className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs text-white"
-            />
-          </div>
+          {/* Developer Attribution & Multi-Channel Social Suite */}
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30">
+                  <Code2 className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white">Developer Attribution &amp; Social Allowlist</h3>
+                  <p className="text-xs text-slate-400">
+                    Manage the developer name, role tagline, and which social media badges appear in all page footers.
+                  </p>
+                </div>
+              </div>
+              <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-bold text-emerald-400 border border-emerald-500/30">
+                Live Footer Reactive
+              </span>
+            </div>
 
-          <button
-            onClick={handleSaveSettings}
-            className="rounded-xl bg-amber-500 px-6 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10"
-          >
-            {t.admin.saveSettings}
-          </button>
+            <form onSubmit={handleSaveDevProfileAdmin} className="space-y-4 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold text-slate-300">
+                    Developer / Creator Name
+                  </label>
+                  <input
+                    type="text"
+                    value={devProfile.name}
+                    onChange={(e) => setDevProfile((prev) => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g. SudhirDevOps1"
+                    required
+                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-[11px] font-semibold text-slate-300">
+                    Tagline / Role Title
+                  </label>
+                  <input
+                    type="text"
+                    value={devProfile.tagline}
+                    onChange={(e) => setDevProfile((prev) => ({ ...prev, tagline: e.target.value }))}
+                    placeholder="e.g. Lead Creator & Maintainer • Zero-Knowledge Vault"
+                    className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Social Channels Allowlist Grid */}
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                  <span className="text-xs font-bold text-slate-200 uppercase tracking-wider">
+                    Multi-Platform Social Channels Suite (Allowlist &amp; URLs)
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    Check the box to allow that channel in the footer
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {SOCIAL_PLATFORMS_META.map((meta) => {
+                    const plat = devProfile.platforms[meta.key] || { enabled: false, url: "" };
+                    return (
+                      <div
+                        key={meta.key}
+                        className={`rounded-xl border p-3 transition-all ${
+                          plat.enabled
+                            ? "border-slate-700 bg-slate-950/80 shadow-sm"
+                            : "border-slate-800/60 bg-slate-950/30 opacity-70"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={plat.enabled}
+                              onChange={(e) => handleToggleDevPlatform(meta.key, e.target.checked)}
+                              className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                            />
+                            <span className={`text-xs font-semibold ${plat.enabled ? "text-white" : "text-slate-400"}`}>
+                              {meta.name}
+                            </span>
+                          </label>
+                          <span
+                            className={`rounded-md px-1.5 py-0.5 text-[10px] font-semibold ${
+                              plat.enabled
+                                ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                                : "bg-slate-800 text-slate-400"
+                            }`}
+                          >
+                            {plat.enabled ? "Allowed" : "Hidden"}
+                          </span>
+                        </div>
+
+                        <input
+                          type="url"
+                          value={plat.url}
+                          onChange={(e) => handleUpdateDevPlatformUrl(meta.key, e.target.value)}
+                          placeholder={meta.placeholder}
+                          className="w-full rounded-lg border border-slate-800 bg-slate-900/90 px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                <div className="text-[11px] text-slate-400 flex items-center gap-1.5">
+                  <Heart className="h-3.5 w-3.5 text-rose-500 fill-rose-500" />
+                  <span>Footer preview: Developed with ❤️ by {devProfile.name || "SudhirDevOps1"}</span>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={savingDevProfile}
+                  className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/20 disabled:opacity-50"
+                >
+                  <Save className="h-4 w-4" />
+                  <span>{savingDevProfile ? "Saving..." : "Save Developer Attribution"}</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

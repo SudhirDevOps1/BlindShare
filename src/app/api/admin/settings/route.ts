@@ -45,6 +45,15 @@ export async function POST(request: Request) {
       ? raw.settings.broadcastBanner
       : raw.settings?.broadcast_banner;
 
+  const developerProfile =
+    raw.developerProfile !== undefined
+      ? raw.developerProfile
+      : raw.developer_profile !== undefined
+      ? raw.developer_profile
+      : raw.settings?.developerProfile !== undefined
+      ? raw.settings.developerProfile
+      : raw.settings?.developer_profile;
+
   try {
     const upsertSetting = async (key: string, value: string) => {
       const [existing] = await db.select().from(systemSettings).where(eq(systemSettings.key, key)).limit(1);
@@ -61,6 +70,12 @@ export async function POST(request: Request) {
     if (broadcastBanner !== undefined) {
       await upsertSetting("broadcast_banner", String(broadcastBanner).trim());
     }
+    if (developerProfile !== undefined) {
+      await upsertSetting(
+        "developer_profile",
+        typeof developerProfile === "string" ? developerProfile : JSON.stringify(developerProfile)
+      );
+    }
 
     await db.insert(auditLog).values({
       id: genId("aud"),
@@ -69,7 +84,11 @@ export async function POST(request: Request) {
       action: "admin.settings_update",
       resourceType: "system",
       resourceId: "system_settings",
-      detailsJson: JSON.stringify({ maintenanceMode, hasBanner: !!broadcastBanner }),
+      detailsJson: JSON.stringify({
+        maintenanceMode,
+        hasBanner: !!broadcastBanner,
+        hasDevProfile: !!developerProfile,
+      }),
     });
 
     // Return latest settings map

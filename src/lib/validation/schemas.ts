@@ -249,12 +249,16 @@ export const adminSettingsSchema = z.object({
   maintenance_mode: z.union([z.boolean(), z.string().transform((v) => v === "true")]).optional(),
   broadcastBanner: z.string().trim().max(500).optional(),
   broadcast_banner: z.string().trim().max(500).optional(),
+  developerProfile: z.any().optional(),
+  developer_profile: z.any().optional(),
   settings: z
     .object({
       maintenance_mode: z.union([z.boolean(), z.string().transform((v) => v === "true")]).optional(),
       maintenanceMode: z.union([z.boolean(), z.string().transform((v) => v === "true")]).optional(),
       broadcast_banner: z.string().trim().max(500).optional(),
       broadcastBanner: z.string().trim().max(500).optional(),
+      developerProfile: z.any().optional(),
+      developer_profile: z.any().optional(),
     })
     .optional(),
 });
