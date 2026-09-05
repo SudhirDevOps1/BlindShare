@@ -499,6 +499,26 @@ export const translations = {
         avgAttentionSpan: "Avg. Attention Span",
         conversionRate: "Completion Rate",
       },
+      cohortRetention: {
+        title: "Weekly Reader Cohort Retention Matrix",
+        subtitle: "Tracking investor recurring engagement over rolling 5-week cohorts",
+      },
+      funnelTimeTrend: {
+        title: "30-Day Conversion Velocity Trend",
+        subtitle: "Multi-stage pipeline analysis across Link Opened, 50% Core, and Completed",
+      },
+      scatterDwellIntent: {
+        title: "Dwell Time vs. AI Lead Intent Score",
+        subtitle: "2D quadrant scatter analyzing reading duration against algorithmic conviction",
+      },
+      geoChoropleth: {
+        title: "Global Pitch Deck Geographic Distribution",
+        subtitle: "Full-width investor density map with real-time coordinate pulse nodes",
+      },
+      calendar365: {
+        title: "365-Day Reader Engagement Heatmap",
+        subtitle: "GitHub-style daily attention density across the trailing 12 months",
+      },
       graphItems: {
         g30: {
           title: "30-Day Views Timeline",
@@ -1180,6 +1200,26 @@ export const translations = {
         topPitchDeck: "सर्वाधिक देखा गया लिंक",
         avgAttentionSpan: "औसत ध्यान अवधि",
         conversionRate: "पूर्णता दर",
+      },
+      cohortRetention: {
+        title: "साप्ताहिक पाठक कोहॉर्ट प्रतिधारण मैट्रिक्स",
+        subtitle: "5-सप्ताह के रोलिंग कोहॉर्ट्स में आवर्ती निवेशक जुड़ाव की ट्रैकिंग",
+      },
+      funnelTimeTrend: {
+        title: "30-दिवसीय रूपांतरण वेग प्रवृत्ति",
+        subtitle: "लिंक ओपन, 50% मुख्य और पूर्ण चरणों में मल्टी-स्टेज पाइपलाइन विश्लेषण",
+      },
+      scatterDwellIntent: {
+        title: "पाठन समय बनाम AI लीड इंटेंट स्कोर",
+        subtitle: "2D क्वाड्रंट स्कैटर जो पाठन अवधि का एल्गोरिथम स्कोर से विश्लेषण करता है",
+      },
+      geoChoropleth: {
+        title: "वैश्विक पिच डेक भौगोलिक वितरण",
+        subtitle: "रीयल-टाइम पल्स नोड्स के साथ पूर्ण-चौड़ाई वाला निवेशक घनत्व मानचित्र",
+      },
+      calendar365: {
+        title: "365-दिवसीय पाठक जुड़ाव हीटमैप",
+        subtitle: "पिछले 12 महीनों में GitHub-शैली का दैनिक ध्यान घनत्व मैट्रिक्स",
       },
       graphItems: {
         g30: {

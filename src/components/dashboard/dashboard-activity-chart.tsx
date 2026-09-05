@@ -276,6 +276,24 @@ export function DashboardActivityChart({
           </div>
         </div>
 
+        {/* Cost Forecast Gauge */}
+        <div className="rounded-xl border border-slate-800/80 bg-slate-950/80 p-2.5 space-y-1.5">
+          <div className="flex items-center justify-between text-[10px]">
+            <span className="text-slate-400 font-medium">Cost Forecast & Free-Tier Runway</span>
+            <span className="font-mono text-emerald-400 font-bold">100% Free ($0.00)</span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full"
+              style={{ width: `${Math.max(1, Math.max(b2Pct, neonPct))}%` }}
+            />
+          </div>
+          <div className="flex items-center justify-between text-[9px] text-slate-500 font-mono">
+            <span>B2: {usedStorageMb.toFixed(1)}MB / 10GB</span>
+            <span>Runway: ∞ (Within ₹0 Tier)</span>
+          </div>
+        </div>
+
         <div className="flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/80 pt-2.5">
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" />

@@ -438,7 +438,7 @@ Below are the exact metrics recorded directly from our active production dashboa
 │ 🪣 B2 Class C Calls   │ 35 List / Metadata Ops        │ 2,500 / day       │ 1.40%        │ 2,465/day   │
 ├───────────────────────┼───────────────────────────────┼───────────────────┼──────────────┼─────────────┤
 │ 📬 Google Apps Script │ Active Transactional Engine   │ 100–1,500 emails/d│ ~12.0%       │ $0/mo ($20s)│
-│ 🐙 GitHub Actions CI  │ 180 mins used (34 Tests pass) │ 2,000 mins / mo   │ 9.00%        │ 1,820 mins  │
+│ 🐙 GitHub Actions CI  │ 180 mins used (40 Tests pass) │ 2,000 mins / mo   │ 9.00%        │ 1,820 mins  │
 └───────────────────────┴───────────────────────────────┴───────────────────┴──────────────┴─────────────┘
 *Note: Neon auto-suspends to 0 CU after 5 minutes of idle time. 3.44 CU-hrs over 4 days projects to ~25.8 CU-hrs/mo, leaving a massive 74.2% safety buffer.
 ```

@@ -67,7 +67,14 @@ export default function HomePage() {
               <Sparkles className="h-3.5 w-3.5 text-amber-400" />
               <span>{t.hero.badge}</span>
               <span className="text-amber-500">•</span>
-              <span className="text-slate-300">{t.heroExtras?.freeTier || "₹0 Free Tier"}</span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[11px] text-amber-200">
+                <object data="/brand/06-aes-gcm-badge.svg" type="image/svg+xml" className="h-3.5 w-3.5 pointer-events-none" />
+                <span>AES-GCM-256</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/15 px-2 py-0.5 text-[11px] text-emerald-300">
+                <object data="/brand/09-free-tier-badge.svg" type="image/svg+xml" className="h-3.5 w-3.5 pointer-events-none" />
+                <span>{t.heroExtras?.freeTier || "₹0 Free Tier"}</span>
+              </span>
               <span className="text-amber-500">•</span>
               <a
                 href="https://github.com/SudhirDevOps1/BlindShare/blob/main/LICENSE"

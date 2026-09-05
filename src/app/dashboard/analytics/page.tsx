@@ -34,6 +34,11 @@ import {
   TopLinksLeaderboard,
   MetricCorrelationMatrix,
   DwellHistogram,
+  CohortRetention,
+  FunnelTimeTrend,
+  ScatterDwellIntent,
+  GeoChoroplethFull,
+  Calendar365Heatmap,
 } from "@/components/analytics/charts";
 
 export default function GlobalAnalyticsPage() {
@@ -353,6 +358,24 @@ export default function GlobalAnalyticsPage() {
           <DwellHistogram sessions={recentSessions || []} />
           <MetricCorrelationMatrix sessions={recentSessions || []} />
         </div>
+
+        {/* 7. Cohort Retention Matrix & 30-Day Conversion Funnel */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <CohortRetention sessions={recentSessions || []} />
+          <FunnelTimeTrend sessions={recentSessions || []} />
+        </div>
+
+        {/* 8. Scatter Dwell Time vs. AI Lead Intent Score */}
+        <ScatterDwellIntent sessions={recentSessions || []} />
+
+        {/* 9. Global Geo Choropleth & Radar Telemetry */}
+        <GeoChoroplethFull
+          countryBreakdown={countryBreakdown || []}
+          activeNow={metrics?.activeNow || 0}
+        />
+
+        {/* 10. 365-Day Annual Views Activity Heatmap */}
+        <Calendar365Heatmap sessions={recentSessions || []} />
 
         {/* Live Real-time Activity Feed */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">

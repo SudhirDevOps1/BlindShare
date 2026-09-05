@@ -12,3 +12,8 @@ export * from "./dwell-scatter-plot";
 export * from "./top-links-leaderboard";
 export * from "./metric-correlation-matrix";
 export * from "./weekly-kpi-digest";
+export * from "./cohort-retention";
+export * from "./funnel-time-trend";
+export * from "./scatter-dwell-intent";
+export * from "./geo-choropleth-full";
+export * from "./calendar-365-heatmap";

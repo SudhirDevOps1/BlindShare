@@ -522,6 +522,14 @@ export function CryptoCursor() {
           maskImage: `radial-gradient(circle 125px at -500px -500px, black 0%, transparent 100%)`,
         }}
       >
+        {/* Subtle Cyber Grid Pattern revealed under cursor spotlight */}
+        <div
+          className="absolute inset-0 pointer-events-none opacity-25"
+          style={{
+            backgroundImage: `linear-gradient(to right, rgba(245, 158, 11, 0.15) 1px, transparent 1px), linear-gradient(to bottom, rgba(245, 158, 11, 0.15) 1px, transparent 1px)`,
+            backgroundSize: "24px 24px",
+          }}
+        />
         <div className="absolute inset-0 p-5 font-mono text-[10px] font-bold uppercase tracking-widest leading-loose select-none overflow-hidden break-words text-justify">
           {CIPHER_STREAM.map((item) => (
             <span key={`spot-${item.id}`} className={`${item.color} mr-2.5 inline-block`}>

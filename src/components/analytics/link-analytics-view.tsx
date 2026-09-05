@@ -45,6 +45,11 @@ import {
   DwellScatterPlot,
   QuestionDensityHeatmap,
   MetricCorrelationMatrix,
+  CohortRetention,
+  FunnelTimeTrend,
+  ScatterDwellIntent,
+  GeoChoroplethFull,
+  Calendar365Heatmap,
 } from "./charts";
 
 interface LinkAnalyticsViewProps {
@@ -492,6 +497,21 @@ export function LinkAnalyticsView({ linkId }: LinkAnalyticsViewProps) {
         <DwellHistogram sessions={sessions || []} />
         <MetricCorrelationMatrix sessions={sessions || []} />
       </div>
+
+      {/* Cohort Retention & 30-Day Funnel Time Trend */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <CohortRetention sessions={sessions || []} />
+        <FunnelTimeTrend sessions={sessions || []} funnelStats={metrics?.funnel} />
+      </div>
+
+      {/* High-Resolution Geo Choropleth Telemetry */}
+      <GeoChoroplethFull
+        countryBreakdown={countryBreakdown || []}
+        activeNow={metrics?.activeNow || 0}
+      />
+
+      {/* 365-Day Activity Heatmap */}
+      <Calendar365Heatmap sessions={sessions || []} />
 
       {/* Viewer Session Logs Table (Interactive with Intent Filter & Page Breakdown) */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">

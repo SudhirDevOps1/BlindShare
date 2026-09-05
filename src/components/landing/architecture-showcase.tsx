@@ -309,6 +309,16 @@ export function ArchitectureShowcase() {
       onMouseLeave={handleSectionMouseLeave}
       className="relative border-t border-slate-900/80 bg-slate-950/80 py-24 px-4 sm:px-6 overflow-hidden select-none sm:select-auto cursor-default"
     >
+      {/* Top Slide Progress Bar */}
+      <div className="absolute top-0 left-0 right-0 h-1 bg-slate-900/60 overflow-hidden z-20">
+        <div
+          className={`h-full bg-gradient-to-r from-amber-500 via-amber-300 to-amber-500 transition-all duration-100 ease-linear ${
+            isPaused ? "opacity-60" : "opacity-100"
+          }`}
+          style={{ width: `${Math.min(100, Math.max(0, slideProgress))}%` }}
+        />
+      </div>
+
       {/* Background ambient lighting */}
       <div className="absolute top-1/4 right-10 -z-10 h-96 w-96 rounded-full bg-amber-500/10 blur-[150px] pointer-events-none" />
       <div className="absolute bottom-10 left-10 -z-10 h-80 w-80 rounded-full bg-blue-500/10 blur-[130px] pointer-events-none" />
@@ -335,7 +345,7 @@ export function ArchitectureShowcase() {
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 border border-amber-500/30 text-xs font-bold text-amber-300 shadow-sm">
               <Layers className="h-3.5 w-3.5 text-amber-400" />
               <span>
-                {t.architectureShowcase.slideshow?.slide || "स्लाइड"} {currentSlideIndex + 1} {t.architectureShowcase.slideshow?.of || "/"} 7
+                {t.architectureShowcase.slideshow?.slide || "स्लाइड"} {currentSlideIndex + 1} {t.architectureShowcase.slideshow?.of || "/"} {TAB_KEYS.length}
               </span>
             </div>
 

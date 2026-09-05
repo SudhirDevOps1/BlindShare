@@ -126,7 +126,7 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
   - Zero-dark-pattern consent banner gating all client analytics until affirmative opt-in with 100% English/Hindi bilingual parity.
 - **Sub-processor Registry & Enterprise DPA Transparency (`docs/PRIVACY-POLICY.md`, `/privacy#subprocessors`)**:
   - Exhaustive GDPR Article 28 vendor disclosures (Neon, Backblaze B2, Cloudflare, Vercel, Upstash, Resend) guaranteeing zero vendor visibility into document keys or plaintext.
-- **34 Automated Enterprise Security Tests (`npm test`)**:
+- **40 Automated Enterprise Security Tests (`npm test`)**:
   - Comprehensive CI test suite running on every commit and PR verifying:
     1. ALTCHA SHA-256 HMAC challenge generation and PoW verification
     2. ALTCHA signature forgery and replay attack prevention
@@ -138,17 +138,44 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
     8. RFC 3986 URL fragment key preservation (`#k=...` never sent to server)
     9. Owner Master Vault PBKDF2 100k rounds key derivation and key wrapping
     10. DuckDB slide heatmaps, completion rates, and dwell percentiles ($p50, p90, p99$)
-    11. XSS script tag and event handler sanitization
-    12. AI Lead Conviction Intent Scoring (Hot, Warm, Cold deal detection)
-    13. SVG brand vector icon integrity (zero corrupted or raster PNG files)
-    14. Burn-after-reading single-use link self-destruction
-    15. Storage isolation: plaintext keys never persisted in document models
-    16. Investor intelligence metrics NaN prevention and route registration
-    17. Database Field Vault AES-256-GCM PII encryption roundtrip & auth wiring
-    18. GDPR 2026 Cookie Consent Banner & Sub-processors registry integrity
-    19. Common Event Format (CEF) SIEM string formatting
-    20. SSRF outbound validation blocking private subnets, loopbacks, and cloud metadata
-    21. Disposable/temporary email blocking and MX validation
+    11. Zero-Exfiltration RAM zeroizing buffer wiping
+    12. HKDF per-slide sub-key cryptographic isolation
+    13. Argon2id memory-hard KDF resistance
+    14. Post-Quantum Hybrid ML-KEM-768 + ECDH forward resilience
+    15. Forensic Stego 64-bit constellation with CRC-32 leak verification
+    16. Burn-After-Reading cryptographic link ratchet and session self-destruct
+    17. XSS script tag and event handler sanitization
+    18. AI Lead Conviction Intent Scoring (Hot, Warm, Cold deal detection)
+    19. SVG brand vector icon integrity (zero corrupted or raster PNG files)
+    20. Storage isolation: plaintext keys never persisted in document models
+    21. Investor intelligence metrics NaN prevention and route registration
+    22. Database Field Vault AES-256-GCM PII encryption roundtrip & auth wiring
+    23. GDPR 2026 Cookie Consent Banner & Sub-processors registry integrity
+    24. Common Event Format (CEF) SIEM string formatting
+    25. SSRF outbound validation blocking private subnets, loopbacks, and cloud metadata
+    26. Disposable/temporary email blocking and MX validation
+
+---
+
+## 🛡️ Recent Hardening & Security Audit Fixes (F01–F15)
+
+The following security findings from deep static analysis and internal audit have been resolved and verified across the codebase:
+
+- **F01 (Rate Limit Lockout)**: Fixed `contact/route.ts` rate limiter to invoke `recordFailure()` preventing brute-force spam.
+- **F02 (Strict Session Secrets)**: Eliminated hardcoded fallback strings in `session.ts` and `altcha.ts` with direct runtime throwing.
+- **F03 (Ciphertext Byte Gate)**: Hardened `/api/v/[slug]/bytes` with document status validation, active expiration, and burn-after-reading verification.
+- **F04 (SSRF Defense-in-Depth)**: Hardened `ssrf-validator.ts` with hex/octal IPv4 boundary checks and cloud metadata target isolation.
+- **F05 (Constant-Time HMAC)**: Verified `crypto.timingSafeEqual` in all auth token validations to prevent timing side-channel attacks.
+- **F06 (Zero-Knowledge Invariant)**: Ensured RFC 3986 fragment `#k=...` is never transmitted to the server or stored in databases.
+- **F07 (XSS Sanitization)**: Full HTML entity encoding and DOMParser attribute filtering across all Q&A pins and founder replies.
+- **F08 (IDOR Protection)**: Strict ownership checks enforced across document session management, version history, and link studio edits.
+- **F09 (Database PII Vault)**: AES-256-GCM encryption for all sensitive fields (emails, TOTP secrets, NDA signatures) at rest.
+- **F10 (In-Memory Key Zeroizing)**: Client-side RAM zeroing with `extractable: false` and typed array wiping after document rendering.
+- **F11 (Disposable Email Defense)**: Outbound MX check and blocklist rejecting temporary and disposable mailbox domains.
+- **F12 (Anti-Zombie Session Invalidation)**: `/api/auth/me` and logout endpoints issue `Clear-Site-Data` to flush stale browser state.
+- **F13 (CEF Audit Forwarding)**: SIEM forwarder emits valid ArcSight/CEF-formatted audit logs for security operations centers.
+- **F14 (Post-Quantum Resistance)**: Hybrid ML-KEM-768 lattice secret encapsulation combined with classical ECDH forward secrecy.
+- **F15 (Forensic Steganography)**: Invisible 64-bit micro-dot constellation embedding with CRC-32 checksum leak verification.
 ---
 
 ## 📚 Related Documentation & Knowledge Base

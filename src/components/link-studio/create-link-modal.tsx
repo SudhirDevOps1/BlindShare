@@ -575,6 +575,21 @@ export function CreateLinkModal({
                         placeholder="https://mycompany.com/logo.png"
                         className="w-full rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 text-xs text-white placeholder-slate-600"
                       />
+                      {brandLogoUrl.trim() && (
+                        <div className="mt-1.5 flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 p-1.5">
+                          <span className="text-[10px] text-slate-500">Preview:</span>
+                          <div className="h-6 max-w-[120px] flex items-center justify-center overflow-hidden rounded bg-white/5 px-2">
+                            <img
+                              src={brandLogoUrl}
+                              alt="Logo preview"
+                              className="h-5 w-auto object-contain"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="block text-[10px] text-slate-400 mb-1">Accent Hex Color</label>

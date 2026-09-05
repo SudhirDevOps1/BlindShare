@@ -12,6 +12,9 @@ import {
   WeeklyKpiDigest,
   HourlyMatrixHeatmap,
   TopLinksLeaderboard,
+  CohortRetention,
+  FunnelTimeTrend,
+  Calendar365Heatmap,
 } from "@/components/analytics/charts";
 import { useI18n } from "@/lib/i18n/context";
 import {
@@ -189,6 +192,15 @@ export default function DashboardPage() {
           <HourlyMatrixHeatmap sessions={analyticsData?.recentSessions || []} />
           <TopLinksLeaderboard links={links} linkPerformance={analyticsData?.linkPerformance || []} />
         </div>
+
+        {/* 12-Graph Vector Suite: Cohort Retention & 30-Day Conversion Funnel */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <CohortRetention sessions={analyticsData?.recentSessions || []} />
+          <FunnelTimeTrend sessions={analyticsData?.recentSessions || []} />
+        </div>
+
+        {/* 365-Day Annual Reader Activity Heatmap */}
+        <Calendar365Heatmap sessions={analyticsData?.recentSessions || []} />
 
         {/* Quick Upload Box */}
         <div>
