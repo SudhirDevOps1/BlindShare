@@ -99,6 +99,24 @@ users 1─* invites · users 1─* push_subscriptions · audit_log · system_set
   - Adaptive trailing personal space: pet maintains a comfortable 80px distance from cursor; activates high-speed sprint chase only when cursor moves away beyond threshold, smoothly yielding if crowded.
   - Tight 125px circular CSS mask (`radial-gradient`) confining ciphertext illumination strictly around the cursor, keeping the rest of the workspace completely dark and clean.
   - Strict Touchscreen & Small Viewport Guard: automatically unmounts/disables overlays on coarse pointers, touchscreens, and viewports `< 768px` to guarantee 100% native mobile responsiveness.
+- **Single-Page Unrestricted Scroll & Dual Fit Mode Architecture (`src/components/pdf-viewer/pdf-renderer.tsx`)**:
+  - Eliminates flexbox vertical centering clipping bugs (`justify-start` + `my-auto`) so tall documents (A4, books, pitch decks) can be scrolled continuously from Header to Footer and Footer to Header.
+  - Dedicated `fitMode` states: **Fit Width (चौड़ाई अनुसार फिट)** for optimal high-resolution reading with vertical scroll, and **Fit Page (पूरा पृष्ठ फिट)** for complete viewport containment with zero scrolling.
+  - Mousewheel scroll isolation: `deltaY` is never hijacked when a page has vertical overflow, preventing accidental slide-jumping during reading.
+  - Instant scroll reset (`scrollTop = 0`) on slide transition ensuring every page begins at its top header.
+  - 1-click zoom reset to 100% and decimal-rounded zoom stepping.
+- **In-Doc Q&A Engine & Reader Privacy Isolation (`src/app/api/v/[slug]/questions`, `src/app/api/questions`)**:
+  - Interactive visual coordinate pins placed directly on slides.
+  - Strict reader isolation: anonymous/external viewers can only access their own private question pins; third-party questions remain strictly hidden.
+  - Real-time founder transactional email notifications and dashboard moderation with in-doc reply sync.
+- **Tiered Edge Rate Limiting & Tab Visibility Guard (`src/proxy.ts`, `src/app/v/[slug]/page.tsx`)**:
+  - Separates initial document view/metadata lookups (`300 req/hour per link`) from active in-session telemetry and presenter polling (`2,400 req/hour per IP+slug`).
+  - Page Visibility API integration (`document.hidden`) automatically halting background polling and watchdog queries when the reader switches tabs.
+  - Watchdog resilience: ensures HTTP 429 throttles or transient network blips never falsely terminate active reading sessions.
+- **Forensic PDF Download Watermark Burn-in (`pdf-lib`)**:
+  - Stamps recipient identity, timestamp, and forensic disclaimer diagonally across every page of exported PDFs when downloads are enabled.
+- **Signed NDA Certificate Generation (`src/app/api/v/[slug]/nda-cert`)**:
+  - Generates downloadable standalone execution certificates for signed NDAs with verification hashes and audit trails.
 - **Unregistered Account Warning Defense (`/api/auth/forgot-password`, `/api/auth/magic-link`, `/api/auth/otp`)**:
   - Explicit 404 alert responses for unauthenticated requests with unregistered emails, paired with prominent UI alert banners to prevent user confusion.
 ---

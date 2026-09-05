@@ -83,8 +83,12 @@
 | NDA clickwrap & encrypted e-signatures | ✅ | ❌ | ✅ |
 | Dynamic forensic canvas watermarks | ✅ | ✅ | ✅ |
 | **Permanent indelible PDF watermark on download** | ❌ | ❌ | ✅ |
+| **Single-Page Unrestricted Scroll & Dual Fit Mode** | ❌ | ❌ | ✅ |
 | **Auto vault unlock on login (Bitwarden model)** | ❌ | ❌ | ✅ |
 | **In-doc real-time Q&A with founder replies** | ❌ | ❌ | ✅ |
+| **In-Doc Q&A reader privacy isolation** | ❌ | ❌ | ✅ |
+| **Tiered edge abuse limiting & tab visibility guard** | ❌ | ❌ | ✅ |
+| **Signed NDA PDF execution certificate** | ❌ | ❌ | ✅ |
 | **AI lead conviction intent scoring** | ❌ | ❌ | ✅ |
 | **2026 GDPR Art. 7 Bilingual Cookie Banner** | ❌ | ❌ | ✅ |
 | **Sub-processor Registry & Enterprise DPA** | ❌ | ❌ | ✅ |

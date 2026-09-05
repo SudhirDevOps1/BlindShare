@@ -78,8 +78,18 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
   - **Tainted File Write & Storage Confinement**: All storage keys mapped to SHA-256 digests (`${sha256(key)}.blob`), path boundary verification, and low-level file descriptor access with `0o600` owner-only mode.
 - **Permanent Indelible PDF Download Watermark Embedding (`pdf-lib`)**:
   - Automatically stamps multi-layer diagonal matrix watermarks (verified recipient identity, timestamp, custom text, slug) directly into every page stream before export.
-- **Edge Rate Limiting on Public In-Doc Inquiries**:
-  - Distributed sliding-window limiter on `/api/v/[slug]/questions` (`15 req/min per IP`) to prevent database spam and DDoS.
+- **Tiered Edge Abuse Limiting & In-Session Telemetry Isolation (`src/proxy.ts`, `src/app/v/[slug]/page.tsx`)**:
+  - Route-aware edge throttling separating link initial access from active reading:
+    - Primary link view & metadata (`/api/v/[slug]`): `300 req/hour per link` to protect serverless compute from scrapers while allowing normal reloads.
+    - Password gate verification: `gate:${ip}:${slug}` with 20 tries / 15 min lockout.
+    - Active in-session telemetry (`/questions`, `/room`, `/session`, `/bytes`): generous `2,400 req/hour per IP+slug` so readers actively reading, taking notes, or in live presentation rooms never get throttled.
+  - Page Visibility API (`document.hidden`) automatically suspends background polling when readers switch tabs, conserving rate limits and bandwidth.
+  - Watchdog fault tolerance: HTTP 429 and transient network blips are gracefully bypassed, ensuring active reader sessions are never falsely terminated with "Link Has Expired".
+- **In-Doc Q&A Reader Isolation Privacy (`/api/v/[slug]/questions`, `/api/questions`)**:
+  - Private questions/feedback dropped by viewers are strictly isolated: anonymous and external viewers can only query and view their own pins.
+  - Transactional email dispatch notifies founders in real time with 1-click in-app reply sync.
+- **Signed NDA Forensic Certificate Generation (`/api/v/[slug]/nda-cert`)**:
+  - Standalone cryptographic PDF certificate for executed NDAs with SHA-256 integrity hash, execution timestamp, and legal audit trail.
 - **ALTCHA Proof-of-Work Bot & DDoS Defense** (`src/lib/security/altcha.ts`):
   - 100% self-hosted Proof-of-Work (PoW) CAPTCHA alternative with zero third-party tracking, zero cookies, and zero external network dependencies.
   - Generates SHA-256 challenges with HMAC-SHA256 signatures, verified in constant time (`crypto.timingSafeEqual`) with a 10-minute in-memory replay prevention cache.

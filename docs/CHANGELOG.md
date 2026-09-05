@@ -41,8 +41,28 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
   - Automatic graceful degradation on mobile touchscreens and viewports `< 768px` for zero-obstruction mobile responsiveness.
 - **Dedicated Settings Management for Cyber Pet:**
   - Placed cyber pet toggle exclusively inside the Settings page (`/dashboard/settings`), removing clutter from dashboard sidebar.
+- **Single-Page Unrestricted Scroll & Dual Fit Mode (`src/components/pdf-viewer/pdf-renderer.tsx`):**
+  - Smooth continuous scrolling from Header to Footer and Footer to Header for portrait documents, Hindi books (e.g. "गुनाहों का देवता"), and multi-page decks.
+  - Zero-negative-scroll flexbox architecture (`justify-start` + `my-auto`) eliminating top/bottom vertical cutoffs.
+  - Dedicated **Fit Width (चौड़ाई अनुसार फिट)** and **Fit Page (पूरा पृष्ठ फिट)** modes with 100% bilingual synchronization in `dictionary.ts`.
+  - Mousewheel vertical scroll isolation: scrolling inside a page never prematurely jumps to adjacent slides.
+  - Automatic `scrollTop = 0` reset on slide change.
+  - 1-click zoom reset to 100% with decimal-rounded stepping.
+- **In-Doc Q&A Reader Isolation & Founder Email Notifications (`src/app/api/questions`, `src/app/api/v/[slug]/questions`):**
+  - Interactive slide question pins with strict reader privacy isolation (readers only see their own questions).
+  - Transactional email dispatch alerting document founders of new inquiries with in-app reply synchronization.
+- **Forensic PDF Download Watermark Burn-in (`pdf-lib`):**
+  - Stamped indelible diagonal security matrix watermarks directly into exported PDF bytes when downloads are permitted.
+- **Signed NDA Execution Certificate Generation (`src/app/api/v/[slug]/nda-cert`):**
+  - Standalone cryptographic PDF certificate verifying NDA execution timestamps, signer identity, and audit hash.
+- **First-Time Key Copy Benchmark & Resilient Clipboard (`src/components/pdf-viewer/pdf-renderer.tsx`):**
+  - Live PBKDF2 WebCrypto key derivation benchmark timing display with fallback clipboard copying.
 
 ### 🛡️ Security Hardening
+- **Tiered Edge Abuse Limiting & Tab Visibility Guard (`src/proxy.ts`, `src/app/v/[slug]/page.tsx`):**
+  - Split edge rate limits into separate buckets: `300 req/hr` for initial link views vs `2,400 req/hr per IP+slug` for active reading telemetry.
+  - Page Visibility API (`document.hidden`) pausing background polling loops during tab switching.
+  - Revocation watchdog resilience: HTTP 429 throttles safely ignored to prevent false "Link Has Expired" states.
 - **AES-256-GCM Database Field Vault (`src/lib/crypto/db-vault.ts`):**
   - Server-side AES-256-GCM encryption of sensitive database fields at rest using PBKDF2-SHA256 derived keys (`DB_ENCRYPTION_KEY`).
   - Deterministic encryption for auth lookups (`users.email`, `viewSessions.viewerEmail`, `auditLog.detailsJson`); randomized encryption for TOTP secrets, NDA signatures, and in-doc Q&A.

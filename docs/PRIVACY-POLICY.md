@@ -23,9 +23,12 @@ BlindShare is architected as a zero-knowledge document courier. This document se
 All Personally Identifiable Information (PII) within metadata tables is encrypted at rest using the **AES-256-GCM Database Field Vault** (`src/lib/crypto/db-vault.ts`):
 - **User accounts**: `email` (deterministic AES-256-GCM for exact lookups), `twoFactorSecret` (randomized AES-256-GCM with 12-byte IV).
 - **Viewer & NDA sessions**: `viewerEmail` (deterministic AES-256-GCM), `signerName`, `signerEmail`, `signatureDataUrl` (randomized AES-256-GCM).
-- **In-Doc Q&A pins**: `questionText`, `replyText`, `askerName`, `askerEmail` (randomized AES-256-GCM).
-- **Engagement Telemetry**: Session ID, slide index, dwell seconds (batched every 10s), coarse device/OS class, and coarse country derived from edge CDN headers.
+- **In-Doc Q&A pins & Reader Privacy Isolation**: `questionText`, `replyText`, `askerName`, `askerEmail` (randomized AES-256-GCM). Reader privacy is strictly isolated: a document viewer can only query and view their own private questions/feedback pins; other viewers cannot view pins dropped by third parties. The document founder receives real-time transactional email notifications of inquiries and can reply directly from their dashboard.
+- **Engagement Telemetry & Tab Visibility Guard**: Session ID, slide index, dwell seconds (batched every 10s), coarse device/OS class, and coarse country derived from edge CDN headers. Telemetry polling automatically pauses when the document tab is inactive/backgrounded (`document.hidden`), protecting user bandwidth and preventing rate limit exhaustion.
 - **IP Protection**: Salted daily IP hash (`crypto.createHash('sha256')`). Raw IP storage is disabled by default.
+- **Tiered Edge Abuse Limiting**: Separate sliding-window rate limit buckets for initial document access (`300 requests/hour`) versus active in-session telemetry and presentation polling (`2,400 requests/hour per IP+slug`), ensuring legitimate readers are never locked out mid-session.
+- **Forensic PDF Download Watermarking**: When an owner enables downloads with watermarks, `pdf-lib` stamps indelible forensic diagonal matrix watermarks (verified recipient identity, timestamp, custom disclaimer) into every page stream of the exported PDF.
+- **Signed NDA Certificate**: For links requiring confidentiality agreements, signers can download a cryptographically hashed PDF Certificate verifying execution timestamp, IP hash, and signature audit trail.
 - **Retention**: `page_events` (180 days default), `view_sessions` (180 days default), `audit_log` (30 days rolling).
 
 ### Quadrant 4: PLATFORM LOGS
