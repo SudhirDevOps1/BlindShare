@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
 import { CookieConsentBanner } from "@/components/compliance/cookie-consent-banner";
@@ -148,36 +149,20 @@ export default function RootLayout({
 
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <head>
-        {/* Universal Vector Favicons - Ultra Crisp SVG with Zero Pixelation */}
-        <link rel="icon" type="image/svg+xml" href="/brand/02-favicon.svg" />
-        <link rel="apple-touch-icon" href="/brand/02-favicon.svg" />
-
-        {/* OpenGraph & Social Media Meta Tags for WhatsApp, Telegram, Twitter, LinkedIn */}
-        <meta property="og:title" content={`${appName} - Zero-Knowledge Secure Document Sharing & Analytics`} />
-        <meta property="og:description" content="Privacy-first Zero-Knowledge document sharing with client-side AES-GCM-256 encryption, page-by-page reading dwell analytics, and dynamic watermarks on a 100% ₹0 free tier." />
-        <meta property="og:image" content={`${siteUrl}/brand/og-image.png`} />
-        <meta property="og:image:secure_url" content={`${siteUrl}/brand/og-image.png`} />
-        <meta property="og:image:type" content="image/png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:url" content={siteUrl} />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content={appName} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={`${appName} - Zero-Knowledge Secure Document Sharing & Analytics`} />
-        <meta name="twitter:description" content="Client-side E2EE document sharing with per-page dwell time tracking, dynamic watermarks, and ₹0 free-tier presets." />
-        <meta name="twitter:image" content={`${siteUrl}/brand/og-image.png`} />
-        <link rel="image_src" href={`${siteUrl}/brand/og-image.png`} />
-
+      <body
+        className="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-200"
+        suppressHydrationWarning
+      >
         {/* JSON-LD Structured Data Schema for Google & AI Web Indexing */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSchema) }}
         />
-        {/* Optional PrismAnalytics Tracking Script */}
-        {prismId && prismUrl ? (
-          <script
+        {/* Optional PrismAnalytics Tracking Script using Next.js Script (afterInteractive prevents hydration mismatch) */}
+        {prismId && prismUrl && (
+          <Script
+            id="prism-analytics"
+            strategy="afterInteractive"
             dangerouslySetInnerHTML={{
               __html: `(function(){
 try {
@@ -192,18 +177,20 @@ try {
       if (!c || c.analytics !== true) return;
       var q=new URLSearchParams(location.search);
       if(navigator.sendBeacon){
-        navigator.sendBeacon(url,JSON.stringify({
-          site_id:id,
-          pathname:location.pathname,
-          referrer:document.referrer||'',
-          screen_size:screen.width+'x'+screen.height,
-          session_id:sid,
-          event_name:e||'pageview',
-          event_data:d,
-          utm_source:q.get('utm_source'),
-          utm_medium:q.get('utm_medium'),
-          utm_campaign:q.get('utm_campaign')
-        }));
+        try {
+          navigator.sendBeacon(url,JSON.stringify({
+            site_id:id,
+            pathname:location.pathname,
+            referrer:document.referrer||'',
+            screen_size:screen.width+'x'+screen.height,
+            session_id:sid,
+            event_name:e||'pageview',
+            event_data:d,
+            utm_source:q.get('utm_source'),
+            utm_medium:q.get('utm_medium'),
+            utm_campaign:q.get('utm_campaign')
+          }));
+        } catch(beaconErr){}
       }
     } catch(err){}
   }
@@ -216,9 +203,7 @@ try {
 })();`,
             }}
           />
-        ) : null}
-      </head>
-      <body className="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-200">
+        )}
         <I18nProvider>
           <CryptoCursor />
           {children}
