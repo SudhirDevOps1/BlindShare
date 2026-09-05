@@ -2,6 +2,7 @@
 
 import {
   deriveOwnerMasterKey,
+  deriveOwnerMasterKeyArgon2id,
   importOwnerMasterKeyFromRaw,
   wrapDocKeyForOwner,
   unwrapDocKeyForOwner,
@@ -13,10 +14,20 @@ let inMemoryMasterKey: CryptoKey | null = null;
 
 /**
  * Unlock the Owner Master Key Vault in browser memory using the master password and salt.
+ * Supports PBKDF2 (100k rounds) or memory-hard Argon2id (GPU brute-force defense).
  * Also persists raw key material safely in sessionStorage so page refreshes/redirects stay unlocked.
  */
-export async function unlockOwnerVault(password: string, saltHex: string): Promise<CryptoKey> {
-  const masterKey = await deriveOwnerMasterKey(password, saltHex);
+export async function unlockOwnerVault(
+  password: string,
+  saltHex: string,
+  kdfAlgorithm: "argon2id" | "pbkdf2" = "pbkdf2"
+): Promise<CryptoKey> {
+  let masterKey: CryptoKey;
+  if (kdfAlgorithm === "argon2id") {
+    masterKey = await deriveOwnerMasterKeyArgon2id(password, saltHex);
+  } else {
+    masterKey = await deriveOwnerMasterKey(password, saltHex);
+  }
   inMemoryMasterKey = masterKey;
 
   if (typeof window !== "undefined") {

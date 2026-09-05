@@ -56,6 +56,7 @@ interface MediaRendererProps {
     brandLogoUrl?: string | null;
     brandAccentColor?: string | null;
     antiLeakBlurEnabled?: boolean;
+    burnAfterReading?: boolean;
   };
   docData: {
     id: string;
@@ -513,13 +514,20 @@ export function MediaRenderer({
         if (!docKey) {
           docKey = fragmentToDocKey(window.location.hash);
           if (docKey && typeof window !== "undefined") {
-            try {
-              const hex = bufferToHex(docKey);
-              sessionStorage.setItem(`blindshare_key_${docData.id}`, hex);
-              sessionStorage.setItem(`blindshare_key_${slug}`, hex);
-              localStorage.setItem(`blindshare_key_${docData.id}`, hex);
-              localStorage.setItem(`blindshare_link_key_${slug}`, hex);
-            } catch {}
+            if (linkData.burnAfterReading) {
+              // Idea 6: Forward Secrecy Ratchet - Strip hash from address bar so history cannot reopen it
+              if (window.location.hash.includes("k=")) {
+                window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+              }
+            } else {
+              try {
+                const hex = bufferToHex(docKey);
+                sessionStorage.setItem(`blindshare_key_${docData.id}`, hex);
+                sessionStorage.setItem(`blindshare_key_${slug}`, hex);
+                localStorage.setItem(`blindshare_key_${docData.id}`, hex);
+                localStorage.setItem(`blindshare_link_key_${slug}`, hex);
+              } catch {}
+            }
           }
         }
         if (!docKey && typeof window !== "undefined") {
@@ -644,6 +652,41 @@ export function MediaRenderer({
       flushMediaDwell();
     };
   }, [loading, error, sessionId, slug, tablePage]);
+
+  // Idea 6: Forward Secrecy & Burn-After-Reading Ratchet for Media Viewer
+  useEffect(() => {
+    if (!linkData.burnAfterReading) return;
+
+    const handleRatchetBurn = () => {
+      try {
+        sessionStorage.removeItem(`blindshare_key_${slug}`);
+        sessionStorage.removeItem(`blindshare_key_${docData.id}`);
+        localStorage.removeItem(`blindshare_key_${docData.id}`);
+        localStorage.removeItem(`blindshare_link_key_${slug}`);
+      } catch {}
+
+      const payload = JSON.stringify({ sessionId });
+      if (navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: "application/json" });
+        navigator.sendBeacon(`/api/v/${slug}/ratchet-burn`, blob);
+      } else {
+        fetch(`/api/v/${slug}/ratchet-burn`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    };
+
+    window.addEventListener("pagehide", handleRatchetBurn);
+    window.addEventListener("beforeunload", handleRatchetBurn);
+
+    return () => {
+      window.removeEventListener("pagehide", handleRatchetBurn);
+      window.removeEventListener("beforeunload", handleRatchetBurn);
+    };
+  }, [linkData.burnAfterReading, docData.id, slug, sessionId]);
 
   const handleDownload = () => {
     if (!linkData.allowDownload || !decryptedBytes) return;

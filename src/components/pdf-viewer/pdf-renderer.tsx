@@ -11,6 +11,7 @@ import {
   bufferToHex,
   unwrapKeyWithPassword,
   unwrapDocKeyForOwner,
+  zeroizeBuffer,
 } from "@/lib/crypto-core";
 import { restoreOwnerVaultFromSession } from "@/lib/vault/master-vault";
 import { applyMicroDotWatermark } from "@/lib/watermark/forensic-stego";
@@ -66,6 +67,7 @@ interface PdfRendererProps {
     brandAccentColor?: string | null;
     antiLeakBlurEnabled?: boolean;
     voicePitchEnabled?: boolean;
+    burnAfterReading?: boolean;
   };
   docData: {
     id: string;
@@ -540,20 +542,27 @@ export function PdfRenderer({
           }
 
           if (docKey && typeof window !== "undefined") {
-            // Cache in local & session storage for seamless reload and tab resilience
-            try {
-              const hex = bufferToHex(docKey);
-              sessionStorage.setItem(`blindshare_key_${slug}`, hex);
-              sessionStorage.setItem(`blindshare_key_${docData.id}`, hex);
-              localStorage.setItem(`blindshare_key_${docData.id}`, hex);
-              localStorage.setItem(`blindshare_link_key_${slug}`, hex);
-
-              // Auto-fill fragment in address bar if opened without hash
-              if (!window.location.hash.includes("k=")) {
-                const frag = docKeyToFragment(docKey);
-                window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#k=${frag}`);
+            if (linkData.burnAfterReading) {
+              // Idea 6: Forward Secrecy Ratchet - Strip key fragment from address bar so history cannot reopen it
+              if (window.location.hash.includes("k=")) {
+                window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
               }
-            } catch {}
+            } else {
+              // Standard persistent cache in local & session storage for normal links
+              try {
+                const hex = bufferToHex(docKey);
+                sessionStorage.setItem(`blindshare_key_${slug}`, hex);
+                sessionStorage.setItem(`blindshare_key_${docData.id}`, hex);
+                localStorage.setItem(`blindshare_key_${docData.id}`, hex);
+                localStorage.setItem(`blindshare_link_key_${slug}`, hex);
+
+                // Auto-fill fragment in address bar if opened without hash
+                if (!window.location.hash.includes("k=")) {
+                  const frag = docKeyToFragment(docKey);
+                  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#k=${frag}`);
+                }
+              } catch {}
+            }
           }
         }
 
@@ -752,6 +761,42 @@ export function PdfRenderer({
       flushDwellEvents();
     };
   }, [slug, sessionId]);
+
+  // Idea 6: Forward Secrecy & Burn-After-Reading Ratchet
+  useEffect(() => {
+    if (!linkData.burnAfterReading) return;
+
+    const handleRatchetBurn = () => {
+      try {
+        sessionStorage.removeItem(`blindshare_key_${slug}`);
+        sessionStorage.removeItem(`blindshare_key_${docData.id}`);
+        localStorage.removeItem(`blindshare_key_${docData.id}`);
+        localStorage.removeItem(`blindshare_link_key_${slug}`);
+        sessionStorage.removeItem(`blindshare_tab_decrypted_${docData.id}`);
+      } catch {}
+
+      const payload = JSON.stringify({ sessionId });
+      if (navigator.sendBeacon) {
+        const blob = new Blob([payload], { type: "application/json" });
+        navigator.sendBeacon(`/api/v/${slug}/ratchet-burn`, blob);
+      } else {
+        fetch(`/api/v/${slug}/ratchet-burn`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: payload,
+          keepalive: true,
+        }).catch(() => {});
+      }
+    };
+
+    window.addEventListener("pagehide", handleRatchetBurn);
+    window.addEventListener("beforeunload", handleRatchetBurn);
+
+    return () => {
+      window.removeEventListener("pagehide", handleRatchetBurn);
+      window.removeEventListener("beforeunload", handleRatchetBurn);
+    };
+  }, [linkData.burnAfterReading, docData.id, slug, sessionId]);
 
   // Draw Dynamic Live Watermark on Overlay Canvas (Staggered Matrix with Zero Collision)
   const drawWatermark = useCallback(

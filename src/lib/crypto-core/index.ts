@@ -494,3 +494,21 @@ export async function deriveSlideKey(
     ["encrypt", "decrypt"]
   );
 }
+
+// Re-export Argon2id Memory-Hard KDF module
+export {
+  deriveArgon2idRaw,
+  deriveOwnerMasterKeyArgon2id,
+} from "./argon2id";
+export type { Argon2idOptions } from "./argon2id";
+
+// Re-export Post-Quantum Hybrid (ML-KEM-768 + ECDH) module
+export {
+  generatePQHybridKeyPair,
+  encapsulatePQHybrid,
+  decapsulatePQHybrid,
+} from "./post-quantum";
+export type {
+  PQHybridKeyPair,
+  PQHybridEncapsulation,
+} from "./post-quantum";
