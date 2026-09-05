@@ -8,18 +8,18 @@
   "theme_color": "#f59e0b",
   "icons": [
     {
-      "src": "/brand/10-app-icon-512.svg",
+      "src": "/brand/png/10-app-icon-512@512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/brand/02-favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "/brand/png/02-favicon@512.png",
+      "sizes": "512x512",
+      "type": "image/png"
     },
     {
-      "src": "/brand/01-logo-full.svg",
+      "src": "/brand/02-favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     }

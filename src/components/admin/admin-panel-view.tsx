@@ -34,6 +34,8 @@ import {
   Heart,
   Code2,
   Save,
+  Radio,
+  BellRing,
 } from "lucide-react";
 import {
   DeveloperProfile,
@@ -71,6 +73,8 @@ export function AdminPanelView() {
   // Diagnostics & Environment State
   const [diagnosticsData, setDiagnosticsData] = useState<any>(null);
   const [testingEnv, setTestingEnv] = useState(false);
+  const [testingWebhook, setTestingWebhook] = useState(false);
+  const [webhookTestResult, setWebhookTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [envFilter, setEnvFilter] = useState<"all" | "missing" | "configured" | "required" | "optional_unset">("all");
   const [envCategoryFilter, setEnvCategoryFilter] = useState<string>("all");
   const [envSearch, setEnvSearch] = useState<string>("");
@@ -192,6 +196,39 @@ export function AdminPanelView() {
       if (res.ok) setDiagnosticsData(json);
     } catch {}
     setTestingEnv(false);
+  };
+
+  const handleTestWebhook = async () => {
+    setTestingWebhook(true);
+    setWebhookTestResult(null);
+    try {
+      const res = await fetch("/api/admin/diagnostics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setWebhookTestResult({
+          success: true,
+          message: json.message || `Dispatched (${json.latencyMs}ms)`,
+        });
+        setActionMessage(`Webhook test ping delivered successfully (${json.latencyMs}ms)! Check your Stoat / Slack / Discord channel.`);
+      } else {
+        setWebhookTestResult({
+          success: false,
+          message: json.error || "Failed to deliver webhook",
+        });
+        setActionMessage(`Webhook test failed: ${json.error || "Delivery error"}`);
+      }
+    } catch (e: any) {
+      setWebhookTestResult({
+        success: false,
+        message: e.message || "Network error",
+      });
+    } finally {
+      setTestingWebhook(false);
+    }
   };
 
   const fetchSweepStats = async () => {
@@ -772,8 +809,8 @@ export function AdminPanelView() {
               </button>
             </div>
 
-            {/* 4 Real-time Diagnostics Pillars */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+            {/* 5 Real-time Diagnostics Pillars */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 pt-2">
               {/* Database */}
               <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
                 <div className="flex items-center justify-between">
@@ -859,6 +896,56 @@ export function AdminPanelView() {
                 </div>
                 <p className="text-[11px] text-slate-400 truncate" title={diagnosticsData?.diagnostics?.email?.details}>
                   {diagnosticsData?.diagnostics?.email?.details || "Cascading Fallback ($0 GAS / Resend / Brevo / SMTP)"}
+                </p>
+              </div>
+
+              {/* Webhook Engine */}
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Radio className="h-4 w-4 text-cyan-400 animate-pulse" />
+                    <span className="text-xs font-bold text-white">Webhook Engine</span>
+                  </div>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                    diagnosticsData?.diagnostics?.webhook?.status === "operational"
+                      ? "text-cyan-400 bg-cyan-500/10 border-cyan-500/20"
+                      : "text-slate-400 bg-slate-800 border-slate-700"
+                  }`}>
+                    {diagnosticsData?.diagnostics?.webhook?.status === "operational"
+                      ? (diagnosticsData.diagnostics.webhook.provider || "ACTIVE").toUpperCase()
+                      : "OPTIONAL UNSET"}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400 truncate" title={diagnosticsData?.diagnostics?.webhook?.target || "Configure DEFAULT_WEBHOOK_URL"}>
+                  {diagnosticsData?.diagnostics?.webhook?.target || "Stoat Chat / Slack / Discord global alerts"}
+                </p>
+                <div className="pt-1">
+                  <button
+                    onClick={handleTestWebhook}
+                    disabled={testingWebhook}
+                    className="w-full flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-bold text-cyan-400 hover:text-white hover:bg-slate-800 hover:border-cyan-500/40 disabled:opacity-50 transition"
+                  >
+                    <Send className={`h-3 w-3 ${testingWebhook ? "animate-spin" : ""}`} />
+                    <span>{testingWebhook ? "Testing Dispatch..." : "Test Webhook Ping"}</span>
+                  </button>
+                  {webhookTestResult && (
+                    <p className={`text-[9px] mt-1 truncate ${webhookTestResult.success ? "text-emerald-400" : "text-red-400"}`}>
+                      {webhookTestResult.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Vercel Environment Deployment Notice Banner */}
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3.5 flex items-start gap-3 text-xs text-slate-300">
+              <AlertCircle className="h-4 w-4 text-amber-400 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-semibold text-white">
+                  ⚡ Vercel Deployment Note (Environment Variable Refresh):
+                </p>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  When you add or update Environment Variables in the Vercel Dashboard (such as <code className="text-amber-400 font-mono">DEFAULT_WEBHOOK_URL</code> or <code className="text-amber-400 font-mono">DATABASE_URL</code>), Vercel <strong>does not update already-running serverless functions</strong>. You must trigger a <strong>Redeploy</strong> in Vercel (or push a new commit) for the lambda runtime to load the new variables.
                 </p>
               </div>
             </div>

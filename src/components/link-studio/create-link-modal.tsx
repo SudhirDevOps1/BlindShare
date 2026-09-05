@@ -21,6 +21,8 @@ import {
   QrCode,
   ExternalLink,
   Sparkles,
+  FileText,
+  Folder,
 } from "lucide-react";
 import QRCodeLib from "qrcode";
 
@@ -40,6 +42,13 @@ export function CreateLinkModal({
   onCreated,
 }: CreateLinkModalProps) {
   const { t, appName } = useI18n();
+
+  const [selectedDocId, setSelectedDocId] = useState(docId || "");
+  const [selectedDataroomId, setSelectedDataroomId] = useState(dataroomId || "");
+  const [targetType, setTargetType] = useState<"doc" | "dataroom">(dataroomId ? "dataroom" : "doc");
+  const [docsList, setDocsList] = useState<Array<{ id: string; title: string; originalFilename?: string }>>([]);
+  const [dataroomsList, setDataroomsList] = useState<Array<{ id: string; name: string }>>([]);
+  const [loadingTargets, setLoadingTargets] = useState(false);
 
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -71,10 +80,50 @@ export function CreateLinkModal({
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [showQr, setShowQr] = useState(false);
 
+  // Auto-fetch user's documents and datarooms if not launched from a specific document card
+  React.useEffect(() => {
+    if (!docId && !dataroomId) {
+      setLoadingTargets(true);
+      Promise.allSettled([
+        fetch("/api/docs").then((r) => r.json()),
+        fetch("/api/datarooms").then((r) => r.json()),
+      ])
+        .then(([docsRes, roomsRes]) => {
+          if (docsRes.status === "fulfilled" && docsRes.value?.documents) {
+            const docs = docsRes.value.documents;
+            setDocsList(docs);
+            if (docs.length > 0 && !selectedDocId) {
+              setSelectedDocId(docs[0].id);
+            }
+          }
+          if (roomsRes.status === "fulfilled" && roomsRes.value?.datarooms) {
+            const rooms = roomsRes.value.datarooms;
+            setDataroomsList(rooms);
+            if (rooms.length > 0 && !selectedDataroomId) {
+              setSelectedDataroomId(rooms[0].id);
+            }
+          }
+        })
+        .finally(() => setLoadingTargets(false));
+    }
+  }, [docId, dataroomId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       setError("Please enter a link nickname or recipient.");
+      return;
+    }
+
+    const activeDocId = docId || (targetType === "doc" ? selectedDocId : undefined);
+    const activeDataroomId = dataroomId || (targetType === "dataroom" ? selectedDataroomId : undefined);
+
+    if (!activeDocId && !activeDataroomId) {
+      setError(
+        targetType === "doc"
+          ? "Please select a target document from your library (or upload one first)."
+          : "Please select a target dataroom (or create one first)."
+      );
       return;
     }
 
@@ -86,10 +135,10 @@ export function CreateLinkModal({
       let passwordSaltHex = null;
 
       // If document is E2EE and password gate is enabled, wrap key client-side
-      if (enablePassword && password.trim() && docId) {
+      if (enablePassword && password.trim() && activeDocId) {
         const storedHex =
           typeof window !== "undefined"
-            ? sessionStorage.getItem(`blindshare_key_${docId}`) || localStorage.getItem(`blindshare_key_${docId}`)
+            ? sessionStorage.getItem(`blindshare_key_${activeDocId}`) || localStorage.getItem(`blindshare_key_${activeDocId}`)
             : null;
         if (storedHex) {
           const docKey = hexToBuffer(storedHex);
@@ -103,8 +152,8 @@ export function CreateLinkModal({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          docId: docId || undefined,
-          dataroomId: dataroomId || undefined,
+          docId: activeDocId || undefined,
+          dataroomId: activeDataroomId || undefined,
           name: name.trim(),
           slug: slug.trim() || undefined,
           password: enablePassword ? password.trim() : undefined,
@@ -140,10 +189,10 @@ export function CreateLinkModal({
       const baseUrl = window.location.origin;
       let fullUrl = `${baseUrl}/v/${data.slug}`;
 
-      if (docId) {
+      if (activeDocId) {
         const storedHex =
           typeof window !== "undefined"
-            ? sessionStorage.getItem(`blindshare_key_${docId}`) || localStorage.getItem(`blindshare_key_${docId}`)
+            ? sessionStorage.getItem(`blindshare_key_${activeDocId}`) || localStorage.getItem(`blindshare_key_${activeDocId}`)
             : null;
         if (storedHex) {
           const docKey = hexToBuffer(storedHex);
@@ -196,7 +245,13 @@ export function CreateLinkModal({
             <div className="mb-6">
               <h3 className="text-lg font-bold text-white mb-1">{t.linkStudio.createTitle}</h3>
               <p className="text-xs text-slate-400">
-                {docTitle ? `Target: ${docTitle}` : "Generate a Zero-Knowledge share link"}
+                {docTitle
+                  ? `Target: ${docTitle}`
+                  : targetType === "doc" && selectedDocId && docsList.length > 0
+                  ? `Target Document: ${docsList.find((d) => d.id === selectedDocId)?.title || "Selected Document"}`
+                  : targetType === "dataroom" && selectedDataroomId && dataroomsList.length > 0
+                  ? `Target Dataroom: ${dataroomsList.find((r) => r.id === selectedDataroomId)?.name || "Selected Dataroom"}`
+                  : "Generate a Zero-Knowledge share link"}
               </p>
             </div>
 
@@ -207,6 +262,97 @@ export function CreateLinkModal({
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Target Document / Dataroom Selector when opened without a predefined target */}
+              {!docId && !dataroomId && (
+                <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-3.5 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-white flex items-center gap-1.5">
+                      <FileCheck className="h-3.5 w-3.5 text-amber-400" />
+                      <span>Target Document or Dataroom *</span>
+                    </label>
+
+                    {dataroomsList.length > 0 && (
+                      <div className="flex items-center gap-1 bg-slate-900 p-0.5 rounded-lg border border-slate-800 text-[10px]">
+                        <button
+                          type="button"
+                          onClick={() => setTargetType("doc")}
+                          className={`px-2 py-0.5 rounded-md font-semibold transition ${
+                            targetType === "doc" ? "bg-amber-500 text-slate-950" : "text-slate-400 hover:text-white"
+                          }`}
+                        >
+                          Single Doc ({docsList.length})
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTargetType("dataroom")}
+                          className={`px-2 py-0.5 rounded-md font-semibold transition ${
+                            targetType === "dataroom" ? "bg-amber-500 text-slate-950" : "text-slate-400 hover:text-white"
+                          }`}
+                        >
+                          Dataroom ({dataroomsList.length})
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {loadingTargets ? (
+                    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-2.5 text-xs text-slate-400 animate-pulse">
+                      Loading your library documents...
+                    </div>
+                  ) : targetType === "doc" ? (
+                    docsList.length === 0 ? (
+                      <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200 flex items-center justify-between">
+                        <span>No documents found in your library.</span>
+                        <a
+                          href="/dashboard/docs"
+                          className="text-amber-400 hover:text-white font-bold underline text-[11px]"
+                        >
+                          Upload Document First &rarr;
+                        </a>
+                      </div>
+                    ) : (
+                      <select
+                        value={selectedDocId}
+                        onChange={(e) => setSelectedDocId(e.target.value)}
+                        className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 font-sans"
+                        required
+                      >
+                        <option value="" disabled>-- Select a document to share --</option>
+                        {docsList.map((d) => (
+                          <option key={d.id} value={d.id}>
+                            📄 {d.title || d.originalFilename || d.id}
+                          </option>
+                        ))}
+                      </select>
+                    )
+                  ) : dataroomsList.length === 0 ? (
+                    <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200 flex items-center justify-between">
+                      <span>No datarooms found.</span>
+                      <a
+                        href="/dashboard/datarooms"
+                        className="text-amber-400 hover:text-white font-bold underline text-[11px]"
+                      >
+                        Create Dataroom First &rarr;
+                      </a>
+                    </div>
+                  ) : (
+                    <select
+                      value={selectedDataroomId}
+                      onChange={(e) => setSelectedDataroomId(e.target.value)}
+                      className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs text-white focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 font-sans"
+                      required
+                    >
+                      <option value="" disabled>-- Select a dataroom to share --</option>
+                      {dataroomsList.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          📁 {r.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-medium text-slate-300 mb-1">
                   {t.linkStudio.linkName} *

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
 import { getActiveEmailProvider } from "@/lib/email/email-dispatcher";
+import { sendWebhookNotification } from "@/lib/notifications/webhook-notifier";
 
 export type EnvCategory =
   | "Database"
@@ -434,14 +435,39 @@ export async function GET() {
       isWorking: Boolean(process.env.SMTP_HOST),
     },
     {
+      key: "DEFAULT_WEBHOOK_URL",
+      category: "Email & Webhooks",
+      required: false,
+      isSet: Boolean(process.env.DEFAULT_WEBHOOK_URL),
+      status: Boolean(process.env.DEFAULT_WEBHOOK_URL) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.DEFAULT_WEBHOOK_URL),
+      description: "Global fallback webhook URL (Stoat Chat, Slack, Discord, or Teams) for real-time document view, NDA sign, and viewer question alerts.",
+      guide: "Stoat Chat -> Webhook URL (https://stoat.chat/webhooks/...) or Slack / Discord Webhook URL",
+      diagnosticTest: Boolean(process.env.DEFAULT_WEBHOOK_URL) ? "Global Webhook Configured" : "Unset (Optional)",
+      isWorking: Boolean(process.env.DEFAULT_WEBHOOK_URL),
+    },
+    {
+      key: "WEBHOOK_URL",
+      category: "Email & Webhooks",
+      required: false,
+      isSet: Boolean(process.env.WEBHOOK_URL),
+      status: Boolean(process.env.WEBHOOK_URL) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.WEBHOOK_URL),
+      description: "Standard webhook URL alias for notification dispatching.",
+      guide: "Alternative alias for DEFAULT_WEBHOOK_URL",
+      diagnosticTest: Boolean(process.env.WEBHOOK_URL) ? "Webhook Alias Active" : "Unset",
+      isWorking: Boolean(process.env.WEBHOOK_URL),
+    },
+    {
       key: "SLACK_WEBHOOK_URL",
       category: "Email & Webhooks",
       required: false,
       isSet: Boolean(process.env.SLACK_WEBHOOK_URL),
       status: Boolean(process.env.SLACK_WEBHOOK_URL) ? "healthy" : "optional_unset",
       maskedValue: maskSecret(process.env.SLACK_WEBHOOK_URL),
-      description: "Global Slack/Discord incoming webhook URL for broadcasting live document viewing alerts.",
+      description: "Dedicated Slack/Discord incoming webhook URL for broadcasting live document viewing alerts.",
       guide: "Slack -> Apps -> Incoming Webhooks OR Discord -> Integrations -> Webhooks",
+      diagnosticTest: Boolean(process.env.SLACK_WEBHOOK_URL) ? "Slack Webhook Configured" : "Unset",
       isWorking: Boolean(process.env.SLACK_WEBHOOK_URL),
     },
     {
@@ -453,7 +479,20 @@ export async function GET() {
       maskedValue: maskSecret(process.env.BOT_WEBHOOK_URL),
       description: "Secondary automated bot webhook trigger for SIEM security alerts and NDA signatures.",
       guide: "Custom webhook endpoint for security automation or Telegram/Teams bots",
+      diagnosticTest: Boolean(process.env.BOT_WEBHOOK_URL) ? "Bot Webhook Configured" : "Unset",
       isWorking: Boolean(process.env.BOT_WEBHOOK_URL),
+    },
+    {
+      key: "SIEM_WEBHOOK_URL",
+      category: "Email & Webhooks",
+      required: false,
+      isSet: Boolean(process.env.SIEM_WEBHOOK_URL),
+      status: Boolean(process.env.SIEM_WEBHOOK_URL) ? "healthy" : "optional_unset",
+      maskedValue: maskSecret(process.env.SIEM_WEBHOOK_URL),
+      description: "Enterprise SIEM webhook endpoint for real-time CEF-compliant security audit logs (Splunk HEC / Datadog / Elastic).",
+      guide: "HTTPS webhook URL for enterprise SIEM ingestion endpoint",
+      diagnosticTest: Boolean(process.env.SIEM_WEBHOOK_URL) ? "SIEM Webhook Active" : "Unset",
+      isWorking: Boolean(process.env.SIEM_WEBHOOK_URL),
     },
 
     // 🔔 Push Notifications
@@ -732,6 +771,20 @@ export async function GET() {
         provider: emailInfo.provider,
         details: emailInfo.details,
       },
+      webhook: {
+        status: (process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL || process.env.BOT_WEBHOOK_URL) ? "operational" : "optional_unset",
+        configured: Boolean(process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL || process.env.BOT_WEBHOOK_URL),
+        provider: (process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL || "")?.includes("stoat.chat")
+          ? "Stoat Chat"
+          : (process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL || "")?.includes("discord.com")
+          ? "Discord"
+          : (process.env.SLACK_WEBHOOK_URL || (process.env.DEFAULT_WEBHOOK_URL || "").includes("slack.com"))
+          ? "Slack"
+          : (process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL)
+          ? "Custom Webhook"
+          : "None",
+        target: maskSecret(process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL || process.env.BOT_WEBHOOK_URL),
+      },
       runtime: {
         nodeEnv: process.env.NODE_ENV || "development",
         responseTimeMs: Date.now() - startTime,
@@ -748,4 +801,63 @@ export async function GET() {
     },
     variables: envVariables,
   });
+}
+
+export async function POST(req: Request) {
+  const auth = await requireAuth();
+  if ("errorResponse" in auth) return auth.errorResponse;
+
+  if (auth.user.role !== "super_admin" && auth.user.role !== "admin") {
+    return NextResponse.json({ error: "Unauthorized. Admin privileges required." }, { status: 403 });
+  }
+
+  try {
+    const body = await req.json().catch(() => ({}));
+    const testUrl = (body.webhookUrl as string)?.trim() || process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL || process.env.BOT_WEBHOOK_URL;
+
+    if (!testUrl) {
+      return NextResponse.json({
+        success: false,
+        error: "No webhook endpoint is currently configured in environment variables. Set DEFAULT_WEBHOOK_URL in your Vercel Project Settings and Redeploy.",
+      }, { status: 400 });
+    }
+
+    const t0 = Date.now();
+    const success = await sendWebhookNotification(testUrl, {
+      event: "link_opened",
+      linkName: "BlindShare Health & Webhook Diagnostic Check",
+      linkSlug: "admin-diag-probe",
+      docTitle: "Platform Live Infrastructure Verification",
+      viewerEmail: auth.user.email || "admin@blindshare.app",
+      viewerCountry: "Diagnostic Probe",
+      viewerDevice: "Admin Console",
+      dwellSeconds: 10,
+      timestamp: new Date().toISOString(),
+    });
+
+    const latencyMs = Math.max(1, Date.now() - t0);
+
+    if (!success) {
+      return NextResponse.json({
+        success: false,
+        latencyMs,
+        error: "Webhook ping failed to deliver. Ensure the endpoint URL is reachable and permits incoming HTTP POST JSON payloads.",
+      }, { status: 502 });
+    }
+
+    // Mask for response
+    const masked = testUrl.length > 25 ? `${testUrl.substring(0, 18)}...${testUrl.substring(testUrl.length - 6)}` : testUrl;
+
+    return NextResponse.json({
+      success: true,
+      latencyMs,
+      target: masked,
+      message: `Diagnostic webhook ping delivered successfully in ${latencyMs}ms!`,
+    });
+  } catch (err: any) {
+    return NextResponse.json({
+      success: false,
+      error: err?.message || "Internal webhook test error",
+    }, { status: 500 });
+  }
 }
