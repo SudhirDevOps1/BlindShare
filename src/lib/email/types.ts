@@ -31,6 +31,10 @@ export interface OtpData {
   recipientEmail: string;
   otpCode: string;
   expiresInMinutes: number;
+  magicLinkUrl?: string;
+  formattedCode?: string;
+  deviceInfo?: string;
+  locationInfo?: string;
 }
 
 export interface PasswordResetData {

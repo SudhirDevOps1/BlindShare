@@ -180,8 +180,9 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!otpCode || otpCode.trim().length !== 6) {
-      setError("Please enter the complete 6-digit code.");
+    const clean = otpCode.replace(/[\s\-]/g, "");
+    if (!clean || clean.length < 6) {
+      setError("Please enter the complete verification code.");
       return;
     }
     setLoading(true);
@@ -192,15 +193,15 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
-          code: otpCode.trim(),
-          otp: otpCode.trim(),
+          code: clean,
+          otp: clean,
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Invalid or expired OTP code");
+      if (!res.ok) throw new Error(data.error || "Invalid or expired verification code");
       window.location.href = "/dashboard";
     } catch (err: any) {
-      setError(err.message || "Failed to verify OTP code");
+      setError(err.message || "Failed to verify verification code");
     } finally {
       setLoading(false);
     }
@@ -533,32 +534,35 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
                 passwordlessStep === "otp_sent" ? (
                   <form onSubmit={handleVerifyOtp} className="space-y-4">
                     <div>
-                      <label className="block text-xs font-medium text-slate-300 mb-1">Enter 6-Digit Email Code</label>
+                      <label className="block text-xs font-medium text-slate-300 mb-1">Enter Verification Code</label>
                       <input
                         type="text"
                         autoFocus
                         required
-                        placeholder="123456"
+                        placeholder="123 - 456"
                         value={otpCode}
-                        maxLength={6}
-                        onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-center text-xl font-mono tracking-[0.4em] text-amber-400 focus:border-amber-500 focus:outline-none"
+                        maxLength={12}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/[^0-9\- ]/g, "");
+                          setOtpCode(val);
+                        }}
+                        className="w-full rounded-xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-center text-xl font-mono tracking-[0.25em] text-amber-400 focus:border-amber-500 focus:outline-none"
                       />
                       <p className="mt-1.5 text-[10px] text-slate-400 text-center">
-                        Code sent to <span className="font-mono text-slate-200">{email}</span>
+                        Enter code sent to <span className="font-mono text-slate-200">{email}</span> or click the 1-click button in your email.
                       </p>
                     </div>
 
                     <button
                       type="submit"
-                      disabled={loading || otpCode.length !== 6}
+                      disabled={loading || otpCode.replace(/[\s\-]/g, "").length < 6}
                       className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-sm font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 disabled:opacity-50 transition-all"
                     >
                       {loading ? (
                         <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
                       ) : (
                         <>
-                          <span>Verify OTP & Sign In</span>
+                          <span>Verify & Sign In</span>
                           <ArrowRight className="h-4 w-4" />
                         </>
                       )}

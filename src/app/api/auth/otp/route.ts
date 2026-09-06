@@ -5,6 +5,7 @@ import { eq, and, gt } from "drizzle-orm";
 import { genId } from "@/lib/ids";
 import { createSessionCookie } from "@/lib/auth/session";
 import { sendEmail, renderOtpEmail } from "@/lib/email";
+import { getRequestOrigin } from "@/lib/auth/request-origin";
 import { parseBody } from "@/lib/validation";
 import { z } from "zod";
 import crypto from "crypto";
@@ -17,11 +18,11 @@ const sendOtpSchema = z.object({
 const verifyOtpSchema = z
   .object({
     email: z.string().trim().email("Invalid email address").toLowerCase(),
-    code: z.string().trim().min(6).max(6).optional(),
-    otp: z.string().trim().min(6).max(6).optional(),
+    code: z.string().trim().min(3).max(32).optional(),
+    otp: z.string().trim().min(3).max(32).optional(),
   })
   .refine((data) => Boolean(data.code || data.otp), {
-    message: "6-digit OTP code is required",
+    message: "Verification code is required",
     path: ["code"],
   });
 
@@ -61,11 +62,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Account is suspended. Contact an administrator." }, { status: 403 });
     }
 
-    // Invalidate prior active OTPs for this email (encrypted lookup)
+    // Invalidate prior active OTPs & magic links for this email (encrypted lookup)
     await db
       .update(authTokens)
       .set({ isUsed: true })
-      .where(and(eq(authTokens.email, encEmail), eq(authTokens.type, "otp"), eq(authTokens.isUsed, false)));
+      .where(and(eq(authTokens.email, encEmail), eq(authTokens.isUsed, false)));
 
     // Generate random 6-digit number
     const rawOtp = crypto.randomInt(100000, 999999).toString();
@@ -73,19 +74,53 @@ export async function POST(request: Request) {
     const expiresInMinutes = 15;
     const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
 
-    await db.insert(authTokens).values({
-      id: genId("tok"),
-      email: encEmail, // AES-256-GCM encrypted
-      tokenHash,
-      type: "otp",
-      expiresAt,
-      isUsed: false,
-    });
+    // Also generate paired 1-click magic link token (Papermark multi-channel standard)
+    const rawMagicToken = crypto.randomBytes(32).toString("hex");
+    const magicHash = hashToken(rawMagicToken);
+
+    await db.insert(authTokens).values([
+      {
+        id: genId("tok"),
+        email: encEmail, // AES-256-GCM encrypted
+        tokenHash,
+        type: "otp",
+        expiresAt,
+        isUsed: false,
+      },
+      {
+        id: genId("tok"),
+        email: encEmail,
+        tokenHash: magicHash,
+        type: "magic_link",
+        expiresAt,
+        isUsed: false,
+      },
+    ]);
+
+    const baseUrl = getRequestOrigin(request);
+    const magicLinkUrl = `${baseUrl}/api/auth/magic-link?token=${rawMagicToken}`;
+    const userAgent = request.headers.get("user-agent") || "Web Browser";
+    const clientIp = request.headers.get("cf-connecting-ip") || request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "Web Client";
+    const cleanDevice = userAgent.includes("Macintosh")
+      ? "Safari / Chrome on macOS"
+      : userAgent.includes("Windows")
+      ? "Chrome / Edge on Windows"
+      : userAgent.includes("Android")
+      ? "Chrome on Android"
+      : userAgent.includes("iPhone")
+      ? "Safari on iOS"
+      : userAgent.includes("Linux")
+      ? "Linux Workstation"
+      : "Desktop / Mobile Browser";
 
     const { subject, html, text } = renderOtpEmail({
       recipientEmail: email,
       otpCode: rawOtp,
       expiresInMinutes,
+      magicLinkUrl,
+      formattedCode: `${rawOtp.slice(0, 3)} - ${rawOtp.slice(3)}`,
+      deviceInfo: cleanDevice,
+      locationInfo: clientIp === "::1" || clientIp === "127.0.0.1" ? "Local Session" : clientIp,
     });
 
     await sendEmail({
@@ -109,7 +144,8 @@ export async function PUT(request: Request) {
   const parsed = await parseBody(request, verifyOtpSchema);
   if ("errorResponse" in parsed) return parsed.errorResponse;
   const email = parsed.data.email;
-  const rawCode = (parsed.data.code || parsed.data.otp)!.trim();
+  // Sanitize input: strip spaces, hyphens, and uppercase formatting
+  const rawCode = (parsed.data.code || parsed.data.otp)!.trim().replace(/[\s\-]/g, "");
 
   try {
     const encEmail = encryptEmail(email);

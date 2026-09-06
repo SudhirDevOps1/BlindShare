@@ -18,44 +18,69 @@ export async function sendViaGas(payload: EmailPayload): Promise<EmailResult> {
     };
   }
 
-  try {
-    const res = await fetch(webappUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        secret: secretToken,
-        secretToken: secretToken,
-        to: payload.to,
-        subject: payload.subject,
-        html: payload.html,
-        text: payload.text || "",
-        fromName: payload.fromName || "BlindShare Security",
-      }),
-      signal: AbortSignal.timeout(10000), // 10-second timeout
-    });
+  const maxAttempts = 2;
+  let lastError = "Failed to communicate with Google Apps Script Web App";
 
-    const json = await res.json().catch(() => null);
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch(webappUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          secret: secretToken,
+          secretToken: secretToken,
+          to: payload.to,
+          subject: payload.subject,
+          html: payload.html,
+          text: payload.text || "",
+          fromName: payload.fromName || "BlindShare Security",
+          timestamp: new Date().toISOString(),
+        }),
+        signal: AbortSignal.timeout(5500), // Safe 5.5s timeout within serverless ceilings
+      });
 
-    if (!res.ok || (json && json.success === false)) {
+      const json = await res.json().catch(() => null);
+
+      if (!res.ok || (json && json.success === false)) {
+        lastError = json?.error || `GAS returned HTTP ${res.status}`;
+        // If rate limited (quota) or unauthorized, do not retry
+        if (res.status === 401 || res.status === 403 || res.status === 429) {
+          return {
+            success: false,
+            provider: "gas",
+            error: lastError,
+          };
+        }
+        if (attempt < maxAttempts) {
+          await new Promise((r) => setTimeout(r, 400));
+          continue;
+        }
+        return {
+          success: false,
+          provider: "gas",
+          error: lastError,
+        };
+      }
+
       return {
-        success: false,
+        success: true,
         provider: "gas",
-        error: json?.error || `GAS returned HTTP ${res.status}`,
+        quotaRemaining: json?.quotaRemaining,
       };
+    } catch (err: any) {
+      lastError = err?.message || "GAS fetch failed";
+      if (attempt < maxAttempts) {
+        await new Promise((r) => setTimeout(r, 300));
+        continue;
+      }
     }
-
-    return {
-      success: true,
-      provider: "gas",
-      quotaRemaining: json?.quotaRemaining,
-    };
-  } catch (err: any) {
-    return {
-      success: false,
-      provider: "gas",
-      error: err?.message || "Failed to communicate with Google Apps Script Web App",
-    };
   }
+
+  return {
+    success: false,
+    provider: "gas",
+    error: lastError,
+  };
 }

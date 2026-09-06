@@ -125,4 +125,5 @@ GAS_SECRET_TOKEN="your_secret_token_here"
 
 1. **Zero-Knowledge Preservation:** Document encryption keys `#k=...` reside exclusively in the client browser URL fragment and are **never** included in email payloads, database records, or server logs.
 2. **Shared Secret Verification:** Requests without the matching `GAS_SECRET_TOKEN` are immediately rejected with HTTP 401.
-3. **Cascading Fallback:** If `GAS_WEBAPP_URL` ever reaches its 100/day limit, BlindShare automatically cascades to Resend, Brevo, or SMTP without user interruption.
+3. **Cascading Fallback & Transient Self-Healing:** The GAS dispatcher features built-in 5.5s serverless execution timeouts and 1-shot transient network retry with backoff. If `GAS_WEBAPP_URL` ever reaches its 100/day limit, BlindShare automatically cascades to Resend, Brevo, or SMTP without user interruption.
+4. **Papermark-Style Multi-Format Verification:** All OTP emails sent through GAS include both a 1-Click Instant Login button (`Sign In to BlindShare →`) and a grouped security code (`123 - 456`), complete with client device, location, and UTC timestamp context for fraud protection.

@@ -182,42 +182,89 @@ export function renderMagicLinkEmail(data: MagicLinkData): { subject: string; ht
 }
 
 /**
- * 6-Digit Email OTP Verification Template
+ * Multi-Format Email Authentication Template (Papermark Standard)
+ * Supports 1-click direct sign-in button, formatted spaced/hyphenated passcode, and device security context.
  */
 export function renderOtpEmail(data: OtpData): { subject: string; html: string; text: string } {
-  const subject = `🔢 ${data.otpCode} is your BlindShare Verification Code`;
-  const preview = `Your single-use verification code is ${data.otpCode}. Valid for ${data.expiresInMinutes} minutes.`;
+  const displayCode = data.formattedCode || (data.otpCode.length === 6 ? `${data.otpCode.slice(0, 3)} - ${data.otpCode.slice(3)}` : data.otpCode);
+  const subject = `🔐 Sign in to BlindShare (Code: ${data.otpCode})`;
+  const preview = `Sign in to BlindShare with code ${displayCode} or use the 1-click instant login button. Valid for ${data.expiresInMinutes} minutes.`;
+
+  const magicButtonSection = data.magicLinkUrl
+    ? `
+    <!-- 1-Click Direct Sign-In Button (Papermark Standard) -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 24px auto 16px auto;">
+      <tr>
+        <td align="center" bgcolor="#f59e0b" style="border-radius: 12px; background-color: #f59e0b; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);">
+          <a href="${data.magicLinkUrl}" target="_blank" style="display: inline-block; padding: 15px 36px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 800; color: #020617 !important; text-decoration: none !important; letter-spacing: -0.01em; border-radius: 12px;">
+            Sign In to BlindShare &rarr;
+          </a>
+        </td>
+      </tr>
+    </table>
+
+    <div style="text-align: center; margin: 20px 0 16px 0;">
+      <span style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; background-color: #0f172a; padding: 0 10px;">
+        &mdash; OR ENTER VERIFICATION CODE &mdash;
+      </span>
+    </div>
+    `
+    : "";
+
+  const securityContextSection = (data.deviceInfo || data.locationInfo)
+    ? `
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 22px 0 10px 0; background-color: #030712; border: 1px solid #1e293b; border-radius: 10px; padding: 10px 14px;">
+      <tr>
+        <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; color: #94a3b8; line-height: 1.5;">
+          🛡️ <strong>Request Security Details:</strong><br />
+          ${data.deviceInfo ? `• Client: <span style="color: #cbd5e1;">${data.deviceInfo}</span><br />` : ""}
+          ${data.locationInfo ? `• Location/IP: <span style="color: #cbd5e1;">${data.locationInfo}</span><br />` : ""}
+          • Time: <span style="color: #cbd5e1;">${new Date().toUTCString()}</span>
+        </td>
+      </tr>
+    </table>
+    `
+    : "";
+
   const html = baseEmailLayout(
     `
-    <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 22px; font-weight: 800; color: #ffffff; margin: 0 0 14px 0; line-height: 1.3; letter-spacing: -0.02em;">
-      Your Verification Code
+    <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 22px; font-weight: 800; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; letter-spacing: -0.02em;">
+      Sign in to BlindShare
     </h1>
-    <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.65; color: #cbd5e1; margin: 0 0 22px 0;">
-      Enter the following 6-digit one-time code to authenticate your identity for BlindShare (<strong style="color: #ffffff;">${data.recipientEmail}</strong>):
+    <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.65; color: #cbd5e1; margin: 0 0 16px 0;">
+      We received a request to authenticate your account (<strong style="color: #ffffff;">${data.recipientEmail}</strong>). You can sign in directly with 1 click, or enter the temporary security code below:
     </p>
 
-    <!-- Large Glowing OTP Box -->
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 26px auto; width: 100%; max-width: 380px;">
+    ${magicButtonSection}
+
+    <!-- Large Glowing OTP Box with Hyphenated/Grouped Display -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 18px auto; width: 100%; max-width: 380px;">
       <tr>
-        <td align="center" style="background-color: #020617; border: 2px dashed #f59e0b; border-radius: 14px; padding: 22px 16px; box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);">
-          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;">
-            Single-Use Passcode
+        <td align="center" style="background-color: #020617; border: 2px dashed #f59e0b; border-radius: 14px; padding: 20px 16px; box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);">
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px;">
+            Single-Use Security Code
           </div>
-          <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Courier, monospace; font-size: 38px; font-weight: 900; letter-spacing: 12px; color: #fbbf24; padding-left: 12px;">
-            ${data.otpCode}
+          <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Courier, monospace; font-size: 34px; font-weight: 900; letter-spacing: 6px; color: #fbbf24;">
+            ${displayCode}
           </div>
         </td>
       </tr>
     </table>
 
+    ${securityContextSection}
+
     <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; color: #64748b; line-height: 1.5; margin: 16px 0 0 0; text-align: center;">
-      ⏱️ This single-use code will expire in <strong style="color: #cbd5e1;">${data.expiresInMinutes} minutes</strong>. Never share this code with anyone.
+      ⏱️ This link and single-use code expire in <strong style="color: #cbd5e1;">${data.expiresInMinutes} minutes</strong>. If you did not request this, no action is needed.
     </p>
     `,
     preview,
-    "Verification Code"
+    "Sign In to BlindShare"
   );
-  const text = `Your BlindShare verification code is: ${data.otpCode}\n\nThis single-use code will expire in ${data.expiresInMinutes} minutes. Never share this code with anyone.`;
+
+  const text = data.magicLinkUrl
+    ? `Sign in to BlindShare:\n\n1-Click Instant Sign-In: ${data.magicLinkUrl}\n\nOr enter code: ${displayCode}\n\nValid for ${data.expiresInMinutes} minutes. If you did not request this, please ignore.`
+    : `Your BlindShare verification code is: ${displayCode}\n\nValid for ${data.expiresInMinutes} minutes. If you did not request this, please ignore.`;
+
   return { subject, html, text };
 }
 

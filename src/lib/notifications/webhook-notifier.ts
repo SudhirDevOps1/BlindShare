@@ -28,6 +28,15 @@ export interface WebhookDispatchResult {
   latencyMs: number;
 }
 
+// In-Memory Self-Healing Circuit Breaker for Webhook Gateways
+interface CircuitBreakerRecord {
+  failures: number;
+  lastFailureTime: number;
+}
+const webhookCircuitBreakers = new Map<string, CircuitBreakerRecord>();
+const MAX_CONSECUTIVE_FAILURES = 3;
+const CIRCUIT_COOLDOWN_MS = 2 * 60 * 1000; // 2 minutes cooldown
+
 export async function sendWebhookNotificationDetailed(
   webhookUrl: string,
   payload: WebhookEventPayload
@@ -51,6 +60,18 @@ export async function sendWebhookNotificationDetailed(
     const parsed = new URL(webhookUrl.trim());
     const host = parsed.hostname.toLowerCase();
     let path = parsed.pathname;
+
+    // Circuit Breaker Defense: if destination endpoint has repeatedly failed, back off to save serverless resources
+    const breaker = webhookCircuitBreakers.get(host);
+    if (breaker && breaker.failures >= MAX_CONSECUTIVE_FAILURES) {
+      if (Date.now() - breaker.lastFailureTime < CIRCUIT_COOLDOWN_MS) {
+        return {
+          success: false,
+          error: `Circuit breaker active for ${host} (${breaker.failures} consecutive failures). Self-healing backoff active to protect server resources.`,
+          latencyMs: Date.now() - t0,
+        };
+      }
+    }
 
     // Anti-DNS Rebinding Pre-Flight Defense
     try {
@@ -97,6 +118,15 @@ export async function sendWebhookNotificationDetailed(
       path.startsWith("/services");
     const isStoat =
       host === "stoat.chat" || host === "app.stoat.chat" || host.endsWith(".stoat.chat") || host === "revolt.chat" || host.endsWith(".revolt.chat");
+    const isSmsGateway =
+      host.includes("twilio") ||
+      host.includes("sinch") ||
+      host.includes("textbee") ||
+      host.includes("plivo") ||
+      host.includes("messagebird") ||
+      path.includes("/sms") ||
+      parsed.searchParams.get("format") === "sms" ||
+      parsed.searchParams.get("type") === "sms";
 
     let body: any;
 
@@ -134,11 +164,34 @@ export async function sendWebhookNotificationDetailed(
         ],
       };
     } else if (isStoat) {
-      // Stoat (Revolt) message payload (content string)
+      // Stoat (Revolt protocol) supports rich markdown + embedded notification cards
       const eventTitle = getEventTitle(payload.event);
       const summaryText = `🔔 **[BlindShare] ${eventTitle}: ${payload.linkName}**\n📄 Document: *${payload.docTitle || "Document"}*\n👤 Viewer: **${payload.viewerEmail || payload.signedName || "Anonymous"}** (${payload.viewerCountry || "Unknown"}, ${payload.viewerDevice || "Desktop"})${payload.dwellSeconds ? `\n⏱ Time Spent: ${payload.dwellSeconds}s` : ""}${payload.questionText ? `\n💬 Question: "${payload.questionText}"` : ""}`;
       body = {
         content: summaryText,
+        embeds: [
+          {
+            type: "text",
+            title: `🔔 ${eventTitle}: ${payload.linkName}`,
+            description: `Interactive viewer event on **${payload.docTitle || "Document"}**\n\n👤 **Viewer:** \`${payload.viewerEmail || payload.signedName || "Anonymous"}\`\n🌍 **Geo:** ${payload.viewerCountry || "Unknown"}\n💻 **Client:** ${payload.viewerDevice || "Desktop"}${payload.dwellSeconds ? `\n⏳ **Dwell Duration:** ${payload.dwellSeconds}s` : ""}${payload.questionText ? `\n💬 **In-Doc Pin:** "${payload.questionText}"` : ""}`,
+            colour: payload.event === "signature_submitted" ? "#10b981" : payload.event === "question_asked" ? "#f59e0b" : "#6366f1",
+            icon_url: "https://raw.githubusercontent.com/SudhirDevOps1/BlindShare/main/public/brand/02-favicon.svg",
+          },
+        ],
+      };
+    } else if (isSmsGateway) {
+      // Compact, high-signal SMS format (<160 chars) for Twilio / Textbee / SMS gateways
+      const eventTitle = getEventTitle(payload.event);
+      const smsText = `[BlindShare] 🔔 ${eventTitle}: '${payload.linkName}' viewed by ${payload.viewerEmail || "Anonymous"}${payload.dwellSeconds ? ` (${payload.dwellSeconds}s)` : ""}. Doc: ${payload.docTitle || "Deck"}`;
+      body = {
+        To: parsed.searchParams.get("to") || undefined,
+        From: parsed.searchParams.get("from") || "BlindShare",
+        Body: smsText,
+        message: smsText,
+        text: smsText,
+        event: payload.event,
+        linkName: payload.linkName,
+        timestamp: payload.timestamp,
       };
     } else {
       // Generic JSON Webhook & Chat endpoints
@@ -157,14 +210,21 @@ export async function sendWebhookNotificationDetailed(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(3500),
     });
 
     const latencyMs = Math.max(1, Date.now() - t0);
 
     if (response.ok) {
+      webhookCircuitBreakers.delete(host);
       return { success: true, status: response.status, latencyMs };
     }
+
+    const cur = webhookCircuitBreakers.get(host) || { failures: 0, lastFailureTime: 0 };
+    webhookCircuitBreakers.set(host, {
+      failures: cur.failures + 1,
+      lastFailureTime: Date.now(),
+    });
 
     let errorDetail = `Remote server returned HTTP ${response.status}`;
     if (response.status === 404) {
