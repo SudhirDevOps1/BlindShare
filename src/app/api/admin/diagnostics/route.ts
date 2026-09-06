@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/auth/rbac";
 import { db } from "@/db";
 import { sql } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
-import { getActiveEmailProvider } from "@/lib/email/email-dispatcher";
+import { getActiveEmailProvider, sendEmail } from "@/lib/email/email-dispatcher";
 import { sendWebhookNotification, sendWebhookNotificationDetailed } from "@/lib/notifications/webhook-notifier";
 
 export type EnvCategory =
@@ -830,6 +830,88 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json().catch(() => ({}));
+
+    // --- 1. Email Diagnostic Probe (Google Apps Script / SMTP / Resend / Brevo) ---
+    if (body.type === "email" || body.action === "test_email") {
+      const targetEmail = (body.targetEmail as string)?.trim() || auth.user.email;
+      if (!targetEmail) {
+        return NextResponse.json({
+          success: false,
+          error: "No destination email address found. Please specify an email address.",
+        }, { status: 400 });
+      }
+
+      const emailInfo = getActiveEmailProvider();
+      const start = Date.now();
+
+      const testHtml = `
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 580px; margin: 0 auto; background: #0b0f19; color: #f8fafc; border-radius: 16px; padding: 32px; border: 1px solid #1e293b;">
+          <div style="display: inline-block; padding: 5px 12px; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 9999px; font-size: 11px; font-weight: 700; color: #34d399; margin-bottom: 16px;">
+            LIVE DIAGNOSTIC TEST
+          </div>
+          <h2 style="margin: 0 0 12px; font-size: 20px; font-weight: 700; color: #ffffff;">🧪 BlindShare Email Engine Verification</h2>
+          <p style="font-size: 14px; line-height: 1.6; color: #94a3b8; margin: 0 0 20px;">
+            Congratulations! Your BlindShare transactional email relay is configured and actively delivering messages in production.
+          </p>
+          
+          <div style="background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 12px; color: #cbd5e1;">
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Active Provider:</td>
+                <td style="padding: 6px 0; font-weight: 700; color: #38bdf8; text-align: right;">${emailInfo.provider.toUpperCase()}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Relay Details:</td>
+                <td style="padding: 6px 0; text-align: right;">${emailInfo.details}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Recipient:</td>
+                <td style="padding: 6px 0; text-align: right; font-family: monospace; color: #facc15;">${targetEmail}</td>
+              </tr>
+              <tr>
+                <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Dispatched At:</td>
+                <td style="padding: 6px 0; text-align: right;">${new Date().toUTCString()}</td>
+              </tr>
+            </table>
+          </div>
+
+          <p style="font-size: 11px; color: #64748b; margin: 0; line-height: 1.5;">
+            🔒 <strong>Zero-Knowledge Assurance:</strong> Document encryption keys (<code>#k=...</code>) reside exclusively in browser URL fragments and are never transmitted over email or server infrastructure.
+          </p>
+        </div>
+      `;
+
+      const emailResult = await sendEmail({
+        to: targetEmail,
+        subject: "🧪 BlindShare Email Engine Live Diagnostic Test",
+        text: `BlindShare Email Diagnostic: Test email delivered via ${emailInfo.provider.toUpperCase()} (${emailInfo.details}) to ${targetEmail} at ${new Date().toISOString()}.`,
+        html: testHtml,
+        fromName: "BlindShare Security Relay",
+      });
+
+      const latencyMs = Date.now() - start;
+
+      if (!emailResult.success) {
+        return NextResponse.json({
+          success: false,
+          provider: emailResult.provider || emailInfo.provider,
+          latencyMs,
+          target: targetEmail,
+          error: emailResult.error || "Failed to dispatch test email via active provider.",
+        }, { status: 200 });
+      }
+
+      return NextResponse.json({
+        success: true,
+        provider: emailResult.provider || emailInfo.provider,
+        latencyMs,
+        target: targetEmail,
+        messageId: emailResult.messageId,
+        message: `Test email successfully dispatched to ${targetEmail} via ${(emailResult.provider || emailInfo.provider).toUpperCase()} (${latencyMs}ms)! Check your inbox.`,
+      });
+    }
+
+    // --- 2. Webhook Diagnostic Probe (Existing) ---
     const testUrl = (body.webhookUrl as string)?.trim() || process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL || process.env.SLACK_WEBHOOK_URL || process.env.BOT_WEBHOOK_URL;
 
     if (!testUrl) {

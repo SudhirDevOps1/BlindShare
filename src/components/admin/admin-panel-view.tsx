@@ -76,6 +76,8 @@ export function AdminPanelView() {
   const [testingEnv, setTestingEnv] = useState(false);
   const [testingWebhook, setTestingWebhook] = useState(false);
   const [webhookTestResult, setWebhookTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [testingEmail, setTestingEmail] = useState(false);
+  const [emailTestResult, setEmailTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [envFilter, setEnvFilter] = useState<"all" | "missing" | "configured" | "required" | "optional_unset">("all");
   const [envCategoryFilter, setEnvCategoryFilter] = useState<string>("all");
   const [envSearch, setEnvSearch] = useState<string>("");
@@ -230,6 +232,39 @@ export function AdminPanelView() {
       });
     } finally {
       setTestingWebhook(false);
+    }
+  };
+
+  const handleTestEmail = async () => {
+    setTestingEmail(true);
+    setEmailTestResult(null);
+    try {
+      const res = await fetch("/api/admin/diagnostics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "email" }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setEmailTestResult({
+          success: true,
+          message: json.message || `Delivered (${json.latencyMs}ms)`,
+        });
+        setActionMessage(json.message || `Test email dispatched successfully (${json.latencyMs}ms)! Check your inbox.`);
+      } else {
+        setEmailTestResult({
+          success: false,
+          message: json.error || "Failed to deliver test email",
+        });
+        setActionMessage(`Email test failed: ${json.error || "Delivery error"}`);
+      }
+    } catch (e: any) {
+      setEmailTestResult({
+        success: false,
+        message: e.message || "Network error",
+      });
+    } finally {
+      setTestingEmail(false);
     }
   };
 
@@ -882,23 +917,40 @@ export function AdminPanelView() {
               </div>
 
               {/* Email Engine */}
-              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-amber-400" />
-                    <span className="text-xs font-bold text-white">Email Engine</span>
+              <div className="p-4 rounded-xl border border-slate-800 bg-slate-950 space-y-2 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-amber-400" />
+                      <span className="text-xs font-bold text-white">Email Engine</span>
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                      diagnosticsData?.diagnostics?.email?.status === "operational"
+                        ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
+                        : "text-amber-400 bg-amber-500/10 border-amber-500/20"
+                    }`}>
+                      {diagnosticsData?.diagnostics?.email?.provider ? diagnosticsData.diagnostics.email.provider.toUpperCase() : "AUTO"}
+                    </span>
                   </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
-                    diagnosticsData?.diagnostics?.email?.status === "operational"
-                      ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-                      : "text-amber-400 bg-amber-500/10 border-amber-500/20"
-                  }`}>
-                    {diagnosticsData?.diagnostics?.email?.provider ? diagnosticsData.diagnostics.email.provider.toUpperCase() : "AUTO"}
-                  </span>
+                  <p className="text-[11px] text-slate-400 truncate mt-1" title={diagnosticsData?.diagnostics?.email?.details}>
+                    {diagnosticsData?.diagnostics?.email?.details || "Cascading Fallback ($0 GAS / Resend / Brevo / SMTP)"}
+                  </p>
                 </div>
-                <p className="text-[11px] text-slate-400 truncate" title={diagnosticsData?.diagnostics?.email?.details}>
-                  {diagnosticsData?.diagnostics?.email?.details || "Cascading Fallback ($0 GAS / Resend / Brevo / SMTP)"}
-                </p>
+                <div className="pt-1">
+                  <button
+                    onClick={handleTestEmail}
+                    disabled={testingEmail}
+                    className="w-full flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-bold text-amber-400 hover:text-white hover:bg-slate-800 hover:border-amber-500/40 disabled:opacity-50 transition"
+                  >
+                    <Mail className={`h-3 w-3 ${testingEmail ? "animate-spin" : ""}`} />
+                    <span>{testingEmail ? (lang === "hi" ? "भेज रहे हैं..." : "Testing Dispatch...") : (lang === "hi" ? "टेस्ट ईमेल भेजें" : "Test Email Ping")}</span>
+                  </button>
+                  {emailTestResult && (
+                    <p className={`text-[9px] mt-1 truncate ${emailTestResult.success ? "text-emerald-400" : "text-red-400"}`} title={emailTestResult.message}>
+                      {emailTestResult.message}
+                    </p>
+                  )}
+                </div>
               </div>
 
               {/* Webhook Engine */}
