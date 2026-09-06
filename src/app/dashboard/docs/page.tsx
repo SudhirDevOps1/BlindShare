@@ -67,7 +67,7 @@ export default function DocsPage() {
   };
 
   const handleConfirmDelete = async () => {
-    if (!deleteDocTarget) return;
+    if (!deleteDocTarget || deleting) return;
     try {
       setDeleting(true);
       const res = await fetch(`/api/docs/${deleteDocTarget.id}`, { method: "DELETE" });

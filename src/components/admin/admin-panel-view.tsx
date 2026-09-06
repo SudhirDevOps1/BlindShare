@@ -37,6 +37,7 @@ import {
   Radio,
   BellRing,
   X,
+  Loader2,
 } from "lucide-react";
 import {
   DeveloperProfile,
@@ -93,6 +94,10 @@ export function AdminPanelView() {
   const [newInviteDays, setNewInviteDays] = useState("7");
   const [customInviteCode, setCustomInviteCode] = useState("");
   const [inviteRecipientEmail, setInviteRecipientEmail] = useState("");
+  const [creatingInvite, setCreatingInvite] = useState(false);
+  const [revokingInviteId, setRevokingInviteId] = useState<string | null>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
 
   // Developer Profile & Social Media Suite State
   const [devProfile, setDevProfile] = useState<DeveloperProfile>(loadDeveloperProfile);
@@ -126,19 +131,23 @@ export function AdminPanelView() {
 
   const handleSaveDevProfileAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavingDevProfile(true);
-    const cleaned: DeveloperProfile = {
-      name: devProfile.name.trim() || "SudhirDevOps1",
-      tagline: devProfile.tagline.trim() || "Lead Creator & Maintainer • Zero-Knowledge Document Vault Platform",
-      url: devProfile.url.trim() || devProfile.platforms.github?.url || "https://github.com/SudhirDevOps1",
-      platforms: { ...devProfile.platforms },
-    };
-    const res = await saveDeveloperProfileToDb(cleaned);
-    setSavingDevProfile(false);
-    if (res.success) {
-      setActionMessage("Developer Profile & Social Media Allowlist saved to Database! Changes are live across all page footers.");
-    } else {
-      setActionMessage(`Notice: Saved locally in browser. DB note: ${res.error}`);
+    if (savingDevProfile) return;
+    try {
+      setSavingDevProfile(true);
+      const cleaned: DeveloperProfile = {
+        name: devProfile.name.trim() || "SudhirDevOps1",
+        tagline: devProfile.tagline.trim() || "Lead Creator & Maintainer • Zero-Knowledge Document Vault Platform",
+        url: devProfile.url.trim() || devProfile.platforms.github?.url || "https://github.com/SudhirDevOps1",
+        platforms: { ...devProfile.platforms },
+      };
+      const res = await saveDeveloperProfileToDb(cleaned);
+      if (res.success) {
+        setActionMessage("Developer Profile & Social Media Allowlist saved to Database! Changes are live across all page footers.");
+      } else {
+        setActionMessage(`Notice: Saved locally in browser. DB note: ${res.error}`);
+      }
+    } finally {
+      setSavingDevProfile(false);
     }
   };
 
@@ -203,6 +212,7 @@ export function AdminPanelView() {
   };
 
   const handleTestWebhook = async () => {
+    if (testingWebhook) return;
     setTestingWebhook(true);
     setWebhookTestResult(null);
     try {
@@ -236,6 +246,7 @@ export function AdminPanelView() {
   };
 
   const handleTestEmail = async () => {
+    if (testingEmail) return;
     setTestingEmail(true);
     setEmailTestResult(null);
     try {
@@ -310,29 +321,41 @@ export function AdminPanelView() {
   }, []);
 
   const handleToggleBlock = async (userId: string, currentBlocked: boolean) => {
-    const res = await fetch("/api/admin/users", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, isBlocked: !currentBlocked }),
-    });
-    if (res.ok) {
-      setActionMessage(`User ${!currentBlocked ? "blocked" : "unblocked"} successfully.`);
-      fetchUsers();
+    if (updatingUserId) return;
+    try {
+      setUpdatingUserId(userId);
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, isBlocked: !currentBlocked }),
+      });
+      if (res.ok) {
+        setActionMessage(`User ${!currentBlocked ? "blocked" : "unblocked"} successfully.`);
+        fetchUsers();
+      }
+    } finally {
+      setUpdatingUserId(null);
     }
   };
 
   const handleRoleChange = async (userId: string, newRole: string) => {
-    const res = await fetch("/api/admin/users", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, role: newRole }),
-    });
-    const json = await res.json();
-    if (res.ok) {
-      setActionMessage(`User role updated to ${newRole}.`);
-      fetchUsers();
-    } else {
-      setActionMessage(`Error: ${json.error || "Failed to update user role"}`);
+    if (updatingUserId) return;
+    try {
+      setUpdatingUserId(userId);
+      const res = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, role: newRole }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setActionMessage(`User role updated to ${newRole}.`);
+        fetchUsers();
+      } else {
+        setActionMessage(`Error: ${json.error || "Failed to update user role"}`);
+      }
+    } finally {
+      setUpdatingUserId(null);
     }
   };
 
@@ -341,7 +364,7 @@ export function AdminPanelView() {
   };
 
   const handleConfirmDeleteUser = async () => {
-    if (!deleteUserTarget) return;
+    if (!deleteUserTarget || deletingUser) return;
     try {
       setDeletingUser(true);
       const res = await fetch(`/api/admin/users?userId=${deleteUserTarget.id}`, { method: "DELETE" });
@@ -358,52 +381,68 @@ export function AdminPanelView() {
 
   const handleCreateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isEmailInvite = Boolean(inviteRecipientEmail.trim());
-    const endpoint = isEmailInvite ? "/api/admin/invites/send" : "/api/admin/invites";
-    const payload = isEmailInvite
-      ? {
-          role: newInviteRole,
-          expiresInDays: parseInt(newInviteDays, 10),
-          recipientEmail: inviteRecipientEmail.trim(),
-          customCode: customInviteCode.trim() || undefined,
-        }
-      : {
-          role: newInviteRole,
-          expiryDays: parseInt(newInviteDays, 10),
-          expiresInDays: parseInt(newInviteDays, 10),
-          customCode: customInviteCode.trim() || undefined,
-          code: customInviteCode.trim() || undefined,
-        };
+    if (creatingInvite) return;
+    try {
+      setCreatingInvite(true);
+      const isEmailInvite = Boolean(inviteRecipientEmail.trim());
+      const endpoint = isEmailInvite ? "/api/admin/invites/send" : "/api/admin/invites";
+      const payload = isEmailInvite
+        ? {
+            role: newInviteRole,
+            expiresInDays: parseInt(newInviteDays, 10),
+            recipientEmail: inviteRecipientEmail.trim(),
+            customCode: customInviteCode.trim() || undefined,
+          }
+        : {
+            role: newInviteRole,
+            expiryDays: parseInt(newInviteDays, 10),
+            expiresInDays: parseInt(newInviteDays, 10),
+            customCode: customInviteCode.trim() || undefined,
+            code: customInviteCode.trim() || undefined,
+          };
 
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const json = await res.json();
-    if (res.ok) {
-      const codeCreated = json.code || json.invite?.code || "Created";
-      if (isEmailInvite) {
-        setActionMessage(`Invite code created & emailed to ${inviteRecipientEmail.trim()}: ${codeCreated}`);
-        setInviteRecipientEmail("");
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        const codeCreated = json.code || json.invite?.code || "Created";
+        if (isEmailInvite) {
+          setActionMessage(`Invite code created & emailed to ${inviteRecipientEmail.trim()}: ${codeCreated}`);
+          setInviteRecipientEmail("");
+        } else {
+          setActionMessage(`Invite code created: ${codeCreated}`);
+        }
+        setCustomInviteCode("");
+        fetchInvites();
       } else {
-        setActionMessage(`Invite code created: ${codeCreated}`);
+        setActionMessage(`Error: ${json.error || "Failed to create invite"}`);
       }
-      setCustomInviteCode("");
-      fetchInvites();
-    } else {
-      setActionMessage(`Error: ${json.error || "Failed to create invite"}`);
+    } catch {
+      setActionMessage("Error: Network or server failure creating invite");
+    } finally {
+      setCreatingInvite(false);
     }
   };
 
   const handleRevokeInvite = async (id: string) => {
-    const res = await fetch(`/api/admin/invites?id=${id}`, { method: "DELETE" });
-    const json = await res.json();
-    if (res.ok) {
-      setActionMessage("Invite revoked successfully.");
-      fetchInvites();
-    } else {
-      setActionMessage(`Error: ${json.error || "Failed to revoke invite"}`);
+    if (revokingInviteId) return;
+    try {
+      setRevokingInviteId(id);
+      const res = await fetch(`/api/admin/invites?id=${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (res.ok) {
+        setActionMessage("Invite revoked successfully.");
+        fetchInvites();
+      } else {
+        setActionMessage(`Error: ${json.error || "Failed to revoke invite"}`);
+      }
+    } catch {
+      setActionMessage("Error: Failed to revoke invite");
+    } finally {
+      setRevokingInviteId(null);
     }
   };
 
@@ -416,7 +455,9 @@ export function AdminPanelView() {
   };
 
   const handleSaveSettings = async () => {
+    if (savingSettings) return;
     try {
+      setSavingSettings(true);
       const isMaint = settings.maintenance_mode === "true" || settings.maintenance_mode === true;
       const res = await fetch("/api/admin/settings", {
         method: "POST",
@@ -439,6 +480,8 @@ export function AdminPanelView() {
       }
     } catch {
       setActionMessage("Network error while saving settings.");
+    } finally {
+      setSavingSettings(false);
     }
   };
 
@@ -1260,8 +1303,9 @@ export function AdminPanelView() {
                     <td className="py-3">
                       <select
                         value={u.role}
+                        disabled={updatingUserId === u.id}
                         onChange={(e) => handleRoleChange(u.id, e.target.value)}
-                        className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white"
+                        className="rounded-lg border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white disabled:opacity-50"
                       >
                         <option value="owner">Owner</option>
                         <option value="admin">Admin</option>
@@ -1286,17 +1330,19 @@ export function AdminPanelView() {
                     <td className="py-3 pr-2 text-right space-x-2">
                       <button
                         onClick={() => handleToggleBlock(u.id, u.isBlocked)}
-                        className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition ${
+                        disabled={updatingUserId === u.id}
+                        className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed ${
                           u.isBlocked
                             ? "bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30"
                             : "bg-red-500/20 text-red-300 hover:bg-red-500/30 border border-red-500/30"
                         }`}
                       >
-                        {u.isBlocked ? "Unblock" : "Block"}
+                        {updatingUserId === u.id ? "Updating..." : (u.isBlocked ? "Unblock" : "Block")}
                       </button>
                       <button
                         onClick={() => promptDeleteUser(u.id, u.name)}
-                        className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-red-400 transition"
+                        disabled={updatingUserId === u.id || deletingUser}
+                        className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-red-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Delete User"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -1373,9 +1419,15 @@ export function AdminPanelView() {
 
               <button
                 type="submit"
-                className="w-full rounded-xl bg-amber-500 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition"
+                disabled={creatingInvite}
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-amber-500/10"
               >
-                {inviteRecipientEmail.trim() ? "Generate & Email Invitation" : "Generate Invite Code"}
+                {creatingInvite && <Loader2 className="h-4 w-4 animate-spin" />}
+                <span>
+                  {creatingInvite
+                    ? (inviteRecipientEmail.trim() ? "Sending Invitation Email..." : "Generating Invite Code...")
+                    : (inviteRecipientEmail.trim() ? "Generate & Email Invitation" : "Generate Invite Code")}
+                </span>
               </button>
             </form>
           </div>
@@ -1450,10 +1502,15 @@ export function AdminPanelView() {
                           {!inv.isUsed && (
                             <button
                               onClick={() => handleRevokeInvite(inv.id)}
-                              className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-red-400 transition"
+                              disabled={revokingInviteId === inv.id}
+                              className="rounded-lg bg-slate-800 p-1.5 text-slate-400 hover:text-red-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Revoke / Delete Invite"
                             >
-                              <Trash2 className="h-3.5 w-3.5" />
+                              {revokingInviteId === inv.id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin text-red-400" />
+                              ) : (
+                                <Trash2 className="h-3.5 w-3.5" />
+                              )}
                             </button>
                           )}
                         </td>
@@ -1757,9 +1814,11 @@ export function AdminPanelView() {
 
             <button
               onClick={handleSaveSettings}
-              className="rounded-xl bg-amber-500 px-6 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10"
+              disabled={savingSettings}
+              className="flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {t.admin.saveSettings}
+              {savingSettings && <Loader2 className="h-4 w-4 animate-spin" />}
+              <span>{savingSettings ? "Saving Settings..." : t.admin.saveSettings}</span>
             </button>
           </div>
 
@@ -1883,9 +1942,9 @@ export function AdminPanelView() {
                 <button
                   type="submit"
                   disabled={savingDevProfile}
-                  className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/20 disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <Save className="h-4 w-4" />
+                  {savingDevProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   <span>{savingDevProfile ? "Saving..." : "Save Developer Attribution"}</span>
                 </button>
               </div>

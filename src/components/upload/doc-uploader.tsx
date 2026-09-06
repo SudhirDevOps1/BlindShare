@@ -109,7 +109,7 @@ export function DocUploader({ onUploadSuccess, targetDoc }: DocUploaderProps) {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file || encrypting) return;
 
     try {
       setError(null);

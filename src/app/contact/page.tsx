@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { useI18n } from "@/lib/i18n/context";
-import { MessageSquare, Send, CheckCircle2, ShieldCheck, Mail } from "lucide-react";
+import { MessageSquare, Send, CheckCircle2, ShieldCheck, Mail, Loader2 } from "lucide-react";
 
 export default function ContactPage() {
   const { appName } = useI18n();
@@ -18,7 +18,7 @@ export default function ContactPage() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (honeypot) return; // Silent discard for bot
+    if (loading || honeypot) return; // Guard against in-flight double submit & bot spam
 
     setLoading(true);
 
@@ -138,9 +138,9 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold rounded-xl hover:from-amber-400 hover:to-amber-500 transition-all text-xs disabled:opacity-50"
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold rounded-xl hover:from-amber-400 hover:to-amber-500 transition-all text-xs disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-amber-500/10"
               >
-                <Send className="h-3.5 w-3.5" />
+                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                 <span>{loading ? "Transmitting..." : "Send Message"}</span>
               </button>
             </form>

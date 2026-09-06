@@ -23,6 +23,7 @@ import {
   Sparkles,
   FileText,
   Folder,
+  Loader2,
 } from "lucide-react";
 import QRCodeLib from "qrcode";
 
@@ -147,6 +148,7 @@ export function CreateLinkModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     if (!name.trim()) {
       setError("Please enter a link nickname or recipient.");
       return;
@@ -865,9 +867,10 @@ export function CreateLinkModal({
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-xl bg-amber-500 py-3 text-sm font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 transition-colors shadow-lg shadow-amber-500/20"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 text-sm font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-amber-500/20"
               >
-                {loading ? "Generating Link..." : t.linkStudio.createBtn}
+                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+                <span>{loading ? "Generating Link..." : t.linkStudio.createBtn}</span>
               </button>
             </form>
           </div>

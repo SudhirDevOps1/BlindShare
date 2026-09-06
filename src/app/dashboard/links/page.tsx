@@ -49,6 +49,7 @@ export default function LinksPage() {
   // In-App Link Delete Confirmation Dialog State
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [togglingLinkId, setTogglingLinkId] = useState<string | null>(null);
 
   // Key Recovery Dialog State (when browser storage was cleared)
   const [keyRecoveryTarget, setKeyRecoveryTarget] = useState<any | null>(null);
@@ -180,7 +181,7 @@ export default function LinksPage() {
   };
 
   const handleSaveRecoveredKey = async () => {
-    if (!keyRecoveryTarget || !keyInput.trim()) return;
+    if (!keyRecoveryTarget || !keyInput.trim() || recovering) return;
 
     const startTime = Date.now();
     try {
@@ -347,12 +348,18 @@ export default function LinksPage() {
   };
 
   const handleToggleRevoke = async (id: string, currentRevoked: boolean) => {
-    const res = await fetch(`/api/links/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ isRevoked: !currentRevoked }),
-    });
-    if (res.ok) fetchLinks();
+    if (togglingLinkId === id) return;
+    try {
+      setTogglingLinkId(id);
+      const res = await fetch(`/api/links/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isRevoked: !currentRevoked }),
+      });
+      if (res.ok) fetchLinks();
+    } finally {
+      setTogglingLinkId(null);
+    }
   };
 
   const promptDeleteLink = (id: string, name: string) => {
@@ -360,7 +367,7 @@ export default function LinksPage() {
   };
 
   const handleConfirmDeleteLink = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget || deleting) return;
     try {
       setDeleting(true);
       const res = await fetch(`/api/links/${deleteTarget.id}`, { method: "DELETE" });
@@ -607,14 +614,19 @@ export default function LinksPage() {
 
                         <button
                           onClick={() => handleToggleRevoke(link.id, link.isRevoked)}
-                          className={`rounded-xl p-2 border transition-all hover:scale-105 shadow-sm ${
+                          disabled={togglingLinkId === link.id}
+                          className={`rounded-xl p-2 border transition-all hover:scale-105 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed ${
                             link.isRevoked
                               ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/25"
                               : "bg-amber-500/10 text-amber-400 border-amber-500/20 hover:bg-amber-500/20"
                           }`}
                           title={link.isRevoked ? "Activate Link" : "Revoke Link"}
                         >
-                          <Ban className="h-4 w-4" />
+                          {togglingLinkId === link.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-amber-400" />
+                          ) : (
+                            <Ban className="h-4 w-4" />
+                          )}
                         </button>
 
                         <button

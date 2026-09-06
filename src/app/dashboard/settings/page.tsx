@@ -32,6 +32,7 @@ import {
   ShieldAlert,
   Download,
   Laptop,
+  Loader2,
 } from "lucide-react";
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
 import { TwoFactorModal } from "@/components/auth/two-factor-modal";
@@ -192,26 +193,30 @@ export default function SettingsPage() {
 
   const handleSaveDevProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSavingDevProfile(true);
-    const cleanedProfile: DeveloperProfile = {
-      name: devProfile.name.trim() || "SudhirDevOps1",
-      tagline: devProfile.tagline.trim() || "Lead Creator & Maintainer • Zero-Knowledge Document Vault Platform",
-      url: devProfile.url.trim() || devProfile.platforms.github?.url || "https://github.com/SudhirDevOps1",
-      platforms: { ...devProfile.platforms },
-    };
-    const res = await saveDeveloperProfileToDb(cleanedProfile);
-    setSavingDevProfile(false);
-    setMessage({
-      type: "success",
-      text:
-        lang === "hi"
-          ? res.success
-            ? "डेवलपर और सोशल मीडिया प्रोफाइल डेटाबेस में सुरक्षित हो गई! सभी पेजों के फुटर में लाइव अपडेट हो गया।"
-            : "प्रोफाइल सुरक्षित हो गई! सभी पेजों के फुटर में लाइव अपडेट हो गया।"
-          : res.success
-          ? "Developer attribution and social media channels saved to Database! Live updated across all footers."
-          : "Developer attribution saved! Live updated across all footers.",
-    });
+    if (savingDevProfile) return;
+    try {
+      setSavingDevProfile(true);
+      const cleanedProfile: DeveloperProfile = {
+        name: devProfile.name.trim() || "SudhirDevOps1",
+        tagline: devProfile.tagline.trim() || "Lead Creator & Maintainer • Zero-Knowledge Document Vault Platform",
+        url: devProfile.url.trim() || devProfile.platforms.github?.url || "https://github.com/SudhirDevOps1",
+        platforms: { ...devProfile.platforms },
+      };
+      const res = await saveDeveloperProfileToDb(cleanedProfile);
+      setMessage({
+        type: "success",
+        text:
+          lang === "hi"
+            ? res.success
+              ? "डेवलपर और सोशल मीडिया प्रोफाइल डेटाबेस में सुरक्षित हो गई! सभी पेजों के फुटर में लाइव अपडेट हो गया।"
+              : "प्रोफाइल सुरक्षित हो गई! सभी पेजों के फुटर में लाइव अपडेट हो गया।"
+            : res.success
+            ? "Developer attribution and social media channels saved to Database! Live updated across all footers."
+            : "Developer attribution saved! Live updated across all footers.",
+      });
+    } finally {
+      setSavingDevProfile(false);
+    }
   };
 
   const handleToggleCursorFx = () => {
@@ -392,6 +397,7 @@ export default function SettingsPage() {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingProfile) return;
     setSavingProfile(true);
     setMessage(null);
 
@@ -415,6 +421,7 @@ export default function SettingsPage() {
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (savingPassword) return;
     setMessage(null);
 
     if (newPassword !== confirmPassword) {
@@ -453,6 +460,7 @@ export default function SettingsPage() {
 
   const handleCreateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (creatingInvite) return;
     setCreatingInvite(true);
     setMessage(null);
 
@@ -598,9 +606,9 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={savingProfile}
-                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Save className="h-3.5 w-3.5" />
+                {savingProfile ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
                 <span>{savingProfile ? "Saving..." : "Save Profile"}</span>
               </button>
             </div>
@@ -663,9 +671,9 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={savingPassword}
-                className="flex items-center gap-1.5 rounded-xl bg-slate-800 px-4 py-2 text-xs font-bold text-white hover:bg-slate-700 border border-slate-700 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-xl bg-slate-800 px-4 py-2 text-xs font-bold text-white hover:bg-slate-700 border border-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <KeyRound className="h-3.5 w-3.5 text-amber-400" />
+                {savingPassword ? <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" /> : <KeyRound className="h-3.5 w-3.5 text-amber-400" />}
                 <span>{savingPassword ? "Updating Password..." : "Update Password"}</span>
               </button>
             </div>
@@ -1230,9 +1238,9 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={creatingInvite}
-              className="flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-3 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors disabled:opacity-50"
+              className="flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-3 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Plus className="h-3.5 w-3.5" />
+              {creatingInvite ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
               <span>{creatingInvite ? "Creating..." : "Generate Code"}</span>
             </button>
           </form>
@@ -1454,9 +1462,9 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={savingDevProfile}
-                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/20 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Save className="h-4 w-4" />
+                {savingDevProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                 <span>
                   {savingDevProfile
                     ? (lang === "hi" ? "सेव हो रहा है..." : "Saving...")

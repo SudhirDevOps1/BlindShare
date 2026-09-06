@@ -7,7 +7,7 @@ import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { BrandIcon } from "@/components/brand-icon";
 import { useI18n } from "@/lib/i18n/context";
-import { Lock, CheckCircle2, AlertCircle, ArrowLeft } from "lucide-react";
+import { Lock, CheckCircle2, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
 
 function ResetPasswordContent() {
@@ -25,6 +25,7 @@ function ResetPasswordContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     if (!token) {
       setError("Missing or invalid reset token. Please request a new link.");
       return;
@@ -128,9 +129,10 @@ function ResetPasswordContent() {
           <button
             type="submit"
             disabled={loading || !token}
-            className="w-full rounded-xl bg-amber-500 py-3 text-xs font-bold text-slate-950 hover:bg-amber-400 transition shadow-lg shadow-amber-500/20 disabled:opacity-50"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 text-xs font-bold text-slate-950 hover:bg-amber-400 transition shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Updating Password..." : "Set New Password"}
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            <span>{loading ? "Updating Password..." : "Set New Password"}</span>
           </button>
         </form>
       )}

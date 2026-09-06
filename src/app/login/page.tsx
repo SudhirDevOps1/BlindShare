@@ -129,6 +129,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
   };
 
   const handleSendMagicLink = async () => {
+    if (loading) return;
     if (!email || !email.includes("@")) {
       setError("Please enter a valid email address first.");
       return;
@@ -154,6 +155,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
   };
 
   const handleSendOtp = async () => {
+    if (loading) return;
     if (!email || !email.includes("@")) {
       setError("Please enter a valid email address first.");
       return;
@@ -180,6 +182,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     const clean = otpCode.replace(/[\s\-]/g, "");
     if (!clean || clean.length < 6) {
       setError("Please enter the complete verification code.");
@@ -209,6 +212,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     if (!email || !email.includes("@")) {
       setError("Please enter your account email.");
       return;
@@ -234,6 +238,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
     setError(null);
 
     // If in Register mode, enforce minimum password policy before submitting

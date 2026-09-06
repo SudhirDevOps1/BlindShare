@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { MessageSquare, X, Send, CheckCircle2, AlertCircle } from "lucide-react";
+import { MessageSquare, X, Send, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -21,7 +21,7 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (honeypot) return;
+    if (loading || honeypot) return;
 
     setLoading(true);
 
@@ -141,9 +141,9 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-amber-500 text-slate-950 font-bold rounded-xl hover:bg-amber-400 transition-all disabled:opacity-50 text-xs"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-amber-500 text-slate-950 font-bold rounded-xl hover:bg-amber-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs"
               >
-                <Send className="h-3.5 w-3.5" />
+                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
                 <span>{loading ? "Sending..." : "Send Message"}</span>
               </button>
             </form>

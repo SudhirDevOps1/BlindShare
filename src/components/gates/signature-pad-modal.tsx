@@ -113,6 +113,7 @@ export function SignaturePadModal({
   };
 
   const handleSubmit = async () => {
+    if (loading) return;
     setError(null);
     setLoading(true);
 
@@ -284,7 +285,7 @@ export function SignaturePadModal({
             type="button"
             disabled={loading || (mode === "draw" && !hasDrawn) || (mode === "type" && !typedName.trim())}
             onClick={handleSubmit}
-            className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-2.5 text-xs font-bold text-slate-950 hover:from-emerald-400 hover:to-teal-500 shadow-lg shadow-emerald-500/20 disabled:opacity-40 transition-all"
+            className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-2.5 text-xs font-bold text-slate-950 hover:from-emerald-400 hover:to-teal-500 shadow-lg shadow-emerald-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             {loading ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
