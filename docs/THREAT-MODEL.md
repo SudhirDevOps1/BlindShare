@@ -21,6 +21,10 @@
 | Database dump theft / SQL injection read leak | AES-256-GCM Database Field Vault (`src/lib/crypto/db-vault.ts`) encrypts all PII (user/viewer emails, TOTP secrets, NDA signatures, slide Q&A) | Attacker observes row counts, timestamps, and relational links, but cannot read plaintext PII |
 | Health check probe exhaustion / Monitoring DoS | Distributed sliding-window rate limiter on `/api/health` (60 req/min per IP) | Volumetric L7 DDoS saturates edge ingress bandwidth before handler executes |
 | Unconsented tracking / Regulatory non-compliance | 2026 GDPR Article 7 Bilingual Cookie Banner strictly gates `PrismAnalytics` execution until explicit affirmative opt-in | Viewer resetting browser storage triggers fresh consent banner on return |
+| XSS via complex Markdown / SVGs | DOMPurify client-side allowlist sanitization on all rendered Markdown and HTML elements (`media-renderer.tsx`) | Zero script execution in DOM |
+| Production boot without encryption keys | Fail-safe runtime crash in `src/lib/crypto/db-vault.ts` if `DB_ENCRYPTION_KEY` / `SESSION_SECRET` missing | Deployment fails to start until secrets are provided |
+| Upstream framework Server Action vulnerabilities | Upgraded to Next.js 16.3.4 with 0 high-severity CVEs | Future zero-day framework disclosures |
+| Edge bypass & middleware routing conflicts | Canonical `src/proxy.ts` Edge Proxy enforces centralized rate-limiting, CSP, and HSTS across all 60 routes | Misconfigured reverse proxy stripping headers |
 ---
 
 ## 📚 Related Documentation & Knowledge Base

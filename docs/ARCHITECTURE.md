@@ -138,8 +138,17 @@ High-frequency viewer dwell events are aggregated using BlindShare's columnar an
   - Stamps recipient identity, timestamp, and forensic disclaimer diagonally across every page of exported PDFs when downloads are enabled.
 - **Signed NDA Certificate Generation (`src/app/api/v/[slug]/nda-cert`)**:
   - Generates downloadable standalone execution certificates for signed NDAs with verification hashes and audit trails.
-- **Unregistered Account Warning Defense (`/api/auth/forgot-password`, `/api/auth/magic-link`, `/api/auth/otp`)**:
-  - Explicit 404 alert responses for unauthenticated requests with unregistered emails, paired with prominent UI alert banners to prevent user confusion.
+- **Canonical Edge Proxy Architecture (`src/proxy.ts`)**:
+  - Operates as the central Next.js 16 edge security layer, intercepting all requests before App Router rendering.
+  - Enforces strict security response headers: Content-Security-Policy (with `worker-src 'self' blob:` for Mozilla PDF.js, `object-src 'none'`), Strict-Transport-Security (HSTS preload), `X-Content-Type-Options: nosniff`, and `frame-ancestors 'none'`.
+  - Enforces route authentication guards for `/dashboard/*` and `/admin/*` routes while maintaining public access to `/v/*` zero-knowledge viewers.
+  - Resolves Next.js 16 proxy/middleware collision by designating `src/proxy.ts` as the canonical edge entrypoint.
+- **DOMPurify Client-Side XSS Sanitization Layer (`src/components/viewer/media-renderer.tsx`)**:
+  - Sanitizes all dynamic HTML, Markdown, SVGs, and formatted code representations in browser RAM using DOMPurify.
+  - Enforces strict element and attribute allowlists, stripping script tags, malicious event handlers (`onload`, `onerror`), and `javascript:` URIs from user-uploaded content.
+- **Database Vault Production Secret Fail-Safe (`src/lib/crypto/db-vault.ts`)**:
+  - In production (`NODE_ENV === 'production'`), refuses boot with a fatal error if neither `DB_ENCRYPTION_KEY` nor `SESSION_SECRET` is provisioned.
+  - Guarantees that sensitive PII fields (emails, TOTP seeds, NDA signatures, Q&A inquiries) can never be written or stored in plaintext.
 ---
 
 ## 📚 Related Documentation & Knowledge Base

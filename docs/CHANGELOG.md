@@ -101,8 +101,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
   - Instant 404 alert warnings for unregistered email submissions on Forgot Password, Magic Link, and OTP routes, eliminating silent failures.
 - **Distributed Anti-DoS Rate Limiter on System Probes (`src/app/api/health/route.ts`):**
   - Sliding-window rate limiter protecting `/api/health` probes (60 req/min per IP) to prevent monitoring pipeline starvation.
-- **34 Automated Enterprise Security Tests (`npm test`):**
-  - Expanded test suite to 34 comprehensive tests covering DB Vault encryption roundtrip, auth route wiring, GDPR Cookie Banner, Sub-processor Registry, ALTCHA PoW, SSRF defense, timing-safe HMACs, and DuckDB analytics.
+- **Next.js 16.3.4 Zero-CVE Baseline Upgrade:**
+  - Upgraded Next.js from 16.2.6 to 16.3.4, completely resolving all high-severity Server Action vulnerabilities with 0 production CVEs (`npm audit --omit=dev`).
+- **Canonical Edge Proxy Architecture (`src/proxy.ts`):**
+  - Unified edge routing and rate limiting into `src/proxy.ts`, resolving Next.js 16 build conflict between duplicate middleware and proxy entrypoints.
+- **Client-Side DOMPurify Content Sanitization (`src/components/viewer/media-renderer.tsx`):**
+  - Added DOMPurify with strict element and attribute allowlists across all rendered Markdown, SVG, and code previews to neutralize stored XSS and script injection vectors.
+- **Database Vault Production Secret Fail-Safe (`src/lib/crypto/db-vault.ts`):**
+  - Enforced fail-fast runtime throwing on application boot in production if `DB_ENCRYPTION_KEY` and `SESSION_SECRET` are not configured.
+- **40 Automated Enterprise Security Tests (`npm test`):**
+  - Expanded test suite to 40 comprehensive tests covering zero-knowledge crypto, forensic steganography, Argon2id, ML-KEM-768, DB Vault encryption, ALTCHA PoW, SSRF defense, timing-safe HMACs, and DuckDB analytics.
 - **Automated SIEM CEF 1.4.0 Synchronization:** Upgraded Common Event Format string generation and verified SIEM test suites.
 - **Crawler Document Isolation:** Strict prevention of search engine spidering across private link slugs.
 

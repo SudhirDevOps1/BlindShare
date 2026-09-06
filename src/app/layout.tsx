@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
 import { CookieConsentBanner } from "@/components/compliance/cookie-consent-banner";
@@ -139,14 +138,13 @@ const jsonLdSchema = {
   ],
 };
 
+import { PrismTracker } from "@/components/analytics/prism-tracker";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const prismId = process.env.NEXT_PUBLIC_PRISM_ANALYTICS_ID || "";
-  const prismUrl = process.env.NEXT_PUBLIC_PRISM_ANALYTICS_URL || "";
-
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
@@ -157,54 +155,11 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSchema) }}
+          suppressHydrationWarning
         />
-        {/* Optional PrismAnalytics Tracking Script using Next.js Script (afterInteractive prevents hydration mismatch) */}
-        {prismId && prismUrl && (
-          <Script
-            id="prism-analytics"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `(function(){
-try {
-  var id='${prismId}', url='${prismUrl}';
-  var sid=sessionStorage.getItem('pa_sid')||(typeof crypto!=='undefined'&&crypto.randomUUID?crypto.randomUUID():('sid_'+Date.now()));
-  sessionStorage.setItem('pa_sid',sid);
-  function t(e,d){
-    try {
-      var cStr = localStorage.getItem('blindshare_cookie_consent_v1');
-      if (!cStr) return;
-      var c = JSON.parse(cStr);
-      if (!c || c.analytics !== true) return;
-      var q=new URLSearchParams(location.search);
-      if(navigator.sendBeacon){
-        try {
-          navigator.sendBeacon(url,JSON.stringify({
-            site_id:id,
-            pathname:location.pathname,
-            referrer:document.referrer||'',
-            screen_size:screen.width+'x'+screen.height,
-            session_id:sid,
-            event_name:e||'pageview',
-            event_data:d,
-            utm_source:q.get('utm_source'),
-            utm_medium:q.get('utm_medium'),
-            utm_campaign:q.get('utm_campaign')
-          }));
-        } catch(beaconErr){}
-      }
-    } catch(err){}
-  }
-  window.prism=t;
-  t();
-  var p=location.pathname;
-  window.addEventListener('popstate', function(){ if(p!=location.pathname){ p=location.pathname; t(); } });
-  window.addEventListener('blindshare-consent-updated', function(){ t(); });
-} catch(e){}
-})();`,
-            }}
-          />
-        )}
         <I18nProvider>
+          {/* First-party privacy-safe telemetry proxy gated strictly by blindshare_cookie_consent_v1 */}
+          <PrismTracker />
           <CryptoCursor />
           {children}
           <CookieConsentBanner />

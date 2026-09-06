@@ -1,25 +1,27 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
 
 export function PrismTracker() {
   const pathname = usePathname();
   const siteId = process.env.NEXT_PUBLIC_PRISM_ANALYTICS_ID;
-  const trackUrl = process.env.NEXT_PUBLIC_PRISM_ANALYTICS_URL;
 
-  useEffect(() => {
-    if (!siteId || !trackUrl || typeof window === "undefined") return;
+  const trackPageView = useCallback(() => {
+    if (typeof window === "undefined" || !siteId) return;
 
     try {
+      // 1. Gated behind explicit GDPR cookie consent
+      const cStr = localStorage.getItem("blindshare_cookie_consent_v1");
+      if (!cStr) return;
+      const c = JSON.parse(cStr);
+      if (!c || c.analytics !== true) return;
+
+      // 2. Ephemeral session ID in sessionStorage
       let sid = sessionStorage.getItem("pa_sid");
       if (!sid) {
         if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
           sid = crypto.randomUUID();
-        } else if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
-          const arr = new Uint8Array(16);
-          crypto.getRandomValues(arr);
-          sid = Array.from(arr, (b) => b.toString(16).padStart(2, "0")).join("");
         } else {
           sid = `sid_${Date.now()}`;
         }
@@ -39,21 +41,44 @@ export function PrismTracker() {
         utm_campaign: q.get("utm_campaign") || undefined,
       });
 
+      // 3. Post to first-party same-origin endpoint to prevent adblocker ERR_BLOCKED_BY_CLIENT
+      const targetUrl = "/api/telemetry";
+
       if (navigator.sendBeacon) {
-        navigator.sendBeacon(trackUrl, payload);
+        try {
+          const blob = new Blob([payload], { type: "application/json" });
+          navigator.sendBeacon(targetUrl, blob);
+        } catch {
+          fetch(targetUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: payload,
+            keepalive: true,
+          }).catch(() => {});
+        }
       } else {
-        fetch(trackUrl, {
+        fetch(targetUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: payload,
           keepalive: true,
-          mode: "no-cors",
         }).catch(() => {});
       }
     } catch {
       // Zero-telemetry silent resilience
     }
-  }, [pathname, siteId, trackUrl]);
+  }, [pathname, siteId]);
+
+  useEffect(() => {
+    trackPageView();
+
+    const handleConsent = () => trackPageView();
+    window.addEventListener("blindshare-consent-updated", handleConsent);
+    return () => {
+      window.removeEventListener("blindshare-consent-updated", handleConsent);
+    };
+  }, [trackPageView]);
 
   return null;
 }
+

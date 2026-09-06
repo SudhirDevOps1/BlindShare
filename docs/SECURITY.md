@@ -157,7 +157,7 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
 
 ---
 
-## 🛡️ Recent Hardening & Security Audit Fixes (F01–F15)
+## 🛡️ Recent Hardening & Security Audit Fixes (F01–F20)
 
 The following security findings from deep static analysis and internal audit have been resolved and verified across the codebase:
 
@@ -176,6 +176,11 @@ The following security findings from deep static analysis and internal audit hav
 - **F13 (CEF Audit Forwarding)**: SIEM forwarder emits valid ArcSight/CEF-formatted audit logs for security operations centers.
 - **F14 (Post-Quantum Resistance)**: Hybrid ML-KEM-768 lattice secret encapsulation combined with classical ECDH forward secrecy.
 - **F15 (Forensic Steganography)**: Invisible 64-bit micro-dot constellation embedding with CRC-32 checksum leak verification.
+- **F16 (Next.js 16.3.4 Zero-CVE Baseline)**: Upgraded from `next@16.2.6` to `next@16.3.4`, resolving all high-severity advisory CVEs with 0 production vulnerabilities.
+- **F17 (Canonical Edge Proxy & Rate-Limit Guard)** (`src/proxy.ts`): Unified Next.js 16 edge proxy handling distributed rate limiting, route guards, CSP, HSTS, and X-Content-Type-Options without middleware file conflict.
+- **F18 (DOMPurify Client-Side XSS Sanitization)** (`src/components/viewer/media-renderer.tsx`): Robust DOMPurify sanitization with strict element and attribute allowlists on all Markdown, SVGs, and formatted code views, eliminating script injection and iframe bypass vectors.
+- **F19 (Database Vault Secret Fail-Safe in Production)** (`src/lib/crypto/db-vault.ts`): Immediate runtime throw on boot in production if `DB_ENCRYPTION_KEY` and `SESSION_SECRET` are not configured, preventing unencrypted PII writes.
+- **F20 (CSP `object-src 'none'` Compliance)** (`src/app/page.tsx`, `src/app/v/[slug]/page.tsx`): Replaced raw `<object>` tags with secure `<img>` tags on public landing and viewer badges, enforcing strict object-src none CSP policies.
 ---
 
 ## 📚 Related Documentation & Knowledge Base

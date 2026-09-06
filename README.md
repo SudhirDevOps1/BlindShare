@@ -74,9 +74,9 @@
 | Feature | Traditional Cloud Platforms | Other Web Tools | **BlindShare** |
 |---|:---:|:---:|:---:|
 | Self-hosted | ❌ | ✅ | ✅ |
-| **Server never sees files (Zero-Knowledge)** | ❌ | ❌ | ✅ |
-| Client-side AES-GCM-256 | ❌ | ❌ | ✅ |
-| **AES-256-GCM Database Field Vault (PII at rest)** | ❌ | ❌ | ✅ |
+| **Server never sees files (Zero-Knowledge)** | ❌ | ❌ | ✅ (document bytes; see honest notes below) |
+| Client-side AES-GCM-256 (WebCrypto, 24 call-sites in `crypto-core/index.ts`) | ❌ | ❌ | ✅ |
+| **AES-256-GCM Database Field Vault (PII at rest, SHA256-derived key)** | ❌ | ❌ | ✅ |
 | Per-page analytics & drop-off heatmaps | ✅ | ✅ | ✅ |
 | **Umami-style real-time live investor radar** | ❌ | ❌ | ✅ |
 | Password-protected links | ✅ | ✅ | ✅ |
@@ -93,9 +93,12 @@
 | **2026 GDPR Art. 7 Bilingual Cookie Banner** | ❌ | ❌ | ✅ |
 | **Sub-processor Registry & Enterprise DPA** | ❌ | ❌ | ✅ |
 | **Free to host ($0/mo presets)** | ❌ | ❌ | ✅ |
-| **6-Pillar Zero-Knowledge Cryptographic Suite** | ❌ | ❌ | ✅ |
-| **Columnar DuckDB Analytics (Sub-5ms Heatmaps)** | ❌ | ❌ | ✅ |
+| **6-Pillar Zero-Knowledge Cryptographic Suite (Pillar 4 PQ simulated)** | ❌ | ❌ | ✅ |
+| **In-process columnar analytics engine (DuckDB-style, no native dep)** | ❌ | ❌ | ✅ |
 | **Real-Time Stoat / Slack / Discord Webhook Alerts** | ❌ | ❌ | ✅ |
+| **Canonical Edge Proxy (`src/proxy.ts`) & Tiered Limiting** | ❌ | ❌ | ✅ |
+| **DOMPurify Client-Side XSS Protection** | ❌ | ❌ | ✅ |
+| **Database Vault Fail-Safe Secret Guard in Production** | ❌ | ❌ | ✅ |
 | **40 automated enterprise security tests (CI)** | ❌ | ❌ | ✅ |
 
 ---
@@ -190,12 +193,12 @@ BlindShare features a **Zero-Knowledge Master Key Vault** protected by **Argon2i
 <summary><strong>🔒 Security & Encryption</strong></summary>
 <br/>
 
-- **6-Pillar Zero-Knowledge Cryptographic Suite**:
+- **6-Pillar Zero-Knowledge Cryptographic Suite** (honest status: Pillars 1–3, 5–6 production; Pillar 4 experimental):
   - **Pillar 1 (`extractable: false` + `zeroizeBuffer`)**: WebCrypto non-extractable keys block malicious Chrome extensions; raw byte arrays zeroized in RAM immediately
   - **Pillar 2 (HKDF RFC 5869 Sub-Key Derivation)**: Granular per-slide encryption derived from Master DocKey for 0ms instant streaming
-  - **Pillar 3 (Argon2id Memory-Hard KDF)**: Protects Owner Master Key Vault against GPU/ASIC password cracking clusters
-  - **Pillar 4 (Post-Quantum Hybrid ML-KEM-768 + ECDH)**: Quantum-resistant lattice cryptography immune to "Harvest Now, Decrypt Later"
-  - **Pillar 5 (Invisible Forensic Steganography & Leak Scanner)**: 64-bit micro-dot luminance constellations with CRC checksums embedded on canvas pixels, identifiable via built-in Forensic Leak Scanner
+  - **Pillar 3 (Argon2id opt-in · PBKDF2 100k default)**: PBKDF2 100k is the default vault KDF (`crypto-core/index.ts:335`); Argon2id (`argon2id.ts:31`) available via `kdfAlgorithm` switch against GPU/ASIC clusters
+  - **Pillar 4 (Post-Quantum Hybrid ML-KEM-768 + ECDH — simulated, experimental)**: `post-quantum.ts:42` currently uses CSPRNG + SHA-512 simulation, **not** audited FIPS 203 lattice math — no real quantum resistance yet; tracked for real `ml-kem` wasm integration
+  - **Pillar 5 (Invisible Forensic Steganography & Leak Scanner)**: 64-bit micro-dot luminance constellations with CRC checksums embedded on canvas pixels, identifiable via built-in Forensic Leak Scanner (note: random images score `0x0` false-positive — real BlindShare screenshots only)
   - **Pillar 6 (Forward Secrecy & Burn-After-Reading Ratchet)**: Immediate URL fragment stripping upon view and client-side `beforeunload` beacon shredding
 - **Real-Time Founder Alerting (Stoat / Slack / Discord)** — instant notifications when decks are opened, NDAs are signed, or slide questions are submitted
 - **Enterprise Zero-Knowledge Owner Master Key Vault** — client-side PBKDF2 (100k rounds) + AES-GCM-256 wrapping for seamless cross-device, cache-immune document key persistence
@@ -217,11 +220,11 @@ BlindShare features a **Zero-Knowledge Master Key Vault** protected by **Argon2i
 - **AES-256-GCM Database Field Vault (`src/lib/crypto/db-vault.ts:12`)** — SHA256-derived 256-bit key (`SHA256("blindshare:db-vault:v1:"+secret)` at `db-vault.ts:27`, not PBKDF2 — docs to be updated), deterministic `enc:det:` + randomized `enc:v1:` PII encryption at rest in Neon PostgreSQL (user emails, viewer emails, 2FA TOTP secret seeds, slide Q&A content, and NDA signatures) — AES-GCM true at `db-vault.ts:42,70,96`
 - **2026 GDPR Article 7 Bilingual Cookie & Privacy Consent Banner (`src/components/compliance/cookie-consent-banner.tsx`)** — zero-dark-pattern, granular controls, telemetry paused until explicit opt-in, 100% synchronized Hindi (`hi`) and English (`en`) parity
 - **Sub-processor Registry & Enterprise DPA Transparency (`docs/PRIVACY-POLICY.md`, `/privacy#subprocessors`)** — exhaustive Article 28 vendor disclosures (Neon, Backblaze B2, Cloudflare, Vercel, Upstash, Resend)
-- **Distributed Anti-DoS Rate Limiter on System Probes** — sliding-window rate limit on `/api/health` preventing denial of service
-- **PII-redacting structured logger** — no email/IP in logs
-- **Gitleaks** secret scanning on every CI run
-- **CodeQL SAST** — 86/86 alerts resolved, 0 open vulnerabilities
-- **40 automated enterprise security tests** (`npm test`) — zero-knowledge crypto, forensic steganography, Argon2id, ML-KEM-768, DB vault encryption, ALTCHA PoW, SSRF, HMAC, XSS, SIEM, DuckDB, AI scoring, and GDPR compliance
+- **Canonical Edge Proxy Architecture (`src/proxy.ts`)** — unified Next.js 16 edge proxy handling route-level security, tiered abuse limiting (300/hr view vs 2,400/hr telemetry), and security headers (CSP, HSTS, X-Content-Type-Options) with zero middleware collision
+- **DOMPurify Client-Side XSS Sanitization (`src/components/viewer/media-renderer.tsx`)** — strict tag/attribute allowlisting with zero script/iframe injection on rendered Markdown, SVGs, and formatted code views
+- **Database Vault Production Secret Guard (`src/lib/crypto/db-vault.ts`)** — fail-safe runtime crash throw if `DB_ENCRYPTION_KEY` and `SESSION_SECRET` are not configured in production, preventing unencrypted PII persistence
+- **Next.js 16.3.4 Zero-CVE Baseline** — upgraded from 16.2.6 to 16.3.4, eliminating upstream Next.js Server Actions vulnerabilities (`npm audit --omit=dev` 0 vulnerabilities)
+- **9 automated enterprise security suites** (`npm test`, auto-discovered from `tests/security/*.test.mjs`) — zero-knowledge crypto, forensic steganography, Argon2id, ML-KEM-768 (simulated, experimental), DB vault encryption, ALTCHA PoW, SSRF, HMAC, XSS, SIEM, in-process analytics engine, AI scoring, and GDPR compliance
 
 </details>
 
@@ -286,7 +289,7 @@ BlindShare features a **Zero-Knowledge Master Key Vault** protected by **Argon2i
 - **CSV export** of all view sessions
 - **GDPR Art. 7 Gated PrismAnalytics** — zero-cookie, self-hosted telemetry paused until explicit visitor opt-in
 - `navigator.sendBeacon` — non-blocking, GDPR-friendly tracking
-- **DuckDB In-Process Columnar Engine** — sub-5ms mathematical dwell percentiles ($p50, p90, p99$) and drop-off heatmaps
+- **In-process columnar analytics engine** (`duckdb-engine.ts`, DuckDB-style API, no native `duckdb` dependency) — dwell percentiles ($p50, p90, p99$) and drop-off heatmaps measured in-process (see `duckdb-engine.test.mjs` for benchmarks)
 
 </details>
 
@@ -369,7 +372,7 @@ BlindShare enforces multi-tenant cryptographic isolation and zero-trust administ
 | **Permanently Delete User Accounts & Wipe Storage** | 👑 **Super Admin Only** | ❌ Blocked (403 Forbidden) | ❌ Forbidden (403) | ❌ Forbidden |
 | **Read Other Users' Secret Plaintext Documents** | ❌ **Mathematically Impossible** | ❌ **Mathematically Impossible** | ❌ **Mathematically Impossible** | 🔑 **Only with `#k=` key** |
 
-> 🔒 **The BlindShare Cryptographic Guarantee:** Even a **Super Admin** with complete root database and server access cannot decrypt or read another user's documents. Decryption keys reside exclusively in the recipient's browser memory or inside the URL fragment (`#k=...`), which RFC 3986 guarantees is never transmitted across the network or stored in database columns.
+> 🔒 **The BlindShare Cryptographic Guarantee (honest scope):** Even a **Super Admin** with complete root database and server access cannot decrypt another user's **document bytes** — DocKeys live only in browser memory / `#k=...` fragment (RFC 3986, never transmitted). **Out of scope:** PII metadata (emails, Q&A) is AES-256-GCM encrypted at rest with a server-held key (`db-vault.ts:27`) — readable by whoever holds `DB_ENCRYPTION_KEY`; link passwords rely on PBKDF2 250k + gates enforced in `verify` (bytes endpoint is gate-aware per patch); XSS with key exfiltration is mitigated by `extractable:false` + CSP + sanitizers, not eliminated.
 
 ---
 
@@ -732,7 +735,7 @@ npm run dev          # Start development server with hot reload
 npm run build        # Production build
 npm run typecheck    # TypeScript strict type checking
 npm run lint         # ESLint code quality check
-npm test             # Run 20-test enterprise security & analytics suite
+npm test             # Run 9-file enterprise security & analytics suites (auto-discovered)
 ```
 
 ---
@@ -814,7 +817,7 @@ Then reopen your deployed URL and register a fresh Super Admin account.
 | **Push Notifications** | Web Push VAPID | `web-push@3.6.7` |
 | **Password Hashing** | bcryptjs | `bcryptjs@3.0.3` |
 | **Validation** | Zod | `zod@4.5.2` |
-| **Analytics Engine** | DuckDB In-Process Columnar | *(wasm, in-memory)* |
+| **Analytics Engine** | In-process columnar engine (DuckDB-style API) | *(custom, no native dep, in-memory)* |
 | **Auth** | HMAC-SHA256 session cookies · 2FA TOTP RFC 6238 | *(WebCrypto + custom TOTP)* |
 | **Rate Limiting** | Upstash Redis REST + in-memory sliding window fallback | `src/lib/security/distributed-rate-limiter.ts` |
 | **CI/CD** | GitHub Actions · Gitleaks · CodeQL · Aqua Trivy | `.github/workflows/` |
@@ -992,7 +995,7 @@ BlindShare/
   - Geo/time gates (restrict to country or business hours)
   - Request-access flow (viewer can ask for access)
 
-- **v1.3 — Engagement Intelligence** ✅ *Shipped · Current Release*
+- **v1.4 — Zero-Knowledge Hardening** ✅ *Shipped · Current Release (v1.4.0)*
   - Voice notes per page
   - AI lead conviction intent scoring (HOT/WARM/COLD)
   - Permanent indelible PDF watermark burning on download (`pdf-lib`)
@@ -1001,7 +1004,7 @@ BlindShare/
   - Tab-level decrypted session cache (10ms F5 reload)
   - Interactive text layer + clickable hyperlinks in PDF viewer
   - Scrollable nav bar with pinned left/right controls
-  - CodeQL 86/86 alerts resolved · 24 automated security tests
+  - CodeQL 86/86 alerts resolved · 9 automated security suites (`tests/security/`)
 
 - **v2.0 — Mobile & Enterprise** *(Planned)*
   - Capacitor Android app
