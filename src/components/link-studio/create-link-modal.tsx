@@ -95,6 +95,28 @@ export function CreateLinkModal({
     return null;
   }, [brandLogoUrl]);
 
+  // Auto-apply founder's customized link security policy presets from Settings if configured
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const rawPresets = localStorage.getItem("blindshare_link_presets");
+        if (rawPresets) {
+          const presets = JSON.parse(rawPresets);
+          if (typeof presets.watermarkEnabled === "boolean") setWatermarkEnabled(presets.watermarkEnabled);
+          if (typeof presets.requiresEmail === "boolean") setRequiresEmail(presets.requiresEmail);
+          if (typeof presets.requiresNda === "boolean") setRequiresNda(presets.requiresNda);
+          if (typeof presets.burnAfterReading === "boolean") setBurnAfterReading(presets.burnAfterReading);
+          if (typeof presets.antiLeakBlurEnabled === "boolean") setAntiLeakBlurEnabled(presets.antiLeakBlurEnabled);
+          if (presets.defaultExpiryDays && Number(presets.defaultExpiryDays) > 0) {
+            const d = new Date();
+            d.setDate(d.getDate() + Number(presets.defaultExpiryDays));
+            setExpiresAt(d.toISOString().split("T")[0]);
+          }
+        }
+      } catch {}
+    }
+  }, []);
+
   // Auto-fetch user's documents and datarooms if not launched from a specific document card
   React.useEffect(() => {
     if (!docId && !dataroomId) {

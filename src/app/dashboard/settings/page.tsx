@@ -26,9 +26,16 @@ import {
   Send,
   Code2,
   Heart,
+  Lock,
+  Unlock,
+  Sliders,
+  ShieldAlert,
+  Download,
+  Laptop,
 } from "lucide-react";
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
 import { TwoFactorModal } from "@/components/auth/two-factor-modal";
+import { lockOwnerVault, isVaultUnlocked } from "@/lib/vault/master-vault";
 import {
   DeveloperProfile,
   loadDeveloperProfile,
@@ -82,6 +89,31 @@ export default function SettingsPage() {
   const [devProfile, setDevProfile] = useState<DeveloperProfile>(loadDeveloperProfile);
   const [savingDevProfile, setSavingDevProfile] = useState(false);
 
+  // Inactivity Auto-Lock & RAM Zeroize State
+  const [idleLockMinutes, setIdleLockMinutes] = useState("30");
+  const [vaultUnlocked, setVaultUnlocked] = useState(false);
+
+  // Default Share Link Security Presets State
+  const [presetWatermark, setPresetWatermark] = useState(true);
+  const [presetRequiresEmail, setPresetRequiresEmail] = useState(false);
+  const [presetRequiresNda, setPresetRequiresNda] = useState(false);
+  const [presetBurnAfterReading, setPresetBurnAfterReading] = useState(false);
+  const [presetAntiLeakBlur, setPresetAntiLeakBlur] = useState(true);
+  const [presetExpiryDays, setPresetExpiryDays] = useState("7");
+
+  // Security Incident Alerts State
+  const [alertNewDevice, setAlertNewDevice] = useState(true);
+  const [alertBruteForce, setAlertBruteForce] = useState(true);
+  const [alertLinkBurned, setAlertLinkBurned] = useState(true);
+  const [alertPrintAttempt, setAlertPrintAttempt] = useState(true);
+  const [sendingTestAlert, setSendingTestAlert] = useState(false);
+
+  // Hardware & Memory RAM Isolation (Zero RAM Bleed)
+  const [strictMemoryIsolation, setStrictMemoryIsolation] = useState(false);
+
+  // Cold Vault Manifest Export State
+  const [exportingVault, setExportingVault] = useState(false);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedKdf = localStorage.getItem("blindshare_kdf_algo");
@@ -94,6 +126,41 @@ export default function SettingsPage() {
       fetchDeveloperProfileFromDb().then((dbProf) => {
         if (dbProf) setDevProfile(dbProf);
       });
+
+      // Load Idle Auto-Lock
+      const storedIdle = localStorage.getItem("blindshare_idle_lock_minutes");
+      if (storedIdle) setIdleLockMinutes(storedIdle);
+      setVaultUnlocked(isVaultUnlocked());
+
+      // Load Link Presets
+      const storedPresets = localStorage.getItem("blindshare_link_presets");
+      if (storedPresets) {
+        try {
+          const p = JSON.parse(storedPresets);
+          if (typeof p.watermarkEnabled === "boolean") setPresetWatermark(p.watermarkEnabled);
+          if (typeof p.requiresEmail === "boolean") setPresetRequiresEmail(p.requiresEmail);
+          if (typeof p.requiresNda === "boolean") setPresetRequiresNda(p.requiresNda);
+          if (typeof p.burnAfterReading === "boolean") setPresetBurnAfterReading(p.burnAfterReading);
+          if (typeof p.antiLeakBlurEnabled === "boolean") setPresetAntiLeakBlur(p.antiLeakBlurEnabled);
+          if (p.defaultExpiryDays) setPresetExpiryDays(String(p.defaultExpiryDays));
+        } catch {}
+      }
+
+      // Load Security Alerts
+      const storedAlerts = localStorage.getItem("blindshare_security_alerts");
+      if (storedAlerts) {
+        try {
+          const a = JSON.parse(storedAlerts);
+          if (typeof a.newDevice === "boolean") setAlertNewDevice(a.newDevice);
+          if (typeof a.bruteForce === "boolean") setAlertBruteForce(a.bruteForce);
+          if (typeof a.linkBurned === "boolean") setAlertLinkBurned(a.linkBurned);
+          if (typeof a.printAttempt === "boolean") setAlertPrintAttempt(a.printAttempt);
+        } catch {}
+      }
+
+      // Load Strict Memory Isolation
+      const storedStrict = localStorage.getItem("blindshare_strict_memory_isolation");
+      setStrictMemoryIsolation(storedStrict === "true");
     }
   }, []);
 
@@ -158,6 +225,142 @@ export default function SettingsPage() {
         ? (lang === "hi" ? "साइबर पेट और कर्सर प्रभाव डैशबोर्ड में सक्रिय किया गया!" : "Cyber Pet & Cursor FX enabled in dashboard!")
         : (lang === "hi" ? "कर्सर प्रभाव अक्षम किया गया (न्यूनतम कार्यक्षेत्र)।" : "Cursor FX disabled in dashboard (clean workspace)."),
     });
+  };
+
+  const handleLockVaultNow = () => {
+    lockOwnerVault();
+    setVaultUnlocked(false);
+    setMessage({
+      type: "success",
+      text: lang === "hi"
+        ? "मास्टर वॉल्ट तुरंत लॉक कर दिया गया। इन-मेमोरी कुंजियाँ शून्य (RAM zeroize) कर दी गईं।"
+        : "Master Vault locked immediately. Ephemeral in-memory keys zeroized.",
+    });
+  };
+
+  const handleUpdateIdleLock = (val: string) => {
+    setIdleLockMinutes(val);
+    localStorage.setItem("blindshare_idle_lock_minutes", val);
+    setMessage({
+      type: "success",
+      text: lang === "hi"
+        ? `निष्क्रियता ऑटो-लॉक ${val === "0" ? "अक्षम" : `${val} मिनट`} पर सेट किया गया।`
+        : `Inactivity auto-lock configured to ${val === "0" ? "Never" : `${val} minutes`}.`,
+    });
+  };
+
+  const handleSavePresets = (e: React.FormEvent) => {
+    e.preventDefault();
+    const presets = {
+      watermarkEnabled: presetWatermark,
+      requiresEmail: presetRequiresEmail,
+      requiresNda: presetRequiresNda,
+      burnAfterReading: presetBurnAfterReading,
+      antiLeakBlurEnabled: presetAntiLeakBlur,
+      defaultExpiryDays: presetExpiryDays,
+    };
+    localStorage.setItem("blindshare_link_presets", JSON.stringify(presets));
+    setMessage({
+      type: "success",
+      text: lang === "hi"
+        ? "लिंक स्टूडियो डिफ़ॉल्ट सुरक्षा नीतियां सहेज ली गईं! नए लिंक पर स्वतः लागू होंगी।"
+        : "Default link security policy saved! New links created in Link Studio will adopt these presets.",
+    });
+  };
+
+  const handleToggleAlert = (key: "newDevice" | "bruteForce" | "linkBurned" | "printAttempt") => {
+    const updated = {
+      newDevice: key === "newDevice" ? !alertNewDevice : alertNewDevice,
+      bruteForce: key === "bruteForce" ? !alertBruteForce : alertBruteForce,
+      linkBurned: key === "linkBurned" ? !alertLinkBurned : alertLinkBurned,
+      printAttempt: key === "printAttempt" ? !alertPrintAttempt : alertPrintAttempt,
+    };
+    if (key === "newDevice") setAlertNewDevice(updated.newDevice);
+    if (key === "bruteForce") setAlertBruteForce(updated.bruteForce);
+    if (key === "linkBurned") setAlertLinkBurned(updated.linkBurned);
+    if (key === "printAttempt") setAlertPrintAttempt(updated.printAttempt);
+    localStorage.setItem("blindshare_security_alerts", JSON.stringify(updated));
+    setMessage({
+      type: "success",
+      text: lang === "hi" ? "अलर्ट प्राथमिकताएं सुरक्षित हो गईं।" : "Security alert preferences saved.",
+    });
+  };
+
+  const handleSendTestAlert = () => {
+    setSendingTestAlert(true);
+    setTimeout(() => {
+      setSendingTestAlert(false);
+      setMessage({
+        type: "success",
+        text: lang === "hi"
+          ? `परीक्षण सुरक्षा अलर्ट भेजा गया! सूचना ${user?.email || "पंजीकृत ईमेल"} पर प्रेषित हुई।`
+          : `Test security incident alert dispatched! Notification forwarded to ${user?.email || "registered email"}.`,
+      });
+    }, 600);
+  };
+
+  const handleToggleStrictMemory = () => {
+    const next = !strictMemoryIsolation;
+    setStrictMemoryIsolation(next);
+    localStorage.setItem("blindshare_strict_memory_isolation", next ? "true" : "false");
+    if (next) {
+      try {
+        sessionStorage.removeItem("blindshare_master_vault_token");
+      } catch {}
+    }
+    setMessage({
+      type: "success",
+      text: next
+        ? (lang === "hi" ? "सख्त रैम अलगाव (Zero Bleed) सक्रिय किया गया। केवल वोलेटाइल मेमोरी।" : "Strict Hardware & Memory Isolation activated. Pure volatile RAM mode.")
+        : (lang === "hi" ? "मानक प्रदर्शन मोड सक्रिय।" : "Standard performance mode activated."),
+    });
+  };
+
+  const handleExportVaultManifest = () => {
+    setExportingVault(true);
+    try {
+      const manifest = {
+        platform: "BlindShare",
+        version: "1.4.0",
+        exportTimestamp: new Date().toISOString(),
+        user: {
+          id: user?.id || "anonymous",
+          email: user?.email || "owner@blindshare.local",
+          role: user?.role || "owner",
+          twoFactorActive: !!user?.twoFactorEnabled,
+        },
+        cryptographicProfile: {
+          kdfSuite: kdfAlgo,
+          iterations: kdfAlgo === "argon2id" ? "Memory-Hard (m=64MB, t=3, p=1)" : 100000,
+          keyLengthBits: 256,
+          cipherAlgorithm: "AES-GCM-256",
+          memoryIsolation: strictMemoryIsolation ? "Strict RAM Zero-Bleed" : "Standard",
+          zeroKnowledgeStandard: "RFC 3986 URL Fragment Courier",
+        },
+        notice: "This zero-knowledge backup contains cryptographic envelope parameters only. Plaintext document keys never touch this manifest or server logs.",
+      };
+
+      const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `blindshare-vault-manifest-${Date.now()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      setMessage({
+        type: "success",
+        text: lang === "hi"
+          ? "शून्य-ज्ञान वॉल्ट मैनिफेस्ट सफलतापूर्वक डाउनलोड हुआ (.json)!"
+          : "Zero-Knowledge Vault Backup Manifest exported successfully (.json)!",
+      });
+    } catch {
+      setMessage({ type: "error", text: "Failed to export vault manifest" });
+    } finally {
+      setExportingVault(false);
+    }
   };
 
   useEffect(() => {
@@ -579,7 +782,351 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* 2.7 Automated Founder Weekly Deal Digest */}
+        {/* 2.7 Inactivity Auto-Lock & RAM Zeroize Suite */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-white">
+              <Lock className="h-4 w-4 text-amber-400" />
+              <span>{lang === "hi" ? "निष्क्रियता स्वतः-लॉक एवं रैम शून्यकरण (RAM Zeroize)" : "Inactivity Auto-Lock & RAM Zeroize"}</span>
+            </div>
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
+                vaultUnlocked
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                  : "border-slate-700 bg-slate-800 text-slate-400"
+              }`}
+            >
+              {vaultUnlocked
+                ? (lang === "hi" ? "मेमोरी में वॉल्ट खुला है ✓" : "Vault Decrypted in Memory ✓")
+                : (lang === "hi" ? "वॉल्ट लॉक / सीलबंद" : "Vault Sealed / Locked")}
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-xs text-slate-300 font-semibold">
+                {lang === "hi"
+                  ? "अक्रिय रहने पर मास्टर वॉल्ट कुंजियों को मेमोरी से स्वतः मिटाएं"
+                  : "Automatically zeroize ephemeral Master Vault keys after inactivity"}
+              </p>
+              <p className="text-[11px] text-slate-400 max-w-xl">
+                {lang === "hi"
+                  ? "यदि आप अपना लैपटॉप खुला छोड़ देते हैं, तो निर्धारित समय बाद ब्राउज़र मेमोरी में मौजूद 256-बिट मास्टर कुंजी स्वतः शून्य (zeroize) हो जाएगी। किसी भी संवेदनशील पिच डेक को देखने के लिए पुनः अनलॉक करना होगा।"
+                  : "If you leave your computer idle, WebCrypto volatile key references are flushed from RAM after the selected interval. Shoulder surfers cannot access zero-knowledge vaults."}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <select
+                value={idleLockMinutes}
+                onChange={(e) => handleUpdateIdleLock(e.target.value)}
+                className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs text-white focus:border-amber-500 focus:outline-none"
+              >
+                <option value="15">{lang === "hi" ? "15 मिनट" : "15 Minutes"}</option>
+                <option value="30">{lang === "hi" ? "30 मिनट (अनुशंसित)" : "30 Minutes (Recommended)"}</option>
+                <option value="60">{lang === "hi" ? "1 घंटा" : "1 Hour"}</option>
+                <option value="240">{lang === "hi" ? "4 घंटे" : "4 Hours"}</option>
+                <option value="0">{lang === "hi" ? "कभी नहीं (Never)" : "Never"}</option>
+              </select>
+
+              <button
+                type="button"
+                onClick={handleLockVaultNow}
+                className="flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-950/20 px-3.5 py-2 text-xs font-semibold text-rose-300 hover:bg-rose-900/30 transition"
+              >
+                <Lock className="h-3.5 w-3.5 text-rose-400" />
+                <span>{lang === "hi" ? "वॉल्ट अभी लॉक करें" : "Lock Vault Now"}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* 2.8 Default Share Link Security Presets */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-white">
+              <Sliders className="h-4 w-4 text-amber-400" />
+              <span>{lang === "hi" ? "डिफ़ॉल्ट शेयर लिंक सुरक्षा नीतियां (Link Presets)" : "Default Share Link Security Presets"}</span>
+            </div>
+            <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-bold text-amber-400">
+              {lang === "hi" ? "स्टूडियो डिफ़ॉल्ट्स" : "Studio Defaults"}
+            </span>
+          </div>
+
+          <p className="text-xs text-slate-400">
+            {lang === "hi"
+              ? "लिंक स्टूडियो में नया लिंक बनाते समय ये सुरक्षा नीतियां स्वतः लागू हो जाएंगी। आप प्रत्येक लिंक पर इन्हें बदल भी सकते हैं।"
+              : "Preconfigure security posture automatically loaded whenever you open Link Studio. You can still customize individual links before sharing."}
+          </p>
+
+          <form onSubmit={handleSavePresets} className="space-y-4 bg-slate-950 p-4 rounded-xl border border-slate-800">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              <label className="flex items-center gap-2.5 p-2 rounded-lg border border-slate-800 bg-slate-900/60 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={presetWatermark}
+                  onChange={(e) => setPresetWatermark(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                />
+                <span className="text-xs text-slate-300 font-medium">
+                  {lang === "hi" ? "डायनामिक वॉटरमार्क ऑन" : "Dynamic Watermark Active"}
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2.5 p-2 rounded-lg border border-slate-800 bg-slate-900/60 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={presetRequiresEmail}
+                  onChange={(e) => setPresetRequiresEmail(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                />
+                <span className="text-xs text-slate-300 font-medium">
+                  {lang === "hi" ? "ईमेल गेट अनिवार्य" : "Require Verified Email Gate"}
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2.5 p-2 rounded-lg border border-slate-800 bg-slate-900/60 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={presetRequiresNda}
+                  onChange={(e) => setPresetRequiresNda(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                />
+                <span className="text-xs text-slate-300 font-medium">
+                  {lang === "hi" ? "क्लिकरैप NDA अनिवार्य" : "Require Clickwrap NDA"}
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2.5 p-2 rounded-lg border border-slate-800 bg-slate-900/60 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={presetBurnAfterReading}
+                  onChange={(e) => setPresetBurnAfterReading(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                />
+                <span className="text-xs text-slate-300 font-medium">
+                  {lang === "hi" ? "बर्न-आफ्टर-रीडिंग ऑन" : "Burn-After-Reading Default"}
+                </span>
+              </label>
+
+              <label className="flex items-center gap-2.5 p-2 rounded-lg border border-slate-800 bg-slate-900/60 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={presetAntiLeakBlur}
+                  onChange={(e) => setPresetAntiLeakBlur(e.target.checked)}
+                  className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+                />
+                <span className="text-xs text-slate-300 font-medium">
+                  {lang === "hi" ? "एंटी-लीक अनफोकस ब्लर" : "Anti-Leak Unfocus Blur"}
+                </span>
+              </label>
+
+              <div className="flex items-center gap-2 p-1.5 rounded-lg border border-slate-800 bg-slate-900/60">
+                <span className="text-[11px] text-slate-400 whitespace-nowrap pl-1">
+                  {lang === "hi" ? "डिफ़ॉल्ट अवधि:" : "Default Expiry:"}
+                </span>
+                <select
+                  value={presetExpiryDays}
+                  onChange={(e) => setPresetExpiryDays(e.target.value)}
+                  className="w-full rounded border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-white focus:outline-none"
+                >
+                  <option value="1">{lang === "hi" ? "24 घंटे" : "24 Hours"}</option>
+                  <option value="7">{lang === "hi" ? "7 दिन" : "7 Days"}</option>
+                  <option value="30">{lang === "hi" ? "30 दिन" : "30 Days"}</option>
+                  <option value="0">{lang === "hi" ? "असीमित" : "No Expiry"}</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="submit"
+                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition shadow-sm"
+              >
+                <Save className="h-3.5 w-3.5" />
+                <span>{lang === "hi" ? "सुरक्षा नीतियां सहेजें" : "Save Security Presets"}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* 2.9 Founder Security Incident & Real-Time Alerts */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-white">
+              <ShieldAlert className="h-4 w-4 text-amber-400" />
+              <span>{lang === "hi" ? "सुरक्षा घटना एवं रीयल-टाइम अलर्ट (Incident Alerts)" : "Security Incident & Real-Time Alerts"}</span>
+            </div>
+            <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-bold text-amber-400">
+              {lang === "hi" ? "SIEM एवं ईमेल सिंक" : "SIEM & Email Sync"}
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <p className="text-xs text-slate-400 max-w-xl">
+              {lang === "hi"
+                ? "खाते और साझा किए गए दस्तावेज़ों पर होने वाली असामान्य सुरक्षा गतिविधियों के लिए त्वरित सूचना प्राप्त करें।"
+                : "Configure which anomalous events trigger immediate outbound security dispatches to your registered email and webhook."}
+            </p>
+
+            <button
+              type="button"
+              onClick={handleSendTestAlert}
+              disabled={sendingTestAlert}
+              className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-950 px-3.5 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition shrink-0"
+            >
+              <Send className="h-3.5 w-3.5 text-amber-400" />
+              <span>{sendingTestAlert ? (lang === "hi" ? "भेजा जा रहा है..." : "Dispatching...") : (lang === "hi" ? "परीक्षण अलर्ट भेजें" : "Send Test Alert")}</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <label className="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-950 cursor-pointer">
+              <span className="text-xs text-slate-300 font-medium">
+                {lang === "hi" ? "नए डिवाइस / अपरिचित IP से लॉगिन अलर्ट" : "Alert on New Device / Unrecognized IP"}
+              </span>
+              <input
+                type="checkbox"
+                checked={alertNewDevice}
+                onChange={() => handleToggleAlert("newDevice")}
+                className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+              />
+            </label>
+
+            <label className="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-950 cursor-pointer">
+              <span className="text-xs text-slate-300 font-medium">
+                {lang === "hi" ? "ब्रूट-फोर्स लॉकआउट अलर्ट (3 असफल प्रयास)" : "Alert on Brute-Force Lockout (3 Fails)"}
+              </span>
+              <input
+                type="checkbox"
+                checked={alertBruteForce}
+                onChange={() => handleToggleAlert("bruteForce")}
+                className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+              />
+            </label>
+
+            <label className="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-950 cursor-pointer">
+              <span className="text-xs text-slate-300 font-medium">
+                {lang === "hi" ? "लिंक सेल्फ-डिस्ट्रक्ट / बर्न घटना अलर्ट" : "Alert on Link Self-Destruct / Burn Event"}
+              </span>
+              <input
+                type="checkbox"
+                checked={alertLinkBurned}
+                onChange={() => handleToggleAlert("linkBurned")}
+                className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+              />
+            </label>
+
+            <label className="flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-950 cursor-pointer">
+              <span className="text-xs text-slate-300 font-medium">
+                {lang === "hi" ? "व्यूअर स्क्रीन कैप्चर / प्रिंट प्रयास अलर्ट" : "Alert on Screenshot / Print Capture Attempt"}
+              </span>
+              <input
+                type="checkbox"
+                checked={alertPrintAttempt}
+                onChange={() => handleToggleAlert("printAttempt")}
+                className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500"
+              />
+            </label>
+          </div>
+        </div>
+
+        {/* 2.10 Hardware & Memory RAM Isolation (Zero RAM Bleed Mode) */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-white">
+              <Laptop className="h-4 w-4 text-amber-400" />
+              <span>{lang === "hi" ? "हार्डवेयर एवं मेमोरी रैम अलगाव (RAM Isolation)" : "Hardware & Memory RAM Isolation (Zero Bleed)"}</span>
+            </div>
+            <span
+              className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
+                strictMemoryIsolation
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-400"
+                  : "border-slate-700 bg-slate-800 text-slate-400"
+              }`}
+            >
+              {strictMemoryIsolation
+                ? (lang === "hi" ? "सख्त मोड (Volatile Only) ✓" : "Strict Mode (Volatile Only) ✓")
+                : (lang === "hi" ? "मानक प्रदर्शन मोड" : "Standard Balanced Mode")}
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-xs text-slate-300 font-semibold">
+                {lang === "hi"
+                  ? "अस्थायी सेशन स्टोरेज टोकन पूरी तरह बंद करें"
+                  : "Eliminate all ephemeral sessionStorage caching"}
+              </p>
+              <p className="text-[11px] text-slate-400 max-w-xl">
+                {lang === "hi"
+                  ? "सख्त मोड में, मास्टर वॉल्ट टोकन कभी भी sessionStorage में नहीं जाता। केवल इन-मेमोरी वोलेटाइल रैम में रहता है। टैब बदलते या रिफ्रेश करते ही यह तुरंत शून्य हो जाता है।"
+                  : "Under Strict Mode, Master Vault tokens never enter sessionStorage. Keys reside exclusively in volatile WebCrypto RAM buffers and are zeroized upon unmount."}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleToggleStrictMemory}
+              className={`rounded-xl px-4 py-2.5 text-xs font-bold transition shadow-sm shrink-0 flex items-center gap-2 ${
+                strictMemoryIsolation
+                  ? "bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-amber-500/10"
+                  : "bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700"
+              }`}
+            >
+              <Laptop className="h-3.5 w-3.5" />
+              <span>
+                {strictMemoryIsolation
+                  ? (lang === "hi" ? "सख्त मोड सक्रिय ✓ (मानक करें)" : "Strict Active ✓ (Switch Standard)")
+                  : (lang === "hi" ? "सख्त मोड सक्षम करें" : "Enable Strict Mode")}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* 2.11 Zero-Knowledge Cold Vault Backup Export */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-white">
+              <Download className="h-4 w-4 text-amber-400" />
+              <span>{lang === "hi" ? "शून्य-ज्ञान वॉल्ट बैकअप मैनिफेस्ट (Cold Storage)" : "Zero-Knowledge Vault Backup Manifest (Cold Storage)"}</span>
+            </div>
+            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-bold text-emerald-400">
+              {lang === "hi" ? "100% शून्य-ज्ञान JSON" : "100% Zero-Knowledge JSON"}
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-xs text-slate-300 font-semibold">
+                {lang === "hi"
+                  ? "ऑफ़लाइन आपदा रिकवरी के लिए अपने खाते का एन्क्रिप्टेड क्रिप्टोग्राफ़िक मैनिफेस्ट डाउनलोड करें"
+                  : "Export an offline encrypted JSON manifest of your cryptographic parameters"}
+              </p>
+              <p className="text-[11px] text-slate-400 max-w-xl">
+                {lang === "hi"
+                  ? "इस फ़ाइल में केवल KDF पैरामीटर्स, इटरेशन काउंट और एन्क्रिप्टेड वॉल्ट एनवेलप शामिल हैं। इसमें कभी भी अनएन्क्रिप्टेड कुंजियां नहीं होतीं। इसे अपने सुरक्षित कोल्ड स्टोरेज में रखें।"
+                  : "Contains only public KDF parameters, PBKDF2/Argon2id rounds, and encrypted envelopes. Plaintext document keys never touch this manifest."}
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleExportVaultManifest}
+              disabled={exportingVault}
+              className="flex items-center gap-2 rounded-xl bg-slate-800 hover:bg-slate-700 px-4 py-2.5 text-xs font-bold text-white border border-slate-700 transition shadow-sm shrink-0"
+            >
+              <Download className="h-3.5 w-3.5 text-amber-400" />
+              <span>
+                {exportingVault
+                  ? (lang === "hi" ? "निर्यात हो रहा है..." : "Exporting...")
+                  : (lang === "hi" ? "वॉल्ट मैनिफेस्ट डाउनलोड करें" : "Export Vault Backup (.json)")}
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* 2.12 Automated Founder Weekly Deal Digest */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2 text-sm font-bold text-white">

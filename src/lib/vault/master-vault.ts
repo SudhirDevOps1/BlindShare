@@ -40,9 +40,14 @@ export async function unlockOwnerVault(
 
   if (typeof window !== "undefined") {
     try {
-      const exportedRaw = await crypto.subtle.exportKey("raw", masterKey);
-      const hex = bufferToHex(new Uint8Array(exportedRaw));
-      sessionStorage.setItem("blindshare_master_vault_token", hex);
+      const isStrict = localStorage.getItem("blindshare_strict_memory_isolation") === "true";
+      if (!isStrict) {
+        const exportedRaw = await crypto.subtle.exportKey("raw", masterKey);
+        const hex = bufferToHex(new Uint8Array(exportedRaw));
+        sessionStorage.setItem("blindshare_master_vault_token", hex);
+      } else {
+        sessionStorage.removeItem("blindshare_master_vault_token");
+      }
     } catch {}
   }
 
