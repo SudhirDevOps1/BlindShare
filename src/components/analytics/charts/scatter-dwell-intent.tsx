@@ -47,15 +47,7 @@ export function ScatterDwellIntent({ sessions = [], totalPages = 10 }: ScatterDw
       });
     }
 
-    // Realistic synthesis if empty
-    return [
-      { id: "s-1", viewer: "Partner @ Sequoia", dwellMin: 5.4, intentScore: 92, completionPct: 100, category: "hot", maxPage: 10 },
-      { id: "s-2", viewer: "MD @ Andreessen", dwellMin: 4.8, intentScore: 88, completionPct: 90, category: "hot", maxPage: 9 },
-      { id: "s-3", viewer: "VP @ Benchmark", dwellMin: 1.5, intentScore: 78, completionPct: 80, category: "rapid", maxPage: 8 },
-      { id: "s-4", viewer: "Associate @ Lightspeed", dwellMin: 6.2, intentScore: 48, completionPct: 40, category: "confused", maxPage: 4 },
-      { id: "s-5", viewer: "Analyst @ Founders Fund", dwellMin: 0.8, intentScore: 25, completionPct: 20, category: "cold", maxPage: 2 },
-      { id: "s-6", viewer: "Angel Investor", dwellMin: 3.8, intentScore: 72, completionPct: 70, category: "hot", maxPage: 7 },
-    ];
+    return [];
   }, [sessions, totalPages]);
 
   const maxDwell = Math.max(...points.map((p) => p.dwellMin), 8);
@@ -216,6 +208,14 @@ export function ScatterDwellIntent({ sessions = [], totalPages = 10 }: ScatterDw
             );
           })}
         </svg>
+
+        {points.length === 0 && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+            <Zap className="h-8 w-8 text-slate-600 mb-2" />
+            <p className="text-xs font-semibold text-slate-400">No reader intent data recorded yet</p>
+            <p className="text-[11px] text-slate-500 max-w-xs mt-1">Data points will populate automatically as readers open and interact with slides.</p>
+          </div>
+        )}
 
         {/* Hover Tooltip Overlay */}
         {hoveredPoint && (

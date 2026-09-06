@@ -96,6 +96,12 @@
 | **6-Pillar Zero-Knowledge Cryptographic Suite (Pillar 4 PQ simulated)** | ❌ | ❌ | ✅ |
 | **In-process columnar analytics engine (DuckDB-style, no native dep)** | ❌ | ❌ | ✅ |
 | **Real-Time Stoat / Slack / Discord Webhook Alerts** | ❌ | ❌ | ✅ |
+| **Revolt Stoat Rich Embeds & SMS Gateways (Twilio/Sinch/Plivo)** | ❌ | ❌ | ✅ |
+| **Papermark Multi-Format Email Auth (1-Click Login + Hyphenated OTP)** | ❌ | ❌ | ✅ |
+| **Admin Diagnostics Live Email & Webhook Test Probes** | ❌ | ❌ | ✅ |
+| **Global Platform Notice Announcement Broadcast Banner** | ❌ | ❌ | ✅ |
+| **Full Storage & DB Vacuum Suite (Orphan Sweep + PostgreSQL Defrag)** | ❌ | ❌ | ✅ |
+| **100% Truthful Analytics Integrity (Strict Zero Fake/Mock Data)** | ❌ | ❌ | ✅ |
 | **Canonical Edge Proxy (`src/proxy.ts`) & Tiered Limiting** | ❌ | ❌ | ✅ |
 | **DOMPurify Client-Side XSS Protection** | ❌ | ❌ | ✅ |
 | **Database Vault Fail-Safe Secret Guard in Production** | ❌ | ❌ | ✅ |
@@ -294,16 +300,35 @@ BlindShare features a **Zero-Knowledge Master Key Vault** protected by **Argon2i
 </details>
 
 <details open>
-<summary><strong>⚙️ Admin Panel & Diagnostics</strong></summary>
+<summary><strong>⚙️ Admin Panel, Diagnostics & Zero-Cost Maintenance</strong></summary>
 <br/>
 
 - **Environment & Diagnostics Center** — live Neon Postgres ping latency meter (ms), B2 storage status, WebCrypto cipher tests, and 13+ masked environment keys
+- **Live Email & Webhook Diagnostic Probes** — 1-click test email dispatch verifying Google Apps Script relay directly to the admin's inbox with millisecond latency telemetry, alongside live Stoat/Slack/Discord webhook ping testing
+- **Global Platform Notice Announcement Broadcast Banner** — dynamic top-bar announcement banner managed via database `system_settings` (`broadcast_banner`), dismissible per session
+- **Comprehensive Storage & Database Space Vacuum Suite (`/api/admin/sweeps`)**:
+  - *Sweep Orphan Bucket Objects:* Deletes unreferenced ciphertext blobs on Backblaze B2/Cloudflare R2 to safeguard the 10 GB free tier
+  - *Permanently Purge Tombstones:* Irreversibly crypto-shreds soft-deleted items, physical blobs, versions, and slide audio notes
+  - *Prune Expired & Revoked Links:* Removes stale share tokens and associated presentation rooms
+  - *Prune Stale Telemetry (>30 Days):* Defragments older raw page dwell records while preserving overall document lifetime views
+  - *Full Platform Vacuum & Defrag:* Executes all sweeps in one audited batch and runs PostgreSQL `VACUUM (ANALYZE)`
 - User management: roles, suspension, invite code generation, and 2FA status
-- **Blind audit log** — event trail with zero PII
+- **Blind audit log** — tamper-proof event trail with zero PII
 - Storage usage gauge + free-tier budget ledger
-- Maintenance mode and broadcast banner
-- **Orphan object sweeper** — clean up abandoned encrypted blobs
+- Maintenance mode and platform controls
 - System health dashboard + `/api/health` diagnostic endpoint
+
+</details>
+
+<details open>
+<summary><strong>📬 Notifications & Papermark Multi-Format Authentication</strong></summary>
+<br/>
+
+- **Papermark-Style Multi-Type Email Verification** — transactional email templates combining a 1-click direct login button (`Sign In to BlindShare →`) with a grouped security code (`123 - 456`), complete with client device, location, and UTC timestamp context
+- **Google Apps Script ($0 Free Forever) Email Relay** — zero-domain transactional email engine delivering up to 100 emails/day (personal Gmail) or 1,500/day (Google Workspace) with 5.5s timeout ceiling and 1-shot transient network retry
+- **Rich Stoat Chat Embeds (Revolt Protocol)** — structured embedded cards with status color coding, document titles, dwell times, and pin questions
+- **Compact SMS Gateway Integration** — auto-detects Twilio, Textbee, Sinch, Plivo, and `/sms` webhook endpoints, formatting notifications under standard 160-character single-segment SMS limits
+- **Serverless Circuit Breaker Defense** — auto-trips after 3 consecutive external webhook failures with a 2-minute cooldown to prevent function timeouts and concurrency drain
 
 </details>
 

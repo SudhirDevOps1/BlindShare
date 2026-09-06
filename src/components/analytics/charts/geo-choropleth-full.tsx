@@ -74,14 +74,7 @@ export function GeoChoroplethFull({
         .sort((a, b) => b.views - a.views);
     }
 
-    // Default baseline items
-    return [
-      { code: "US", name: "United States", flag: "🇺🇸", views: 42, percentage: 46, coords: COUNTRY_COORDS.US.coords },
-      { code: "IN", name: "India", flag: "🇮🇳", views: 24, percentage: 26, coords: COUNTRY_COORDS.IN.coords },
-      { code: "GB", name: "United Kingdom", flag: "🇬🇧", views: 12, percentage: 13, coords: COUNTRY_COORDS.GB.coords },
-      { code: "DE", name: "Germany", flag: "🇩🇪", views: 8, percentage: 9, coords: COUNTRY_COORDS.DE.coords },
-      { code: "SG", name: "Singapore", flag: "🇸🇬", views: 5, percentage: 6, coords: COUNTRY_COORDS.SG.coords },
-    ];
+    return [];
   }, [countryBreakdown]);
 
   const maxViews = Math.max(...topCountries.map((c) => c.views), 1);
@@ -249,34 +242,40 @@ export function GeoChoroplethFull({
             </div>
 
             <div className="space-y-2">
-              {topCountries.slice(0, 5).map((c) => (
-                <div
-                  key={c.code}
-                  onMouseEnter={() => setHoveredCountry(c.code)}
-                  onMouseLeave={() => setHoveredCountry(null)}
-                  className={`p-2 rounded-lg border transition-all cursor-pointer ${
-                    hoveredCountry === c.code
-                      ? "border-amber-500/50 bg-amber-500/10"
-                      : "border-slate-800/60 bg-slate-900/40 hover:border-slate-700"
-                  }`}
-                >
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-                      <span>{c.flag}</span>
-                      <span>{c.name}</span>
-                    </span>
-                    <span className="font-mono text-amber-400 font-bold">{c.views} views</span>
-                  </div>
-
-                  {/* Progress bar */}
-                  <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full"
-                      style={{ width: `${Math.min(100, Math.max(5, c.percentage))}%` }}
-                    />
-                  </div>
+              {topCountries.length === 0 ? (
+                <div className="py-6 text-center text-xs text-slate-500">
+                  No geographic telemetry recorded yet
                 </div>
-              ))}
+              ) : (
+                topCountries.slice(0, 5).map((c) => (
+                  <div
+                    key={c.code}
+                    onMouseEnter={() => setHoveredCountry(c.code)}
+                    onMouseLeave={() => setHoveredCountry(null)}
+                    className={`p-2 rounded-lg border transition-all cursor-pointer ${
+                      hoveredCountry === c.code
+                        ? "border-amber-500/50 bg-amber-500/10"
+                        : "border-slate-800/60 bg-slate-900/40 hover:border-slate-700"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className="font-semibold text-slate-200 flex items-center gap-1.5">
+                        <span>{c.flag}</span>
+                        <span>{c.name}</span>
+                      </span>
+                      <span className="font-mono text-amber-400 font-bold">{c.views} views</span>
+                    </div>
+
+                    {/* Progress bar */}
+                    <div className="w-full h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full"
+                        style={{ width: `${Math.min(100, Math.max(5, c.percentage))}%` }}
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

@@ -48,6 +48,13 @@ Any AI modifying or extending this codebase **MUST UNCONDITIONALLY UPHOLD** thes
    - In-memory aggregation of viewer dwell-time, heatmaps, and drop-off percentiles in sub-5ms without taxing the primary PostgreSQL database.
 5. **Real-Time Founder Alerting & SIEM:**
    - Out-of-the-box support for Stoat Chat, Slack, and Discord webhooks via `DEFAULT_WEBHOOK_URL` in `.env` and per-link configuration, plus Common Event Format (CEF) SIEM forwarding.
+6. **Strict Zero Fake/Mock Data Policy:**
+   - All analytics, counters, scatter plots, and heatmaps must strictly render real database records. Never inject artificial math factors or dummy VC profiles when links/views are empty. Display clean, truthful zero states or honest benchmark labels.
+7. **Papermark-Style Multi-Format Email Authentication & SMS Gateways:**
+   - 1-Click login button, formatted OTP code (`123 - 456`), device/location metadata, and 1-shot transient network retry self-healing.
+   - Auto-detection of SMS webhook gateways (Twilio/Sinch/Textbee/Plivo) formatting single-segment (<160 char) payloads, plus Stoat Revolt rich embedded cards.
+8. **Platform Vacuum Suite & Live Broadcast Controls:**
+   - Full orphan bucket sweep on B2/R2, soft-deleted tombstone purging, stale link pruning, and dynamic platform announcement banner rendering via `system_settings`.
 
 ---
 

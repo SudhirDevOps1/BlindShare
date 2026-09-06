@@ -14,11 +14,11 @@ export function CohortRetention({ sessions = [] }: CohortRetentionProps) {
   const cohorts = useMemo(() => {
     if (!sessions || sessions.length === 0) {
       return [
-        { label: "Week -4", size: 0, rates: [100, 78, 64, 52, 45] },
-        { label: "Week -3", size: 0, rates: [100, 82, 70, 58, 49] },
-        { label: "Week -2", size: 0, rates: [100, 85, 74, 62, 55] },
-        { label: "Week -1", size: 0, rates: [100, 89, 79, 68, 60] },
-        { label: "Current Week", size: 0, rates: [100, 92, 83, 75, 68] },
+        { label: "Week -4", size: 0, rates: [0, 0, 0, 0, 0] },
+        { label: "Week -3", size: 0, rates: [0, 0, 0, 0, 0] },
+        { label: "Week -2", size: 0, rates: [0, 0, 0, 0, 0] },
+        { label: "Week -1", size: 0, rates: [0, 0, 0, 0, 0] },
+        { label: "Current Week", size: 0, rates: [0, 0, 0, 0, 0] },
       ];
     }
 

@@ -50,12 +50,11 @@ export function FunnelTimeTrend({ sessions = [], funnelStats }: FunnelTimeTrendP
         }
       });
     } else {
-      // Schema-mode realistic baseline trajectory
-      const base = [12, 18, 26, 35, 48, 62];
-      buckets.forEach((b, idx) => {
-        b.open = base[idx];
-        b.core = Math.round(base[idx] * 0.68);
-        b.complete = Math.round(base[idx] * 0.44);
+      // Clean zero baseline when no sessions exist
+      buckets.forEach((b) => {
+        b.open = 0;
+        b.core = 0;
+        b.complete = 0;
       });
     }
 
