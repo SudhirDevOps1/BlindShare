@@ -3,7 +3,7 @@
  * Zero external templating dependencies. Fully compatible with all major email clients.
  */
 
-import { MagicLinkData, OtpData, PasswordResetData, InviteEmailData, ViewerAlertData, DiagnosticEmailData } from "./types";
+import { MagicLinkData, OtpData, PasswordResetData, InviteEmailData, ViewerAlertData, DiagnosticEmailData, QuestionReplyEmailData } from "./types";
 
 const BLINDSHARE_LOGO_URL = "https://raw.githubusercontent.com/SudhirDevOps1/BlindShare/main/public/brand/02-favicon.svg";
 
@@ -28,10 +28,14 @@ export function baseEmailLayout(contentHtml: string, previewText: string, header
     @media only screen and (max-width: 620px) {
       .email-card { width: 100% !important; border-radius: 8px !important; }
       .email-content { padding: 20px 14px !important; }
-      .email-header { padding: 16px 14px !important; }
-      .email-outer-table { padding: 12px 6px !important; }
-      .otp-code-text { font-size: 26px !important; letter-spacing: 2px !important; }
+      .email-header { padding: 14px 14px !important; }
+      .email-outer-table { padding: 8px 4px !important; }
+      .header-badge { font-size: 9px !important; padding: 3px 6px !important; }
+      .otp-code-text { font-size: 24px !important; letter-spacing: 2px !important; }
       .mobile-stack-card { padding: 12px 12px !important; }
+      .mobile-btn-table { width: 100% !important; margin: 20px auto !important; }
+      .mobile-btn { display: block !important; width: 100% !important; padding: 14px 16px !important; box-sizing: border-box !important; text-align: center !important; }
+      .mobile-card-box { padding: 12px 10px !important; }
     }
   </style>
 </head>
@@ -72,7 +76,7 @@ export function baseEmailLayout(contentHtml: string, previewText: string, header
                     </table>
                   </td>
                   <td align="right" valign="middle">
-                    <span style="display: inline-block; background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 20px; padding: 4px 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #10b981; letter-spacing: 0.04em;">
+                    <span class="header-badge" style="display: inline-block; background-color: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 20px; padding: 4px 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #10b981; letter-spacing: 0.04em;">
                       ● E2EE SECURED
                     </span>
                   </td>
@@ -149,10 +153,10 @@ export function renderMagicLinkEmail(data: MagicLinkData): { subject: string; ht
     </p>
 
     <!-- Bulletproof Centered CTA Button -->
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 28px auto;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" class="mobile-btn-table" style="margin: 28px auto; width: auto;">
       <tr>
         <td align="center" bgcolor="#f59e0b" style="border-radius: 12px; background-color: #f59e0b; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);">
-          <a href="${data.magicLinkUrl}" target="_blank" style="display: inline-block; padding: 15px 38px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 800; color: #020617 !important; text-decoration: none !important; letter-spacing: -0.01em; border-radius: 12px; border: 1px solid #f59e0b;">
+          <a href="${data.magicLinkUrl}" target="_blank" class="mobile-btn" style="display: inline-block; padding: 15px 38px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 800; color: #020617 !important; text-decoration: none !important; letter-spacing: -0.01em; border-radius: 12px; border: 1px solid #f59e0b;">
             Sign In to BlindShare &rarr;
           </a>
         </td>
@@ -160,7 +164,7 @@ export function renderMagicLinkEmail(data: MagicLinkData): { subject: string; ht
     </table>
 
     <!-- Direct Fallback Link Box -->
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #030712; border: 1px solid #1e293b; border-radius: 10px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="mobile-card-box" style="margin: 20px 0; background-color: #030712; border: 1px solid #1e293b; border-radius: 10px; width: 100%; box-sizing: border-box;">
       <tr>
         <td style="padding: 12px 14px;">
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
@@ -196,10 +200,10 @@ export function renderOtpEmail(data: OtpData): { subject: string; html: string; 
   const magicButtonSection = data.magicLinkUrl
     ? `
     <!-- 1-Click Direct Sign-In Button (Papermark Standard) -->
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 24px auto 16px auto;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" class="mobile-btn-table" style="margin: 24px auto 16px auto; width: auto;">
       <tr>
         <td align="center" bgcolor="#f59e0b" style="border-radius: 12px; background-color: #f59e0b; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 6px 20px rgba(245, 158, 11, 0.35);">
-          <a href="${data.magicLinkUrl}" target="_blank" style="display: inline-block; padding: 15px 36px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 800; color: #020617 !important; text-decoration: none !important; letter-spacing: -0.01em; border-radius: 12px;">
+          <a href="${data.magicLinkUrl}" target="_blank" class="mobile-btn" style="display: inline-block; padding: 15px 36px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 800; color: #020617 !important; text-decoration: none !important; letter-spacing: -0.01em; border-radius: 12px;">
             Sign In to BlindShare &rarr;
           </a>
         </td>
@@ -216,7 +220,7 @@ export function renderOtpEmail(data: OtpData): { subject: string; html: string; 
 
   const securityContextSection = (data.deviceInfo || data.locationInfo)
     ? `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 22px 0 10px 0; background-color: #030712; border: 1px solid #1e293b; border-radius: 10px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="mobile-card-box" style="margin: 22px 0 10px 0; background-color: #030712; border: 1px solid #1e293b; border-radius: 10px; width: 100%; box-sizing: border-box;">
       <tr>
         <td style="padding: 12px 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; color: #94a3b8; line-height: 1.6; word-break: break-word;">
           🛡️ <strong>Request Security Details:</strong><br />
@@ -287,10 +291,10 @@ export function renderPasswordResetEmail(data: PasswordResetData): { subject: st
     </p>
 
     <!-- Bulletproof Centered CTA Button -->
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 28px auto;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" class="mobile-btn-table" style="margin: 28px auto; width: auto;">
       <tr>
         <td align="center" bgcolor="#f59e0b" style="border-radius: 12px; background-color: #f59e0b; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);">
-          <a href="${data.resetUrl}" target="_blank" style="display: inline-block; padding: 15px 38px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 800; color: #020617 !important; text-decoration: none !important; letter-spacing: -0.01em; border-radius: 12px; border: 1px solid #f59e0b;">
+          <a href="${data.resetUrl}" target="_blank" class="mobile-btn" style="display: inline-block; padding: 15px 38px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 800; color: #020617 !important; text-decoration: none !important; letter-spacing: -0.01em; border-radius: 12px; border: 1px solid #f59e0b;">
             Reset Password &rarr;
           </a>
         </td>
@@ -298,7 +302,7 @@ export function renderPasswordResetEmail(data: PasswordResetData): { subject: st
     </table>
 
     <!-- Direct Fallback Link Box -->
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #030712; border: 1px solid #1e293b; border-radius: 10px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="mobile-card-box" style="margin: 20px 0; background-color: #030712; border: 1px solid #1e293b; border-radius: 10px; width: 100%; box-sizing: border-box;">
       <tr>
         <td style="padding: 12px 14px;">
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
@@ -346,13 +350,13 @@ export function renderInviteEmail(data: InviteEmailData): { subject: string; htm
     </div>
 
     <!-- Invite Code Box -->
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 18px 0; background-color: #030712; border: 1px dashed #334155; border-radius: 10px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="mobile-card-box" style="margin: 18px 0; background-color: #030712; border: 1px dashed #334155; border-radius: 10px; width: 100%; box-sizing: border-box;">
       <tr>
         <td align="center" style="padding: 16px;">
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;">
             Your Private Registration Code
           </div>
-          <div style="font-family: 'SFMono-Regular', Consolas, Monaco, monospace; font-size: 22px; font-weight: 800; color: #f8fafc; letter-spacing: 4px;">
+          <div style="font-family: 'SFMono-Regular', Consolas, Monaco, monospace; font-size: 22px; font-weight: 800; color: #f8fafc; letter-spacing: clamp(2px, 3vw, 4px); word-break: break-all;">
             ${data.inviteCode}
           </div>
         </td>
@@ -360,10 +364,10 @@ export function renderInviteEmail(data: InviteEmailData): { subject: string; htm
     </table>
 
     <!-- Bulletproof Centered CTA Button -->
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 26px auto;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" class="mobile-btn-table" style="margin: 26px auto; width: auto;">
       <tr>
         <td align="center" bgcolor="#f59e0b" style="border-radius: 12px; background-color: #f59e0b; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);">
-          <a href="${data.signupUrl}" target="_blank" style="display: inline-block; padding: 15px 38px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 800; color: #020617 !important; text-decoration: none !important; letter-spacing: -0.01em; border-radius: 12px; border: 1px solid #f59e0b;">
+          <a href="${data.signupUrl}" target="_blank" class="mobile-btn" style="display: inline-block; padding: 15px 38px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 800; color: #020617 !important; text-decoration: none !important; letter-spacing: -0.01em; border-radius: 12px; border: 1px solid #f59e0b;">
             Accept Invite & Create Account &rarr;
           </a>
         </td>
@@ -371,7 +375,7 @@ export function renderInviteEmail(data: InviteEmailData): { subject: string; htm
     </table>
 
     <!-- Direct Fallback Link Box -->
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 20px 0; background-color: #030712; border: 1px solid #1e293b; border-radius: 10px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="mobile-card-box" style="margin: 20px 0; background-color: #030712; border: 1px solid #1e293b; border-radius: 10px; width: 100%; box-sizing: border-box;">
       <tr>
         <td style="padding: 12px 14px;">
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
@@ -526,4 +530,71 @@ export function renderDiagnosticEmail(data: DiagnosticEmailData): { subject: str
   const text = `BlindShare Email Relay Active: Delivered via ${data.provider.toUpperCase()} (${data.providerDetails}) to ${data.recipientEmail} at ${data.timestamp || new Date().toUTCString()}.`;
   return { subject, html, text };
 }
+
+/**
+ * Founder Slide Question Reply Email Template
+ * Renders a mobile-first, responsive card with question context, founder response, and slide link.
+ */
+export function renderQuestionReplyEmail(data: QuestionReplyEmailData): { subject: string; html: string; text: string } {
+  const subject = `Founder reply on "${data.docName}" (Slide ${data.slideNum})`;
+  const preview = `${data.founderName} replied to your question on slide ${data.slideNum} of ${data.docName}.`;
+  const html = baseEmailLayout(
+    `
+    <div style="display: inline-block; padding: 4px 12px; background-color: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 9999px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #fbbf24; letter-spacing: 0.05em; margin-bottom: 16px;">
+      💬 FOUNDER INQUIRY REPLY
+    </div>
+
+    <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 22px; font-weight: 800; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; letter-spacing: -0.02em;">
+      Reply to Your Slide Question
+    </h1>
+    <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.65; color: #cbd5e1; margin: 0 0 18px 0;">
+      Hello <strong style="color: #ffffff;">${data.askerName}</strong>, <strong style="color: #f59e0b;">${data.founderName}</strong> has answered your inquiry on <strong style="color: #ffffff;">${data.docName}</strong> (Slide ${data.slideNum}):
+    </p>
+
+    <!-- Question Box -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="mobile-card-box" style="margin: 16px 0; background-color: #030712; border-left: 3px solid #f59e0b; border-radius: 8px; width: 100%; box-sizing: border-box;">
+      <tr>
+        <td style="padding: 14px 16px;">
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.05em;">
+            Your Question (Slide ${data.slideNum}):
+          </div>
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #e2e8f0; font-style: italic; line-height: 1.5; word-break: break-word;">
+            "${data.questionText}"
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Founder Answer Box -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" class="mobile-card-box" style="margin: 16px 0 24px 0; background-color: rgba(16, 185, 129, 0.08); border-left: 3px solid #10b981; border-radius: 8px; width: 100%; box-sizing: border-box;">
+      <tr>
+        <td style="padding: 14px 16px;">
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; text-transform: uppercase; color: #34d399; font-weight: 700; margin-bottom: 4px; letter-spacing: 0.05em;">
+            Official Founder Response:
+          </div>
+          <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #f8fafc; font-weight: 500; line-height: 1.6; word-break: break-word;">
+            ${data.replyText}
+          </div>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Bulletproof Centered CTA Button -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" class="mobile-btn-table" style="margin: 26px auto; width: auto;">
+      <tr>
+        <td align="center" bgcolor="#f59e0b" style="border-radius: 12px; background-color: #f59e0b; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); box-shadow: 0 6px 18px rgba(245, 158, 11, 0.4);">
+          <a href="${data.viewLink}" target="_blank" class="mobile-btn" style="display: inline-block; padding: 15px 38px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 800; color: #020617 !important; text-decoration: none !important; letter-spacing: -0.01em; border-radius: 12px; border: 1px solid #f59e0b;">
+            View Document & Slide &rarr;
+          </a>
+        </td>
+      </tr>
+    </table>
+    `,
+    preview,
+    "Founder Inquiry Reply"
+  );
+  const text = `Founder reply on "${data.docName}" (Slide ${data.slideNum}):\n\nYour Question: "${data.questionText}"\nFounder Response: ${data.replyText}\n\nView Document: ${data.viewLink}`;
+  return { subject, html, text };
+}
+
 

@@ -70,3 +70,14 @@ export interface DiagnosticEmailData {
   providerDetails: string;
   timestamp?: string;
 }
+
+export interface QuestionReplyEmailData {
+  recipientEmail: string;
+  askerName: string;
+  founderName: string;
+  docName: string;
+  slideNum: number | string;
+  questionText: string;
+  replyText: string;
+  viewLink: string;
+}

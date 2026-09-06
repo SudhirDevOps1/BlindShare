@@ -5,7 +5,7 @@ import { pageQuestions, documents, links } from "@/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { logger } from "@/lib/logger";
 import { encryptField, decryptField } from "@/lib/crypto/db-vault";
-import { sendEmail } from "@/lib/email/email-dispatcher";
+import { sendEmail, renderQuestionReplyEmail } from "@/lib/email";
 
 export async function GET() {
   const auth = await requireAuth();
@@ -123,53 +123,22 @@ export async function POST(request: Request) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://blindshare.vercel.app";
         const viewLink = q.linkSlug ? `${appUrl}/v/${q.linkSlug}` : appUrl;
 
-        const emailHtml = `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"></head>
-<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #020617; color: #f8fafc; padding: 24px; margin: 0;">
-  <div style="max-width: 560px; margin: 0 auto; background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 28px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
-    <div style="display: flex; align-items: center; margin-bottom: 20px;">
-      <h2 style="color: #f59e0b; margin: 0; font-size: 18px; font-weight: 700;">BlindShare • Founder Reply to Your Question</h2>
-    </div>
-    
-    <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 14px;">
-      Hello <strong>${escapeText(decryptedAskerName, 80)}</strong>,
-    </p>
-    <p style="font-size: 14px; color: #cbd5e1; margin-bottom: 20px; line-height: 1.5;">
-      <strong>${escapeText(founderName, 80)}</strong> has answered your inquiry on <strong>${escapeText(docName, 120)}</strong> (Slide ${slideNum}):
-    </p>
-
-    <div style="background: #1e293b; border-left: 3px solid #f59e0b; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px;">
-      <div style="font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 600; margin-bottom: 4px;">Your Question (Slide ${slideNum}):</div>
-      <div style="font-size: 13px; color: #e2e8f0; font-style: italic;">"${escapeText(decryptedQuestion, 500)}"</div>
-    </div>
-
-    <div style="background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px;">
-      <div style="font-size: 11px; text-transform: uppercase; color: #34d399; font-weight: 600; margin-bottom: 4px;">Official Founder Response:</div>
-      <div style="font-size: 14px; color: #f8fafc; font-weight: 500; line-height: 1.5;">${cleanReply}</div>
-    </div>
-
-    <div style="text-align: center; margin-top: 24px; margin-bottom: 20px;">
-      <a href="${viewLink}" style="display: inline-block; background: #f59e0b; color: #020617; font-weight: 700; font-size: 13px; text-decoration: none; padding: 10px 24px; border-radius: 10px;">
-        View Document & Slide
-      </a>
-    </div>
-
-    <hr style="border: none; border-top: 1px solid #1e293b; margin: 20px 0;" />
-    <p style="font-size: 11px; color: #64748b; margin: 0; text-align: center;">
-      Protected with BlindShare Zero-Knowledge E2EE Architecture.
-    </p>
-  </div>
-</body>
-</html>
-`;
+        const questionEmail = renderQuestionReplyEmail({
+          recipientEmail,
+          askerName: escapeText(decryptedAskerName, 80),
+          founderName: escapeText(founderName, 80),
+          docName: escapeText(docName, 120),
+          slideNum,
+          questionText: escapeText(decryptedQuestion, 500),
+          replyText: cleanReply,
+          viewLink,
+        });
 
         sendEmail({
           to: recipientEmail,
-          subject: `Founder reply on "${docName}" (Slide ${slideNum})`,
-          html: emailHtml,
-          text: `Founder response on "${docName}" (Slide ${slideNum}): ${replyText}`,
+          subject: questionEmail.subject,
+          html: questionEmail.html,
+          text: questionEmail.text,
           fromName: "BlindShare Inquiries",
         })
           .then((res) => logger.info("questions.reply_email_sent", { to: recipientEmail, success: res.success }))
