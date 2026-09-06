@@ -1118,6 +1118,8 @@ export function AdminPanelView() {
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <input
+                  id="admin-env-search"
+                  name="envSearch"
                   type="text"
                   placeholder="Search variables (e.g. DATABASE, B2, SESSION_SECRET, REDIS)..."
                   value={envSearch}
