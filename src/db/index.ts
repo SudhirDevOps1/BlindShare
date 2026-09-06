@@ -13,15 +13,15 @@ const globalForDb = globalThis as typeof globalThis & {
   __arenaNextJsPostgresqlPool?: Pool;
 };
 
-function isCloudPostgresUrl(rawUrl: string): boolean {
+function normalizePostgresUrl(rawUrl: string): { url: string; isCloud: boolean } {
   try {
     const parsed = new URL(rawUrl);
     const host = parsed.hostname.toLowerCase();
     const sslMode = parsed.searchParams.get("sslmode");
-    if (sslMode === "require" || sslMode === "verify-ca" || sslMode === "verify-full") {
-      return true;
-    }
-    return (
+    const isCloud =
+      sslMode === "require" ||
+      sslMode === "verify-ca" ||
+      sslMode === "verify-full" ||
       host === "neon.tech" ||
       host.endsWith(".neon.tech") ||
       host === "supabase.co" ||
@@ -30,19 +30,26 @@ function isCloudPostgresUrl(rawUrl: string): boolean {
       host.endsWith(".pooler.supabase.com") ||
       host.endsWith(".amazonaws.com") ||
       host.endsWith(".azure.com") ||
-      host.endsWith(".render.com")
-    );
+      host.endsWith(".render.com");
+
+    if (isCloud && sslMode === "require") {
+      // Opt into libpq compatibility as officially recommended by node-postgres
+      // to eliminate the noisy console warning while maintaining 100% TLS encryption.
+      parsed.searchParams.set("uselibpqcompat", "true");
+    }
+
+    return { url: parsed.toString(), isCloud };
   } catch {
-    return false;
+    return { url: rawUrl, isCloud: false };
   }
 }
 
-const isCloudPostgres = isCloudPostgresUrl(databaseUrl);
+const { url: connectionString, isCloud: isCloudPostgres } = normalizePostgresUrl(databaseUrl);
 
 export const pool =
   globalForDb.__arenaNextJsPostgresqlPool ??
   new Pool({
-    connectionString: databaseUrl,
+    connectionString,
     ssl: isCloudPostgres ? { rejectUnauthorized: false } : undefined,
   });
 

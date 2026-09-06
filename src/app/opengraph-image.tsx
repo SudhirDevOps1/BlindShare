@@ -1,7 +1,5 @@
 import { ImageResponse } from "next/og";
 
-export const runtime = "edge";
-
 export const alt = "BlindShare - Zero-Knowledge Secure Document Sharing & Deep Reading Analytics";
 export const size = {
   width: 1200,
