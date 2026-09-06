@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { I18nProvider } from "@/lib/i18n/context";
 import { CookieConsentBanner } from "@/components/compliance/cookie-consent-banner";
+import { BroadcastBanner } from "@/components/compliance/broadcast-banner";
 import { CryptoCursor } from "@/components/cursor/crypto-cursor";
 
 const appName = process.env.PUBLIC_APP_NAME || "BlindShare";
@@ -161,6 +162,7 @@ export default function RootLayout({
           {/* First-party privacy-safe telemetry proxy gated strictly by blindshare_cookie_consent_v1 */}
           <PrismTracker />
           <CryptoCursor />
+          <BroadcastBanner />
           {children}
           <CookieConsentBanner />
         </I18nProvider>
