@@ -10,12 +10,22 @@ import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
 import crypto from "crypto";
 import { encryptEmail } from "@/lib/crypto/db-vault";
+import { validateEmailWithMx } from "@/lib/validation/email-validator";
 
 export async function POST(request: Request) {
   try {
     const parsed = await parseBody(request, registerSchema);
     if ("errorResponse" in parsed) return parsed.errorResponse;
     const { email: cleanEmail, password, name, inviteCode } = parsed.data;
+
+    // Defense-in-depth: Reject disposable/temp emails (e.g. mailinator.com) and verify DNS MX
+    const emailCheck = await validateEmailWithMx(cleanEmail);
+    if (!emailCheck.valid) {
+      return NextResponse.json(
+        { error: emailCheck.reason || "Temporary or invalid email addresses are not permitted." },
+        { status: 400 }
+      );
+    }
 
     // Check if email already registered (compare encrypted form)
     const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, encryptEmail(cleanEmail))).limit(1);

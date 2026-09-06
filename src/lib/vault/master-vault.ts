@@ -22,8 +22,16 @@ export async function unlockOwnerVault(
   saltHex: string,
   kdfAlgorithm: "argon2id" | "pbkdf2" = "pbkdf2"
 ): Promise<CryptoKey> {
+  let effectiveAlgo = kdfAlgorithm;
+  if (typeof window !== "undefined") {
+    const storedPref = localStorage.getItem("blindshare_kdf_algo");
+    if (storedPref === "argon2id" || storedPref === "pbkdf2") {
+      effectiveAlgo = storedPref;
+    }
+  }
+
   let masterKey: CryptoKey;
-  if (kdfAlgorithm === "argon2id") {
+  if (effectiveAlgo === "argon2id") {
     masterKey = await deriveOwnerMasterKeyArgon2id(password, saltHex);
   } else {
     masterKey = await deriveOwnerMasterKey(password, saltHex);

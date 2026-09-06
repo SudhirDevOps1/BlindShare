@@ -235,3 +235,12 @@ export async function decapsulatePQHybrid(
     ["encrypt", "decrypt"]
   );
 }
+
+// Expose on window for browser DevTools console verification and security testing
+if (typeof window !== "undefined") {
+  (window as any).__BLINDSHARE_PQ__ = {
+    generatePQHybridKeyPair,
+    encapsulatePQHybrid,
+    decapsulatePQHybrid,
+  };
+}

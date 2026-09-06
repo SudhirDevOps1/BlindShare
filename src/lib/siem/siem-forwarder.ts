@@ -65,7 +65,9 @@ export async function forwardSiemEvent(event: SiemSecurityEvent): Promise<void> 
     timestamp: event.timestamp || new Date().toISOString(),
   };
 
-  // 1. Structured Local Audit Log
+  // 1. Structured Local Audit Log & Direct Standard CEF Output
+  const cefPayload = formatCef(enrichedEvent);
+  console.log(cefPayload);
   logger.info(`siem.${event.event.toLowerCase()}`, {
     severity: event.severity,
     actorId: event.actor?.id,

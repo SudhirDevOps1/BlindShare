@@ -72,6 +72,9 @@ export default function SettingsPage() {
   const [weeklyDigestEnabled, setWeeklyDigestEnabled] = useState(true);
   const [sendingTestDigest, setSendingTestDigest] = useState(false);
 
+  // Master Key Derivation Function (KDF) Suite (Argon2id vs PBKDF2)
+  const [kdfAlgo, setKdfAlgo] = useState<"pbkdf2" | "argon2id">("pbkdf2");
+
   // Cursor FX & Cyber Pet State (OFF by default in dashboard, ON in showcase)
   const [cursorFxEnabled, setCursorFxEnabled] = useState(false);
 
@@ -81,6 +84,10 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const storedKdf = localStorage.getItem("blindshare_kdf_algo");
+      if (storedKdf === "argon2id" || storedKdf === "pbkdf2") {
+        setKdfAlgo(storedKdf);
+      }
       const pref = localStorage.getItem("blindshare_crypto_cursor_dashboard");
       setCursorFxEnabled(pref === "true");
       setDevProfile(loadDeveloperProfile());
@@ -508,6 +515,69 @@ export default function SettingsPage() {
               });
           }}
         />
+
+        {/* 2.6 Zero-Knowledge Master Vault KDF Suite (Argon2id vs PBKDF2) */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="flex items-center gap-2 text-sm font-bold text-white">
+              <KeyRound className="h-4 w-4 text-amber-400" />
+              <span>Master Key Derivation Function (KDF) Suite</span>
+            </div>
+            <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-bold text-amber-400">
+              {kdfAlgo === "argon2id" ? "Argon2id Active" : "PBKDF2 (100k) Active"}
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <p className="text-xs text-slate-300 font-semibold">
+                Client-Side Master Key Stretching Algorithm
+              </p>
+              <p className="text-[11px] text-slate-400 max-w-xl">
+                Choose the cryptographic key stretching function used to derive your 256-bit Owner Master Vault Key in browser memory. PBKDF2 offers maximum browser compatibility; Argon2id provides memory-hard resistance against GPU cluster brute-force cracking.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800 shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setKdfAlgo("pbkdf2");
+                  localStorage.setItem("blindshare_kdf_algo", "pbkdf2");
+                  setMessage({
+                    type: "success",
+                    text: lang === "hi" ? "PBKDF2 (100k राउंड्स) मानक सक्रिय किया गया।" : "PBKDF2 (100k rounds) standard activated.",
+                  });
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  kdfAlgo === "pbkdf2"
+                    ? "bg-amber-500 text-slate-950 shadow-md"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                PBKDF2 (100k)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setKdfAlgo("argon2id");
+                  localStorage.setItem("blindshare_kdf_algo", "argon2id");
+                  setMessage({
+                    type: "success",
+                    text: lang === "hi" ? "Argon2id मेमोरी-हार्ड KDF सक्रिय किया गया! GPU/ASIC हमलों से पूर्ण सुरक्षा।" : "Argon2id Memory-Hard KDF activated! GPU/ASIC resistance enabled.",
+                  });
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                  kdfAlgo === "argon2id"
+                    ? "bg-amber-500 text-slate-950 shadow-md"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Argon2id (Memory-Hard)
+              </button>
+            </div>
+          </div>
+        </div>
 
         {/* 2.7 Automated Founder Weekly Deal Digest */}
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
