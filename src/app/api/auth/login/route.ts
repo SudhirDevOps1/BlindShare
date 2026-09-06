@@ -66,11 +66,30 @@ export async function POST(request: Request) {
 
     const cleanEmail = email.trim().toLowerCase();
     // Look up by encrypted email — encryptEmail() is deterministic (same input → same ciphertext)
-    const [user] = await db
+    let [user] = await db
       .select()
       .from(users)
       .where(eq(users.email, encryptEmail(cleanEmail)))
       .limit(1);
+
+    // Backward-compatibility: If not found by encrypted email, check for legacy unencrypted row
+    if (!user) {
+      const [legacyUser] = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, cleanEmail))
+        .limit(1);
+
+      if (legacyUser) {
+        user = legacyUser;
+        // On-the-fly auto-migration to Zero-Knowledge DB Vault encryption
+        await db
+          .update(users)
+          .set({ email: encryptEmail(cleanEmail), updatedAt: new Date() })
+          .where(eq(users.id, legacyUser.id))
+          .catch(() => {});
+      }
+    }
 
     if (!user) {
       const [anyUser] = await db.select({ id: users.id }).from(users).limit(1);

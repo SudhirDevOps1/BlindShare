@@ -296,6 +296,38 @@ export async function ensureDatabaseSchema(pool: Pool) {
         END $$;
       `);
 
+      // Retroactive zero-knowledge sanitization: auto-migrate any legacy plaintext emails in users table
+      try {
+        const legacyUsersRes = await client.query(`
+          SELECT id, email 
+          FROM users 
+          WHERE email NOT LIKE 'enc:%'
+          LIMIT 500;
+        `);
+        for (const row of legacyUsersRes.rows) {
+          if (row.email && !row.email.startsWith("enc:")) {
+            const enc = encryptEmail(row.email);
+            await client.query(`UPDATE users SET email = $1, updated_at = now() WHERE id = $2`, [enc, row.id]).catch(() => {});
+          }
+        }
+      } catch {}
+
+      // Retroactive zero-knowledge sanitization: auto-migrate any legacy plaintext emails in auth_tokens
+      try {
+        const legacyTokensRes = await client.query(`
+          SELECT id, email 
+          FROM auth_tokens 
+          WHERE email NOT LIKE 'enc:%'
+          LIMIT 500;
+        `);
+        for (const row of legacyTokensRes.rows) {
+          if (row.email && !row.email.startsWith("enc:")) {
+            const enc = encryptEmail(row.email);
+            await client.query(`UPDATE auth_tokens SET email = $1 WHERE id = $2`, [enc, row.id]).catch(() => {});
+          }
+        }
+      } catch {}
+
       // Retroactive zero-knowledge sanitization: encrypt any legacy plaintext emails in audit_log
       try {
         const auditRes = await client.query(`
