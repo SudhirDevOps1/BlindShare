@@ -63,3 +63,10 @@ export interface ViewerAlertData {
   dwellSeconds?: number;
   timestamp: string;
 }
+
+export interface DiagnosticEmailData {
+  recipientEmail: string;
+  provider: string;
+  providerDetails: string;
+  timestamp?: string;
+}

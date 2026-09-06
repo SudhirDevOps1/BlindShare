@@ -3,7 +3,7 @@
  * Zero external templating dependencies. Fully compatible with all major email clients.
  */
 
-import { MagicLinkData, OtpData, PasswordResetData, InviteEmailData, ViewerAlertData } from "./types";
+import { MagicLinkData, OtpData, PasswordResetData, InviteEmailData, ViewerAlertData, DiagnosticEmailData } from "./types";
 
 const BLINDSHARE_LOGO_URL = "https://raw.githubusercontent.com/SudhirDevOps1/BlindShare/main/public/brand/02-favicon.svg";
 
@@ -12,7 +12,7 @@ const BLINDSHARE_LOGO_URL = "https://raw.githubusercontent.com/SudhirDevOps1/Bli
  * official BlindShare logo header, zero-knowledge cryptographic guarantee badge, and standard footer.
  * Every tag contains inlined styles to prevent email client CSS-stripping.
  */
-function baseEmailLayout(contentHtml: string, previewText: string, headerTitle: string = "Security Notification"): string {
+export function baseEmailLayout(contentHtml: string, previewText: string, headerTitle: string = "Security Notification"): string {
   return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en">
 <head>
@@ -26,9 +26,12 @@ function baseEmailLayout(contentHtml: string, previewText: string, headerTitle: 
     table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
     img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
     @media only screen and (max-width: 620px) {
-      .email-card { width: 100% !important; border-radius: 0px !important; }
-      .email-content { padding: 24px 18px !important; }
-      .email-header { padding: 18px 18px !important; }
+      .email-card { width: 100% !important; border-radius: 8px !important; }
+      .email-content { padding: 20px 14px !important; }
+      .email-header { padding: 16px 14px !important; }
+      .email-outer-table { padding: 12px 6px !important; }
+      .otp-code-text { font-size: 26px !important; letter-spacing: 2px !important; }
+      .mobile-stack-card { padding: 12px 12px !important; }
     }
   </style>
 </head>
@@ -39,7 +42,7 @@ function baseEmailLayout(contentHtml: string, previewText: string, headerTitle: 
   </div>
 
   <!-- Outer wrapper table -->
-  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#090d16" style="background-color: #090d16; margin: 0; padding: 32px 12px;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#090d16" class="email-outer-table" style="background-color: #090d16; margin: 0; padding: 32px 12px;">
     <tr>
       <td align="center" valign="top">
 
@@ -213,12 +216,12 @@ export function renderOtpEmail(data: OtpData): { subject: string; html: string; 
 
   const securityContextSection = (data.deviceInfo || data.locationInfo)
     ? `
-    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 22px 0 10px 0; background-color: #030712; border: 1px solid #1e293b; border-radius: 10px; padding: 10px 14px;">
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin: 22px 0 10px 0; background-color: #030712; border: 1px solid #1e293b; border-radius: 10px;">
       <tr>
-        <td style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; color: #94a3b8; line-height: 1.5;">
+        <td style="padding: 12px 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; color: #94a3b8; line-height: 1.6; word-break: break-word;">
           🛡️ <strong>Request Security Details:</strong><br />
-          ${data.deviceInfo ? `• Client: <span style="color: #cbd5e1;">${data.deviceInfo}</span><br />` : ""}
-          ${data.locationInfo ? `• Location/IP: <span style="color: #cbd5e1;">${data.locationInfo}</span><br />` : ""}
+          ${data.deviceInfo ? `• Client: <span style="color: #cbd5e1; word-break: break-word;">${data.deviceInfo}</span><br />` : ""}
+          ${data.locationInfo ? `• Location/IP: <span style="color: #cbd5e1; word-break: break-all;">${data.locationInfo}</span><br />` : ""}
           • Time: <span style="color: #cbd5e1;">${new Date().toUTCString()}</span>
         </td>
       </tr>
@@ -244,7 +247,7 @@ export function renderOtpEmail(data: OtpData): { subject: string; html: string; 
           <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 800; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px;">
             Single-Use Security Code
           </div>
-          <div style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Courier, monospace; font-size: 34px; font-weight: 900; letter-spacing: 6px; color: #fbbf24;">
+          <div class="otp-code-text" style="font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Courier, monospace; font-size: 32px; font-weight: 900; letter-spacing: 4px; color: #fbbf24; word-break: break-all; max-width: 100%;">
             ${displayCode}
           </div>
         </td>
@@ -407,42 +410,40 @@ export function renderViewerAlertEmail(data: ViewerAlertData): { subject: string
       A recipient interacted with your secure link <strong style="color: #f59e0b;">${data.linkName}</strong>:
     </p>
 
-    <!-- Telemetry Information Card -->
+    <!-- Telemetry Information Card (Mobile-First Stacked Rows: Zero Overlap) -->
     <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #030712; border: 1px solid #1e293b; border-radius: 12px; margin: 20px 0; overflow: hidden;">
       <tr>
-        <td style="padding: 16px 20px;">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-            <tr>
-              <td style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #64748b;">Document:</td>
-              <td align="right" style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 700; color: #f8fafc;">${data.docTitle || "Untitled"}</td>
-            </tr>
-            <tr>
-              <td style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #64748b;">Event:</td>
-              <td align="right" style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 700; color: #f59e0b;">${data.event}</td>
-            </tr>
-            <tr>
-              <td style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #64748b;">Viewer:</td>
-              <td align="right" style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 600; color: #cbd5e1;">${data.viewerEmail || "Anonymous"}</td>
-            </tr>
-            <tr>
-              <td style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #64748b;">Location:</td>
-              <td align="right" style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 600; color: #cbd5e1;">${data.viewerCountry || "Unknown"}</td>
-            </tr>
-            <tr>
-              <td style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #64748b;">Device:</td>
-              <td align="right" style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 600; color: #cbd5e1;">${data.viewerDevice || "Desktop"}</td>
-            </tr>
-            ${data.dwellSeconds ? `
-            <tr>
-              <td style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #64748b;">Dwell Time:</td>
-              <td align="right" style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 700; color: #10b981;">${data.dwellSeconds}s</td>
-            </tr>
-            ` : ""}
-            <tr>
-              <td style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; color: #475569;">Timestamp:</td>
-              <td align="right" style="padding: 6px 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; color: #64748b;">${data.timestamp}</td>
-            </tr>
-          </table>
+        <td class="mobile-stack-card" style="padding: 16px 18px;">
+          <div style="padding: 8px 0; border-bottom: 1px solid #1e293b;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">Document</div>
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 700; color: #f8fafc; word-break: break-word;">${data.docTitle || "Untitled"}</div>
+          </div>
+          <div style="padding: 8px 0; border-bottom: 1px solid #1e293b;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">Event</div>
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 700; color: #f59e0b; word-break: break-word;">${data.event}</div>
+          </div>
+          <div style="padding: 8px 0; border-bottom: 1px solid #1e293b;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">Viewer</div>
+            <div style="font-family: 'SFMono-Regular', Consolas, Monaco, monospace; font-size: 13px; font-weight: 600; color: #cbd5e1; word-break: break-all;">${data.viewerEmail || "Anonymous"}</div>
+          </div>
+          <div style="padding: 8px 0; border-bottom: 1px solid #1e293b;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">Location</div>
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 600; color: #cbd5e1; word-break: break-word;">${data.viewerCountry || "Unknown"}</div>
+          </div>
+          <div style="padding: 8px 0; border-bottom: 1px solid #1e293b;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">Device</div>
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 600; color: #cbd5e1; word-break: break-word;">${data.viewerDevice || "Desktop"}</div>
+          </div>
+          ${data.dwellSeconds ? `
+          <div style="padding: 8px 0; border-bottom: 1px solid #1e293b;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">Dwell Time</div>
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 700; color: #10b981;">${data.dwellSeconds}s</div>
+          </div>
+          ` : ""}
+          <div style="padding: 8px 0;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;">Timestamp (UTC)</div>
+            <div style="font-family: 'SFMono-Regular', Consolas, Monaco, monospace; font-size: 12px; color: #94a3b8; word-break: break-word;">${data.timestamp}</div>
+          </div>
         </td>
       </tr>
     </table>
@@ -453,3 +454,76 @@ export function renderViewerAlertEmail(data: ViewerAlertData): { subject: string
   const text = `Document Activity Alert on ${data.docTitle || data.linkName}: ${data.event} by ${data.viewerEmail || "Anonymous"} at ${data.timestamp}`;
   return { subject, html, text };
 }
+
+/**
+ * Live Diagnostic Verification Email Template
+ * Renders a mobile-first, bulletproof responsive card with zero overlap or text squeezing on narrow viewports.
+ */
+export function renderDiagnosticEmail(data: DiagnosticEmailData): { subject: string; html: string; text: string } {
+  const subject = `🧪 BlindShare Email Relay Active: Live Diagnostic Verified`;
+  const preview = `Your BlindShare transactional email relay (${data.provider.toUpperCase()}) is active and successfully delivering messages.`;
+  const html = baseEmailLayout(
+    `
+    <div style="display: inline-block; padding: 4px 12px; background-color: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 9999px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #34d399; letter-spacing: 0.05em; margin-bottom: 16px;">
+      ● LIVE RELAY PROBE
+    </div>
+
+    <h1 style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 22px; font-weight: 800; color: #ffffff; margin: 0 0 12px 0; line-height: 1.3; letter-spacing: -0.02em;">
+      Email Engine Verification
+    </h1>
+    <p style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #cbd5e1; margin: 0 0 20px 0;">
+      Congratulations! Your BlindShare transactional email relay is configured and delivering messages successfully in production.
+    </p>
+
+    <!-- Mobile-First Stacked Diagnostic Cards (Zero Horizontal Squeeze / Zero Overlap) -->
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #030712; border: 1px solid #1e293b; border-radius: 12px; margin: 20px 0; overflow: hidden;">
+      <tr>
+        <td class="mobile-stack-card" style="padding: 16px 18px;">
+          
+          <div style="padding: 10px 0; border-bottom: 1px solid #1e293b;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">
+              Active Email Provider
+            </div>
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 700; color: #38bdf8; word-break: break-word;">
+              ${data.provider.toUpperCase()}
+            </div>
+          </div>
+
+          <div style="padding: 10px 0; border-bottom: 1px solid #1e293b;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">
+              Relay Architecture & Free Tier Status
+            </div>
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; color: #cbd5e1; line-height: 1.5; word-break: break-word;">
+              ${data.providerDetails}
+            </div>
+          </div>
+
+          <div style="padding: 10px 0; border-bottom: 1px solid #1e293b;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">
+              Destination Recipient
+            </div>
+            <div style="font-family: 'SFMono-Regular', Consolas, Monaco, monospace; font-size: 13px; font-weight: 600; color: #facc15; word-break: break-all;">
+              ${data.recipientEmail}
+            </div>
+          </div>
+
+          <div style="padding: 10px 0;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px;">
+              Dispatched Timestamp (UTC)
+            </div>
+            <div style="font-family: 'SFMono-Regular', Consolas, Monaco, monospace; font-size: 12px; color: #94a3b8; word-break: break-word;">
+              ${data.timestamp || new Date().toUTCString()}
+            </div>
+          </div>
+
+        </td>
+      </tr>
+    </table>
+    `,
+    preview,
+    "Relay Diagnostic Test"
+  );
+  const text = `BlindShare Email Relay Active: Delivered via ${data.provider.toUpperCase()} (${data.providerDetails}) to ${data.recipientEmail} at ${data.timestamp || new Date().toUTCString()}.`;
+  return { subject, html, text };
+}
+
