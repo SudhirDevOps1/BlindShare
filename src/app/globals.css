@@ -204,6 +204,24 @@
   animation: glowPulse 2.5s ease-in-out infinite;
 }
 
+/* Action Button Loading & Anti-Double-Click Animations */
+@keyframes buttonIndeterminate {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(100%); }
+  100% { transform: translateX(300%); }
+}
+.animate-progress-indeterminate {
+  animation: buttonIndeterminate 1.4s ease-in-out infinite;
+}
+
+@keyframes buttonShimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.animate-btn-shimmer {
+  animation: buttonShimmer 1.5s ease-in-out infinite;
+}
+
 /* Horizontal shimmer sweep */
 @keyframes shimmerX {
   0%   { transform: translateX(-100%); }

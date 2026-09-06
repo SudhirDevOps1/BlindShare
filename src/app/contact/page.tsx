@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { useI18n } from "@/lib/i18n/context";
@@ -12,13 +12,15 @@ export default function ContactPage() {
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [loading, setLoading] = useState(false);
+  const loadingRef = useRef(false);
   const [submitted, setSubmitted] = useState(false);
 
   const endpoint = process.env.NEXT_PUBLIC_CONTACT_FORM_ACTION || "";
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (loading || honeypot) return; // Guard against in-flight double submit & bot spam
+    if (loadingRef.current || loading || honeypot) return; // Guard against in-flight double submit & bot spam
+    loadingRef.current = true;
 
     setLoading(true);
 
@@ -50,6 +52,7 @@ export default function ContactPage() {
     } catch {
       setSubmitted(true);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -138,10 +141,18 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold rounded-xl hover:from-amber-400 hover:to-amber-500 transition-all text-xs disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-amber-500/10"
+                className="relative overflow-hidden select-none w-full flex items-center justify-center gap-2 py-3 px-4 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold rounded-xl hover:from-amber-400 hover:to-amber-500 transition-all text-xs disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed shadow-md shadow-amber-500/10"
               >
-                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                <span>{loading ? "Transmitting..." : "Send Message"}</span>
+                {loading && (
+                  <>
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                    <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-700/50 overflow-hidden">
+                      <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                    </span>
+                  </>
+                )}
+                {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0 relative z-10" /> : <Send className="h-3.5 w-3.5 shrink-0 relative z-10" />}
+                <span className="relative z-10">{loading ? "Transmitting..." : "Send Message"}</span>
               </button>
             </form>
           )}

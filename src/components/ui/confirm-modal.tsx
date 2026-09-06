@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { AlertTriangle, Trash2, X, ShieldAlert } from "lucide-react";
 
@@ -28,10 +28,23 @@ export function ConfirmModal({
   onCancel,
 }: ConfirmModalProps) {
   const [mounted, setMounted] = useState(false);
+  const confirmLockRef = useRef(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen || !loading) {
+      confirmLockRef.current = false;
+    }
+  }, [isOpen, loading]);
+
+  const handleSafeConfirm = () => {
+    if (loading || confirmLockRef.current) return;
+    confirmLockRef.current = true;
+    onConfirm();
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -85,23 +98,31 @@ export function ConfirmModal({
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition disabled:opacity-40"
+            className="rounded-xl border border-slate-700 bg-slate-800/80 px-4 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-700 hover:text-white transition disabled:opacity-40 disabled:pointer-events-none disabled:cursor-not-allowed"
           >
             {cancelLabel}
           </button>
 
           <button
             type="button"
-            onClick={onConfirm}
+            onClick={handleSafeConfirm}
             disabled={loading}
-            className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition shadow-md disabled:opacity-50 ${
+            className={`relative overflow-hidden select-none flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition shadow-md disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed ${
               variant === "danger"
                 ? "bg-red-600 text-white hover:bg-red-500 shadow-red-600/20"
                 : "bg-amber-500 text-slate-950 hover:bg-amber-400 shadow-amber-500/20"
             }`}
           >
-            {loading && <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />}
-            <span>{loading ? "Processing..." : confirmLabel}</span>
+            {loading && (
+              <>
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent animate-btn-shimmer" />
+                <span className="absolute bottom-0 left-0 right-0 h-1 bg-black/30 dark:bg-white/20 overflow-hidden">
+                  <span className="block h-full bg-current w-1/3 animate-progress-indeterminate" />
+                </span>
+              </>
+            )}
+            {loading && <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent shrink-0 relative z-10" />}
+            <span className="relative z-10">{loading ? "Processing..." : confirmLabel}</span>
           </button>
         </div>
       </div>

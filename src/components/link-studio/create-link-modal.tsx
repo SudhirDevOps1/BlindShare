@@ -75,6 +75,7 @@ export function CreateLinkModal({
   const [expiresAt, setExpiresAt] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const loadingRef = React.useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [createdUrl, setCreatedUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -148,11 +149,12 @@ export function CreateLinkModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (loadingRef.current || loading) return;
     if (!name.trim()) {
       setError("Please enter a link nickname or recipient.");
       return;
     }
+    loadingRef.current = true;
 
     const activeDocId = docId || (targetType === "doc" ? selectedDocId : undefined);
     const activeDataroomId = dataroomId || (targetType === "dataroom" ? selectedDataroomId : undefined);
@@ -258,6 +260,7 @@ export function CreateLinkModal({
     } catch (err: any) {
       setError(err.message || "Failed to generate secure link");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -867,10 +870,18 @@ export function CreateLinkModal({
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 text-sm font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-lg shadow-amber-500/20"
+                className="relative overflow-hidden select-none w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 text-sm font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-colors shadow-lg shadow-amber-500/20"
               >
-                {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-                <span>{loading ? "Generating Link..." : t.linkStudio.createBtn}</span>
+                {loading && (
+                  <>
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                    <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-600/50 overflow-hidden">
+                      <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                    </span>
+                  </>
+                )}
+                {loading && <Loader2 className="h-4 w-4 animate-spin shrink-0 relative z-10" />}
+                <span className="relative z-10">{loading ? "Generating Link..." : t.linkStudio.createBtn}</span>
               </button>
             </form>
           </div>

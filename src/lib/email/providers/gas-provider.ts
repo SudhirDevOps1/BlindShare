@@ -18,69 +18,49 @@ export async function sendViaGas(payload: EmailPayload): Promise<EmailResult> {
     };
   }
 
-  const maxAttempts = 2;
-  let lastError = "Failed to communicate with Google Apps Script Web App";
+  try {
+    const res = await fetch(webappUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        secret: secretToken,
+        secretToken: secretToken,
+        to: payload.to,
+        subject: payload.subject,
+        html: payload.html,
+        text: payload.text || "",
+        fromName: payload.fromName || "BlindShare Security",
+        timestamp: new Date().toISOString(),
+      }),
+      signal: AbortSignal.timeout(15000), // Generous 15s timeout for Google Apps Script cold-start & execution
+    });
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    try {
-      const res = await fetch(webappUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          secret: secretToken,
-          secretToken: secretToken,
-          to: payload.to,
-          subject: payload.subject,
-          html: payload.html,
-          text: payload.text || "",
-          fromName: payload.fromName || "BlindShare Security",
-          timestamp: new Date().toISOString(),
-        }),
-        signal: AbortSignal.timeout(5500), // Safe 5.5s timeout within serverless ceilings
-      });
+    const json = await res.json().catch(() => null);
 
-      const json = await res.json().catch(() => null);
-
-      if (!res.ok || (json && json.success === false)) {
-        lastError = json?.error || `GAS returned HTTP ${res.status}`;
-        // If rate limited (quota) or unauthorized, do not retry
-        if (res.status === 401 || res.status === 403 || res.status === 429) {
-          return {
-            success: false,
-            provider: "gas",
-            error: lastError,
-          };
-        }
-        if (attempt < maxAttempts) {
-          await new Promise((r) => setTimeout(r, 400));
-          continue;
-        }
-        return {
-          success: false,
-          provider: "gas",
-          error: lastError,
-        };
-      }
-
+    if (!res.ok || (json && json.success === false)) {
+      const errorMsg = json?.error || `GAS returned HTTP ${res.status}`;
       return {
-        success: true,
+        success: false,
         provider: "gas",
-        quotaRemaining: json?.quotaRemaining,
+        error: errorMsg,
       };
-    } catch (err: any) {
-      lastError = err?.message || "GAS fetch failed";
-      if (attempt < maxAttempts) {
-        await new Promise((r) => setTimeout(r, 300));
-        continue;
-      }
     }
-  }
 
-  return {
-    success: false,
-    provider: "gas",
-    error: lastError,
-  };
+    return {
+      success: true,
+      provider: "gas",
+      quotaRemaining: json?.quotaRemaining,
+    };
+  } catch (err: any) {
+    const isTimeout = err?.name === "AbortError" || err?.name === "TimeoutError" || err?.message?.includes("aborted");
+    return {
+      success: false,
+      provider: "gas",
+      error: isTimeout
+        ? "Google Apps Script timed out after 15s. The email may still be processing in your Google account."
+        : (err?.message || "GAS fetch failed"),
+    };
+  }
 }

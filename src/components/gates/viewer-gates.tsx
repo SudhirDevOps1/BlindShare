@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { Lock, Mail, FileCheck, Shield, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 
@@ -33,10 +33,12 @@ export function ViewerGates({
   const [altchaPayload, setAltchaPayload] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const loadingRef = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (loadingRef.current || loading) return;
+    loadingRef.current = true;
     setError(null);
     setLoading(true);
 
@@ -78,6 +80,7 @@ export function ViewerGates({
     } catch (err: any) {
       setError(err.message || "Access verification failed");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -185,15 +188,23 @@ export function ViewerGates({
           <button
             type="submit"
             disabled={loading}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-sm font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="relative overflow-hidden select-none w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-sm font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none transition-all"
           >
+            {loading && (
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-btn-shimmer pointer-events-none" />
+            )}
             {loading ? (
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent relative z-10" />
             ) : (
               <>
-                <span>{hasPassword ? t.viewer.unlock : t.viewer.continueBtn}</span>
-                <ArrowRight className="h-4 w-4" />
+                <span className="relative z-10">{hasPassword ? t.viewer.unlock : t.viewer.continueBtn}</span>
+                <ArrowRight className="h-4 w-4 relative z-10" />
               </>
+            )}
+            {loading && (
+              <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-950/40 overflow-hidden">
+                <span className="block h-full bg-slate-950 rounded-full animate-progress-indeterminate" />
+              </span>
             )}
           </button>
         </form>

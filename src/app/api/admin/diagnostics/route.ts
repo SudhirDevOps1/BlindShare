@@ -6,6 +6,9 @@ import { getStorageAdapter } from "@/lib/storage";
 import { getActiveEmailProvider, sendEmail, renderDiagnosticEmail } from "@/lib/email";
 import { sendWebhookNotification, sendWebhookNotificationDetailed } from "@/lib/notifications/webhook-notifier";
 
+export const dynamic = "force-dynamic";
+export const maxDuration = 30;
+
 export type EnvCategory =
   | "Database"
   | "Storage"

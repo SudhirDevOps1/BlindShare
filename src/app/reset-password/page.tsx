@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { BrandHeader } from "@/components/brand-header";
@@ -18,6 +18,7 @@ function ResetPasswordContent() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const loadingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
@@ -25,7 +26,7 @@ function ResetPasswordContent() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (loadingRef.current || loading) return;
     if (!token) {
       setError("Missing or invalid reset token. Please request a new link.");
       return;
@@ -40,6 +41,7 @@ function ResetPasswordContent() {
       return;
     }
 
+    loadingRef.current = true;
     setLoading(true);
     setError(null);
 
@@ -62,6 +64,7 @@ function ResetPasswordContent() {
     } catch (err: any) {
       setError(err.message || "Something went wrong. Please try again.");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -129,10 +132,18 @@ function ResetPasswordContent() {
           <button
             type="submit"
             disabled={loading || !token}
-            className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 text-xs font-bold text-slate-950 hover:bg-amber-400 transition shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="relative overflow-hidden select-none w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-3 text-xs font-bold text-slate-950 hover:bg-amber-400 transition shadow-lg shadow-amber-500/20 disabled:opacity-60 disabled:cursor-not-allowed disabled:pointer-events-none"
           >
-            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
-            <span>{loading ? "Updating Password..." : "Set New Password"}</span>
+            {loading && (
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-btn-shimmer pointer-events-none" />
+            )}
+            {loading && <Loader2 className="h-4 w-4 animate-spin relative z-10" />}
+            <span className="relative z-10">{loading ? "Updating Password..." : "Set New Password"}</span>
+            {loading && (
+              <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-950/40 overflow-hidden">
+                <span className="block h-full bg-slate-950 rounded-full animate-progress-indeterminate" />
+              </span>
+            )}
           </button>
         </form>
       )}

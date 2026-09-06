@@ -41,6 +41,7 @@ export function DocUploader({ onUploadSuccess, targetDoc }: DocUploaderProps) {
   const [detected, setDetected] = useState<FormatKind | null>(null);
   const [title, setTitle] = useState("");
   const [encrypting, setEncrypting] = useState(false);
+  const encryptingRef = useRef(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -109,7 +110,8 @@ export function DocUploader({ onUploadSuccess, targetDoc }: DocUploaderProps) {
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || encrypting) return;
+    if (!file || encrypting || encryptingRef.current) return;
+    encryptingRef.current = true;
 
     try {
       setError(null);
@@ -228,6 +230,7 @@ export function DocUploader({ onUploadSuccess, targetDoc }: DocUploaderProps) {
       console.error("Upload error:", err);
       setError(err.message || "Failed to encrypt and upload document");
     } finally {
+      encryptingRef.current = false;
       setEncrypting(false);
     }
   };
@@ -408,7 +411,8 @@ export function DocUploader({ onUploadSuccess, targetDoc }: DocUploaderProps) {
         {file && !encrypting && (
           <button
             type="submit"
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 py-3.5 text-sm font-bold text-slate-950 hover:from-amber-400 hover:to-amber-300 shadow-xl shadow-amber-500/25 hover:shadow-amber-500/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
+            disabled={encrypting}
+            className="w-full select-none flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 py-3.5 text-sm font-bold text-slate-950 hover:from-amber-400 hover:to-amber-300 shadow-xl shadow-amber-500/25 hover:shadow-amber-500/40 transition-all transform hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
           >
             <Lock className="h-4 w-4 stroke-[2.5]" />
             <span>{t.upload.startUpload}</span>

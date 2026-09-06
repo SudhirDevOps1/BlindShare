@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { useI18n } from "@/lib/i18n/context";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
 import {
@@ -103,6 +103,13 @@ export function AdminPanelView() {
   const [devProfile, setDevProfile] = useState<DeveloperProfile>(loadDeveloperProfile);
   const [savingDevProfile, setSavingDevProfile] = useState(false);
 
+  // Synchronous execution locks to prevent double-click race conditions
+  const creatingInviteRef = useRef(false);
+  const savingSettingsRef = useRef(false);
+  const savingDevProfileRef = useRef(false);
+  const testingWebhookRef = useRef(false);
+  const testingEmailRef = useRef(false);
+
   const handleUpdateDevPlatformUrl = (key: SocialPlatformKey, url: string) => {
     setDevProfile((prev) => ({
       ...prev,
@@ -131,7 +138,8 @@ export function AdminPanelView() {
 
   const handleSaveDevProfileAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (savingDevProfile) return;
+    if (savingDevProfileRef.current || savingDevProfile) return;
+    savingDevProfileRef.current = true;
     try {
       setSavingDevProfile(true);
       const cleaned: DeveloperProfile = {
@@ -147,6 +155,7 @@ export function AdminPanelView() {
         setActionMessage(`Notice: Saved locally in browser. DB note: ${res.error}`);
       }
     } finally {
+      savingDevProfileRef.current = false;
       setSavingDevProfile(false);
     }
   };
@@ -212,7 +221,8 @@ export function AdminPanelView() {
   };
 
   const handleTestWebhook = async () => {
-    if (testingWebhook) return;
+    if (testingWebhookRef.current || testingWebhook) return;
+    testingWebhookRef.current = true;
     setTestingWebhook(true);
     setWebhookTestResult(null);
     try {
@@ -241,12 +251,14 @@ export function AdminPanelView() {
         message: e.message || "Network error",
       });
     } finally {
+      testingWebhookRef.current = false;
       setTestingWebhook(false);
     }
   };
 
   const handleTestEmail = async () => {
-    if (testingEmail) return;
+    if (testingEmailRef.current || testingEmail) return;
+    testingEmailRef.current = true;
     setTestingEmail(true);
     setEmailTestResult(null);
     try {
@@ -275,6 +287,7 @@ export function AdminPanelView() {
         message: e.message || "Network error",
       });
     } finally {
+      testingEmailRef.current = false;
       setTestingEmail(false);
     }
   };
@@ -381,7 +394,8 @@ export function AdminPanelView() {
 
   const handleCreateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (creatingInvite) return;
+    if (creatingInviteRef.current || creatingInvite) return;
+    creatingInviteRef.current = true;
     try {
       setCreatingInvite(true);
       const isEmailInvite = Boolean(inviteRecipientEmail.trim());
@@ -423,6 +437,7 @@ export function AdminPanelView() {
     } catch {
       setActionMessage("Error: Network or server failure creating invite");
     } finally {
+      creatingInviteRef.current = false;
       setCreatingInvite(false);
     }
   };
@@ -455,7 +470,8 @@ export function AdminPanelView() {
   };
 
   const handleSaveSettings = async () => {
-    if (savingSettings) return;
+    if (savingSettingsRef.current || savingSettings) return;
+    savingSettingsRef.current = true;
     try {
       setSavingSettings(true);
       const isMaint = settings.maintenance_mode === "true" || settings.maintenance_mode === true;
@@ -481,6 +497,7 @@ export function AdminPanelView() {
     } catch {
       setActionMessage("Network error while saving settings.");
     } finally {
+      savingSettingsRef.current = false;
       setSavingSettings(false);
     }
   };
@@ -983,10 +1000,18 @@ export function AdminPanelView() {
                   <button
                     onClick={handleTestEmail}
                     disabled={testingEmail}
-                    className="w-full flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-bold text-amber-400 hover:text-white hover:bg-slate-800 hover:border-amber-500/40 disabled:opacity-50 transition"
+                    className="relative overflow-hidden select-none w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-bold text-amber-400 hover:text-white hover:bg-slate-800 hover:border-amber-500/40 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition"
                   >
-                    <Mail className={`h-3 w-3 ${testingEmail ? "animate-spin" : ""}`} />
-                    <span>{testingEmail ? (lang === "hi" ? "भेज रहे हैं..." : "Testing Dispatch...") : (lang === "hi" ? "टेस्ट ईमेल भेजें" : "Test Email Ping")}</span>
+                    {testingEmail && (
+                      <>
+                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-btn-shimmer" />
+                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500/30 overflow-hidden">
+                          <span className="block h-full bg-amber-400 w-1/3 animate-progress-indeterminate" />
+                        </span>
+                      </>
+                    )}
+                    <Mail className={`h-3 w-3 shrink-0 relative z-10 ${testingEmail ? "animate-spin" : ""}`} />
+                    <span className="relative z-10">{testingEmail ? (lang === "hi" ? "भेज रहे हैं..." : "Testing Dispatch...") : (lang === "hi" ? "टेस्ट ईमेल भेजें" : "Test Email Ping")}</span>
                   </button>
                   {emailTestResult && (
                     <p className={`text-[9px] mt-1 truncate ${emailTestResult.success ? "text-emerald-400" : "text-red-400"}`} title={emailTestResult.message}>
@@ -1020,10 +1045,18 @@ export function AdminPanelView() {
                   <button
                     onClick={handleTestWebhook}
                     disabled={testingWebhook}
-                    className="w-full flex items-center justify-center gap-1.5 py-1 px-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-bold text-cyan-400 hover:text-white hover:bg-slate-800 hover:border-cyan-500/40 disabled:opacity-50 transition"
+                    className="relative overflow-hidden select-none w-full flex items-center justify-center gap-1.5 py-1.5 px-2.5 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-bold text-cyan-400 hover:text-white hover:bg-slate-800 hover:border-cyan-500/40 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition"
                   >
-                    <Send className={`h-3 w-3 ${testingWebhook ? "animate-spin" : ""}`} />
-                    <span>{testingWebhook ? "Testing Dispatch..." : "Test Webhook Ping"}</span>
+                    {testingWebhook && (
+                      <>
+                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-btn-shimmer" />
+                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500/30 overflow-hidden">
+                          <span className="block h-full bg-cyan-400 w-1/3 animate-progress-indeterminate" />
+                        </span>
+                      </>
+                    )}
+                    <Send className={`h-3 w-3 shrink-0 relative z-10 ${testingWebhook ? "animate-spin" : ""}`} />
+                    <span className="relative z-10">{testingWebhook ? "Testing Dispatch..." : "Test Webhook Ping"}</span>
                   </button>
                   {webhookTestResult && (
                     <p className={`text-[9px] mt-1 truncate ${webhookTestResult.success ? "text-emerald-400" : "text-red-400"}`}>
@@ -1420,10 +1453,18 @@ export function AdminPanelView() {
               <button
                 type="submit"
                 disabled={creatingInvite}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md shadow-amber-500/10"
+                className="relative overflow-hidden select-none w-full flex items-center justify-center gap-2 rounded-xl bg-amber-500 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed shadow-md shadow-amber-500/10"
               >
-                {creatingInvite && <Loader2 className="h-4 w-4 animate-spin" />}
-                <span>
+                {creatingInvite && (
+                  <>
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                    <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-600/50 overflow-hidden">
+                      <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                    </span>
+                  </>
+                )}
+                {creatingInvite && <Loader2 className="h-4 w-4 animate-spin shrink-0 relative z-10" />}
+                <span className="relative z-10">
                   {creatingInvite
                     ? (inviteRecipientEmail.trim() ? "Sending Invitation Email..." : "Generating Invite Code...")
                     : (inviteRecipientEmail.trim() ? "Generate & Email Invitation" : "Generate Invite Code")}
@@ -1815,10 +1856,18 @@ export function AdminPanelView() {
             <button
               onClick={handleSaveSettings}
               disabled={savingSettings}
-              className="flex items-center gap-2 rounded-xl bg-amber-500 px-6 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative overflow-hidden select-none flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-6 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 shadow-md shadow-amber-500/10 transition disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
             >
-              {savingSettings && <Loader2 className="h-4 w-4 animate-spin" />}
-              <span>{savingSettings ? "Saving Settings..." : t.admin.saveSettings}</span>
+              {savingSettings && (
+                <>
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                  <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-600/50 overflow-hidden">
+                    <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                  </span>
+                </>
+              )}
+              {savingSettings && <Loader2 className="h-4 w-4 animate-spin shrink-0 relative z-10" />}
+              <span className="relative z-10">{savingSettings ? "Saving Settings..." : t.admin.saveSettings}</span>
             </button>
           </div>
 
@@ -1942,10 +1991,18 @@ export function AdminPanelView() {
                 <button
                   type="submit"
                   disabled={savingDevProfile}
-                  className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="relative overflow-hidden select-none flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/20 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
                 >
-                  {savingDevProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                  <span>{savingDevProfile ? "Saving..." : "Save Developer Attribution"}</span>
+                  {savingDevProfile && (
+                    <>
+                      <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                      <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-600/50 overflow-hidden">
+                        <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                      </span>
+                    </>
+                  )}
+                  {savingDevProfile ? <Loader2 className="h-4 w-4 animate-spin shrink-0 relative z-10" /> : <Save className="h-4 w-4 shrink-0 relative z-10" />}
+                  <span className="relative z-10">{savingDevProfile ? "Saving..." : "Save Developer Attribution"}</span>
                 </button>
               </div>
             </form>

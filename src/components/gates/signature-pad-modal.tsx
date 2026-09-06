@@ -25,6 +25,7 @@ export function SignaturePadModal({
   const [isDrawing, setIsDrawing] = useState(false);
   const [hasDrawn, setHasDrawn] = useState(false);
   const [loading, setLoading] = useState(false);
+  const loadingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -113,7 +114,8 @@ export function SignaturePadModal({
   };
 
   const handleSubmit = async () => {
-    if (loading) return;
+    if (loadingRef.current || loading) return;
+    loadingRef.current = true;
     setError(null);
     setLoading(true);
 
@@ -154,6 +156,7 @@ export function SignaturePadModal({
     } catch (err: any) {
       setError(err.message || "Failed to submit signature");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -285,15 +288,23 @@ export function SignaturePadModal({
             type="button"
             disabled={loading || (mode === "draw" && !hasDrawn) || (mode === "type" && !typedName.trim())}
             onClick={handleSubmit}
-            className="flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-2.5 text-xs font-bold text-slate-950 hover:from-emerald-400 hover:to-teal-500 shadow-lg shadow-emerald-500/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="relative overflow-hidden select-none flex-1 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 py-2.5 text-xs font-bold text-slate-950 hover:from-emerald-400 hover:to-teal-500 shadow-lg shadow-emerald-500/20 disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none transition-all"
           >
+            {loading && (
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-btn-shimmer pointer-events-none" />
+            )}
             {loading ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950 border-t-transparent relative z-10" />
             ) : (
               <>
-                <CheckCircle2 className="h-4 w-4" />
-                <span>Adopt and Sign</span>
+                <CheckCircle2 className="h-4 w-4 relative z-10" />
+                <span className="relative z-10">Adopt and Sign</span>
               </>
+            )}
+            {loading && (
+              <span className="absolute bottom-0 left-0 right-0 h-1 bg-emerald-950/40 overflow-hidden">
+                <span className="block h-full bg-slate-950 rounded-full animate-progress-indeterminate" />
+              </span>
             )}
           </button>
         </div>

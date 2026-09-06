@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { BrandHeader } from "@/components/brand-header";
 import { BrandIcon } from "@/components/brand-icon";
 import { BrandFooter } from "@/components/brand-footer";
 import { useI18n } from "@/lib/i18n/context";
-import { Lock, Mail, User, Key, AlertCircle, ArrowRight, ShieldCheck, Sparkles, CheckCircle2, Send, Smartphone } from "lucide-react";
+import { Lock, Mail, User, Key, AlertCircle, ArrowRight, ShieldCheck, Sparkles, CheckCircle2, Send, Smartphone, Loader2 } from "lucide-react";
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
 import { unlockOwnerVault, syncVaultDocumentKeys } from "@/lib/vault/master-vault";
 import { AltchaBox } from "@/components/security/altcha-box";
@@ -29,6 +29,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
   const [name, setName] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [loading, setLoading] = useState(false);
+  const loadingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [altchaPayload, setAltchaPayload] = useState<string | null>(null);
 
@@ -83,12 +84,14 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
 
   const handle2faSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loadingRef.current || loading) return;
     setError(null);
     if (!twoFactorCode) {
       setError(useBackupCode ? "Please enter an 8-character backup code" : "Please enter the 6-digit authenticator code");
       return;
     }
 
+    loadingRef.current = true;
     setLoading(true);
     try {
       const res = await fetch("/api/auth/2fa", {
@@ -124,16 +127,18 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
     } catch (err: any) {
       setError(err.message || "An error occurred");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
 
   const handleSendMagicLink = async () => {
-    if (loading) return;
+    if (loadingRef.current || loading) return;
     if (!email || !email.includes("@")) {
       setError("Please enter a valid email address first.");
       return;
     }
+    loadingRef.current = true;
     setLoading(true);
     setError(null);
     setActionSuccess(null);
@@ -150,16 +155,18 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
     } catch (err: any) {
       setError(err.message || "Failed to send magic link");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
 
   const handleSendOtp = async () => {
-    if (loading) return;
+    if (loadingRef.current || loading) return;
     if (!email || !email.includes("@")) {
       setError("Please enter a valid email address first.");
       return;
     }
+    loadingRef.current = true;
     setLoading(true);
     setError(null);
     setActionSuccess(null);
@@ -176,18 +183,20 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
     } catch (err: any) {
       setError(err.message || "Failed to send OTP code");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (loadingRef.current || loading) return;
     const clean = otpCode.replace(/[\s\-]/g, "");
     if (!clean || clean.length < 6) {
       setError("Please enter the complete verification code.");
       return;
     }
+    loadingRef.current = true;
     setLoading(true);
     setError(null);
     try {
@@ -206,17 +215,19 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
     } catch (err: any) {
       setError(err.message || "Failed to verify verification code");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (loadingRef.current || loading) return;
     if (!email || !email.includes("@")) {
       setError("Please enter your account email.");
       return;
     }
+    loadingRef.current = true;
     setLoading(true);
     setError(null);
     setActionSuccess(null);
@@ -232,13 +243,14 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
     } catch (err: any) {
       setError(err.message || "Failed to send reset email");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return;
+    if (loadingRef.current || loading) return;
     setError(null);
 
     // If in Register mode, enforce minimum password policy before submitting
@@ -252,6 +264,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
       }
     }
 
+    loadingRef.current = true;
     setLoading(true);
 
     try {
@@ -296,6 +309,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
     } catch (err: any) {
       setError(err.message || "An error occurred");
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   };
@@ -405,10 +419,19 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
               <button
                 type="submit"
                 disabled={loading || !twoFactorCode}
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 py-2.5 text-sm font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 transition shadow-lg shadow-amber-500/10"
+                className="relative overflow-hidden select-none flex w-full items-center justify-center gap-2 rounded-xl bg-amber-500 py-2.5 text-sm font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition shadow-lg shadow-amber-500/10"
               >
-                <span>{loading ? "Verifying..." : "Verify & Continue"}</span>
-                <ArrowRight className="h-4 w-4" />
+                {loading && (
+                  <>
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                    <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-600/50 overflow-hidden">
+                      <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                    </span>
+                  </>
+                )}
+                {loading && <Loader2 className="h-4 w-4 animate-spin shrink-0 relative z-10" />}
+                <span className="relative z-10">{loading ? "Verifying..." : "Verify & Continue"}</span>
+                {!loading && <ArrowRight className="h-4 w-4 shrink-0 relative z-10" />}
               </button>
 
               <div className="flex items-center justify-between pt-2 text-xs">
@@ -508,14 +531,22 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
                   <button
                     type="submit"
                     disabled={loading || !email}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-sm font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 disabled:opacity-50 transition-all"
+                    className="relative overflow-hidden select-none w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-sm font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-all"
                   >
+                    {loading && (
+                      <>
+                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                        <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-700/50 overflow-hidden">
+                          <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                        </span>
+                      </>
+                    )}
                     {loading ? (
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+                      <Loader2 className="h-5 w-5 animate-spin shrink-0 relative z-10" />
                     ) : (
                       <>
-                        <span>Send Password Reset Link</span>
-                        <Send className="h-4 w-4" />
+                        <span className="relative z-10">Send Password Reset Link</span>
+                        <Send className="h-4 w-4 relative z-10" />
                       </>
                     )}
                   </button>
@@ -561,14 +592,22 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
                     <button
                       type="submit"
                       disabled={loading || otpCode.replace(/[\s\-]/g, "").length < 6}
-                      className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-sm font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 disabled:opacity-50 transition-all"
+                      className="relative overflow-hidden select-none w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-sm font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-all"
                     >
+                      {loading && (
+                        <>
+                          <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                          <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-700/50 overflow-hidden">
+                            <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                          </span>
+                        </>
+                      )}
                       {loading ? (
-                        <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+                        <Loader2 className="h-5 w-5 animate-spin shrink-0 relative z-10" />
                       ) : (
                         <>
-                          <span>Verify & Sign In</span>
-                          <ArrowRight className="h-4 w-4" />
+                          <span className="relative z-10">Verify & Sign In</span>
+                          <ArrowRight className="h-4 w-4 relative z-10" />
                         </>
                       )}
                     </button>
@@ -648,19 +687,35 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
                             type="button"
                             disabled={loading || !email}
                             onClick={handleSendMagicLink}
-                            className="flex items-center justify-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/40 py-3 px-3 text-xs font-bold text-amber-300 hover:bg-amber-500/25 disabled:opacity-50 transition"
+                            className="relative overflow-hidden select-none flex items-center justify-center gap-2 rounded-xl bg-amber-500/15 border border-amber-500/40 py-3 px-3 text-xs font-bold text-amber-300 hover:bg-amber-500/25 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition"
                           >
-                            <Sparkles className="h-4 w-4 text-amber-400" />
-                            <span>Send Magic Link</span>
+                            {loading && (
+                              <>
+                                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-400/20 to-transparent animate-btn-shimmer" />
+                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500/40 overflow-hidden">
+                                  <span className="block h-full bg-amber-400 w-1/3 animate-progress-indeterminate" />
+                                </span>
+                              </>
+                            )}
+                            <Sparkles className={`h-4 w-4 text-amber-400 shrink-0 relative z-10 ${loading ? "animate-spin" : ""}`} />
+                            <span className="relative z-10">{loading ? "Sending..." : "Send Magic Link"}</span>
                           </button>
                           <button
                             type="button"
                             disabled={loading || !email}
                             onClick={handleSendOtp}
-                            className="flex items-center justify-center gap-2 rounded-xl bg-slate-800 border border-slate-700 py-3 px-3 text-xs font-bold text-slate-200 hover:bg-slate-750 disabled:opacity-50 transition"
+                            className="relative overflow-hidden select-none flex items-center justify-center gap-2 rounded-xl bg-slate-800 border border-slate-700 py-3 px-3 text-xs font-bold text-slate-200 hover:bg-slate-750 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition"
                           >
-                            <Smartphone className="h-4 w-4 text-blue-400" />
-                            <span>Send 6-Digit OTP</span>
+                            {loading && (
+                              <>
+                                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-400/20 to-transparent animate-btn-shimmer" />
+                                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500/40 overflow-hidden">
+                                  <span className="block h-full bg-blue-400 w-1/3 animate-progress-indeterminate" />
+                                </span>
+                              </>
+                            )}
+                            <Smartphone className={`h-4 w-4 text-blue-400 shrink-0 relative z-10 ${loading ? "animate-pulse" : ""}`} />
+                            <span className="relative z-10">{loading ? "Sending..." : "Send 6-Digit OTP"}</span>
                           </button>
                         </div>
                         <p className="text-[11px] text-slate-400 text-center leading-relaxed">
@@ -777,14 +832,22 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-sm font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 disabled:opacity-50 transition-all"
+                    className="relative overflow-hidden select-none w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-sm font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-all"
                   >
+                    {loading && (
+                      <>
+                        <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                        <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-700/50 overflow-hidden">
+                          <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                        </span>
+                      </>
+                    )}
                     {loading ? (
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+                      <Loader2 className="h-5 w-5 animate-spin shrink-0 relative z-10" />
                     ) : (
                       <>
-                        <span>{isRegister ? "Create Account" : "Sign In"}</span>
-                        <ArrowRight className="h-4 w-4" />
+                        <span className="relative z-10">{isRegister ? "Create Account" : "Sign In"}</span>
+                        <ArrowRight className="h-4 w-4 relative z-10" />
                       </>
                     )}
                   </button>

@@ -36,6 +36,10 @@ export async function sendEmail(payload: EmailPayload): Promise<EmailResult> {
   if (process.env.GAS_WEBAPP_URL) {
     const res = await sendViaGas(payload);
     if (res.success) return res;
+    // If it timed out, the request was already received and processed by Google. Do not double-send via another provider.
+    if (res.error?.toLowerCase().includes("time") || res.error?.toLowerCase().includes("abort")) {
+      return res;
+    }
     logger.warn("email.gas_failed_falling_back", { error: res.error });
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { BrandIcon } from "@/components/brand-icon";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
@@ -89,6 +89,12 @@ export default function SettingsPage() {
   // Developer Profile & Social Media Suite State
   const [devProfile, setDevProfile] = useState<DeveloperProfile>(loadDeveloperProfile);
   const [savingDevProfile, setSavingDevProfile] = useState(false);
+
+  // Synchronous execution locks to eliminate rapid double-click race conditions
+  const savingProfileRef = useRef(false);
+  const savingPasswordRef = useRef(false);
+  const creatingInviteRef = useRef(false);
+  const savingDevProfileRef = useRef(false);
 
   // Inactivity Auto-Lock & RAM Zeroize State
   const [idleLockMinutes, setIdleLockMinutes] = useState("30");
@@ -193,7 +199,8 @@ export default function SettingsPage() {
 
   const handleSaveDevProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (savingDevProfile) return;
+    if (savingDevProfileRef.current || savingDevProfile) return;
+    savingDevProfileRef.current = true;
     try {
       setSavingDevProfile(true);
       const cleanedProfile: DeveloperProfile = {
@@ -215,6 +222,7 @@ export default function SettingsPage() {
             : "Developer attribution saved! Live updated across all footers.",
       });
     } finally {
+      savingDevProfileRef.current = false;
       setSavingDevProfile(false);
     }
   };
@@ -397,7 +405,8 @@ export default function SettingsPage() {
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (savingProfile) return;
+    if (savingProfileRef.current || savingProfile) return;
+    savingProfileRef.current = true;
     setSavingProfile(true);
     setMessage(null);
 
@@ -415,13 +424,14 @@ export default function SettingsPage() {
     } catch (err: any) {
       setMessage({ type: "error", text: err.message || "Failed to update profile" });
     } finally {
+      savingProfileRef.current = false;
       setSavingProfile(false);
     }
   };
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (savingPassword) return;
+    if (savingPasswordRef.current || savingPassword) return;
     setMessage(null);
 
     if (newPassword !== confirmPassword) {
@@ -436,6 +446,7 @@ export default function SettingsPage() {
       return;
     }
 
+    savingPasswordRef.current = true;
     setSavingPassword(true);
 
     try {
@@ -454,13 +465,15 @@ export default function SettingsPage() {
     } catch (err: any) {
       setMessage({ type: "error", text: err.message || "Failed to change password" });
     } finally {
+      savingPasswordRef.current = false;
       setSavingPassword(false);
     }
   };
 
   const handleCreateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (creatingInvite) return;
+    if (creatingInviteRef.current || creatingInvite) return;
+    creatingInviteRef.current = true;
     setCreatingInvite(true);
     setMessage(null);
 
@@ -489,6 +502,7 @@ export default function SettingsPage() {
     } catch (err: any) {
       setMessage({ type: "error", text: err.message || "Failed to generate invite code" });
     } finally {
+      creatingInviteRef.current = false;
       setCreatingInvite(false);
     }
   };
@@ -606,10 +620,18 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={savingProfile}
-                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative overflow-hidden select-none flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed shadow-md shadow-amber-500/10"
               >
-                {savingProfile ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-                <span>{savingProfile ? "Saving..." : "Save Profile"}</span>
+                {savingProfile && (
+                  <>
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                    <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-600/50 overflow-hidden">
+                      <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                    </span>
+                  </>
+                )}
+                {savingProfile ? <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0 relative z-10" /> : <Save className="h-3.5 w-3.5 shrink-0 relative z-10" />}
+                <span className="relative z-10">{savingProfile ? "Saving..." : "Save Profile"}</span>
               </button>
             </div>
           </form>
@@ -671,10 +693,18 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={savingPassword}
-                className="flex items-center gap-1.5 rounded-xl bg-slate-800 px-4 py-2 text-xs font-bold text-white hover:bg-slate-700 border border-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative overflow-hidden select-none flex items-center justify-center gap-1.5 rounded-xl bg-slate-800 px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-700 border border-slate-700 transition-colors disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
               >
-                {savingPassword ? <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400" /> : <KeyRound className="h-3.5 w-3.5 text-amber-400" />}
-                <span>{savingPassword ? "Updating Password..." : "Update Password"}</span>
+                {savingPassword && (
+                  <>
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-btn-shimmer" />
+                    <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-500/30 overflow-hidden">
+                      <span className="block h-full bg-amber-400 w-1/3 animate-progress-indeterminate" />
+                    </span>
+                  </>
+                )}
+                {savingPassword ? <Loader2 className="h-3.5 w-3.5 animate-spin text-amber-400 shrink-0 relative z-10" /> : <KeyRound className="h-3.5 w-3.5 text-amber-400 shrink-0 relative z-10" />}
+                <span className="relative z-10">{savingPassword ? "Updating Password..." : "Update Password"}</span>
               </button>
             </div>
           </form>
@@ -949,7 +979,7 @@ export default function SettingsPage() {
             <div className="flex justify-end pt-1">
               <button
                 type="submit"
-                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition shadow-sm"
+                className="relative overflow-hidden select-none flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition shadow-sm disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
               >
                 <Save className="h-3.5 w-3.5" />
                 <span>{lang === "hi" ? "सुरक्षा नीतियां सहेजें" : "Save Security Presets"}</span>
@@ -1238,10 +1268,18 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={creatingInvite}
-              className="flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-3 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative overflow-hidden select-none flex items-center justify-center gap-1.5 rounded-lg bg-amber-500 px-3 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed shadow-md shadow-amber-500/10"
             >
-              {creatingInvite ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
-              <span>{creatingInvite ? "Creating..." : "Generate Code"}</span>
+              {creatingInvite && (
+                <>
+                  <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                  <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-600/50 overflow-hidden">
+                    <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                  </span>
+                </>
+              )}
+              {creatingInvite ? <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0 relative z-10" /> : <Plus className="h-3.5 w-3.5 shrink-0 relative z-10" />}
+              <span className="relative z-10">{creatingInvite ? "Generating..." : "Generate Code"}</span>
             </button>
           </form>
 
@@ -1462,10 +1500,18 @@ export default function SettingsPage() {
               <button
                 type="submit"
                 disabled={savingDevProfile}
-                className="flex items-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="relative overflow-hidden select-none flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-all shadow-md shadow-amber-500/20 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
               >
-                {savingDevProfile ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                <span>
+                {savingDevProfile && (
+                  <>
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                    <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-600/50 overflow-hidden">
+                      <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                    </span>
+                  </>
+                )}
+                {savingDevProfile ? <Loader2 className="h-4 w-4 animate-spin shrink-0 relative z-10" /> : <Save className="h-4 w-4 shrink-0 relative z-10" />}
+                <span className="relative z-10">
                   {savingDevProfile
                     ? (lang === "hi" ? "सेव हो रहा है..." : "Saving...")
                     : (lang === "hi" ? "प्रोफाइल व चैनल सुरक्षित करें" : "Save Developer Attribution")}

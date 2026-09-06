@@ -1,7 +1,7 @@
 "use client";
 
 import { BrandIcon } from "@/components/brand-icon";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { BrandHeader } from "@/components/brand-header";
 import { BrandFooter } from "@/components/brand-footer";
 import { CreateLinkModal } from "@/components/link-studio/create-link-modal";
@@ -16,6 +16,8 @@ export default function DataroomsPage() {
   const [docs, setDocs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
+  const deletingRef = useRef(false);
   const [showCreate, setShowCreate] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -49,7 +51,8 @@ export default function DataroomsPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (submitting || !name.trim()) return;
+    if (submittingRef.current || submitting || !name.trim()) return;
+    submittingRef.current = true;
 
     try {
       setSubmitting(true);
@@ -67,6 +70,7 @@ export default function DataroomsPage() {
       }
     } catch {
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -77,7 +81,8 @@ export default function DataroomsPage() {
   };
 
   const handleConfirmDelete = async () => {
-    if (!targetDataroom) return;
+    if (!targetDataroom || deletingRef.current || deleting) return;
+    deletingRef.current = true;
     try {
       setDeleting(true);
       const res = await fetch(`/api/datarooms/${targetDataroom.id}`, { method: "DELETE" });
@@ -88,6 +93,7 @@ export default function DataroomsPage() {
       }
     } catch {
     } finally {
+      deletingRef.current = false;
       setDeleting(false);
     }
   };
@@ -219,10 +225,18 @@ export default function DataroomsPage() {
               <button
                 type="submit"
                 disabled={submitting || !name.trim()}
-                className="flex items-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 transition shadow-md shadow-amber-500/10"
+                className="relative overflow-hidden select-none flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition shadow-md shadow-amber-500/10"
               >
-                {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                <span>{submitting ? "Creating Dataroom..." : "Create Dataroom"}</span>
+                {submitting && (
+                  <>
+                    <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-btn-shimmer" />
+                    <span className="absolute bottom-0 left-0 right-0 h-1 bg-amber-600/50 overflow-hidden">
+                      <span className="block h-full bg-slate-950 w-1/3 animate-progress-indeterminate" />
+                    </span>
+                  </>
+                )}
+                {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin shrink-0 relative z-10" />}
+                <span className="relative z-10">{submitting ? "Creating Dataroom..." : "Create Dataroom"}</span>
               </button>
 
               <button
