@@ -539,12 +539,12 @@ How much real-world traffic can this exact ₹0 free-tier stack handle on a dail
 Run BlindShare on any VPS, Docker host, Raspberry Pi, Render, or Railway with **zero database hosting fees**. Litestream streams your SQLite Write-Ahead Logs (WAL) continuously to your private **Backblaze B2** bucket with sub-second Recovery Point Objective (RPO).
 
 ```mermaid
-graph LR
-    User[👥 Viewers & Owners] -->|HTTP / API| App[⚡ Next.js App]
-    App -->|Reads/Writes 0ms latency| SQLite[(📁 Local SQLite DB)]
-    Litestream[🌊 Litestream Daemon] -->|Streams WAL every 1s| B2[☁️ Backblaze B2 Vault]
-    SQLite -.->|Monitors WAL changes| Litestream
-    B2 -.->|Auto-Restore on Boot| SQLite
+flowchart LR
+    User["👥 Viewers and Owners"] -->|"HTTP / API"| App["⚡ Next.js App"]
+    App -->|"Reads / Writes 0ms Latency"| SQLite[("📁 Local SQLite DB")]
+    Litestream["🌊 Litestream Daemon"] -->|"Streams WAL every 1s"| B2["☁️ Backblaze B2 Vault"]
+    SQLite -.->|"Monitors WAL Changes"| Litestream
+    B2 -.->|"Auto-Restore on Boot"| SQLite
 ```
 
 #### 🛠️ 1-Command Startup:
@@ -609,10 +609,10 @@ BlindShare features first-class internationalization out of the box:
 Combine **Cloudflare's Global CDN** with **Backblaze B2** under the **Bandwidth Alliance** to get **100% $0 unlimited download bandwidth** without paying egress fees or needing a credit card.
 
 ```mermaid
-graph LR
-    User["👥 Viewers & Downloaders"] -->|"Unlimited $0 Egress"| CF["⚡ Cloudflare CDN Edge<br/>(Free Plan, No Card)"]
-    CF -->|"Bandwidth Alliance: $0 Transfer"| B2["☁️ Backblaze B2 Vault<br/>(10 GB Free, No Card)"]
-    App["🚀 BlindShare App<br/>(Cloudflare Pages / Vercel)"] -->|"Fast Edge Queries"| Turso[("⚡ Turso SQLite Edge<br/>(9 GB, 1B Reads, No Card)")]
+flowchart LR
+    User["👥 Viewers and Downloaders"] -->|"Unlimited $0 Egress"| CF["⚡ Cloudflare CDN Edge (Free Plan)"]
+    CF -->|"Bandwidth Alliance: $0 Transfer"| B2["☁️ Backblaze B2 Vault (10 GB Free)"]
+    App["🚀 BlindShare App (Cloudflare Pages / Vercel)"] -->|"Fast Edge Queries"| Turso[("⚡ Turso SQLite Edge (9 GB Free)")]
 ```
 
 #### 🛠️ 1-Command Edge Deploy:
