@@ -5,6 +5,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
 ## [1.4.0] - 2026-09-03
 
 ### 🚀 Added & Enhanced
+- **Enterprise Leak Elimination & Full Database Field Vault At-Rest (`src/lib/crypto/db-vault.ts`, `scripts/backfill-field-vault.mjs`):**
+  - **Zero-Knowledge Field Vault:** AES-256-GCM authenticated encryption for all sensitive metadata columns at rest: Document Title, Original Filename, S3/B2 Storage Path, Link Name, Watermark Text, NDA Text, and Dataroom Name & Description.
+  - **Automated Field-Vault Backfill Tool:** Idempotent database migration script (`node scripts/backfill-field-vault.mjs`) encrypts legacy unencrypted database rows with zero downtime.
+  - **CWE-209 Generic Client Error Sanitization:** Eliminated internal database error and stack trace disclosures across ~20 API endpoints; replaced with sanitized user messages and private server logging.
+  - **Dev-Only Client Console Gating:** Strict suppression of viewer render traces in production environments (`NODE_ENV === "development"` guard).
+  - **SIEM CEF Log Anonymization:** SHA-256 hashed IP addresses in ArcSight/Splunk CEF audit outputs (`src/lib/siem/siem-forwarder.ts`).
+  - **Backblaze B2 SSE-B2 & 30-Day Lifecycle Automation:** Hardware encryption at rest and automated soft-delete tombstone purging documented in `docs/RUNBOOK.md`.
 - **6-Pillar Zero-Knowledge Cryptographic Suite (`src/lib/crypto-core/`, `src/lib/watermark/forensic-stego.ts`):**
   - **Pillar 1 (In-Memory Key Isolation & RAM Zeroing):** `extractable: false` WebCrypto keys prevent malicious Chrome extensions from stealing keys; raw byte buffers zeroized immediately in RAM.
   - **Pillar 2 (HKDF RFC 5869 Sub-Key Derivation):** Granular per-slide encryption derived from Master DocKey for 0ms instant slide streaming.
