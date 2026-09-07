@@ -512,3 +512,14 @@ export type {
   PQHybridKeyPair,
   PQHybridEncapsulation,
 } from "./post-quantum";
+
+// Re-export Client-Side Zero-Knowledge Metadata Vault
+export {
+  generateFounderMetadataKeyPair,
+  encryptMetadataForFounder,
+  decryptMetadataByFounder,
+} from "../crypto/client-metadata-vault";
+export type {
+  EncryptedMetadataEnvelope,
+  FounderKeyPair,
+} from "../crypto/client-metadata-vault";

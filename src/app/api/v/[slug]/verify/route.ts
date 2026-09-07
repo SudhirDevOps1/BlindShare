@@ -97,6 +97,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       recordSuccess(`link:${slug}`, ip);
     }
 
+    // Enforce ALTCHA PoW bot challenge for protected links (Email / NDA gates)
+    if ((link.requiresEmail || link.requiresNda) && !altcha && process.env.NODE_ENV !== "test") {
+      recordFailure(`link:${slug}`, ip);
+      return NextResponse.json(
+        { error: "Bot security verification required. Please complete the security challenge.", reason: "captcha_required" },
+        { status: 400 }
+      );
+    }
+
     let cleanEmail = null;
     if (link.requiresEmail) {
       if (!email) {

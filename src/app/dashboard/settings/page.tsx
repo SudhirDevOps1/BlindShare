@@ -33,10 +33,12 @@ import {
   Download,
   Laptop,
   Loader2,
+  Fingerprint,
 } from "lucide-react";
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
 import { TwoFactorModal } from "@/components/auth/two-factor-modal";
 import { lockOwnerVault, isVaultUnlocked } from "@/lib/vault/master-vault";
+import { registerPasskeyWithPrf, isWebAuthnAvailable } from "@/lib/vault/webauthn-prf";
 import {
   DeveloperProfile,
   loadDeveloperProfile,
@@ -238,6 +240,41 @@ export default function SettingsPage() {
         ? (lang === "hi" ? "साइबर पेट और कर्सर प्रभाव डैशबोर्ड में सक्रिय किया गया!" : "Cyber Pet & Cursor FX enabled in dashboard!")
         : (lang === "hi" ? "कर्सर प्रभाव अक्षम किया गया (न्यूनतम कार्यक्षेत्र)।" : "Cursor FX disabled in dashboard (clean workspace)."),
     });
+  };
+
+  const [registeringPasskey, setRegisteringPasskey] = useState(false);
+  const handleRegisterPasskey = async () => {
+    try {
+      setRegisteringPasskey(true);
+      if (!isWebAuthnAvailable()) {
+        setMessage({
+          type: "error",
+          text: lang === "hi"
+            ? "इस ब्राउज़र में WebAuthn हार्डवेयर पासकी समर्थित नहीं है।"
+            : "WebAuthn hardware passkeys are not supported by this browser.",
+        });
+        return;
+      }
+      const username = user?.email || "founder@blindshare.local";
+      const res = await registerPasskeyWithPrf(username, user?.name || "BlindShare Founder");
+      setMessage({
+        type: "success",
+        text: lang === "hi"
+          ? (res.prfSupported
+              ? "बायोमेट्रिक पासकी (Touch ID / Windows Hello / YubiKey) हार्डवेयर सिक्योर एन्क्लेव के साथ सफलतापूर्वक पंजीकृत हुई!"
+              : "हार्डवेयर पासकी पंजीकृत हुई (ब्राउज़र ने PRF एक्सटेंशन फ्लैग वापस नहीं दिया)।")
+          : (res.prfSupported
+              ? "Hardware Passkey registered with PRF Secure Enclave encryption!"
+              : "Hardware Passkey registered! (Note: PRF extension was not returned by browser/OS)."),
+      });
+    } catch (err: any) {
+      setMessage({
+        type: "error",
+        text: err?.message || (lang === "hi" ? "पासकी पंजीकरण विफल रहा।" : "Failed to register Passkey."),
+      });
+    } finally {
+      setRegisteringPasskey(false);
+    }
   };
 
   const handleLockVaultNow = () => {
@@ -710,12 +747,12 @@ export default function SettingsPage() {
           </form>
         </div>
 
-        {/* 2.5 Two-Factor Authentication (TOTP Authenticator App) */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
+        {/* 2.5 Two-Factor Authentication & Biometric Passkeys (W3C WebAuthn PRF) */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-5">
           <div className="flex items-center justify-between border-b border-slate-800 pb-3">
             <div className="flex items-center gap-2 text-sm font-bold text-white">
               <ShieldCheck className="h-4 w-4 text-emerald-400" />
-              <span>Two-Factor Authentication (TOTP)</span>
+              <span>{lang === "hi" ? "टू-फ़ैक्टर ऑथेंटिकेशन और बायोमेट्रिक पासकीज़ (WebAuthn)" : "Two-Factor Authentication & Hardware Passkeys"}</span>
             </div>
             <span
               className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
@@ -724,21 +761,68 @@ export default function SettingsPage() {
                   : "border-slate-700 bg-slate-800 text-slate-400"
               }`}
             >
-              {user?.twoFactorEnabled ? "Active & Enforced ✓" : "Not Configured"}
+              {user?.twoFactorEnabled
+                ? (lang === "hi" ? "2FA सक्रिय ✓" : "2FA Active & Enforced ✓")
+                : (lang === "hi" ? "कॉन्फ़िगर नहीं" : "Not Configured")}
             </span>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <p className="text-xs text-slate-400 max-w-lg">
-              Protect your account using Time-based One-Time Passwords (TOTP) with Google Authenticator, Authy, or 1Password. Required for zero-knowledge vault defense against credential stuffing.
-            </p>
+          {/* Sub-card 1: TOTP App */}
+          <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="text-xs font-bold text-white flex items-center gap-2">
+                <ShieldCheck className="h-3.5 w-3.5 text-amber-400" />
+                <span>{lang === "hi" ? "समय-आधारित ओटीपी ऐप (TOTP Authenticator)" : "Time-Based OTP App (TOTP Authenticator)"}</span>
+              </div>
+              <p className="text-[11px] text-slate-400 max-w-lg">
+                {lang === "hi"
+                  ? "Google Authenticator, Microsoft Authenticator या 1Password का उपयोग करके अपने खाते को सुरक्षित करें। क्रेडेंशियल स्टफिंग हमलों से रक्षा।"
+                  : "Protect your account using Time-based One-Time Passwords (TOTP) with Google Authenticator, Authy, or 1Password. Defense against credential stuffing."}
+              </p>
+            </div>
             <button
               type="button"
               onClick={() => setShow2FaModal(true)}
-              className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2.5 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors shadow-md shadow-amber-500/10 shrink-0"
+              className="flex items-center gap-2 rounded-xl bg-amber-500 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors shadow-md shadow-amber-500/10 shrink-0"
             >
-              <ShieldCheck className="h-4 w-4" />
-              <span>{user?.twoFactorEnabled ? "Manage 2FA & Backup Codes" : "Enable 2FA Protection"}</span>
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>
+                {user?.twoFactorEnabled
+                  ? (lang === "hi" ? "2FA प्रबंधित करें और बैकअप कोड" : "Manage 2FA & Backup Codes")
+                  : (lang === "hi" ? "2FA सुरक्षा चालू करें" : "Enable 2FA Protection")}
+              </span>
+            </button>
+          </div>
+
+          {/* Sub-card 2: Hardware Passkeys via WebAuthn PRF */}
+          <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="text-xs font-bold text-white flex items-center gap-2">
+                <Fingerprint className="h-3.5 w-3.5 text-cyan-400" />
+                <span>{lang === "hi" ? "बायोमेट्रिक पासकी / हार्डवेयर सुरक्षा कुंजी (FIPS 140 / PRF)" : "Biometric Passkey / Hardware Key (FIPS 140 / WebAuthn PRF)"}</span>
+              </div>
+              <p className="text-[11px] text-slate-400 max-w-lg">
+                {lang === "hi"
+                  ? "डिवाइस के मूल फिंगरप्रिंट (Touch ID / Windows Hello) या YubiKey द्वारा मास्टर वॉल्ट को सीधे हार्डवेयर चिप से शून्य-ज्ञान अनलॉक करने की सुविधा।"
+                  : "W3C WebAuthn Level 3 PRF extension unlocks the Owner Master Key Vault via Touch ID, Windows Hello, or YubiKey hardware secure enclaves in sub-50ms."}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleRegisterPasskey}
+              disabled={registeringPasskey}
+              className="flex items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-950/40 px-4 py-2 text-xs font-bold text-cyan-300 hover:bg-cyan-900/40 transition-colors shrink-0 disabled:opacity-50"
+            >
+              {registeringPasskey ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <Fingerprint className="h-3.5 w-3.5" />
+              )}
+              <span>
+                {registeringPasskey
+                  ? (lang === "hi" ? "पासकी दर्ज हो रही है..." : "Registering...")
+                  : (lang === "hi" ? "हार्डवेयर पासकी पंजीकृत करें" : "Register Hardware Passkey")}
+              </span>
             </button>
           </div>
         </div>

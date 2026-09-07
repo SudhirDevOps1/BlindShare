@@ -36,13 +36,10 @@ export function DashboardActivityChart({
       const dayName = d.toLocaleDateString("en-US", { weekday: "short" });
       const dateStr = d.toISOString().split("T")[0];
 
-      const totalLinkViews = links.reduce((sum, l) => sum + (l.viewCount || 0), 0);
-      const views = totalLinkViews === 0 ? 0 : Math.round(totalLinkViews / 7);
-
-      days.push({ label: dayName, views, dateStr });
+      days.push({ label: dayName, views: 0, dateStr });
     }
     return days;
-  }, [links, dailyViews]);
+  }, [dailyViews]);
 
   const maxWeeklyViews = useMemo(() => {
     return Math.max(...weeklyData.map((d) => d.views), 5);
