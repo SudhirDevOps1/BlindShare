@@ -130,6 +130,11 @@ export function BrandFooter() {
                   <span>💬 Contact & Feedback</span>
                 </Link>
               </li>
+              <li>
+                <Link href="/showcase" className="hover:text-amber-300 text-amber-400 font-medium transition-colors flex items-center gap-1.5">
+                  <span>📸 Live Showcase & Proofs (47)</span>
+                </Link>
+              </li>
             </ul>
           </div>
 

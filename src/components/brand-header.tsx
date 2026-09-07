@@ -21,6 +21,7 @@ import {
   Smartphone,
   Star,
   MessageCircle,
+  Camera,
 } from "lucide-react";
 import { TwoFactorModal } from "@/components/auth/two-factor-modal";
 
@@ -114,6 +115,7 @@ export function BrandHeader() {
     : [
         { href: "/#features", label: "Features", icon: Sparkles },
         { href: "/#security", label: "Zero-Knowledge", icon: Lock },
+        { href: "/showcase", label: (t.nav as any).showcase || "Live Showcase", icon: Camera, badge: "Live" },
         { href: "/privacy", label: t.nav.privacy, icon: Globe },
       ];
 

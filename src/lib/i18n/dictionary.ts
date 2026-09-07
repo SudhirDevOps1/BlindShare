@@ -17,6 +17,7 @@ export const translations = {
       register: "Create Account",
       privacy: "Privacy Policy",
       terms: "Terms of Service",
+      showcase: "Live Showcase",
     },
     hero: {
       badge: "Zero-Knowledge & Privacy First",
@@ -879,6 +880,7 @@ export const translations = {
       register: "खाता बनाएं",
       privacy: "गोपनीयता नीति",
       terms: "सेवा की शर्तें",
+      showcase: "लाइव शोकेस",
     },
     hero: {
       badge: "शून्य-ज्ञान और पूर्ण गोपनीयता",

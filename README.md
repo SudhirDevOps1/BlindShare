@@ -47,6 +47,7 @@
 </p>
 
 <p>
+  <a href="#-live-production-showcase--proof-gallery">📸 Live Showcase</a> &nbsp;•&nbsp;
   <a href="#-why-blindshare">Why BlindShare?</a> &nbsp;•&nbsp;
   <a href="#-features">Features</a> &nbsp;•&nbsp;
   <a href="#-role-based-access-control-rbac--permission-architecture">Access Control</a> &nbsp;•&nbsp;
@@ -64,6 +65,26 @@
 <br/>
 
 </div>
+
+---
+
+## 📸 Live Production Showcase & Proof Gallery
+
+> **[🚀 Explore Interactive Live Web Showcase (/showcase)](https://blindshare.vercel.app/showcase)** &nbsp;•&nbsp; **[📖 Complete Technical Verification Guide (docs/SHOWCASE.md)](./docs/SHOWCASE.md)**
+
+Every core architectural pillar of BlindShare v1.4.0 has been verified end-to-end on live production infrastructure with authentic reader telemetry. **100% computed from real database records (Neon PostgreSQL + Drizzle ORM) — Zero mock data, zero synthetic curves.**
+
+| Zero-Knowledge Ciphertext Proof | Real-Time Stoat Alerting | Forensic Steganography Leak Scanner |
+| :---: | :---: | :---: |
+| [![Raw Ciphertext](public/showcase/Notepad3_bkYXOeH1CB.png)](./docs/SHOWCASE.md#1-zero-knowledge--cryptographic-vault-proofs) | [![Stoat Alerts](public/showcase/gMGRTq3zGO.png)](./docs/SHOWCASE.md#2-real-time-founder-alerting-stoat-chat--revolt-webhooks) | [![Leak Scanner](public/showcase/brave_Tc1PUfLrsy.png)](./docs/SHOWCASE.md#1-zero-knowledge--cryptographic-vault-proofs) |
+| *100% Encrypted B2 Blob in Notepad3 (0 Plaintext Bytes)* | *Sub-50ms Webhook Alerting on Pitch Deck Opens* | *99% Match Detecting Exfiltrated Leaks via CRC Hashes* |
+
+| Live PDF Dynamic Watermark | 365-Day Dwell Heatmap & Stream | Admin System Diagnostics (Neon DB + B2) |
+| :---: | :---: | :---: |
+| [![Dynamic Watermark](public/showcase/brave_WGPvXSEEGx.png)](./docs/SHOWCASE.md#6-secure-document-viewer-ergonomics--slide-qa) | [![Analytics Heatmap](public/showcase/brave_sfeDwvXr9a.png)](./docs/SHOWCASE.md#7-deep-analytics-columnar-duckdb-telemetry--heatmaps) | [![System Diagnostics](public/showcase/brave_GvQULOUNpK.png)](./docs/SHOWCASE.md#4-live-infrastructure-diagnostics--blind-security-audit-ledger) |
+| *288-Page Hindi PDF with Dynamic Recipient Watermark* | *GitHub-Style Matrix with Live Deal Intent Scoring* | *224ms PostgreSQL Ping, 28ms B2 Ping, 54 Validated Env Vars* |
+
+👉 **[Inspect all 47 verified production screenshots in docs/SHOWCASE.md](./docs/SHOWCASE.md) or launch the interactive [`/showcase`](https://blindshare.vercel.app/showcase) portal.**
 
 ---
 
