@@ -6,6 +6,7 @@ import { documents, docAudioNotes, links } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import { encryptField, decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(
   request: Request,
@@ -54,7 +55,12 @@ export async function GET(
       .from(docAudioNotes)
       .where(eq(docAudioNotes.docId, targetDocId));
 
-    return NextResponse.json({ notes });
+    const decryptedNotes = notes.map((n) => ({
+      ...n,
+      audioDataUrl: n.audioDataUrl ? decryptField(n.audioDataUrl) : null,
+    }));
+
+    return NextResponse.json({ notes: decryptedNotes });
   } catch (err: any) {
     logger.error("audio_notes.list_failed", { docId: id, message: err?.message });
     return NextResponse.json({ error: "Failed to fetch audio notes" }, { status: 500 });
@@ -110,7 +116,7 @@ export async function POST(
       storageKey: `audio_${id}_p${pageNumber}.webm`,
       durationSec: parseInt(String(durationSec || 0), 10),
       title: title ? String(title).trim() : `Founder Note - Slide ${pageNumber}`,
-      audioDataUrl,
+      audioDataUrl: encryptField(audioDataUrl),
     });
 
     return NextResponse.json({
