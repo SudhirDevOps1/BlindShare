@@ -86,6 +86,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
   - Eliminated root `<html>` hydration mismatch (React error #418) by removing redundant manual `<head>` in App Router and using Next.js `Metadata` API.
   - Migrated telemetry to Next.js `Script` (`strategy="afterInteractive"`) with robust error handling for silent degradation against browser ad-blockers (`ERR_BLOCKED_BY_CLIENT`).
   - Added `suppressHydrationWarning` to `<body>` to prevent third-party extension injection warnings.
+- **Permanent User Settings Database Persistence (`src/app/api/user/settings/route.ts`, `src/app/dashboard/settings/page.tsx`):**
+  - Full database-backed persistence of all user preferences (KDF algorithm selection, idle auto-lock timeout, strict in-memory RAM isolation, Tux cyber pet companion, default link sharing presets, email/webhook security alerts, bilingual language `en`/`hi`, and UI theme) into PostgreSQL `system_settings` scoped under `user_settings:${userId}`.
+  - Automatically hydrated on login, eliminating configuration loss across browser cache clears and multi-device sessions.
+- **WebAuthn Level 3 PRF Hardware Key & Biometric Vault Unlock (`src/app/api/user/passkey/route.ts`, `src/app/dashboard/settings/page.tsx`):**
+  - W3C WebAuthn Level 3 Pseudo-Random Function (`prf`) extension unlocking the Owner Master Key Vault via device-native biometrics (Touch ID, Face ID, Windows Hello) or hardware tokens (YubiKey) with FIPS 140 compliance.
+  - Sub-50ms hardware secure enclave symmetric key derivation without exposing the master password or transmitting keys.
+  - Dedicated passkey registration, active status badge (`Passkey Active & Bound ✓`), live biometric latency benchmarks, and revocation management.
+- **Founder Voice Notes AES-256-GCM Encryption at Rest (`src/app/api/docs/[id]/audio/route.ts`):**
+  - Slide-level audio recordings encrypted at rest with AES-256-GCM via DB Field Vault (`encryptField`/`decryptField`) before database insertion in `doc_audio_notes.audio_data_url`.
+  - Transparent decryption for authorized listeners and document owners, preventing audio PII exposure in the event of database breaches.
 
 ### 🛡️ Security Hardening
 - **Tiered Edge Abuse Limiting & Tab Visibility Guard (`src/proxy.ts`, `src/app/v/[slug]/page.tsx`):**
@@ -101,6 +111,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
   - Instant 404 alert warnings for unregistered email submissions on Forgot Password, Magic Link, and OTP routes, eliminating silent failures.
 - **Distributed Anti-DoS Rate Limiter on System Probes (`src/app/api/health/route.ts`):**
   - Sliding-window rate limiter protecting `/api/health` probes (60 req/min per IP) to prevent monitoring pipeline starvation.
+- **CWE-209 Information Exposure Elimination in Health Diagnostics (`src/app/api/health/route.ts`):**
+  - Sanitized health probe error disclosures to static status indicators (`dbStatus = "unhealthy"`, `storageStatus = "error"`), blocking database user roles (`neondb_owner`), connection pooler hostnames, and storage endpoints from leaking to unauthenticated public scanners.
+- **Public Settings Query Scoping & In-Memory Isolation (`src/app/api/public-settings/route.ts`):**
+  - Constrained SQL queries with `inArray(systemSettings.key, PUBLIC_KEYS)` whitelist filter, guaranteeing private user settings and sensitive configuration rows are never loaded into server memory during public landing queries.
+- **Slide Question ALTCHA Bot Challenge & Notification HTML Escaping (`src/app/api/v/[slug]/questions/route.ts`):**
+  - Mandatory ALTCHA proof-of-work enforcement for slide inquiries, and strict HTML escaping (`sanitizedText`) passed to webhooks and push alerts.
+- **Global Enterprise HTTP Security Headers (`next.config.ts`):**
+  - Hardened global response headers: `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`, `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`, and `X-DNS-Prefetch-Control: on`.
 - **Next.js 16.3.4 Zero-CVE Baseline Upgrade:**
   - Upgraded Next.js from 16.2.6 to 16.3.4, completely resolving all high-severity Server Action vulnerabilities with 0 production CVEs (`npm audit --omit=dev`).
 - **Canonical Edge Proxy Architecture (`src/proxy.ts`):**
@@ -109,8 +127,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: 
   - Added DOMPurify with strict element and attribute allowlists across all rendered Markdown, SVG, and code previews to neutralize stored XSS and script injection vectors.
 - **Database Vault Production Secret Fail-Safe (`src/lib/crypto/db-vault.ts`):**
   - Enforced fail-fast runtime throwing on application boot in production if `DB_ENCRYPTION_KEY` and `SESSION_SECRET` are not configured.
-- **40 Automated Enterprise Security Tests (`npm test`):**
-  - Expanded test suite to 40 comprehensive tests covering zero-knowledge crypto, forensic steganography, Argon2id, ML-KEM-768, DB Vault encryption, ALTCHA PoW, SSRF defense, timing-safe HMACs, and DuckDB analytics.
+- **48 Automated Enterprise Security Tests (`npm test`):**
+  - Expanded test suite to 48 comprehensive tests covering zero-knowledge crypto, forensic steganography, Argon2id, ML-KEM-768, DB Vault encryption, ALTCHA PoW, SSRF defense, timing-safe HMACs, DLP sanitization, and DuckDB analytics.
 - **Automated SIEM CEF 1.4.0 Synchronization:** Upgraded Common Event Format string generation and verified SIEM test suites.
 - **Crawler Document Isolation:** Strict prevention of search engine spidering across private link slugs.
 

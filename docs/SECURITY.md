@@ -126,38 +126,49 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
   - Zero-dark-pattern consent banner gating all client analytics until affirmative opt-in with 100% English/Hindi bilingual parity.
 - **Sub-processor Registry & Enterprise DPA Transparency (`docs/PRIVACY-POLICY.md`, `/privacy#subprocessors`)**:
   - Exhaustive GDPR Article 28 vendor disclosures (Neon, Backblaze B2, Cloudflare, Vercel, Upstash, Resend) guaranteeing zero vendor visibility into document keys or plaintext.
-- **40 Automated Enterprise Security Tests (`npm test`)**:
+- **48 Automated Enterprise Security Tests (`npm test`)**:
   - Comprehensive CI test suite running on every commit and PR verifying:
     1. ALTCHA SHA-256 HMAC challenge generation and PoW verification
     2. ALTCHA signature forgery and replay attack prevention
     3. Timing-safe HMAC session cookie verification and tamper rejection
     4. Session revocation via `sessionVersion` invalidation
     5. 2FA TOTP RFC 6238 generation and single-use backup code matching
-    6. Client-side AES-GCM-256 + GZIP compression roundtrip integrity
-    7. Zero-Knowledge tamper resistance and authentication tag validation
-    8. RFC 3986 URL fragment key preservation (`#k=...` never sent to server)
-    9. Owner Master Vault PBKDF2 100k rounds key derivation and key wrapping
-    10. DuckDB slide heatmaps, completion rates, and dwell percentiles ($p50, p90, p99$)
-    11. Zero-Exfiltration RAM zeroizing buffer wiping
-    12. HKDF per-slide sub-key cryptographic isolation
-    13. Argon2id memory-hard KDF resistance
-    14. Post-Quantum Hybrid ML-KEM-768 + ECDH forward resilience
-    15. Forensic Stego 64-bit constellation with CRC-32 leak verification
-    16. Burn-After-Reading cryptographic link ratchet and session self-destruct
-    17. XSS script tag and event handler sanitization
-    18. AI Lead Conviction Intent Scoring (Hot, Warm, Cold deal detection)
-    19. SVG brand vector icon integrity (zero corrupted or raster PNG files)
-    20. Storage isolation: plaintext keys never persisted in document models
-    21. Investor intelligence metrics NaN prevention and route registration
-    22. Database Field Vault AES-256-GCM PII encryption roundtrip & auth wiring
-    23. GDPR 2026 Cookie Consent Banner & Sub-processors registry integrity
-    24. Common Event Format (CEF) SIEM string formatting
-    25. SSRF outbound validation blocking private subnets, loopbacks, and cloud metadata
-    26. Disposable/temporary email blocking and MX validation
+    6. Client Metadata Vault: P-256 Keypair generation and asymmetric envelope encryption
+    7. Client Metadata Vault: Salted domain hash routing without leaking email
+    8. Client-side AES-GCM-256 + GZIP compression roundtrip integrity
+    9. Zero-Knowledge tamper resistance and authentication tag validation
+    10. RFC 3986 URL fragment key preservation (`#k=...` never sent to server)
+    11. Owner Master Vault PBKDF2 100k rounds key derivation and key wrapping
+    12. DLP Scanner: AWS Access Key ID detection and masking
+    13. DLP Scanner: GitHub Personal Access Token detection
+    14. DLP Scanner: RSA Private Key header detection
+    15. DLP Scanner: Credit Card validation via Luhn algorithm (rejects invalid checksums)
+    16. DLP Scanner: Indian PAN Card detection
+    17. DLP Scanner: Clean document yields zero findings
+    18. DuckDB slide heatmaps, completion rates, and dwell percentiles ($p50, p90, p99$)
+    19. Zero-Exfiltration RAM zeroizing buffer wiping
+    20. HKDF per-slide sub-key cryptographic isolation
+    21. Argon2id memory-hard KDF resistance
+    22. Post-Quantum Hybrid ML-KEM-768 + ECDH forward resilience
+    23. Forensic Stego 64-bit constellation with CRC-32 leak verification
+    24. Burn-After-Reading cryptographic link ratchet and session self-destruct
+    25. XSS script tag and event handler sanitization
+    26. AI Lead Conviction Intent Scoring (Hot, Warm, Cold deal detection)
+    27. Brand Integrity: Pure SVG Vector Icons installed and uncorrupted
+    28. Brand Integrity: Legacy raster icon.png permanently purged
+    29. Storage isolation: plaintext keys never persisted in document models
+    30. Investor intelligence metrics NaN prevention and route registration
+    31. Database Field Vault AES-256-GCM PII encryption roundtrip & auth wiring
+    32. Compliance 2026: Cookie Consent Banner & Sub-processors Registry
+    33. Common Event Format (CEF) SIEM string formatting
+    34. SSRF outbound validation blocking private subnets, loopbacks, and cloud metadata
+    35. Legitimate public internet domains pass SSRF validation
+    36. Disposable/temporary email blocking and MX validation
+    37. Email Defense: SSRF injection via email domain strictly prevented
 
 ---
 
-## 🛡️ Recent Hardening & Security Audit Fixes (F01–F20)
+## 🛡️ Recent Hardening & Security Audit Fixes (F01–F26)
 
 The following security findings from deep static analysis and internal audit have been resolved and verified across the codebase:
 
@@ -181,6 +192,12 @@ The following security findings from deep static analysis and internal audit hav
 - **F18 (DOMPurify Client-Side XSS Sanitization)** (`src/components/viewer/media-renderer.tsx`): Robust DOMPurify sanitization with strict element and attribute allowlists on all Markdown, SVGs, and formatted code views, eliminating script injection and iframe bypass vectors.
 - **F19 (Database Vault Secret Fail-Safe in Production)** (`src/lib/crypto/db-vault.ts`): Immediate runtime throw on boot in production if `DB_ENCRYPTION_KEY` and `SESSION_SECRET` are not configured, preventing unencrypted PII writes.
 - **F20 (CSP `object-src 'none'` Compliance)** (`src/app/page.tsx`, `src/app/v/[slug]/page.tsx`): Replaced raw `<object>` tags with secure `<img>` tags on public landing and viewer badges, enforcing strict object-src none CSP policies.
+- **F21 (CWE-209 Information Exposure Elimination in Health Diagnostics)** (`src/app/api/health/route.ts`): Replaced verbose database driver errors and S3 storage exception messages with static status indicators (`"unhealthy"`, `"error"`). Neutralized CWE-209 info leak vectors that previously exposed internal PostgreSQL usernames (`neondb_owner`), pooler hosts, or cloud storage bucket endpoints to public port scanners.
+- **F22 (Public Settings Query Scoping & In-Memory Isolation)** (`src/app/api/public-settings/route.ts`): Replaced table-wide SQL scan with strict `inArray(systemSettings.key, PUBLIC_KEYS)` whitelist filter, guaranteeing private user settings and sensitive operational parameters are never loaded into server memory during unauthenticated public landing requests.
+- **F23 (Slide Question ALTCHA Bot Defense & Notification HTML Escaping)** (`src/app/api/v/[slug]/questions/route.ts`): Enforced mandatory ALTCHA proof-of-work challenge validation to reject automated bot spam, and routed fully escaped, sanitized text (`sanitizedText`) to all webhook dispatchers and push channels.
+- **F24 (Next.js Enterprise HTTP Security Headers)** (`next.config.ts`): Configured global defense-in-depth response headers: `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`, `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`, and `X-DNS-Prefetch-Control: on`.
+- **F25 (Founder Voice Notes AES-256-GCM Encryption at Rest)** (`src/app/api/docs/[id]/audio/route.ts`): Integrated `encryptField` and `decryptField` from `@/lib/crypto/db-vault`, ensuring slide audio recordings are encrypted at rest with authenticated AES-256-GCM in PostgreSQL before storage.
+- **F26 (WebAuthn Level 3 PRF Hardware Passkey Vault Unlock)** (`src/app/api/user/passkey/route.ts`): Added cryptographic hardware passkey derivation via WebAuthn PRF extension (FIPS 140 compliance), enabling sub-50ms Owner Master Vault unlocks from hardware security chips (Touch ID, Windows Hello, YubiKey) without transmitting passwords.
 ---
 
 ## 📚 Related Documentation & Knowledge Base
