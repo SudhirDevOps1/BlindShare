@@ -107,6 +107,14 @@ export async function POST(
     const body = await request.json().catch(() => ({}));
     const { pageNumber, posXPercent, posYPercent, questionText, askerEmail, askerName, sessionId, altcha } = body;
 
+    const mustRequireAltcha = process.env.ALTCHA_REQUIRED === "true";
+    if (mustRequireAltcha && !altcha && process.env.NODE_ENV !== "test") {
+      return NextResponse.json(
+        { error: "Security challenge verification required. Please complete verification before posting a question.", reason: "captcha_required" },
+        { status: 400 }
+      );
+    }
+
     // Verify ALTCHA Proof-of-Work if submitted
     if (altcha) {
       const isValid = verifyAltchaPayload(altcha);
@@ -180,15 +188,15 @@ export async function POST(
         linkName: link.name,
         linkSlug: slug,
         pageNumber,
-        questionText: questionText.trim(),
-        viewerEmail: askerEmail || undefined,
+        questionText: sanitizedText,
+        viewerEmail: sanitizedEmail || undefined,
         timestamp: new Date().toISOString(),
       }).catch((e) => logger.warn("webhook.question_failed", { message: e?.message }));
     }
 
     sendPushToUser(link.ownerId, {
       title: `New Question on Page ${pageNumber}`,
-      body: `"${questionText.trim().substring(0, 80)}" on link "${link.name}"`,
+      body: `"${sanitizedText.substring(0, 80)}" on link "${escapeText(link.name, 50)}"`,
       url: `/dashboard/analytics/${link.id}`,
     }).catch((e) => logger.warn("push.question_failed", { message: e?.message }));
 

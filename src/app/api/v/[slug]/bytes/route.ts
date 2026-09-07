@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { links, documents, viewSessions } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
+import { logger } from "@/lib/logger";
 
 export async function GET(
   request: Request,
@@ -142,6 +143,7 @@ export async function GET(
       },
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to retrieve ciphertext" }, { status: 500 });
+    logger.error("bytes.retrieve_failed", { slug, message: err?.message });
+    return NextResponse.json({ error: "Failed to retrieve document bytes" }, { status: 500 });
   }
 }

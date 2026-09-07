@@ -21,6 +21,7 @@ export async function GET() {
         email: users.email,
         name: users.name,
         role: users.role,
+        twoFactorEnabled: users.twoFactorEnabled,
         masterKeySaltHex: users.masterKeySaltHex,
       })
       .from(users)
@@ -39,7 +40,7 @@ export async function GET() {
           .catch(() => {});
       }
       return NextResponse.json({
-        user: { ...dbUser, masterKeySaltHex, email: decryptEmail(dbUser.email) },
+        user: { ...dbUser, twoFactorEnabled: Boolean(dbUser.twoFactorEnabled), masterKeySaltHex, email: decryptEmail(dbUser.email) },
       });
     }
     // Database was wiped or user row was purged — actively shred the zombie cookie

@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { systemSettings } from "@/db/schema";
+import { inArray } from "drizzle-orm";
 import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const settings = await db.select().from(systemSettings);
+    const publicKeys = ["maintenance_mode", "broadcast_banner", "developer_profile"];
+    const settings = await db
+      .select({ key: systemSettings.key, value: systemSettings.value })
+      .from(systemSettings)
+      .where(inArray(systemSettings.key, publicKeys));
     const map: Record<string, string> = {};
     for (const s of settings) map[s.key] = s.value;
 

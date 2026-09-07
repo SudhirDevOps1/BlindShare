@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { links, documents, datarooms, dataroomDocs } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
+import { logger } from "@/lib/logger";
 
 export async function GET(
   request: Request,
@@ -162,6 +163,7 @@ export async function GET(
 
     return res;
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to load link" }, { status: 500 });
+    logger.error("link.load_failed", { slug, message: err?.message });
+    return NextResponse.json({ error: "Failed to load document link" }, { status: 500 });
   }
 }

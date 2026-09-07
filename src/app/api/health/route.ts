@@ -4,6 +4,7 @@ import { users } from "@/db/schema";
 import { sql } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
 import { rateLimitDistributed } from "@/lib/security/distributed-rate-limiter";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -28,7 +29,8 @@ export async function GET(request: Request) {
     dbLatencyMs = Date.now() - dbStart;
     dbStatus = "healthy";
   } catch (err: any) {
-    dbStatus = `unhealthy: ${err.message}`;
+    logger.warn("health.db_connectivity_failed", { message: err?.message });
+    dbStatus = "unhealthy";
   }
 
   // Storage adapter test
@@ -36,7 +38,8 @@ export async function GET(request: Request) {
     const storage = getStorageAdapter();
     storageStatus = `ready (${storage.name})`;
   } catch (err: any) {
-    storageStatus = `error: ${err.message}`;
+    logger.warn("health.storage_connectivity_failed", { message: err?.message });
+    storageStatus = "error";
   }
 
   const isHealthy = dbStatus === "healthy";
