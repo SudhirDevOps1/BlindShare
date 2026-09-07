@@ -243,3 +243,21 @@ export async function syncVaultDocumentKeys(documents: any[], links?: any[]): Pr
 
   return restoredCount;
 }
+
+/**
+ * Directly sets the active in-memory master key (e.g. from WebAuthn PRF unlock).
+ */
+export async function setInMemoryMasterKey(key: CryptoKey): Promise<void> {
+  inMemoryMasterKey = key;
+  if (typeof window !== "undefined") {
+    try {
+      const isStrict = localStorage.getItem("blindshare_strict_memory_isolation") === "true";
+      if (!isStrict) {
+        const exportedRaw = await crypto.subtle.exportKey("raw", key);
+        const hex = bufferToHex(new Uint8Array(exportedRaw));
+        sessionStorage.setItem("blindshare_master_vault_token", hex);
+      }
+    } catch {}
+  }
+}
+

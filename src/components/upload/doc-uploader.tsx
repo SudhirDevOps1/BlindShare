@@ -22,7 +22,10 @@ import {
   Link as LinkIcon,
   Copy,
   ExternalLink,
+  AlertTriangle,
+  ShieldAlert as ShieldAlertIcon,
 } from "lucide-react";
+import { extractAndScanDocument, DlpFinding } from "@/lib/dlp/scanner";
 
 interface DocUploaderProps {
   onUploadSuccess?: (doc: any, keyFragment: string) => void;
@@ -50,6 +53,8 @@ export function DocUploader({ onUploadSuccess, targetDoc }: DocUploaderProps) {
     keyFragment: string;
     title: string;
   } | null>(null);
+  const [dlpFindings, setDlpFindings] = useState<DlpFinding[]>([]);
+  const [dlpScanning, setDlpScanning] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -73,6 +78,14 @@ export function DocUploader({ onUploadSuccess, targetDoc }: DocUploaderProps) {
     setDetected(fmt);
     setTitle(selectedFile.name.replace(/\.[^.]+$/, ""));
     setError(null);
+    setDlpFindings([]);
+    setDlpScanning(true);
+    extractAndScanDocument(selectedFile)
+      .then((findings) => {
+        setDlpFindings(findings);
+      })
+      .catch(() => {})
+      .finally(() => setDlpScanning(false));
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -404,6 +417,42 @@ export function DocUploader({ onUploadSuccess, targetDoc }: DocUploaderProps) {
                 className="h-full rounded-full bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300 transition-all duration-300 shadow-md shadow-amber-500/40"
                 style={{ width: `${uploadProgress}%` }}
               />
+            </div>
+          </div>
+        )}
+
+        {/* Client-Side DLP Pre-Upload Security Advisory */}
+        {file && !encrypting && dlpFindings.length > 0 && (
+          <div className="rounded-2xl border border-amber-500/40 bg-amber-950/20 p-4 space-y-2.5 backdrop-blur-md shadow-lg shadow-amber-500/5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-amber-300 text-xs font-bold">
+                <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0 animate-pulse" />
+                <span>
+                  Pre-Upload DLP Audit: {dlpFindings.length} Sensitive Secrets / Identifiers Detected
+                </span>
+              </div>
+              <span className="rounded-md bg-amber-500/20 px-2 py-0.5 text-[10px] font-bold text-amber-300 border border-amber-500/30">
+                Client-Side Scan
+              </span>
+            </div>
+            <p className="text-slate-300 text-[11px] leading-relaxed">
+              In-browser DLP scanner found potential confidential credentials or financial identifiers in this document. We strongly recommend configuring a <strong>Passcode Gate</strong> and <strong>Dynamic Watermark</strong> in Link Studio.
+            </p>
+            <div className="space-y-1.5 pt-1">
+              {dlpFindings.slice(0, 3).map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between text-[11px] bg-slate-900/90 px-3 py-1.5 rounded-xl border border-amber-500/20"
+                >
+                  <span className="font-semibold text-amber-300">{item.titleEn}</span>
+                  <span className="font-mono text-slate-400">{item.snippet}</span>
+                </div>
+              ))}
+              {dlpFindings.length > 3 && (
+                <div className="text-[10px] text-slate-400 text-right">
+                  +{dlpFindings.length - 3} additional secret patterns found
+                </div>
+              )}
             </div>
           </div>
         )}

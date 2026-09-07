@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import crypto from "node:crypto";
+import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 /**
  * Enterprise Next-Gen Cryptographic Suite (v1.4.0)
@@ -101,22 +102,34 @@ test("Argon2id Memory-Hard KDF: Generates deterministic 256-bit key from passwor
   assert.notDeepEqual(key1, keyWrong, "Wrong password must never match derived vault key");
 });
 
-// Pillar 4: Post-Quantum Hybrid (ML-KEM-768 + ECDH)
+// Pillar 4: Post-Quantum Hybrid (FIPS 203 ML-KEM-768 + ECDH)
 test("Post-Quantum Hybrid: Combines Classical ECDH and Lattice Secret into 256-bit symmetric key", async () => {
-  // Classical ECDH Component
+  // 1. Classical ECDH Component
   const aliceECDH = crypto.createECDH("prime256v1");
   aliceECDH.generateKeys();
 
   const bobECDH = crypto.createECDH("prime256v1");
   bobECDH.generateKeys();
 
-  const classicalSecret = aliceECDH.computeSecret(bobECDH.getPublicKey());
+  const aliceClassicalSecret = aliceECDH.computeSecret(bobECDH.getPublicKey());
+  const bobClassicalSecret = bobECDH.computeSecret(aliceECDH.getPublicKey());
+  assert.deepEqual(aliceClassicalSecret, bobClassicalSecret, "Classical ECDH secrets must match");
 
-  // Post-Quantum ML-KEM-768 Lattice Component
-  const quantumLatticeSecret = crypto.randomBytes(32);
+  // 2. Real Post-Quantum FIPS 203 ML-KEM-768 Lattice Component
+  const aliceQuantumKeys = ml_kem768.keygen();
+  assert.equal(aliceQuantumKeys.publicKey.length, 1184, "ML-KEM-768 public key must be 1,184 bytes");
+  assert.equal(aliceQuantumKeys.secretKey.length, 2400, "ML-KEM-768 secret key must be 2,400 bytes");
 
-  // Hybrid Combination via HKDF (RFC 5869)
-  const combinedSecret = Buffer.concat([classicalSecret, quantumLatticeSecret]);
+  // Bob encapsulates against Alice's Quantum Public Key
+  const { cipherText, sharedSecret: bobQuantumSecret } = ml_kem768.encapsulate(aliceQuantumKeys.publicKey);
+  assert.equal(cipherText.length, 1088, "ML-KEM-768 ciphertext must be 1,088 bytes");
+
+  // Alice decapsulates Bob's ciphertext
+  const aliceQuantumSecret = ml_kem768.decapsulate(cipherText, aliceQuantumKeys.secretKey);
+  assert.deepEqual(aliceQuantumSecret, bobQuantumSecret, "Decapsulated quantum secret must match encapsulated secret");
+
+  // 3. Hybrid Combination via HKDF (RFC 5869)
+  const combinedSecret = Buffer.concat([aliceClassicalSecret, Buffer.from(aliceQuantumSecret)]);
   const hybridKey = crypto.hkdfSync(
     "sha256",
     combinedSecret,
@@ -127,8 +140,8 @@ test("Post-Quantum Hybrid: Combines Classical ECDH and Lattice Secret into 256-b
 
   const hybridBuf = Buffer.from(hybridKey);
   assert.equal(hybridBuf.length, 32, "Hybrid key must be exactly 256 bits");
-  assert.notDeepEqual(hybridBuf, classicalSecret, "Hybrid key must depend on both classical and quantum inputs");
-  assert.notDeepEqual(hybridBuf, quantumLatticeSecret, "Hybrid key must depend on both classical and quantum inputs");
+  assert.notDeepEqual(hybridBuf, aliceClassicalSecret, "Hybrid key must depend on both classical and quantum inputs");
+  assert.notDeepEqual(hybridBuf, Buffer.from(aliceQuantumSecret), "Hybrid key must depend on both classical and quantum inputs");
 });
 
 // Pillar 5: Invisible Forensic Steganography
