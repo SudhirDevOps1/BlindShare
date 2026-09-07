@@ -148,16 +148,18 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
+      <head>
+        {/* JSON-LD Structured Data Schema for Google & AI Web Indexing */}
+        <script
+          id="jsonld-schema"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSchema) }}
+        />
+      </head>
       <body
         className="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-amber-500/30 selection:text-amber-200"
         suppressHydrationWarning
       >
-        {/* JSON-LD Structured Data Schema for Google & AI Web Indexing */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSchema) }}
-          suppressHydrationWarning
-        />
         <I18nProvider>
           {/* First-party privacy-safe telemetry proxy gated strictly by blindshare_cookie_consent_v1 */}
           <PrismTracker />

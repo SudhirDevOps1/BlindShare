@@ -41,6 +41,7 @@ import { lockOwnerVault, isVaultUnlocked } from "@/lib/vault/master-vault";
 import { registerPasskeyWithPrf, isWebAuthnAvailable } from "@/lib/vault/webauthn-prf";
 import {
   DeveloperProfile,
+  getDefaultDeveloperProfile,
   loadDeveloperProfile,
   saveDeveloperProfile,
   saveDeveloperProfileToDb,
@@ -89,7 +90,7 @@ export default function SettingsPage() {
   const [cursorFxEnabled, setCursorFxEnabled] = useState(false);
 
   // Developer Profile & Social Media Suite State
-  const [devProfile, setDevProfile] = useState<DeveloperProfile>(loadDeveloperProfile);
+  const [devProfile, setDevProfile] = useState<DeveloperProfile>(getDefaultDeveloperProfile);
   const [savingDevProfile, setSavingDevProfile] = useState(false);
 
   // Synchronous execution locks to eliminate rapid double-click race conditions

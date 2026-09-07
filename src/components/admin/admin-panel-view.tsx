@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 import {
   DeveloperProfile,
+  getDefaultDeveloperProfile,
   loadDeveloperProfile,
   saveDeveloperProfile,
   saveDeveloperProfileToDb,
@@ -100,7 +101,7 @@ export function AdminPanelView() {
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
 
   // Developer Profile & Social Media Suite State
-  const [devProfile, setDevProfile] = useState<DeveloperProfile>(loadDeveloperProfile);
+  const [devProfile, setDevProfile] = useState<DeveloperProfile>(getDefaultDeveloperProfile);
   const [savingDevProfile, setSavingDevProfile] = useState(false);
 
   // Synchronous execution locks to prevent double-click race conditions

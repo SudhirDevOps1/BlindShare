@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n/context";
 import { BrandIcon } from "./brand-icon";
 import { ShieldCheck, Heart, Lock, Code2, ServerOff, Star, Scale, Globe } from "lucide-react";
 import {
+  getDefaultDeveloperProfile,
   loadDeveloperProfile,
   fetchDeveloperProfileFromDb,
   DEVELOPER_PROFILE_EVENT,
@@ -18,7 +19,7 @@ import { renderRealSocialIcon, GithubIcon } from "@/components/social-icons";
 
 export function BrandFooter() {
   const { t, appName, lang, setLang } = useI18n();
-  const [devProfile, setDevProfile] = React.useState<DeveloperProfile>(loadDeveloperProfile);
+  const [devProfile, setDevProfile] = React.useState<DeveloperProfile>(getDefaultDeveloperProfile);
 
   React.useEffect(() => {
     if (typeof window !== "undefined") {
