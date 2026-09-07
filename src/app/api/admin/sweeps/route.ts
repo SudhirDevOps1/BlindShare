@@ -6,6 +6,7 @@ import { eq, and, lt, or, sql, inArray } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import { decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(request: Request) {
   const cronSecret = process.env.CRON_SECRET;
@@ -31,8 +32,8 @@ export async function GET(request: Request) {
       .from(docVersions);
 
     const validKeySet = new Set([
-      ...allDocs.filter((d) => !d.isTombstone).map((d) => d.storageKey),
-      ...allVersions.map((v) => v.storageKey),
+      ...allDocs.filter((d) => !d.isTombstone).map((d) => decryptField(d.storageKey)),
+      ...allVersions.map((v) => decryptField(v.storageKey)),
     ].filter(Boolean));
     const orphanCount = storedKeys.filter((k) => !validKeySet.has(k)).length;
     const tombstoneCount = allDocs.filter((d) => d.isTombstone).length;
@@ -95,7 +96,10 @@ export async function POST(request: Request) {
 
       const allDocs = await db.select({ storageKey: documents.storageKey }).from(documents);
       const allVersions = await db.select({ storageKey: docVersions.storageKey }).from(docVersions);
-      const validKeySet = new Set([...allDocs.map((d) => d.storageKey), ...allVersions.map((v) => v.storageKey)].filter(Boolean));
+      const validKeySet = new Set([
+        ...allDocs.map((d) => decryptField(d.storageKey)),
+        ...allVersions.map((v) => decryptField(v.storageKey)),
+      ].filter(Boolean));
 
       for (const key of storedKeys) {
         if (!validKeySet.has(key)) {
@@ -116,8 +120,9 @@ export async function POST(request: Request) {
         const tombstoneIds = tombstoned.map((d) => d.id);
 
         for (const doc of tombstoned) {
-          if (doc.storageKey) {
-            await storage.deleteObject(doc.storageKey).catch(() => {});
+          const resolvedStorageKey = decryptField(doc.storageKey);
+          if (resolvedStorageKey) {
+            await storage.deleteObject(resolvedStorageKey).catch(() => {});
           }
         }
 

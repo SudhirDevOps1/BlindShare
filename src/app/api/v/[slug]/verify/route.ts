@@ -12,7 +12,7 @@ import { validateEmailWithMx } from "@/lib/validation/email-validator";
 import { checkLockout, recordFailure, recordSuccess, getFailureCount } from "@/lib/auth/lockout";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
-import { encryptField } from "@/lib/crypto/db-vault";
+import { encryptField, decryptField } from "@/lib/crypto/db-vault";
 
 function clientIp(request: Request): string {
   return (
@@ -189,14 +189,16 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       ? await db.select({ title: documents.title }).from(documents).where(eq(documents.id, link.docId)).limit(1)
       : [{ title: link.name }];
 
-    const docTitle = ownerDoc?.title || link.name;
+    const rawTitle = ownerDoc?.title || link.name;
+    const docTitle = decryptField(rawTitle);
+    const linkName = decryptField(link.name);
     const viewerDisplay = cleanEmail ? cleanEmail : `Anonymous (${parsedUa.device} in ${country})`;
 
     const targetWebhook = link.webhookUrl || process.env.DEFAULT_WEBHOOK_URL || process.env.WEBHOOK_URL;
     if (targetWebhook) {
       sendWebhookNotification(targetWebhook, {
         event: ndaAgreed ? "nda_signed" : "link_opened",
-        linkName: link.name,
+        linkName,
         linkSlug: link.slug,
         docTitle,
         viewerEmail: cleanEmail || undefined,

@@ -7,6 +7,7 @@ import { parseBody } from "@/lib/validation";
 import { createDataroomSchema } from "@/lib/validation/schemas";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import { encryptField, decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET() {
   const auth = await requireAuth();
@@ -19,9 +20,15 @@ export async function GET() {
       .where(eq(datarooms.ownerId, auth.user.id))
       .orderBy(desc(datarooms.createdAt));
 
-    return NextResponse.json({ datarooms: userDatarooms });
+    const decryptedDatarooms = userDatarooms.map((dr) => ({
+      ...dr,
+      name: decryptField(dr.name),
+      description: dr.description ? decryptField(dr.description) : null,
+    }));
+
+    return NextResponse.json({ datarooms: decryptedDatarooms });
   } catch (err: any) {
-    logger.error("datarooms.list_failed", { message: err?.message });
+    logger.error("datarooms.list_failed", { message: err?.message, stack: err?.stack });
     return NextResponse.json({ error: "Failed to fetch datarooms" }, { status: 500 });
   }
 }
@@ -40,8 +47,8 @@ export async function POST(request: Request) {
     await db.insert(datarooms).values({
       id: dataroomId,
       ownerId: auth.user.id,
-      name,
-      description: description || null,
+      name: encryptField(name),
+      description: description ? encryptField(description) : null,
     });
 
     if (Array.isArray(docIds) && docIds.length > 0) {
@@ -78,7 +85,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, dataroomId });
   } catch (err: any) {
-    logger.error("datarooms.create_failed", { ownerId: auth.user.id, message: err?.message });
+    logger.error("datarooms.create_failed", { ownerId: auth.user.id, message: err?.message, stack: err?.stack });
     return NextResponse.json({ error: "Failed to create dataroom" }, { status: 500 });
   }
 }

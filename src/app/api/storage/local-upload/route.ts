@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStorageAdapter } from "@/lib/storage";
 import { requireAuth } from "@/lib/auth/rbac";
+import { logger } from "@/lib/logger";
 
 export async function PUT(request: Request) {
   try {
@@ -26,6 +27,7 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({ success: true, key, size: arrayBuffer.byteLength });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Upload failed" }, { status: 500 });
+    logger.error("storage.local_upload.failed", { message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }

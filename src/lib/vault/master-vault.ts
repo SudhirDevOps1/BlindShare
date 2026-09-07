@@ -70,7 +70,9 @@ export async function restoreOwnerVaultFromSession(): Promise<CryptoKey | null> 
       return masterKey;
     }
   } catch (err) {
-    console.warn("Could not restore master vault from session:", err);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Could not restore master vault from session:", err);
+    }
   }
 
   return null;
@@ -139,7 +141,9 @@ export async function autoWrapDocKeyForOwner(
       ownerEncryptedKeyIvHex: wrapped.ivHex,
     };
   } catch (err) {
-    console.warn("Failed to wrap DocKey for owner vault:", err);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Failed to wrap DocKey for owner vault:", err);
+    }
     return null;
   }
 }
@@ -182,7 +186,9 @@ export async function syncVaultDocumentKeys(documents: any[], links?: any[]): Pr
             restoredCount++;
           }
         } catch (err) {
-          console.warn(`Failed to unwrap key for document ${doc.id}:`, err);
+          if (process.env.NODE_ENV === "development") {
+            console.warn(`Failed to unwrap key for document ${doc.id}:`, err);
+          }
         }
       } else if (hexKey && (!doc.ownerEncryptedKeyHex || !doc.ownerEncryptedKeyIvHex)) {
         // Auto-heal: If local key exists on this device, wrap and back up to Master Vault!

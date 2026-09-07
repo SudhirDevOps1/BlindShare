@@ -5,6 +5,7 @@ import { links, documents, viewSessions, pageEvents } from "@/db/schema";
 import { eq, desc, sql, inArray } from "drizzle-orm";
 import { formatDuration } from "@/lib/analytics";
 import { decryptField } from "@/lib/crypto/db-vault";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   const auth = await requireAuth();
@@ -287,6 +288,7 @@ export async function GET(request: Request) {
       linkPerformance,
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to load analytics overview" }, { status: 500 });
+    logger.error("analytics.overview.failed", { message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }

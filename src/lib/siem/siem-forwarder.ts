@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logger";
+import { hashIp } from "@/lib/analytics";
 
 /**
  * Enterprise SIEM & SOC Security Log Forwarder
@@ -29,11 +30,10 @@ export interface SiemSecurityEvent {
     userAgent?: string;
   };
   resource?: {
-    type?: string;
+    type: "document" | "link" | "dataroom" | "user" | "system";
     id?: string;
-    name?: string;
   };
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   timestamp?: string;
 }
 
@@ -49,7 +49,7 @@ export function formatCef(e: SiemSecurityEvent): string {
     .map(([k, v]) => `${k}=${typeof v === "object" ? JSON.stringify(v) : v}`)
     .join(" ");
 
-  return `CEF:0|BlindShare|E2EE-Platform|1.4.0|${e.event}|${e.event}|${severityNum}|rt=${ts} src=${srcIp} suser=${user} cs1=${e.resource?.type || "none"} cs1Label=ResourceType ${details}`;
+  return `CEF:0|BlindShare|E2EE-Platform|1.4.0|${e.event}|${e.event}|${severityNum}|rt=${ts} src=${hashIp(srcIp)} suser=${user} cs1=${e.resource?.type || "none"} cs1Label=ResourceType ${details}`;
 }
 
 /**
@@ -66,8 +66,6 @@ export async function forwardSiemEvent(event: SiemSecurityEvent): Promise<void> 
   };
 
   // 1. Structured Local Audit Log & Direct Standard CEF Output
-  const cefPayload = formatCef(enrichedEvent);
-  console.log(cefPayload);
   logger.info(`siem.${event.event.toLowerCase()}`, {
     severity: event.severity,
     actorId: event.actor?.id,

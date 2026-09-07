@@ -27,16 +27,13 @@ export class CapacitorPlatformAdapter implements PlatformAdapter {
   platformName = "android" as const;
 
   async shareUrl(title: string, url: string): Promise<boolean> {
-    if (process.env.NODE_ENV === "development") {
-      console.log("[Capacitor Native Share]", { title, url });
-    }
+    void title;
+    void url;
     return true;
   }
 
   async copyToClipboard(text: string): Promise<boolean> {
-    if (process.env.NODE_ENV === "development") {
-      console.log("[Capacitor Clipboard Copy]", text);
-    }
+    void text;
     return true;
   }
 }

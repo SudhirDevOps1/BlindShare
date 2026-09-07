@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { links, documents, datarooms, dataroomDocs } from "@/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { logger } from "@/lib/logger";
+import { decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(
   request: Request,
@@ -99,7 +100,11 @@ export async function GET(
         return NextResponse.json({ error: "Underlying document not found" }, { status: 404 });
       }
 
-      docData = doc;
+      docData = {
+        ...doc,
+        title: decryptField(doc.title),
+        originalFilename: decryptField(doc.originalFilename),
+      };
     } else if (link.dataroomId) {
       const [dr] = await db
         .select()
@@ -126,7 +131,13 @@ export async function GET(
 
         dataroomData = {
           ...dr,
-          documents: drDocs,
+          name: decryptField(dr.name),
+          description: dr.description ? decryptField(dr.description) : null,
+          documents: drDocs.map((d) => ({
+            ...d,
+            title: decryptField(d.title),
+            originalFilename: decryptField(d.originalFilename),
+          })),
         };
       }
     }
@@ -135,7 +146,7 @@ export async function GET(
       link: {
         id: link.id,
         slug: link.slug,
-        name: link.name,
+        name: decryptField(link.name),
         hasPassword: link.hasPassword,
         passwordSaltHex: link.passwordSaltHex,
         wrappedKeyHex: link.wrappedKeyHex,
@@ -143,9 +154,9 @@ export async function GET(
         allowedDomains: link.allowedDomains,
         allowDownload: link.allowDownload,
         watermarkEnabled: link.watermarkEnabled,
-        watermarkText: link.watermarkText,
+        watermarkText: link.watermarkText ? decryptField(link.watermarkText) : null,
         requiresNda: link.requiresNda,
-        ndaText: link.ndaText,
+        ndaText: link.ndaText ? decryptField(link.ndaText) : null,
         requiresSignature: link.requiresSignature,
         signaturePrompt: link.signaturePrompt,
         brandLogoUrl: link.brandLogoUrl,
@@ -163,7 +174,7 @@ export async function GET(
 
     return res;
   } catch (err: any) {
-    logger.error("link.load_failed", { slug, message: err?.message });
+    logger.error("link.load_failed", { slug, message: err?.message, stack: err?.stack });
     return NextResponse.json({ error: "Failed to load document link" }, { status: 500 });
   }
 }

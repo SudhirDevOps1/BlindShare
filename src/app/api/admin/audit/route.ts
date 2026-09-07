@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { auditLog } from "@/db/schema";
 import { desc } from "drizzle-orm";
 import { decryptEmail, decryptField } from "@/lib/crypto/db-vault";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -46,6 +47,7 @@ export async function GET() {
 
     return NextResponse.json({ logs });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to fetch audit logs" }, { status: 500 });
+    logger.error("admin.audit.failed", { message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }

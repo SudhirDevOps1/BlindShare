@@ -240,7 +240,9 @@ export function DocUploader({ onUploadSuccess, targetDoc }: DocUploaderProps) {
         onUploadSuccess(data, keyFragment);
       }
     } catch (err: any) {
-      console.error("Upload error:", err);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Upload error:", err);
+      }
       setError(err.message || "Failed to encrypt and upload document");
     } finally {
       encryptingRef.current = false;

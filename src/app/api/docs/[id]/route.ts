@@ -8,6 +8,7 @@ import { parseBody } from "@/lib/validation";
 import { updateDocumentSchema } from "@/lib/validation/schemas";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import { encryptField, decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAuth();
@@ -30,9 +31,32 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     const { links } = await import("@/db/schema");
     const docLinks = await db.select().from(links).where(eq(links.docId, id));
 
-    return NextResponse.json({ document: doc, versions, links: docLinks });
+    const decryptedDoc = {
+      ...doc,
+      title: decryptField(doc.title),
+      originalFilename: decryptField(doc.originalFilename),
+      storageKey: decryptField(doc.storageKey),
+    };
+
+    const decryptedVersions = versions.map((v) => ({
+      ...v,
+      storageKey: decryptField(v.storageKey),
+    }));
+
+    const decryptedDocLinks = docLinks.map((l) => ({
+      ...l,
+      name: decryptField(l.name),
+      watermarkText: l.watermarkText ? decryptField(l.watermarkText) : null,
+      ndaText: l.ndaText ? decryptField(l.ndaText) : null,
+    }));
+
+    return NextResponse.json({
+      document: decryptedDoc,
+      versions: decryptedVersions,
+      links: decryptedDocLinks,
+    });
   } catch (err: any) {
-    logger.error("docs.get_failed", { docId: id, message: err?.message });
+    logger.error("docs.get_failed", { docId: id, message: err?.message, stack: err?.stack });
     return NextResponse.json({ error: "Failed to fetch document" }, { status: 500 });
   }
 }
@@ -58,9 +82,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     const updates: Record<string, any> = {
-      title: title || doc.title,
       updatedAt: new Date(),
     };
+    if (title !== undefined) {
+      updates.title = encryptField(title);
+    }
     if (ownerEncryptedKeyHex !== undefined) {
       updates.ownerEncryptedKeyHex = ownerEncryptedKeyHex;
     }
@@ -75,7 +101,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    logger.error("docs.update_failed", { docId: id, message: err?.message });
+    logger.error("docs.update_failed", { docId: id, message: err?.message, stack: err?.stack });
     return NextResponse.json({ error: "Failed to update document" }, { status: 500 });
   }
 }
@@ -98,15 +124,17 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     }
 
     const storage = getStorageAdapter();
+    const resolvedDocStorageKey = decryptField(doc.storageKey);
 
-    if (doc.storageKey) {
-      await storage.deleteObject(doc.storageKey);
+    if (resolvedDocStorageKey) {
+      await storage.deleteObject(resolvedDocStorageKey);
     }
 
     const versions = await db.select().from(docVersions).where(eq(docVersions.docId, id));
     for (const v of versions) {
-      if (v.storageKey && v.storageKey !== doc.storageKey) {
-        await storage.deleteObject(v.storageKey);
+      const resolvedVersionKey = decryptField(v.storageKey);
+      if (resolvedVersionKey && resolvedVersionKey !== resolvedDocStorageKey) {
+        await storage.deleteObject(resolvedVersionKey);
       }
     }
 
@@ -124,7 +152,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 
     return NextResponse.json({ success: true, message: "Document and ciphertext crypto-shredded" });
   } catch (err: any) {
-    logger.error("docs.delete_failed", { docId: id, message: err?.message });
+    logger.error("docs.delete_failed", { docId: id, message: err?.message, stack: err?.stack });
     return NextResponse.json({ error: "Failed to delete document" }, { status: 500 });
   }
 }

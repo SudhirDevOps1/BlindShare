@@ -6,6 +6,7 @@ import { eq, and, or, desc, sql } from "drizzle-orm";
 import { generateCsv, formatDuration } from "@/lib/analytics";
 import { computeReaderIntent } from "@/lib/analytics/intent-scorer";
 import { decryptField } from "@/lib/crypto/db-vault";
+import { logger } from "@/lib/logger";
 
 export async function GET(
   request: Request,
@@ -286,6 +287,7 @@ export async function GET(
       countryBreakdown,
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to fetch analytics" }, { status: 500 });
+    logger.error("links.analytics.failed", { id, message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }

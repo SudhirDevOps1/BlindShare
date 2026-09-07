@@ -79,6 +79,15 @@ APP_URL=http://localhost:3000 node scripts/quicklink.mjs /tmp/demo.pdf --name Sm
 ```
 Then run the smoke list against the printed link: `/api/health` → 200, open the link
 (ciphertext downloads, browser decrypts), check the link's analytics page shows dwell rows.
+
+## Storage Lifecycle, B2 SSE-B2 & Hard Delete Sweeps
+1. **Server-Side Encryption (SSE-B2):**
+   - In Backblaze B2 bucket settings, enable **Default Encryption (SSE-B2)**. This provides defense-in-depth hardware at-rest encryption beneath BlindShare's zero-knowledge client-side AES-GCM envelope.
+2. **30-Day Lifecycle Purge Rule:**
+   - Configure Lifecycle Rule in B2: Keep only the last version of files, or delete old versions after 30 days.
+   - Hide markers (tombstones) created upon soft-delete should have lifecycle expiration to automatically purge after 30 days.
+3. **Database Field Vault Backfill:**
+   - Run `node scripts/backfill-field-vault.mjs` after upgrading to v1.4.0 to encrypt legacy rows at rest with AES-256-GCM.
 ---
 
 ## 📚 Related Documentation & Knowledge Base

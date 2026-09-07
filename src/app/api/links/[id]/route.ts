@@ -8,6 +8,7 @@ import { parseBody } from "@/lib/validation";
 import { updateLinkSchema } from "@/lib/validation/schemas";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import { encryptField, decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAuth();
@@ -26,9 +27,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "Link not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ link });
+    const decryptedLink = {
+      ...link,
+      name: decryptField(link.name),
+      watermarkText: link.watermarkText ? decryptField(link.watermarkText) : null,
+      ndaText: link.ndaText ? decryptField(link.ndaText) : null,
+    };
+
+    return NextResponse.json({ link: decryptedLink });
   } catch (err: any) {
-    logger.error("links.get_failed", { linkId: id, message: err?.message });
+    logger.error("links.get_failed", { linkId: id, message: err?.message, stack: err?.stack });
     return NextResponse.json({ error: "Failed to fetch link" }, { status: 500 });
   }
 }
@@ -55,7 +63,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
     const updates: Partial<typeof links.$inferInsert> = { updatedAt: new Date() };
 
-    if (body.name !== undefined) updates.name = body.name;
+    if (body.name !== undefined) updates.name = encryptField(body.name);
     if (body.isActive !== undefined) updates.isActive = body.isActive;
     if (body.isRevoked !== undefined) updates.isRevoked = body.isRevoked;
     if (body.requiresEmail !== undefined) updates.requiresEmail = body.requiresEmail;
@@ -63,9 +71,9 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       updates.allowedDomains = body.allowedDomains ? body.allowedDomains.trim().toLowerCase() : null;
     if (body.allowDownload !== undefined) updates.allowDownload = body.allowDownload;
     if (body.watermarkEnabled !== undefined) updates.watermarkEnabled = body.watermarkEnabled;
-    if (body.watermarkText !== undefined) updates.watermarkText = body.watermarkText || null;
+    if (body.watermarkText !== undefined) updates.watermarkText = body.watermarkText ? encryptField(body.watermarkText) : null;
     if (body.requiresNda !== undefined) updates.requiresNda = body.requiresNda;
-    if (body.ndaText !== undefined) updates.ndaText = body.ndaText || null;
+    if (body.ndaText !== undefined) updates.ndaText = body.ndaText ? encryptField(body.ndaText) : null;
     if (body.maxViews !== undefined) updates.maxViews = body.maxViews ? parseInt(String(body.maxViews), 10) : null;
     if (body.expiresAt !== undefined) updates.expiresAt = body.expiresAt ? new Date(body.expiresAt) : null;
 

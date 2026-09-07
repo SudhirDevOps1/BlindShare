@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       message: "Your message has been received. Our team will review it shortly.",
     });
   } catch (err: any) {
-    logger.error("Contact API error", { error: err.message });
+    logger.error("Contact API error", { error: err?.message, stack: err?.stack });
     return NextResponse.json({ error: "Failed to send message" }, { status: 500 });
   }
 }

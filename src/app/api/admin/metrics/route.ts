@@ -4,6 +4,7 @@ import { db, pool } from "@/db";
 import { users, documents, links, viewSessions, systemSettings } from "@/db/schema";
 import { sql, gt } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -160,6 +161,7 @@ export async function GET() {
       ],
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to fetch admin metrics" }, { status: 500 });
+    logger.error("admin.metrics.failed", { message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }

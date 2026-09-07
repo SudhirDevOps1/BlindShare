@@ -5,6 +5,7 @@ import { links, documents, viewSessions } from "@/db/schema";
 import { eq, desc, inArray, gte, and } from "drizzle-orm";
 import { formatDuration } from "@/lib/analytics";
 import { decryptField } from "@/lib/crypto/db-vault";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   const auth = await requireAuth();
@@ -79,6 +80,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "Failed to fetch live investors" }, { status: 500 });
+    logger.error("investors.live.failed", { message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }

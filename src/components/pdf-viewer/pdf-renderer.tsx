@@ -671,7 +671,9 @@ export function PdfRenderer({
         } catch {}
       } catch (err: any) {
         if (!isCancelled) {
-          console.error("PDF Decryption/Render Error:", err);
+          if (process.env.NODE_ENV === "development") {
+            console.error("PDF Decryption/Render Error:", err);
+          }
           setError(err.message || "Failed to decrypt and render document");
           setLoading(false);
         }
@@ -1006,7 +1008,9 @@ export function PdfRenderer({
               }
             }
           } catch (textErr) {
-            console.warn("PDF text layer extraction warning:", textErr);
+            if (process.env.NODE_ENV === "development") {
+              console.warn("PDF text layer extraction warning:", textErr);
+            }
           }
 
           // 5. Render Interactive Clickable Hyperlink Annotations Layer
@@ -1048,7 +1052,9 @@ export function PdfRenderer({
               setPdfLinksCount(linkCount);
             }
           } catch (annotErr) {
-            console.warn("PDF annotations warning:", annotErr);
+            if (process.env.NODE_ENV === "development") {
+              console.warn("PDF annotations warning:", annotErr);
+            }
           }
 
           // Predictive 0ms Pre-Caching for Adjacent Slides
@@ -1063,7 +1069,9 @@ export function PdfRenderer({
         }
       } catch (err: any) {
         if (err?.name !== "RenderingCancelledException") {
-          console.warn("PDF page render warning:", err);
+          if (process.env.NODE_ENV === "development") {
+            console.warn("PDF page render warning:", err);
+          }
         }
       }
     }
@@ -1127,7 +1135,9 @@ export function PdfRenderer({
 
           outputBytes = await pdfDoc.save();
         } catch (watermarkErr) {
-          console.warn("Watermark embedding fallback:", watermarkErr);
+          if (process.env.NODE_ENV === "development") {
+            console.warn("Watermark embedding fallback:", watermarkErr);
+          }
         }
       }
 
@@ -1146,7 +1156,9 @@ export function PdfRenderer({
         URL.revokeObjectURL(url);
       }, 60000);
     } catch (err: any) {
-      console.error("Download error:", err);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Download error:", err);
+      }
     } finally {
       setDownloading(false);
     }
@@ -1343,7 +1355,9 @@ export function PdfRenderer({
       document.body.removeChild(a);
       setTimeout(() => URL.revokeObjectURL(url), 60000);
     } catch (err) {
-      console.error("Failed to generate NDA certificate:", err);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to generate NDA certificate:", err);
+      }
     } finally {
       setGeneratingNda(false);
     }

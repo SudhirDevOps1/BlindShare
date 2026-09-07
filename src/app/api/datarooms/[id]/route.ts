@@ -3,6 +3,8 @@ import { requireAuth } from "@/lib/auth/rbac";
 import { db } from "@/db";
 import { datarooms, dataroomDocs, documents, links } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import { logger } from "@/lib/logger";
+import { decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(
   request: Request,
@@ -44,13 +46,33 @@ export async function GET(
       .from(links)
       .where(eq(links.dataroomId, id));
 
+    const decryptedDr = {
+      ...dr,
+      name: decryptField(dr.name),
+      description: dr.description ? decryptField(dr.description) : null,
+    };
+
+    const decryptedDocs = docs.map((d) => ({
+      ...d,
+      title: decryptField(d.title),
+      originalFilename: decryptField(d.originalFilename),
+    }));
+
+    const decryptedLinks = drLinks.map((l) => ({
+      ...l,
+      name: decryptField(l.name),
+      watermarkText: l.watermarkText ? decryptField(l.watermarkText) : null,
+      ndaText: l.ndaText ? decryptField(l.ndaText) : null,
+    }));
+
     return NextResponse.json({
-      dataroom: dr,
-      documents: docs,
-      links: drLinks,
+      dataroom: decryptedDr,
+      documents: decryptedDocs,
+      links: decryptedLinks,
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to fetch dataroom" }, { status: 500 });
+    logger.error("datarooms.get.failed", { id, message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }
 
@@ -78,6 +100,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Failed to delete dataroom" }, { status: 500 });
+    logger.error("datarooms.delete.failed", { id, message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }

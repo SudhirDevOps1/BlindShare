@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStorageAdapter } from "@/lib/storage";
 import { requireAuth } from "@/lib/auth/rbac";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   try {
@@ -28,6 +29,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Download failed" }, { status: 500 });
+    logger.error("storage.local_download.failed", { message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }

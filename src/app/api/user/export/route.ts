@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth/rbac";
 import { db } from "@/db";
 import { users, documents, links, viewSessions, datarooms } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   const auth = await requireAuth();
@@ -41,6 +42,7 @@ export async function GET() {
       },
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Export failed" }, { status: 500 });
+    logger.error("user.export.failed", { message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }

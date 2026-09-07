@@ -620,7 +620,9 @@ export function MediaRenderer({
         setLoading(false);
       } catch (err: any) {
         if (!cancelled) {
-          console.error("Media Decryption Error:", err);
+          if (process.env.NODE_ENV === "development") {
+            console.error("Media Decryption Error:", err);
+          }
           setError(err.message || "Failed to decrypt and render document");
           setLoading(false);
         }

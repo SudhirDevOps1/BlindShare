@@ -9,6 +9,7 @@ import { adminUserPatchSchema } from "@/lib/validation/schemas";
 import { genId } from "@/lib/ids";
 import { bumpSessionVersion } from "@/lib/auth/session";
 import { logger } from "@/lib/logger";
+import { decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET() {
   const auth = await requireAdmin();
@@ -103,8 +104,9 @@ export async function DELETE(request: Request) {
     const storage = getStorageAdapter();
 
     for (const d of userDocs) {
-      if (d.storageKey) {
-        await storage.deleteObject(d.storageKey);
+      const resolvedStorageKey = decryptField(d.storageKey);
+      if (resolvedStorageKey) {
+        await storage.deleteObject(resolvedStorageKey);
       }
     }
 

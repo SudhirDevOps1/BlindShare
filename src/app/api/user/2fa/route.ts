@@ -13,6 +13,7 @@ import { verifyPassword } from "@/lib/auth/password";
 import { genId } from "@/lib/ids";
 import QRCode from "qrcode";
 import { encryptField, encryptEmail } from "@/lib/crypto/db-vault";
+import { logger } from "@/lib/logger";
 
 async function ensure2faColumns() {
   try {
@@ -169,6 +170,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "2FA operation failed" }, { status: 500 });
+    logger.error("user.2fa.failed", { message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }

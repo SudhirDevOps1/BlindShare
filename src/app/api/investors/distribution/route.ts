@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/auth/rbac";
 import { db } from "@/db";
 import { links, viewSessions } from "@/db/schema";
 import { eq, desc, inArray } from "drizzle-orm";
+import { logger } from "@/lib/logger";
 
 export async function GET() {
   const auth = await requireAuth();
@@ -62,6 +63,7 @@ export async function GET() {
       countries,
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || "Failed to fetch investor distribution" }, { status: 500 });
+    logger.error("investors.distribution.failed", { message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }

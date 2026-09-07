@@ -4,6 +4,8 @@ import { db } from "@/db";
 import { documents } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
+import { logger } from "@/lib/logger";
+import { decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(
   request: Request,
@@ -26,21 +28,25 @@ export async function GET(
     }
 
     const storage = getStorageAdapter();
-    const obj = await storage.getObject(doc.storageKey);
+    const resolvedStorageKey = decryptField(doc.storageKey);
+    const obj = await storage.getObject(resolvedStorageKey);
 
     if (!obj) {
       return NextResponse.json({ error: "Storage object not found" }, { status: 404 });
     }
 
+    const clearFilename = decryptField(doc.originalFilename) || "document";
+
     return new NextResponse(obj.data as any, {
       headers: {
         "Content-Type": "application/octet-stream",
-        "Content-Disposition": `attachment; filename="${encodeURIComponent(doc.originalFilename)}.shercipher"`,
+        "Content-Disposition": `attachment; filename="${encodeURIComponent(clearFilename)}.shercipher"`,
         "X-BlindShare-Mode": doc.encryptionMode,
         "X-BlindShare-IV": doc.ivHex || "",
       },
     });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message || "Download failed" }, { status: 500 });
+    logger.error("docs.download.failed", { id, message: err?.message, stack: err?.stack });
+    return NextResponse.json({ error: "Request failed. Please retry." }, { status: 500 });
   }
 }

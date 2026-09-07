@@ -8,6 +8,7 @@ import { parseBody } from "@/lib/validation";
 import { createVersionSchema } from "@/lib/validation/schemas";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import { encryptField, decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAuth();
@@ -32,9 +33,14 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
       .where(eq(docVersions.docId, id))
       .orderBy(desc(docVersions.versionNum));
 
-    return NextResponse.json({ versions });
+    const decryptedVersions = versions.map((v) => ({
+      ...v,
+      storageKey: decryptField(v.storageKey),
+    }));
+
+    return NextResponse.json({ versions: decryptedVersions });
   } catch (err: any) {
-    logger.error("docs.versions_list_failed", { docId: id, message: err?.message });
+    logger.error("docs.versions_list_failed", { docId: id, message: err?.message, stack: err?.stack });
     return NextResponse.json({ error: "Failed to fetch versions" }, { status: 500 });
   }
 }
@@ -70,12 +76,13 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const presign = await storage.getPresignedPutUrl(versionStorageKey, "application/octet-stream", 600);
     const versionId = genId("ver");
+    const encryptedVersionKey = encryptField(versionStorageKey);
 
     await db.insert(docVersions).values({
       id: versionId,
       docId: id,
       versionNum: newVersionNum,
-      storageKey: versionStorageKey,
+      storageKey: encryptedVersionKey,
       sizeBytes: sizeBytes || doc.sizeBytes,
       pageCount: pageCount || doc.pageCount,
       ivHex: ivHex || null,
@@ -87,7 +94,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       .update(documents)
       .set({
         currentVersion: newVersionNum,
-        storageKey: versionStorageKey,
+        storageKey: encryptedVersionKey,
         sizeBytes: sizeBytes || doc.sizeBytes,
         pageCount: pageCount || doc.pageCount,
         ivHex: ivHex || doc.ivHex,
@@ -113,7 +120,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       storageKey: versionStorageKey,
     });
   } catch (err: any) {
-    logger.error("docs.new_version_failed", { docId: id, message: err?.message });
+    logger.error("docs.new_version_failed", { docId: id, message: err?.message, stack: err?.stack });
     return NextResponse.json({ error: "Failed to create version" }, { status: 500 });
   }
 }

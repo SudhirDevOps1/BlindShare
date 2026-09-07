@@ -4,6 +4,7 @@ import { links, documents, viewSessions } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
 import { logger } from "@/lib/logger";
+import { decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET(
   request: Request,
@@ -127,7 +128,8 @@ export async function GET(
     }
 
     const storage = getStorageAdapter();
-    const obj = await storage.getObject(doc.storageKey);
+    const resolvedStorageKey = decryptField(doc.storageKey);
+    const obj = await storage.getObject(resolvedStorageKey);
 
     if (!obj) {
       return NextResponse.json({ error: "Encrypted payload not found in storage" }, { status: 404 });

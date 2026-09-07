@@ -9,6 +9,7 @@ import { createDocumentSchema } from "@/lib/validation/schemas";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
 import { detectFormat } from "@/lib/formats";
+import { encryptField, decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET() {
   const auth = await requireAuth();
@@ -21,9 +22,16 @@ export async function GET() {
       .where(eq(documents.ownerId, auth.user.id))
       .orderBy(desc(documents.createdAt));
 
-    return NextResponse.json({ documents: userDocs });
+    const decryptedDocs = userDocs.map((d) => ({
+      ...d,
+      title: decryptField(d.title),
+      originalFilename: decryptField(d.originalFilename),
+      storageKey: decryptField(d.storageKey),
+    }));
+
+    return NextResponse.json({ documents: decryptedDocs });
   } catch (err: any) {
-    logger.error("docs.list_failed", { message: err?.message });
+    logger.error("docs.list_failed", { message: err?.message, stack: err?.stack });
     return NextResponse.json({ error: "Failed to fetch documents" }, { status: 500 });
   }
 }
@@ -58,6 +66,7 @@ export async function POST(request: Request) {
 
     const docId = genId("doc");
     const storageKey = `docs/${auth.user.id}/${docId}.cipher`;
+    const encryptedStorageKey = encryptField(storageKey);
     const storage = getStorageAdapter();
 
     if (directCiphertextBase64) {
@@ -79,10 +88,10 @@ export async function POST(request: Request) {
     await db.insert(documents).values({
       id: docId,
       ownerId: auth.user.id,
-      title,
-      originalFilename,
+      title: encryptField(title),
+      originalFilename: encryptField(originalFilename),
       sizeBytes,
-      storageKey,
+      storageKey: encryptedStorageKey,
       encryptionMode: encryptionMode || "e2ee-fragment",
       ivHex: ivHex || null,
       tagHex: tagHex || null,
@@ -97,7 +106,7 @@ export async function POST(request: Request) {
       id: genId("ver"),
       docId,
       versionNum: 1,
-      storageKey,
+      storageKey: encryptedStorageKey,
       sizeBytes,
       pageCount: pageCount || 1,
       ivHex: ivHex || null,
@@ -123,6 +132,6 @@ export async function POST(request: Request) {
     });
   } catch (err: any) {
     logger.error("docs.create_failed", { ownerId: auth.user.id, message: err?.message, stack: err?.stack });
-    return NextResponse.json({ error: err?.message || "Failed to create document" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create document" }, { status: 500 });
   }
 }

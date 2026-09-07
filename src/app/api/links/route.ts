@@ -8,6 +8,7 @@ import { parseBody } from "@/lib/validation";
 import { createLinkSchema } from "@/lib/validation/schemas";
 import { genId, genUnguessableSlug } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import { encryptField, decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET() {
   const auth = await requireAuth();
@@ -50,9 +51,17 @@ export async function GET() {
       .where(eq(links.ownerId, auth.user.id))
       .orderBy(desc(links.createdAt));
 
-    return NextResponse.json({ links: userLinks });
+    const decryptedLinks = userLinks.map((l) => ({
+      ...l,
+      name: decryptField(l.name),
+      watermarkText: l.watermarkText ? decryptField(l.watermarkText) : null,
+      docTitle: l.docTitle ? decryptField(l.docTitle) : null,
+      dataroomName: l.dataroomName ? decryptField(l.dataroomName) : null,
+    }));
+
+    return NextResponse.json({ links: decryptedLinks });
   } catch (err: any) {
-    logger.error("links.list_failed", { message: err?.message });
+    logger.error("links.list_failed", { message: err?.message, stack: err?.stack });
     return NextResponse.json({ error: "Failed to fetch links" }, { status: 500 });
   }
 }
@@ -146,7 +155,7 @@ export async function POST(request: Request) {
       dataroomId: dataroomId || null,
       ownerId: auth.user.id,
       slug: finalSlug,
-      name,
+      name: encryptField(name),
       isActive: true,
       isRevoked: false,
       passwordHash,
@@ -156,9 +165,9 @@ export async function POST(request: Request) {
       allowedDomains: allowedDomains ? allowedDomains.trim().toLowerCase() : null,
       allowDownload: Boolean(allowDownload),
       watermarkEnabled: watermarkEnabled !== undefined ? Boolean(watermarkEnabled) : true,
-      watermarkText: watermarkText || null,
+      watermarkText: watermarkText ? encryptField(watermarkText) : null,
       requiresNda: Boolean(requiresNda),
-      ndaText: ndaText || null,
+      ndaText: ndaText ? encryptField(ndaText) : null,
       requiresSignature: Boolean(requiresSignature),
       signaturePrompt: signaturePrompt || null,
       webhookUrl: webhookUrl || null,
@@ -186,6 +195,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, linkId, slug: finalSlug });
   } catch (err: any) {
     logger.error("links.create_failed", { ownerId: auth.user.id, message: err?.message, stack: err?.stack });
-    return NextResponse.json({ error: err?.message || "Failed to create link" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create link" }, { status: 500 });
   }
 }
