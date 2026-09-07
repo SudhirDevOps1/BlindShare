@@ -33,13 +33,21 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
   React.useEffect(() => {
     if (!isOpen) return;
 
-    // Dynamic import of ALTCHA bundle if not already loaded
+    // Dynamic import of ALTCHA bundle (self-hosted first for CSP 'self' compliance, CDN fallback)
     if (typeof window !== "undefined" && !customElements.get("altcha-widget")) {
       const s = document.createElement("script");
       s.type = "module";
-      s.src = "https://cdn.jsdelivr.net/npm/altcha/dist/altcha.min.js";
+      s.src = "/vendor/altcha.min.js";
       s.async = true;
       s.defer = true;
+      s.onerror = () => {
+        const fallback = document.createElement("script");
+        fallback.type = "module";
+        fallback.src = "https://cdn.jsdelivr.net/npm/altcha/dist/altcha.min.js";
+        fallback.async = true;
+        fallback.defer = true;
+        document.head.appendChild(fallback);
+      };
       document.head.appendChild(s);
     }
 

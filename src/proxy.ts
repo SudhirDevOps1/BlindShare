@@ -84,15 +84,15 @@ export async function proxy(request: NextRequest) {
   const isDev = process.env.NODE_ENV === "development";
   const csp = [
     "default-src 'self'",
-    // self-hosted pdf.js with CDN fallback and blob workers
-    `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://cdnjs.cloudflare.com`,
+    // self-hosted pdf.js with CDN fallback, ALTCHA PoW anti-spam, and blob workers
+    `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval'" : ""} https://cdnjs.cloudflare.com https://cdn.jsdelivr.net`,
     "worker-src 'self' blob:",
     "child-src 'self' blob:",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob:",
     "media-src 'self' blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https: https://*.workers.dev https://cdnjs.cloudflare.com blob: data:",
+    "connect-src 'self' https: https://*.workers.dev https://cdnjs.cloudflare.com https://cdn.jsdelivr.net blob: data:",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
