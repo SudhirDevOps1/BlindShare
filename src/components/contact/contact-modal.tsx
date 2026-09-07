@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { MessageSquare, X, Send, CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
+import { MessageSquare, X, Send, CheckCircle2, AlertCircle, Loader2, User, Mail } from "lucide-react";
 
 interface ContactModalProps {
   isOpen: boolean;
@@ -9,16 +9,58 @@ interface ContactModalProps {
 }
 
 export function ContactModal({ isOpen, onClose }: ContactModalProps) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [honeypot, setHoneypot] = useState("");
   const [loading, setLoading] = useState(false);
   const loadingRef = useRef(false);
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState("");
 
-  if (!isOpen) return null;
+  // Turnstile-Styled ALTCHA Anti-Spam state
+  const widgetRef = useRef<HTMLElement | null>(null);
+  const [altchaSolvedMs, setAltchaSolvedMs] = useState<number | null>(null);
+  const [altchaPayload, setAltchaPayload] = useState<string>("");
 
   const endpoint = process.env.NEXT_PUBLIC_CONTACT_FORM_ACTION || "";
+  const challengeUrl =
+    process.env.NEXT_PUBLIC_ALTCHA_CHALLENGE_URL ||
+    (endpoint.includes("/api/submit/")
+      ? endpoint.replace(/\/api\/submit\/.*$/, "/api/altcha/challenge")
+      : "https://apnaform.sudhirdevops1.workers.dev/api/altcha/challenge");
+
+  React.useEffect(() => {
+    if (!isOpen) return;
+
+    // Dynamic import of ALTCHA bundle if not already loaded
+    if (typeof window !== "undefined" && !customElements.get("altcha-widget")) {
+      const s = document.createElement("script");
+      s.type = "module";
+      s.src = "https://cdn.jsdelivr.net/npm/altcha/dist/altcha.min.js";
+      s.async = true;
+      s.defer = true;
+      document.head.appendChild(s);
+    }
+
+    const el = widgetRef.current;
+    if (!el) return;
+    let s = 0;
+    const onStateChange = (e: any) => {
+      if (e.detail?.state === "verifying") s = performance.now();
+      if (e.detail?.state === "verified") {
+        const ms = Math.round(performance.now() - s);
+        setAltchaSolvedMs(ms);
+        if (e.detail?.payload) {
+          setAltchaPayload(e.detail.payload);
+        }
+      }
+    };
+    el.addEventListener("statechange", onStateChange);
+    return () => el.removeEventListener("statechange", onStateChange);
+  }, [isOpen]);
+
+  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -26,30 +68,56 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
     loadingRef.current = true;
 
     setLoading(true);
+    setError("");
+
+    const formEl = e.currentTarget;
+    const altchaInput = formEl.querySelector<HTMLInputElement>('input[name="altcha"]');
+    const token = altchaPayload || altchaInput?.value || "";
+
+    const payload = {
+      name: name.trim() || undefined,
+      email: email.trim(),
+      message: message.trim(),
+      website: honeypot || undefined,
+      altcha: token || undefined,
+    };
 
     try {
-      if (endpoint) {
-        const fd = new FormData();
-        fd.append("email", email.trim());
-        fd.append("message", message.trim());
-        fd.append("website", honeypot);
+      // 1. Primary submit to internal /api/contact route
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-        await fetch(endpoint, {
-          method: "POST",
-          body: fd,
-          mode: "no-cors",
-        }).catch(() => {
-          return fetch(endpoint, {
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(data.error || data.message || "Failed to dispatch message. Please check details and retry.");
+      }
+
+      // 2. FormForge / external webhook sync if configured (JSON payload compliant with ALTCHA)
+      if (endpoint) {
+        try {
+          await fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: email.trim(), message: message.trim(), website: honeypot }),
-            mode: "no-cors",
+            body: JSON.stringify({
+              name: name.trim() || "Anonymous",
+              email: email.trim(),
+              message: message.trim(),
+              website: honeypot,
+              altcha: token,
+            }),
           });
-        });
+        } catch {
+          // Non-blocking fallback for external webhook
+        }
       }
+
       setSubmitted(true);
-    } catch {
-      setSubmitted(true);
+    } catch (err: any) {
+      setError(err?.message || "Failed to send message. Please retry.");
     } finally {
       loadingRef.current = false;
       setLoading(false);
@@ -79,8 +147,10 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
             <button
               onClick={() => {
                 setSubmitted(false);
+                setName("");
                 setEmail("");
                 setMessage("");
+                setError("");
                 onClose();
               }}
               className="mt-4 rounded-xl bg-amber-500 px-5 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 transition-colors"
@@ -101,30 +171,70 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-rose-500/10 border border-rose-500/25 text-xs text-rose-400 animate-in fade-in duration-200">
+                  <AlertCircle className="h-4 w-4 shrink-0" />
+                  <span>{error}</span>
+                </div>
+              )}
+
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                  Your Email
+                  Your Name
                 </label>
-                <input
-                  name="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@example.com"
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
-                />
+                <div className="relative">
+                  <User className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                  <input
+                    name="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      if (error) setError("");
+                    }}
+                    placeholder="Your Name (e.g. Alex Doe)"
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                  />
+                </div>
               </div>
 
               <div>
                 <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                  Message / Feedback
+                  Your Email
                 </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-500" />
+                  <input
+                    name="email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (error) setError("");
+                    }}
+                    placeholder="name@example.com"
+                    className="w-full pl-9 pr-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                    Message / Feedback
+                  </label>
+                  <span className="text-[10px] text-slate-500">Min. 5 characters</span>
+                </div>
                 <textarea
                   name="message"
                   required
+                  minLength={5}
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={(e) => {
+                    setMessage(e.target.value);
+                    if (error) setError("");
+                  }}
                   placeholder="Type your feedback, bug report, or inquiry here..."
                   rows={4}
                   className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition resize-none"
@@ -140,6 +250,34 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
                 value={honeypot}
                 onChange={(e) => setHoneypot(e.target.value)}
               />
+
+              {/* Turnstile-Styled ALTCHA Proof-of-Work Anti-Spam Widget */}
+              <div className="pt-1 pb-1">
+                {React.createElement("altcha-widget", {
+                  ref: widgetRef,
+                  challengeurl: challengeUrl,
+                  style: {
+                    "--altcha-max-width": "100%",
+                    "--altcha-border-radius": "12px",
+                    "--altcha-color-base": "#0f172a",
+                    "--altcha-color-border": "#334155",
+                    "--altcha-color-text": "#f8fafc",
+                  } as React.CSSProperties,
+                })}
+                {altchaSolvedMs !== null && (
+                  <div
+                    id="altcha-timer"
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: "11px",
+                      color: "#34d399",
+                      marginTop: "4px",
+                    }}
+                  >
+                    ⚡ Solved in {altchaSolvedMs}ms (Proof-of-Work)
+                  </div>
+                )}
+              </div>
 
               <button
                 type="submit"

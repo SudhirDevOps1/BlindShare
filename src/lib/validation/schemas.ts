@@ -277,6 +277,7 @@ export const contactSchema = z.object({
   subject: z.string().trim().max(200).optional(),
   message: z.string().trim().min(5, "Message must be at least 5 characters").max(5000),
   website: z.string().max(100).optional(), // Honeypot field
+  altcha: z.string().optional(),
 });
 
 /**
