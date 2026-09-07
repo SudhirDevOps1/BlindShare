@@ -51,8 +51,10 @@ export function BrandHeader() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [twoFactorModalOpen, setTwoFactorModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     if (isAuthRoute) {
       setUser(null);
       try {
@@ -98,7 +100,7 @@ export function BrandHeader() {
     window.location.href = "/login";
   };
 
-  const showDashboardNav = !isAuthRoute && Boolean(user || isDashboardRoute);
+  const showDashboardNav = mounted && !isAuthRoute && Boolean(user || isDashboardRoute);
 
   const navLinks = showDashboardNav
     ? [

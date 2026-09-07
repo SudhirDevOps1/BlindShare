@@ -180,11 +180,12 @@ export function BrandFooter() {
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-bold text-amber-400 hover:text-amber-300 hover:underline transition-colors ml-0.5"
+                  suppressHydrationWarning
                 >
                   {devProfile.name}
                 </a>
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5">
+              <p className="text-[11px] text-slate-400 mt-0.5" suppressHydrationWarning>
                 {devProfile.tagline || "Lead Creator & Maintainer • Zero-Knowledge Vault"}
               </p>
             </div>
@@ -213,7 +214,7 @@ export function BrandFooter() {
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-[11px]">
           <div className="flex flex-wrap items-center gap-2">
-            <span>© {new Date().getFullYear()} {appName} v1.4.0. 100% Free & Open Source under MIT License.</span>
+            <span suppressHydrationWarning>© {new Date().getFullYear()} {appName} v1.4.0. 100% Free & Open Source under MIT License.</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-slate-500">Honest Note: Watermarks & Anti-Download are deterrents, not DRM.</span>

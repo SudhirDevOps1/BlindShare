@@ -193,3 +193,106 @@ export async function unlockVaultWithPasskeyPrf(
 
   return masterKey;
 }
+
+/**
+ * Performs a live test assertion of the registered passkey to verify hardware enclave communication.
+ */
+export async function testPasskeyPrfAssertion(credentialIdBase64?: string): Promise<{
+  success: boolean;
+  prfEvaluated: boolean;
+  durationMs: number;
+}> {
+  if (!isWebAuthnAvailable()) {
+    throw new Error("WebAuthn is not supported in this browser.");
+  }
+
+  const startTime = performance.now();
+  const credIdStr =
+    credentialIdBase64 ||
+    (typeof window !== "undefined" ? localStorage.getItem("blindshare_passkey_cred_id") : null);
+
+  const challenge = new Uint8Array(32);
+  window.crypto.getRandomValues(challenge);
+  const testSalt = new TextEncoder().encode("blindshare-test-verification-salt");
+
+  const allowCredentials: PublicKeyCredentialDescriptor[] = credIdStr
+    ? [{ id: base64UrlToUint8Array(credIdStr) as unknown as BufferSource, type: "public-key" }]
+    : [];
+
+  const requestOptions: CredentialRequestOptions = {
+    publicKey: {
+      challenge,
+      timeout: 60000,
+      userVerification: "preferred",
+      allowCredentials: allowCredentials.length > 0 ? allowCredentials : undefined,
+      extensions: {
+        prf: {
+          eval: {
+            first: testSalt,
+          },
+        },
+      } as any,
+    },
+  };
+
+  const assertion = (await navigator.credentials.get(requestOptions)) as PublicKeyCredential | null;
+  const durationMs = Math.round(performance.now() - startTime);
+
+  if (!assertion) {
+    throw new Error("Biometric verification was cancelled by user.");
+  }
+
+  const extensionResults = assertion.getClientExtensionResults() as any;
+  const prfEvaluated = Boolean(extensionResults?.prf?.results?.first);
+
+  return {
+    success: true,
+    prfEvaluated,
+    durationMs,
+  };
+}
+
+/**
+ * Synchronizes registered passkey metadata with the account database.
+ */
+export async function syncPasskeyToDb(
+  credentialId: string,
+  prfSupported: boolean,
+  label?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch("/api/user/passkey", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credentialId, prfSupported, label }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      return { success: false, error: data.error || "Failed to sync passkey to database" };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Network error syncing passkey" };
+  }
+}
+
+/**
+ * Removes registered passkey metadata from both localStorage and database.
+ */
+export async function removePasskeyFromDb(): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("blindshare_passkey_cred_id");
+      localStorage.removeItem("blindshare_passkey_prf_enabled");
+    }
+    const res = await fetch("/api/user/passkey", { method: "DELETE" });
+    const data = await res.json();
+    if (!res.ok) {
+      return { success: false, error: data.error || "Failed to remove passkey from database" };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || "Network error removing passkey" };
+  }
+}
+

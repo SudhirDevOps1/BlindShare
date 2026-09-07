@@ -34,11 +34,24 @@ import {
   Laptop,
   Loader2,
   Fingerprint,
+  Info,
+  CheckCircle2,
+  XCircle,
+  Key,
+  RefreshCw,
 } from "lucide-react";
 import { PasswordStrengthMeter, evaluatePassword } from "@/components/auth/password-strength";
 import { TwoFactorModal } from "@/components/auth/two-factor-modal";
 import { lockOwnerVault, isVaultUnlocked } from "@/lib/vault/master-vault";
-import { registerPasskeyWithPrf, isWebAuthnAvailable } from "@/lib/vault/webauthn-prf";
+import {
+  registerPasskeyWithPrf,
+  isWebAuthnAvailable,
+  testPasskeyPrfAssertion,
+  syncPasskeyToDb,
+  removePasskeyFromDb,
+} from "@/lib/vault/webauthn-prf";
+import type { UserSecuritySettings } from "@/app/api/user/settings/route";
+import type { UserPasskeyMetadata } from "@/app/api/user/passkey/route";
 import {
   DeveloperProfile,
   getDefaultDeveloperProfile,
@@ -123,6 +136,36 @@ export default function SettingsPage() {
 
   // Cold Vault Manifest Export State
   const [exportingVault, setExportingVault] = useState(false);
+
+  // Hardware Passkey Suite State (Permanent Account DB Bound)
+  const [passkeyMetadata, setPasskeyMetadata] = useState<UserPasskeyMetadata | null>(null);
+  const [registeringPasskey, setRegisteringPasskey] = useState(false);
+  const [testingPasskey, setTestingPasskey] = useState(false);
+  const [removingPasskey, setRemovingPasskey] = useState(false);
+  const [passkeyGuideOpen, setPasskeyGuideOpen] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  const persistUserSettings = async (updates: Partial<UserSecuritySettings>, successMsg?: string) => {
+    try {
+      setSavingSettings(true);
+      const res = await fetch("/api/user/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to persist settings");
+      }
+      if (successMsg) {
+        setMessage({ type: "success", text: successMsg });
+      }
+    } catch (err: any) {
+      setMessage({ type: "error", text: err?.message || "Failed to persist settings to database" });
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -230,20 +273,19 @@ export default function SettingsPage() {
     }
   };
 
-  const handleToggleCursorFx = () => {
+  const handleToggleCursorFx = async () => {
     const next = !cursorFxEnabled;
     setCursorFxEnabled(next);
     localStorage.setItem("blindshare_crypto_cursor_dashboard", next ? "true" : "false");
     window.dispatchEvent(new Event("blindshare-cursor-toggle"));
-    setMessage({
-      type: "success",
-      text: next
-        ? (lang === "hi" ? "साइबर पेट और कर्सर प्रभाव डैशबोर्ड में सक्रिय किया गया!" : "Cyber Pet & Cursor FX enabled in dashboard!")
-        : (lang === "hi" ? "कर्सर प्रभाव अक्षम किया गया (न्यूनतम कार्यक्षेत्र)।" : "Cursor FX disabled in dashboard (clean workspace)."),
-    });
+    await persistUserSettings(
+      { cursorFxEnabled: next },
+      next
+        ? (lang === "hi" ? "साइबर पेट और कर्सर प्रभाव डैशबोर्ड में सक्रिय व डेटाबेस में सुरक्षित हुआ!" : "Cyber Pet & Cursor FX enabled and saved to database!")
+        : (lang === "hi" ? "कर्सर प्रभाव अक्षम व डेटाबेस में सुरक्षित हुआ (न्यूनतम कार्यक्षेत्र)।" : "Cursor FX disabled and saved to database.")
+    );
   };
 
-  const [registeringPasskey, setRegisteringPasskey] = useState(false);
   const handleRegisterPasskey = async () => {
     try {
       setRegisteringPasskey(true);
@@ -258,15 +300,29 @@ export default function SettingsPage() {
       }
       const username = user?.email || "founder@blindshare.local";
       const res = await registerPasskeyWithPrf(username, user?.name || "BlindShare Founder");
+
+      const label = "Hardware Security Enclave (FIPS 140 / PRF)";
+      const syncRes = await syncPasskeyToDb(res.credentialId, res.prfSupported, label);
+      if (!syncRes.success) {
+        throw new Error(syncRes.error);
+      }
+
+      setPasskeyMetadata({
+        credentialId: res.credentialId,
+        prfSupported: res.prfSupported,
+        label,
+        registeredAt: new Date().toISOString(),
+      });
+
       setMessage({
         type: "success",
         text: lang === "hi"
           ? (res.prfSupported
-              ? "बायोमेट्रिक पासकी (Touch ID / Windows Hello / YubiKey) हार्डवेयर सिक्योर एन्क्लेव के साथ सफलतापूर्वक पंजीकृत हुई!"
-              : "हार्डवेयर पासकी पंजीकृत हुई (ब्राउज़र ने PRF एक्सटेंशन फ्लैग वापस नहीं दिया)।")
+              ? "बायोमेट्रिक पासकी (Touch ID / Windows Hello / YubiKey) हार्डवेयर सिक्योर एन्क्लेव के साथ सफलतापूर्वक पंजीकृत और डेटाबेस में सुरक्षित हुई!"
+              : "हार्डवेयर पासकी पंजीकृत और डेटाबेस में सुरक्षित हुई (ब्राउज़र ने PRF एक्सटेंशन फ्लैग वापस नहीं दिया)।")
           : (res.prfSupported
-              ? "Hardware Passkey registered with PRF Secure Enclave encryption!"
-              : "Hardware Passkey registered! (Note: PRF extension was not returned by browser/OS)."),
+              ? "Hardware Passkey registered and permanently bound to your account in database!"
+              : "Hardware Passkey registered and saved to account database! (Note: PRF extension not returned by OS)."),
       });
     } catch (err: any) {
       setMessage({
@@ -275,6 +331,54 @@ export default function SettingsPage() {
       });
     } finally {
       setRegisteringPasskey(false);
+    }
+  };
+
+  const handleTestPasskey = async () => {
+    try {
+      setTestingPasskey(true);
+      setMessage(null);
+      const res = await testPasskeyPrfAssertion(passkeyMetadata?.credentialId);
+      setMessage({
+        type: "success",
+        text: lang === "hi"
+          ? `बायोमेट्रिक प्रमाणीकरण सफल रहा (${res.durationMs}ms)! हार्डवेयर सिक्योर एन्क्लेव सुचारू रूप से कार्य कर रहा है।`
+          : `Biometric passkey verified successfully (${res.durationMs}ms)! Hardware enclave communicated without errors.`,
+      });
+    } catch (err: any) {
+      setMessage({
+        type: "error",
+        text: err?.message || (lang === "hi" ? "पासकी परीक्षण विफल रहा।" : "Passkey test verification failed."),
+      });
+    } finally {
+      setTestingPasskey(false);
+    }
+  };
+
+  const handleRemovePasskey = async () => {
+    if (!window.confirm(lang === "hi" ? "क्या आप वाकई इस हार्डवेयर पासकी को हटाना चाहते हैं?" : "Are you sure you want to remove this hardware passkey?")) {
+      return;
+    }
+    try {
+      setRemovingPasskey(true);
+      const res = await removePasskeyFromDb();
+      if (!res.success) {
+        throw new Error(res.error);
+      }
+      setPasskeyMetadata(null);
+      setMessage({
+        type: "success",
+        text: lang === "hi"
+          ? "हार्डवेयर पासकी आपके खाते और डेटाबेस से हटा दी गई।"
+          : "Hardware passkey successfully removed from your account database.",
+      });
+    } catch (err: any) {
+      setMessage({
+        type: "error",
+        text: err?.message || (lang === "hi" ? "पासकी हटाने में विफल।" : "Failed to remove passkey."),
+      });
+    } finally {
+      setRemovingPasskey(false);
     }
   };
 
@@ -289,18 +393,18 @@ export default function SettingsPage() {
     });
   };
 
-  const handleUpdateIdleLock = (val: string) => {
+  const handleUpdateIdleLock = async (val: string) => {
     setIdleLockMinutes(val);
     localStorage.setItem("blindshare_idle_lock_minutes", val);
-    setMessage({
-      type: "success",
-      text: lang === "hi"
-        ? `निष्क्रियता ऑटो-लॉक ${val === "0" ? "अक्षम" : `${val} मिनट`} पर सेट किया गया।`
-        : `Inactivity auto-lock configured to ${val === "0" ? "Never" : `${val} minutes`}.`,
-    });
+    await persistUserSettings(
+      { idleLockMinutes: val },
+      lang === "hi"
+        ? `निष्क्रियता ऑटो-लॉक ${val === "0" ? "अक्षम" : `${val} मिनट`} पर सेट व डेटाबेस में सुरक्षित किया गया।`
+        : `Inactivity auto-lock configured to ${val === "0" ? "Never" : `${val} minutes`} and saved to database.`
+    );
   };
 
-  const handleSavePresets = (e: React.FormEvent) => {
+  const handleSavePresets = async (e: React.FormEvent) => {
     e.preventDefault();
     const presets = {
       watermarkEnabled: presetWatermark,
@@ -311,15 +415,15 @@ export default function SettingsPage() {
       defaultExpiryDays: presetExpiryDays,
     };
     localStorage.setItem("blindshare_link_presets", JSON.stringify(presets));
-    setMessage({
-      type: "success",
-      text: lang === "hi"
-        ? "लिंक स्टूडियो डिफ़ॉल्ट सुरक्षा नीतियां सहेज ली गईं! नए लिंक पर स्वतः लागू होंगी।"
-        : "Default link security policy saved! New links created in Link Studio will adopt these presets.",
-    });
+    await persistUserSettings(
+      { linkPresets: presets },
+      lang === "hi"
+        ? "लिंक स्टूडियो डिफ़ॉल्ट सुरक्षा नीतियां डेटाबेस में सुरक्षित हो गईं! नए लिंक पर स्वतः लागू होंगी।"
+        : "Default link security policy saved to database! New links will adopt these presets permanently."
+    );
   };
 
-  const handleToggleAlert = (key: "newDevice" | "bruteForce" | "linkBurned" | "printAttempt") => {
+  const handleToggleAlert = async (key: "newDevice" | "bruteForce" | "linkBurned" | "printAttempt") => {
     const updated = {
       newDevice: key === "newDevice" ? !alertNewDevice : alertNewDevice,
       bruteForce: key === "bruteForce" ? !alertBruteForce : alertBruteForce,
@@ -331,10 +435,10 @@ export default function SettingsPage() {
     if (key === "linkBurned") setAlertLinkBurned(updated.linkBurned);
     if (key === "printAttempt") setAlertPrintAttempt(updated.printAttempt);
     localStorage.setItem("blindshare_security_alerts", JSON.stringify(updated));
-    setMessage({
-      type: "success",
-      text: lang === "hi" ? "अलर्ट प्राथमिकताएं सुरक्षित हो गईं।" : "Security alert preferences saved.",
-    });
+    await persistUserSettings(
+      { securityAlerts: updated },
+      lang === "hi" ? "अलर्ट प्राथमिकताएं डेटाबेस में सुरक्षित हो गईं।" : "Security alert preferences saved permanently to database."
+    );
   };
 
   const handleSendTestAlert = () => {
@@ -350,7 +454,7 @@ export default function SettingsPage() {
     }, 600);
   };
 
-  const handleToggleStrictMemory = () => {
+  const handleToggleStrictMemory = async () => {
     const next = !strictMemoryIsolation;
     setStrictMemoryIsolation(next);
     localStorage.setItem("blindshare_strict_memory_isolation", next ? "true" : "false");
@@ -359,12 +463,27 @@ export default function SettingsPage() {
         sessionStorage.removeItem("blindshare_master_vault_token");
       } catch {}
     }
-    setMessage({
-      type: "success",
-      text: next
-        ? (lang === "hi" ? "सख्त रैम अलगाव (Zero Bleed) सक्रिय किया गया। केवल वोलेटाइल मेमोरी।" : "Strict Hardware & Memory Isolation activated. Pure volatile RAM mode.")
-        : (lang === "hi" ? "मानक प्रदर्शन मोड सक्रिय।" : "Standard performance mode activated."),
-    });
+    await persistUserSettings(
+      { strictMemoryIsolation: next },
+      next
+        ? (lang === "hi" ? "सख्त रैम अलगाव (Zero Bleed) सक्रिय व डेटाबेस में सुरक्षित किया गया।" : "Strict Hardware & Memory Isolation activated and saved to database.")
+        : (lang === "hi" ? "मानक प्रदर्शन मोड सक्रिय व डेटाबेस में सुरक्षित किया गया।" : "Standard performance mode activated and saved to database.")
+    );
+  };
+
+  const handleKdfAlgoChange = async (algo: "pbkdf2" | "argon2id") => {
+    setKdfAlgo(algo);
+    localStorage.setItem("blindshare_kdf_algo", algo);
+    await persistUserSettings(
+      { kdfAlgo: algo },
+      lang === "hi"
+        ? (algo === "argon2id"
+            ? "Argon2id मेमोरी-हार्ड KDF सक्रिय व डेटाबेस में सुरक्षित हुआ! GPU/ASIC हमलों से पूर्ण सुरक्षा।"
+            : "PBKDF2 (100k राउंड्स) मानक सक्रिय व डेटाबेस में सुरक्षित हुआ।")
+        : (algo === "argon2id"
+            ? "Argon2id Memory-Hard KDF activated and saved to database! GPU/ASIC resistance enabled."
+            : "PBKDF2 (100k rounds) standard activated and saved to database.")
+    );
   };
 
   const handleExportVaultManifest = () => {
@@ -422,6 +541,67 @@ export default function SettingsPage() {
           setUser(d.user);
           setEditName(d.user.name || "");
           setEditEmail(d.user.email || "");
+
+          // Load User Settings from Database
+          fetch("/api/user/settings")
+            .then((r) => r.json())
+            .then((sData) => {
+              if (sData?.settings) {
+                const s = sData.settings;
+                if (s.kdfAlgo) {
+                  setKdfAlgo(s.kdfAlgo);
+                  localStorage.setItem("blindshare_kdf_algo", s.kdfAlgo);
+                }
+                if (s.idleLockMinutes) {
+                  setIdleLockMinutes(s.idleLockMinutes);
+                  localStorage.setItem("blindshare_idle_lock_minutes", s.idleLockMinutes);
+                }
+                if (typeof s.cursorFxEnabled === "boolean") {
+                  setCursorFxEnabled(s.cursorFxEnabled);
+                  localStorage.setItem("blindshare_crypto_cursor_dashboard", String(s.cursorFxEnabled));
+                }
+                if (typeof s.strictMemoryIsolation === "boolean") {
+                  setStrictMemoryIsolation(s.strictMemoryIsolation);
+                  localStorage.setItem("blindshare_strict_memory_isolation", String(s.strictMemoryIsolation));
+                }
+                if (typeof s.weeklyDigestEnabled === "boolean") {
+                  setWeeklyDigestEnabled(s.weeklyDigestEnabled);
+                }
+                if (s.linkPresets) {
+                  const lp = s.linkPresets;
+                  if (typeof lp.watermarkEnabled === "boolean") setPresetWatermark(lp.watermarkEnabled);
+                  if (typeof lp.requiresEmail === "boolean") setPresetRequiresEmail(lp.requiresEmail);
+                  if (typeof lp.requiresNda === "boolean") setPresetRequiresNda(lp.requiresNda);
+                  if (typeof lp.burnAfterReading === "boolean") setPresetBurnAfterReading(lp.burnAfterReading);
+                  if (typeof lp.antiLeakBlurEnabled === "boolean") setPresetAntiLeakBlur(lp.antiLeakBlurEnabled);
+                  if (lp.defaultExpiryDays) setPresetExpiryDays(String(lp.defaultExpiryDays));
+                  localStorage.setItem("blindshare_link_presets", JSON.stringify(lp));
+                }
+                if (s.securityAlerts) {
+                  const sa = s.securityAlerts;
+                  if (typeof sa.newDevice === "boolean") setAlertNewDevice(sa.newDevice);
+                  if (typeof sa.bruteForce === "boolean") setAlertBruteForce(sa.bruteForce);
+                  if (typeof sa.linkBurned === "boolean") setAlertLinkBurned(sa.linkBurned);
+                  if (typeof sa.printAttempt === "boolean") setAlertPrintAttempt(sa.printAttempt);
+                  localStorage.setItem("blindshare_security_alerts", JSON.stringify(sa));
+                }
+              }
+            })
+            .catch(() => {});
+
+          // Load Registered Passkey from Database
+          fetch("/api/user/passkey")
+            .then((r) => r.json())
+            .then((pData) => {
+              if (pData?.passkey) {
+                setPasskeyMetadata(pData.passkey);
+                localStorage.setItem("blindshare_passkey_cred_id", pData.passkey.credentialId);
+                localStorage.setItem("blindshare_passkey_prf_enabled", String(pData.passkey.prfSupported));
+              } else {
+                setPasskeyMetadata(null);
+              }
+            })
+            .catch(() => {});
         }
       })
       .catch(() => {});
@@ -796,35 +976,159 @@ export default function SettingsPage() {
           </div>
 
           {/* Sub-card 2: Hardware Passkeys via WebAuthn PRF */}
-          <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <div className="text-xs font-bold text-white flex items-center gap-2">
-                <Fingerprint className="h-3.5 w-3.5 text-cyan-400" />
-                <span>{lang === "hi" ? "बायोमेट्रिक पासकी / हार्डवेयर सुरक्षा कुंजी (FIPS 140 / PRF)" : "Biometric Passkey / Hardware Key (FIPS 140 / WebAuthn PRF)"}</span>
+          <div className="rounded-xl border border-slate-800/80 bg-slate-950/50 p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-900 pb-3">
+              <div className="space-y-0.5">
+                <div className="text-xs font-bold text-white flex items-center gap-2">
+                  <Fingerprint className="h-4 w-4 text-cyan-400" />
+                  <span>{lang === "hi" ? "बायोमेट्रिक पासकी / हार्डवेयर सुरक्षा कुंजी (FIPS 140 / PRF)" : "Biometric Passkey / Hardware Key (FIPS 140 / WebAuthn PRF)"}</span>
+                </div>
+                <p className="text-[11px] text-slate-400 max-w-xl">
+                  {lang === "hi"
+                    ? "डिवाइस के मूल बायोमेट्रिक (Touch ID / Windows Hello) या YubiKey द्वारा मास्टर वॉल्ट को सीधे हार्डवेयर सिक्योर एन्क्लेव से शून्य-ज्ञान अनलॉक करें।"
+                    : "W3C WebAuthn Level 3 PRF extension unlocks the Owner Master Key Vault via Touch ID, Windows Hello, or YubiKey hardware secure enclaves in sub-50ms."}
+                </p>
               </div>
-              <p className="text-[11px] text-slate-400 max-w-lg">
-                {lang === "hi"
-                  ? "डिवाइस के मूल फिंगरप्रिंट (Touch ID / Windows Hello) या YubiKey द्वारा मास्टर वॉल्ट को सीधे हार्डवेयर चिप से शून्य-ज्ञान अनलॉक करने की सुविधा।"
-                  : "W3C WebAuthn Level 3 PRF extension unlocks the Owner Master Key Vault via Touch ID, Windows Hello, or YubiKey hardware secure enclaves in sub-50ms."}
-              </p>
+              <div className="flex items-center gap-2 shrink-0">
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold border ${
+                    passkeyMetadata
+                      ? "border-cyan-500/40 bg-cyan-500/10 text-cyan-300"
+                      : "border-slate-800 bg-slate-900 text-slate-400"
+                  }`}
+                >
+                  {passkeyMetadata ? (
+                    <>
+                      <CheckCircle2 className="h-3 w-3 text-cyan-400" />
+                      <span>{lang === "hi" ? "पासकी सक्रिय एवं सुरक्षित ✓" : "Passkey Active & Bound ✓"}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="h-1.5 w-1.5 rounded-full bg-slate-500" />
+                      <span>{lang === "hi" ? "कॉन्फ़िगर नहीं" : "Not Configured"}</span>
+                    </>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPasskeyGuideOpen(!passkeyGuideOpen)}
+                  className="rounded-lg border border-slate-800 bg-slate-900/90 p-1 text-slate-400 hover:text-white hover:border-slate-700 transition"
+                  title="How Passkey Works"
+                >
+                  <Info className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
-            <button
-              type="button"
-              onClick={handleRegisterPasskey}
-              disabled={registeringPasskey}
-              className="flex items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-950/40 px-4 py-2 text-xs font-bold text-cyan-300 hover:bg-cyan-900/40 transition-colors shrink-0 disabled:opacity-50"
-            >
-              {registeringPasskey ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Fingerprint className="h-3.5 w-3.5" />
-              )}
-              <span>
-                {registeringPasskey
-                  ? (lang === "hi" ? "पासकी दर्ज हो रही है..." : "Registering...")
-                  : (lang === "hi" ? "हार्डवेयर पासकी पंजीकृत करें" : "Register Hardware Passkey")}
-              </span>
-            </button>
+
+            {/* If passkey is registered: show credential metadata and action buttons */}
+            {passkeyMetadata ? (
+              <div className="space-y-3">
+                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3.5 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <Key className="h-3.5 w-3.5 text-amber-400" />
+                      <span className="font-semibold text-slate-200">
+                        {passkeyMetadata.label || "Hardware Security Enclave"}
+                      </span>
+                      <span className="rounded bg-cyan-500/10 px-1.5 py-0.5 text-[10px] font-mono font-bold text-cyan-300 border border-cyan-500/20">
+                        {passkeyMetadata.prfSupported ? "PRF HW Enclave" : "Standard WebAuthn"}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-400 font-mono">
+                      <span>ID: {passkeyMetadata.credentialId.slice(0, 18)}...</span>
+                      <span>•</span>
+                      <span>
+                        {lang === "hi" ? "पंजीकृत:" : "Registered:"}{" "}
+                        {new Date(passkeyMetadata.registeredAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={handleTestPasskey}
+                      disabled={testingPasskey}
+                      className="flex items-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-300 hover:bg-emerald-500/20 transition disabled:opacity-50"
+                    >
+                      {testingPasskey ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Fingerprint className="h-3.5 w-3.5 text-emerald-400" />}
+                      <span>{testingPasskey ? (lang === "hi" ? "जाँच जारी..." : "Testing...") : (lang === "hi" ? "बायोमेट्रिक अनलॉक का परीक्षण करें" : "Test Biometric Unlock")}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleRegisterPasskey}
+                      disabled={registeringPasskey}
+                      className="flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-800/80 px-2.5 py-1.5 text-xs font-semibold text-slate-300 hover:bg-slate-700 transition disabled:opacity-50"
+                      title="Re-register or replace passkey"
+                    >
+                      <RefreshCw className={`h-3 w-3 ${registeringPasskey ? "animate-spin" : ""}`} />
+                      <span>{lang === "hi" ? "पुनः दर्ज करें" : "Re-register"}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleRemovePasskey}
+                      disabled={removingPasskey}
+                      className="flex items-center gap-1 rounded-xl border border-rose-500/20 bg-rose-500/10 px-2.5 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/20 transition disabled:opacity-50"
+                      title="Remove passkey from account"
+                    >
+                      {removingPasskey ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3 text-rose-400" />}
+                      <span>{lang === "hi" ? "हटाएं" : "Remove"}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-1">
+                <p className="text-[11px] text-slate-400">
+                  {lang === "hi"
+                    ? "कोई हार्डवेयर पासकी पंजीकृत नहीं है। Windows Hello, Touch ID या YubiKey को तुरंत लिंक करने के लिए नीचे दिए गए बटन पर क्लिक करें।"
+                    : "No hardware passkey registered yet. Click register to link Windows Hello, Touch ID, or YubiKey directly to your Zero-Knowledge account."}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleRegisterPasskey}
+                  disabled={registeringPasskey}
+                  className="flex items-center gap-2 rounded-xl border border-cyan-500/40 bg-cyan-500/15 px-4 py-2 text-xs font-bold text-cyan-200 hover:bg-cyan-500/25 transition-all shadow-md shadow-cyan-500/10 shrink-0 disabled:opacity-50"
+                >
+                  {registeringPasskey ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Fingerprint className="h-3.5 w-3.5" />
+                  )}
+                  <span>
+                    {registeringPasskey
+                      ? (lang === "hi" ? "पासकी दर्ज हो रही है..." : "Registering...")
+                      : (lang === "hi" ? "हार्डवेयर पासकी पंजीकृत करें" : "Register Hardware Passkey")}
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {/* Educational guide on how WebAuthn PRF works */}
+            {passkeyGuideOpen && (
+              <div className="rounded-xl border border-cyan-500/20 bg-cyan-950/20 p-4 space-y-2 text-xs">
+                <div className="font-bold text-cyan-300 flex items-center gap-2">
+                  <Info className="h-4 w-4 text-cyan-400" />
+                  <span>{lang === "hi" ? "हार्डवेयर पासकी (WebAuthn PRF) कैसे काम करती है?" : "How Hardware Passkey (WebAuthn PRF) Works:"}</span>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-[11px] text-slate-300 pt-1">
+                  <div className="rounded-lg bg-slate-900/80 p-2.5 border border-slate-800">
+                    <span className="font-bold text-amber-400 block mb-1">1. {lang === "hi" ? "हार्डवेयर जनरेशन" : "Hardware Generation"}</span>
+                    <span>{lang === "hi" ? "आपका ब्राउज़र TPM / Touch ID सिक्योर एन्क्लेव के अंदर नॉन-एक्सट्रैक्टेबल P-256 कुंजी बनाता है।" : "Browser creates a non-extractable P-256 key inside your device's TPM / Touch ID Secure Enclave."}</span>
+                  </div>
+                  <div className="rounded-lg bg-slate-900/80 p-2.5 border border-slate-800">
+                    <span className="font-bold text-cyan-400 block mb-1">2. {lang === "hi" ? "PRF एन्क्रिप्शन सीक्रेट" : "PRF Enclave Derivation"}</span>
+                    <span>{lang === "hi" ? "हार्डवेयर चिप सीधे 256-बिट मास्टर वॉल्ट सीक्रेट उत्पन्न करती है बिना पासवर्ड ट्रांसफर के।" : "Hardware chip derives 256-bit vault key material on-demand without revealing plaintext secrets."}</span>
+                  </div>
+                  <div className="rounded-lg bg-slate-900/80 p-2.5 border border-slate-800">
+                    <span className="font-bold text-emerald-400 block mb-1">3. {lang === "hi" ? "तत्काल अनलॉक (<50ms)" : "Sub-50ms Unlock"}</span>
+                    <span>{lang === "hi" ? "मास्टर वॉल्ट लॉक होने पर केवल फिंगरप्रिंट या चेहरे से 50ms में शून्य-ज्ञान अनलॉक हो जाता है।" : "Unlocks Master Vault via single biometric touch in sub-50ms, with zero plaintext transmission to server."}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -867,14 +1171,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800 shrink-0">
               <button
                 type="button"
-                onClick={() => {
-                  setKdfAlgo("pbkdf2");
-                  localStorage.setItem("blindshare_kdf_algo", "pbkdf2");
-                  setMessage({
-                    type: "success",
-                    text: lang === "hi" ? "PBKDF2 (100k राउंड्स) मानक सक्रिय किया गया।" : "PBKDF2 (100k rounds) standard activated.",
-                  });
-                }}
+                onClick={() => handleKdfAlgoChange("pbkdf2")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   kdfAlgo === "pbkdf2"
                     ? "bg-amber-500 text-slate-950 shadow-md"
@@ -885,14 +1182,7 @@ export default function SettingsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setKdfAlgo("argon2id");
-                  localStorage.setItem("blindshare_kdf_algo", "argon2id");
-                  setMessage({
-                    type: "success",
-                    text: lang === "hi" ? "Argon2id मेमोरी-हार्ड KDF सक्रिय किया गया! GPU/ASIC हमलों से पूर्ण सुरक्षा।" : "Argon2id Memory-Hard KDF activated! GPU/ASIC resistance enabled.",
-                  });
-                }}
+                onClick={() => handleKdfAlgoChange("argon2id")}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   kdfAlgo === "argon2id"
                     ? "bg-amber-500 text-slate-950 shadow-md"

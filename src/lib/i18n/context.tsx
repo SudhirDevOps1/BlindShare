@@ -29,11 +29,31 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     if (process.env.NEXT_PUBLIC_APP_NAME) {
       setAppName(process.env.NEXT_PUBLIC_APP_NAME);
     }
+
+    // Restore user language preference from database if authenticated
+    fetch("/api/user/settings")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.settings?.language && (d.settings.language === "en" || d.settings.language === "hi")) {
+          setLangState(d.settings.language);
+          try {
+            localStorage.setItem("blindshare_lang", d.settings.language);
+          } catch {}
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const setLang = (newLang: Language) => {
     setLangState(newLang);
-    localStorage.setItem("blindshare_lang", newLang);
+    try {
+      localStorage.setItem("blindshare_lang", newLang);
+      fetch("/api/user/settings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ language: newLang }),
+      }).catch(() => {});
+    } catch {}
   };
 
   const t = translations[lang] || translations.en;

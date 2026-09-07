@@ -71,8 +71,10 @@ interface SessionUser {
 export default function HomePage() {
   const { t, appName } = useI18n();
   const [user, setUser] = useState<SessionUser | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     fetch("/api/auth/me")
       .then((res) => res.json())
       .then((data: { user?: SessionUser | null }) => {
@@ -118,10 +120,12 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl leading-tight sm:leading-none">
-              {t.hero.title.split("Deep Reading Analytics")[0]}
-              <span className="bg-gradient-to-r from-amber-400 via-amber-200 to-amber-500 bg-clip-text text-transparent block sm:inline">
-                Deep Reading Analytics
-              </span>
+              <span>{t.hero.title.includes("Deep Reading Analytics") ? t.hero.title.split("Deep Reading Analytics")[0] : t.hero.title}</span>{" "}
+              {t.hero.title.includes("Deep Reading Analytics") && (
+                <span className="bg-gradient-to-r from-amber-400 via-amber-200 to-amber-500 bg-clip-text text-transparent block sm:inline">
+                  Deep Reading Analytics
+                </span>
+              )}
             </h1>
 
             <p className="mx-auto max-w-3xl text-sm sm:text-lg text-slate-300 leading-relaxed font-normal">
@@ -131,10 +135,10 @@ export default function HomePage() {
             {/* CTAs */}
             <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
               <Link
-                href={user ? "/dashboard" : "/login"}
+                href={mounted && user ? "/dashboard" : "/login"}
                 className="group flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 px-8 py-4 text-sm font-bold text-slate-950 shadow-2xl shadow-amber-500/30 hover:from-amber-400 hover:to-amber-500 transition-all transform hover:-translate-y-0.5 active:translate-y-0"
               >
-                <span>{user ? t.nav.dashboard : t.hero.ctaUpload}</span>
+                <span>{mounted && user ? t.nav.dashboard : t.hero.ctaUpload}</span>
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
               <Link
