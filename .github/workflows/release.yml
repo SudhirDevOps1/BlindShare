@@ -45,7 +45,7 @@ jobs:
             console.log('Generated Release Notes:\n', notes);
 
       - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: "BlindShare ${{ github.ref_name }}"
           body_path: RELEASE_NOTES.md
