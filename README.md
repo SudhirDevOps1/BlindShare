@@ -747,8 +747,7 @@ B2_APPLICATION_KEY=<from B2 dashboard>
 NEXT_PUBLIC_PRISM_ANALYTICS_ID=pa_xxxxxxxxxxxxxxxx
 NEXT_PUBLIC_PRISM_ANALYTICS_URL=https://prismanalytics.yourdomain.workers.dev/api/track
 
-# Contact form (FormForge / ApnaForm — see docs/FORMFORGE-INTEGRATION.md)
-NEXT_PUBLIC_FORMFORGE_ENDPOINT=https://formforge.yourdomain.workers.dev/api/submit/endpoint_xxx
+# Contact form (FormForge / ApnaForm)
 NEXT_PUBLIC_CONTACT_FORM_ACTION=https://apnaform.yourdomain.workers.dev/api/submit/endpoint_xxx
 
 # Branding
