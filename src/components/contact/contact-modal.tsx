@@ -23,12 +23,14 @@ export function ContactModal({ isOpen, onClose }: ContactModalProps) {
   const [altchaSolvedMs, setAltchaSolvedMs] = useState<number | null>(null);
   const [altchaPayload, setAltchaPayload] = useState<string>("");
 
-  const endpoint = process.env.NEXT_PUBLIC_CONTACT_FORM_ACTION || "";
+  const endpoint =
+    process.env.NEXT_PUBLIC_FORMFORGE_ENDPOINT ||
+    process.env.NEXT_PUBLIC_CONTACT_FORM_ACTION ||
+    "";
   const challengeUrl =
     process.env.NEXT_PUBLIC_ALTCHA_CHALLENGE_URL ||
-    (endpoint.includes("/api/submit/")
-      ? endpoint.replace(/\/api\/submit\/.*$/, "/api/altcha/challenge")
-      : "https://apnaform.sudhirdevops1.workers.dev/api/altcha/challenge");
+    endpoint ||
+    "/api/altcha";
 
   React.useEffect(() => {
     if (!isOpen) return;
