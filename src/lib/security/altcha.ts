@@ -60,8 +60,8 @@ export function createAltchaChallenge(
   const randomSalt = crypto.randomBytes(12).toString("hex");
   const salt = `${randomSalt}?expires=${expires}`;
 
-  // Choose a random secret number from 0 to maxNumber
-  const secretNumber = Math.floor(Math.random() * maxNumber);
+  // Choose a cryptographically secure random secret number from 0 to maxNumber
+  const secretNumber = crypto.randomInt(0, maxNumber);
 
   // Compute challenge hash: SHA256(salt + secretNumber)
   const challenge = crypto

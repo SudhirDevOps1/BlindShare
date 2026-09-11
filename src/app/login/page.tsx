@@ -32,6 +32,16 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
   const loadingRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [altchaPayload, setAltchaPayload] = useState<string | null>(null);
+  const [lockoutSeconds, setLockoutSeconds] = useState<number>(0);
+
+  // Countdown timer for lockout defense
+  useEffect(() => {
+    if (lockoutSeconds <= 0) return;
+    const timer = setInterval(() => {
+      setLockoutSeconds((prev) => (prev > 1 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [lockoutSeconds]);
 
   // 2FA Challenge state
   const [require2fa, setRequire2fa] = useState(false);
@@ -281,6 +291,11 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
 
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 423 || data.reason === "locked") {
+          const retryAfterHeader = res.headers.get("Retry-After");
+          const secs = retryAfterHeader ? parseInt(retryAfterHeader, 10) : 60;
+          setLockoutSeconds(Number.isNaN(secs) ? 60 : secs);
+        }
         throw new Error(data.error || "Authentication failed");
       }
 
@@ -831,7 +846,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
 
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || lockoutSeconds > 0}
                     className="relative overflow-hidden select-none w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 py-3 text-sm font-bold text-slate-950 hover:from-amber-400 hover:to-amber-500 shadow-lg shadow-amber-500/20 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed transition-all"
                   >
                     {loading && (
@@ -846,8 +861,14 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
                       <Loader2 className="h-5 w-5 animate-spin shrink-0 relative z-10" />
                     ) : (
                       <>
-                        <span className="relative z-10">{isRegister ? "Create Account" : "Sign In"}</span>
-                        <ArrowRight className="h-4 w-4 relative z-10" />
+                        <span className="relative z-10">
+                          {lockoutSeconds > 0
+                            ? `Locked (${lockoutSeconds}s)`
+                            : isRegister
+                            ? "Create Account"
+                            : "Sign In"}
+                        </span>
+                        {lockoutSeconds <= 0 && <ArrowRight className="h-4 w-4 relative z-10" />}
                       </>
                     )}
                   </button>

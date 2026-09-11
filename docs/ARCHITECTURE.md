@@ -160,14 +160,17 @@ High-frequency viewer dwell events are aggregated using BlindShare's columnar an
 - **Founder Voice Notes AES-256-GCM Encryption at Rest (`src/app/api/docs/[id]/audio/route.ts`)**:
   - Audio voice notes attached to specific document slides (`doc_audio_notes`) are encrypted at rest using server-side AES-256-GCM with randomized IVs via `encryptField()` before database storage.
   - Encrypted payloads (`audio_data_url`) are decrypted via `decryptField()` only for authorized session owners and legitimate document viewers, preventing stored voice recording exfiltration in the event of database leaks.
-- **Global Enterprise HTTP Security Headers Architecture (`next.config.ts`)**:
-  - Next.js framework-level security headers applied uniformly across all serverless and static routes:
-    - `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload` (2-year HSTS)
-    - `X-Frame-Options: SAMEORIGIN` (Clickjacking prevention)
-    - `X-Content-Type-Options: nosniff` (MIME sniffing prevention)
-    - `Referrer-Policy: strict-origin-when-cross-origin` (Information leakage control)
-    - `Permissions-Policy: camera=(), microphone=(), geolocation=()` (Device hardware restriction)
-    - `X-DNS-Prefetch-Control: on` (Controlled DNS pre-resolution)
+- **Enterprise Better Auth Integration & Plugin Stack (`src/lib/auth/better-auth.ts`)**:
+  - Leverages Better Auth with native Drizzle ORM PostgreSQL/Neon adapter (`better-auth/adapters/drizzle`).
+  - Active enterprise plugin stack includes: `admin()` (role-based access and user management), `twoFactor()` (TOTP two-factor authentication), `organization()` (multi-tenant workspace teams and member management), and `anonymous()` (guest/reader session authentication).
+  - Clean Next.js route delegation via dynamic catch-all route `/api/auth/[...all]/route.ts` powered by `toNextJsHandler()`, coexisting harmoniously with BlindShare's zero-knowledge courier model.
+- **100% DB Field Vault Encryption at Rest (`src/lib/crypto/db-vault.ts`)**:
+  - Zero Plaintext PII Invariant: User emails, names, auth tokens, and session metadata are stored strictly in AES-256-GCM ciphertext format (`enc:v1:<iv>:<tag>:<ciphertext>` and `enc:det:<iv>:<tag>:<ciphertext>`).
+  - Deterministic Email Vaulting allows exact-match index lookups (`WHERE email = ?`) without the database ever having visibility into the plaintext email address.
+  - Raw PostgreSQL database dumps or compromised storage volumes yield zero accessible email addresses or personal identities.
+- **Dual-Tier Bot & Brute-Force Lockout Defense (`src/lib/security/altcha.ts` & `src/lib/auth/lockout.ts`)**:
+  - Integrated ALTCHA SHA-256 Proof-of-Work challenge verification rejects automated crawlers and credential-stuffing bots without tracking cookies or third-party CAPTCHA scripts.
+  - Sliding-window failure tracking locks hostile IPs and accounts with client-side countdown timer synchronization and generic authentication error messages to prevent user enumeration.
 ---
 
 ## 📚 Related Documentation & Knowledge Base

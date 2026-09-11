@@ -8,6 +8,7 @@ import { emailSchema, nameSchema, passwordSchema } from "@/lib/validation/schema
 import { z } from "zod";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
+import { encryptEmail, decryptEmail, encryptField, decryptField } from "@/lib/crypto/db-vault";
 
 const updateProfileSchema = z.object({
   name: nameSchema.optional(),
@@ -47,22 +48,25 @@ export async function PATCH(request: Request) {
     };
 
     // 1. Update Name
-    if (name && name !== currentUser.name) {
-      updates.name = name;
+    const currentDecryptedName = decryptField(currentUser.name);
+    if (name && name !== currentDecryptedName) {
+      updates.name = encryptField(name);
     }
 
     // 2. Update Email (Check unique)
-    if (email && email !== currentUser.email) {
+    const currentDecryptedEmail = decryptEmail(currentUser.email);
+    if (email && email.toLowerCase() !== currentDecryptedEmail.toLowerCase()) {
+      const encTargetEmail = encryptEmail(email);
       const [existingEmail] = await db
         .select({ id: users.id })
         .from(users)
-        .where(and(eq(users.email, email), ne(users.id, session.id)))
+        .where(and(eq(users.email, encTargetEmail), ne(users.id, session.id)))
         .limit(1);
 
       if (existingEmail) {
         return NextResponse.json({ error: "This email is already in use by another account" }, { status: 400 });
       }
-      updates.email = email;
+      updates.email = encTargetEmail;
     }
 
     // 3. Update Password
@@ -98,12 +102,15 @@ export async function PATCH(request: Request) {
         }),
       });
 
+      const finalDecryptedEmail = email || currentDecryptedEmail;
+      const finalDecryptedName = name || currentDecryptedName;
+
       if (updates.sessionVersion) {
         await createSessionCookie(
           {
             id: session.id,
-            email: updates.email || currentUser.email,
-            name: updates.name || currentUser.name,
+            email: finalDecryptedEmail,
+            name: finalDecryptedName,
             role: currentUser.role as "owner" | "super_admin" | "admin",
             isBlocked: currentUser.isBlocked,
           },
@@ -114,13 +121,16 @@ export async function PATCH(request: Request) {
       logger.info("user.profile_updated", { userId: session.id });
     }
 
+    const finalDecryptedEmail = email || decryptEmail(currentUser.email);
+    const finalDecryptedName = name || decryptField(currentUser.name);
+
     return NextResponse.json({
       success: true,
       message: "Profile updated successfully",
       user: {
         id: session.id,
-        name: updates.name || currentUser.name,
-        email: updates.email || currentUser.email,
+        name: finalDecryptedName,
+        email: finalDecryptedEmail,
         role: currentUser.role,
       },
     });

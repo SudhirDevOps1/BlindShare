@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq, ne, and } from "drizzle-orm";
 import { ensureGenesisAdmin, GENESIS_PLACEHOLDER_EMAIL } from "@/lib/auth/session";
+import { encryptEmail } from "@/lib/crypto/db-vault";
 
 /**
  * Tells the login screen what setup state this deployment is in, so the UI can
@@ -16,16 +17,17 @@ export async function GET() {
   try {
     await ensureGenesisAdmin();
 
+    const encGenesis = encryptEmail(GENESIS_PLACEHOLDER_EMAIL);
     const realOwners = await db
       .select({ id: users.id })
       .from(users)
-      .where(ne(users.email, GENESIS_PLACEHOLDER_EMAIL))
+      .where(and(ne(users.email, GENESIS_PLACEHOLDER_EMAIL), ne(users.email, encGenesis)))
       .limit(1);
 
     const placeholder = await db
       .select({ id: users.id })
       .from(users)
-      .where(eq(users.email, GENESIS_PLACEHOLDER_EMAIL))
+      .where(eq(users.email, encGenesis))
       .limit(1);
 
     const claimed = realOwners.length > 0;

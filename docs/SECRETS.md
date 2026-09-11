@@ -14,6 +14,8 @@
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | optional | on compromise (edge rate limiting) |
 | `ALTCHA_HMAC_KEY` | optional secret store | 180 days (falls back to `SESSION_SECRET`) |
 | `DB_ENCRYPTION_KEY` | platform secret store | 180 days (with re-encryption script) |
+| `BETTER_AUTH_SECRET` | platform secret store | 90 days (falls back to `SESSION_SECRET`) |
+| `BETTER_AUTH_URL` | platform secret store | static domain URL |
 | Android keystore (Phase-4) | GitHub Secrets, base64 | never in repo |
 
 Rules: `.env` is never committed · secrets never appear in logs, chat or the database ·

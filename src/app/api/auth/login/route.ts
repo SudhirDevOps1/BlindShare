@@ -11,7 +11,7 @@ import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
 import crypto from "crypto";
 import { verifyAltchaPayload } from "@/lib/security/altcha";
-import { encryptEmail, decryptEmail } from "@/lib/crypto/db-vault";
+import { encryptEmail, decryptEmail, decryptField } from "@/lib/crypto/db-vault";
 
 function clientIp(request: Request): string {
   return (
@@ -149,7 +149,7 @@ export async function POST(request: Request) {
       {
         id: user.id,
         email: decryptEmail(user.email), // decrypt before writing to signed session cookie
-        name: user.name,
+        name: decryptField(user.name),
         role: user.role as "super_admin" | "admin" | "owner",
         isBlocked: user.isBlocked,
       },
@@ -181,12 +181,13 @@ export async function POST(request: Request) {
     });
 
     const decryptedEmail = decryptEmail(user.email);
+    const decryptedName = decryptField(user.name);
     return NextResponse.json({
       success: true,
       user: {
         id: user.id,
         email: decryptedEmail,
-        name: user.name,
+        name: decryptedName,
         role: user.role,
         masterKeySaltHex,
       },

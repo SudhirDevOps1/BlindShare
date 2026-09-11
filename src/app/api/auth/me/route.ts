@@ -3,7 +3,7 @@ import { getSession } from "@/lib/auth/session";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { decryptEmail } from "@/lib/crypto/db-vault";
+import { decryptEmail, decryptField } from "@/lib/crypto/db-vault";
 
 export async function GET() {
   try {
@@ -40,7 +40,13 @@ export async function GET() {
           .catch(() => {});
       }
       return NextResponse.json({
-        user: { ...dbUser, twoFactorEnabled: Boolean(dbUser.twoFactorEnabled), masterKeySaltHex, email: decryptEmail(dbUser.email) },
+        user: {
+          ...dbUser,
+          twoFactorEnabled: Boolean(dbUser.twoFactorEnabled),
+          masterKeySaltHex,
+          email: decryptEmail(dbUser.email),
+          name: decryptField(dbUser.name),
+        },
       });
     }
     // Database was wiped or user row was purged — actively shred the zombie cookie

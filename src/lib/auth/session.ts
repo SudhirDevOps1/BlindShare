@@ -6,7 +6,7 @@ import crypto from "crypto";
 import { hashPassword } from "./password";
 import { logger } from "@/lib/logger";
 import { genId } from "@/lib/ids";
-import { decryptEmail, encryptEmail } from "@/lib/crypto/db-vault";
+import { decryptEmail, encryptEmail, decryptField } from "@/lib/crypto/db-vault";
 
 /**
  * `__Host-` prefix is a strict browser-enforced guarantee: the cookie must be
@@ -229,7 +229,7 @@ export async function getSession(): Promise<SessionUser | null> {
     return {
       id: user.id,
       email: decryptEmail(user.email), // decrypt from AES-256-GCM ciphertext stored in Neon DB
-      name: user.name,
+      name: decryptField(user.name),
       role: user.role as "super_admin" | "admin" | "owner",
       isBlocked: user.isBlocked,
     };

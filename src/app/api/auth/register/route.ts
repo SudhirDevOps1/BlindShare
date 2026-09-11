@@ -9,7 +9,7 @@ import { registerSchema } from "@/lib/validation/schemas";
 import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
 import crypto from "crypto";
-import { encryptEmail } from "@/lib/crypto/db-vault";
+import { encryptEmail, encryptField } from "@/lib/crypto/db-vault";
 import { validateEmailWithMx } from "@/lib/validation/email-validator";
 
 export async function POST(request: Request) {
@@ -118,7 +118,7 @@ export async function POST(request: Request) {
     await db.insert(users).values({
       id: userId,
       email: encryptEmail(cleanEmail), // AES-256-GCM encrypted — plaintext never persisted
-      name,
+      name: encryptField(name), // AES-256-GCM encrypted at rest
       passwordHash,
       role,
       isBlocked: false,
