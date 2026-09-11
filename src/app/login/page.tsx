@@ -280,7 +280,7 @@ export default function LoginPage({ defaultRegister = false }: { defaultRegister
     try {
       const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
       const payload = isRegister
-        ? { email, password, name, inviteCode: inviteCode.trim() || undefined }
+        ? { email, password, name, inviteCode: inviteCode.trim() || undefined, altcha: altchaPayload || undefined }
         : { email, password, altcha: altchaPayload || undefined };
 
       const res = await fetch(endpoint, {

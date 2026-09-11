@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { users, invites, auditLog } from "@/db/schema";
-import { eq, and, gt, ne } from "drizzle-orm";
+import { eq, ne } from "drizzle-orm";
 import { hashPassword } from "@/lib/auth/password";
 import { createSessionCookie, GENESIS_PLACEHOLDER_EMAIL } from "@/lib/auth/session";
 import { parseBody } from "@/lib/validation";
@@ -11,12 +11,58 @@ import { logger } from "@/lib/logger";
 import crypto from "crypto";
 import { encryptEmail, encryptField } from "@/lib/crypto/db-vault";
 import { validateEmailWithMx } from "@/lib/validation/email-validator";
+import { verifyAltchaPayload } from "@/lib/security/altcha";
+import { checkLockout, recordFailure } from "@/lib/auth/lockout";
+
+
 
 export async function POST(request: Request) {
   try {
     const parsed = await parseBody(request, registerSchema);
     if ("errorResponse" in parsed) return parsed.errorResponse;
-    const { email: cleanEmail, password, name, inviteCode } = parsed.data;
+    const { email: cleanEmail, password, name, inviteCode, altcha } = parsed.data;
+
+    // ── IP-based rate limiting (prevents mass account creation) ───────────────
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+      request.headers.get("x-real-ip") ||
+      "unknown";
+    const registrationKey = `register::${cleanEmail}`;
+    const lockSecs = checkLockout(registrationKey, ip);
+    if (lockSecs > 0) {
+      return NextResponse.json(
+        { error: "Too many registration attempts. Please try again later.", reason: "locked" },
+        { status: 429, headers: { "Retry-After": String(lockSecs) } }
+      );
+    }
+
+    // ── ALTCHA Proof-of-Work (skip for genesis bootstrap on unclaimed deployments) ──
+    // We check first-user status before DB writes to decide whether to enforce ALTCHA
+    const [genesisCheck] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(ne(users.email, encryptEmail(GENESIS_PLACEHOLDER_EMAIL)))
+      .limit(1);
+    const isGenesisSetup = genesisCheck === undefined;
+
+    if (!isGenesisSetup) {
+      // Enforce ALTCHA for all non-genesis registrations
+      if (!altcha) {
+        recordFailure(registrationKey, ip);
+        return NextResponse.json(
+          { error: "Bot verification required. Please complete the ALTCHA challenge." },
+          { status: 400 }
+        );
+      }
+      const altchaValid = await verifyAltchaPayload(altcha);
+      if (!altchaValid) {
+        recordFailure(registrationKey, ip);
+        return NextResponse.json(
+          { error: "Bot verification failed. Please refresh and try again." },
+          { status: 400 }
+        );
+      }
+    }
 
     // Defense-in-depth: Reject disposable/temp emails (e.g. mailinator.com) and verify DNS MX
     const emailCheck = await validateEmailWithMx(cleanEmail);
@@ -49,12 +95,8 @@ export async function POST(request: Request) {
     // A deployment is "claimed" only once a REAL owner exists. The auto-seeded
     // placeholder account does not count, so the first human sign-up always works.
     // Note: GENESIS_PLACEHOLDER_EMAIL is compared encrypted since all emails are stored encrypted.
-    const realOwners = await db
-      .select({ id: users.id })
-      .from(users)
-      .where(ne(users.email, encryptEmail(GENESIS_PLACEHOLDER_EMAIL)))
-      .limit(1);
-    const isFirstRealUser = realOwners.length === 0;
+    // Reuse the genesisCheck already performed above (for ALTCHA bypass check).
+    const isFirstRealUser = isGenesisSetup;
 
     let bootstrapMatch = false;
     if (submittedNorm.length > 0) {

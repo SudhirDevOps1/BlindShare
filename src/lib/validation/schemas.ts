@@ -65,6 +65,7 @@ export const registerSchema = z.object({
   email: emailSchema,
   password: passwordSchema(),
   inviteCode: z.string().trim().max(128).optional(),
+  altcha: z.string().optional(), // ALTCHA proof-of-work payload — validated server-side
 });
 
 export const loginSchema = z.object({
