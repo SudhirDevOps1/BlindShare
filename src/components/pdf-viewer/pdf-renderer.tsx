@@ -1336,7 +1336,7 @@ export function PdfRenderer({
       });
 
       // Footer
-      page.drawText("Generated client-side by BlindShare v1.4.0 — Decryption keys never stored server-side.", {
+      page.drawText("Generated client-side by BlindShare v1.4.1 — Decryption keys never stored server-side.", {
         x: 50,
         y: 35,
         size: 8,

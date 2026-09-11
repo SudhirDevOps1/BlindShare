@@ -12,8 +12,8 @@
 </p>
 
 <p>
-  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v1.4.0">
-    <img src="https://img.shields.io/badge/version-v1.4.0-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v1.4.0" />
+  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v1.4.1">
+    <img src="https://img.shields.io/badge/version-v1.4.1-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v1.4.1" />
   </a>
   <a href="./LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-3b82f6?style=for-the-badge" alt="MIT License" />
@@ -72,7 +72,7 @@
 
 > **[🚀 Explore Interactive Live Web Showcase (/showcase)](https://blindshare.vercel.app/showcase)** &nbsp;•&nbsp; **[📖 Complete Technical Verification Guide (docs/SHOWCASE.md)](./docs/SHOWCASE.md)**
 
-Every core architectural pillar of BlindShare v1.4.0 has been verified end-to-end on live production infrastructure with authentic reader telemetry. **100% computed from real database records (Neon PostgreSQL + Drizzle ORM) — Zero mock data, zero synthetic curves.**
+Every core architectural pillar of BlindShare v1.4.1 has been verified end-to-end on live production infrastructure with authentic reader telemetry. **100% computed from real database records (Neon PostgreSQL + Drizzle ORM) — Zero mock data, zero synthetic curves.**
 
 | Zero-Knowledge Ciphertext Proof | Real-Time Stoat Alerting | Forensic Steganography Leak Scanner |
 | :---: | :---: | :---: |
@@ -896,14 +896,14 @@ BlindShare/
 │   │   │   ├── auth/                      # login · logout · logout-all · me · register · 2fa · bootstrap
 │   │   │   ├── datarooms/[id]/            # Dataroom CRUD
 │   │   │   ├── docs/[id]/                 # doc CRUD · audio · download · questions · versions
-│   │   │   ├── health/                    # Health check + diagnostics (v1.4.0)
+│   │   │   ├── health/                    # Health check + diagnostics (v1.4.1)
 │   │   │   ├── links/[id]/analytics/      # Link analytics
 │   │   │   ├── push/subscribe/            # VAPID push subscription
 │   │   │   ├── questions/                 # Founder Q&A inbox (reply, filter)
 │   │   │   ├── storage/                   # local-upload · local-download
 │   │   │   ├── user/                      # profile · 2fa · delete · export
 │   │   │   ├── v/[slug]/                  # bytes · questions · room · session · sign · verify
-│   │   │   └── version/                   # Platform version endpoint (1.4.0)
+│   │   │   └── version/                   # Platform version endpoint (1.4.1)
 │   │   ├── contact/                       # Contact form page
 │   │   ├── dashboard/
 │   │   │   ├── analytics/[id]/            # Per-link analytics view
@@ -941,7 +941,7 @@ BlindShare/
 │   │   │   ├── signature-pad-modal.tsx    # In-app NDA digital signature
 │   │   │   └── voice-note-player.tsx      # Founder audio pitch player
 │   │   ├── brand-footer.tsx               # Footer
-│   │   └── brand-header.tsx               # Scrollable nav tabs + v1.4.0 badge
+│   │   └── brand-header.tsx               # Scrollable nav tabs + v1.4.1 badge
 │   │
 │   ├── db/
 │   │   ├── index.ts                       # pg pool (RFC URL hostname validation)
@@ -1009,7 +1009,7 @@ BlindShare/
 │
 ├── docs/
 │   ├── ARCHITECTURE.md                    # Adapter model, data ER, crypto pipeline
-│   ├── CHANGELOG.md                       # Keep-a-Changelog (v1.4.0 current)
+│   ├── CHANGELOG.md                       # Keep-a-Changelog (v1.4.1 current)
 │   ├── CODE_OF_CONDUCT.md
 │   ├── CONTRIBUTING.md
 │   ├── DATA-RETENTION.md
@@ -1049,7 +1049,7 @@ BlindShare/
   - Geo/time gates (restrict to country or business hours)
   - Request-access flow (viewer can ask for access)
 
-- **v1.4 — Zero-Knowledge Hardening** ✅ *Shipped · Current Release (v1.4.0)*
+- **v1.4 — Zero-Knowledge Hardening** ✅ *Shipped · Current Release (v1.4.1)*
   - Voice notes per page
   - AI lead conviction intent scoring (HOT/WARM/COLD)
   - Permanent indelible PDF watermark burning on download (`pdf-lib`)

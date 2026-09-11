@@ -1,5 +1,5 @@
 /**
- * BlindShare Client-Side Data Loss Prevention (DLP) Scanner (v1.4.0)
+ * BlindShare Client-Side Data Loss Prevention (DLP) Scanner (v1.4.1)
  *
  * 100% In-Browser Zero-Knowledge Privacy:
  * Scans the native text layer of documents before encryption and upload.

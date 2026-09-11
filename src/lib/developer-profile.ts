@@ -1,6 +1,6 @@
 /**
  * Developer Profile & Multi-Channel Social Media Allowlist
- * Version: 1.4.0
+ * Version: 1.4.1
  * Provides typed configuration, env defaults, and reactive browser state synchronization.
  */
 

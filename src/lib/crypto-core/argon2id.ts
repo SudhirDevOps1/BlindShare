@@ -1,5 +1,5 @@
 /**
- * BlindShare Argon2id WebAssembly / Native Memory-Hard KDF (v1.4.0)
+ * BlindShare Argon2id WebAssembly / Native Memory-Hard KDF (v1.4.1)
  * Complies with RFC 9106 / NIST Password-Based Key Derivation Guidelines.
  * 
  * GPU-Killer Design: Demands large RAM allocation (Memory-Hard),

@@ -87,7 +87,7 @@ Then run the smoke list against the printed link: `/api/health` → 200, open th
    - Configure Lifecycle Rule in B2: Keep only the last version of files, or delete old versions after 30 days.
    - Hide markers (tombstones) created upon soft-delete should have lifecycle expiration to automatically purge after 30 days.
 3. **Database Field Vault Backfill:**
-   - Run `node scripts/backfill-field-vault.mjs` after upgrading to v1.4.0 to encrypt legacy rows at rest with AES-256-GCM.
+   - Run `node scripts/backfill-field-vault.mjs` after upgrading to v1.4.1 to encrypt legacy rows at rest with AES-256-GCM.
 ---
 
 ## 📚 Related Documentation & Knowledge Base

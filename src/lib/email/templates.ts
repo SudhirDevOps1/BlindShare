@@ -113,7 +113,7 @@ export function baseEmailLayout(contentHtml: string, previewText: string, header
                 <tr>
                   <td align="center" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 11px; line-height: 1.6; color: #475569;">
                     <div style="color: #64748b; font-weight: 700; margin-bottom: 4px;">
-                      BlindShare Platform v1.4.0 • Enterprise Zero-Knowledge Vault
+                      BlindShare Platform v1.4.1 • Enterprise Zero-Knowledge Vault
                     </div>
                     <div>
                       Self-Hosted & Zero-Knowledge E2EE • RFC 3986 URL Fragment Invariant

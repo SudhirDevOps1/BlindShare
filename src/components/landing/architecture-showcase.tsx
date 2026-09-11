@@ -683,7 +683,7 @@ export function ArchitectureShowcase() {
                 </span>
                 <span className="text-slate-600">•</span>
                 <span className="text-[11px] font-mono text-amber-400/80">
-                  v1.4.0
+                  v1.4.1
                 </span>
               </div>
             </div>

@@ -13,7 +13,7 @@
 -- - Session tokens are signed HMAC-SHA256 cookies stored directly in your browser.
 -- - When you reset the database, the user row in PostgreSQL is deleted, but the
 --   browser still sends the old cookie until you visit the app or clear cookies.
--- - In v1.4.0, /api/auth/me automatically detects that the user is missing from DB
+-- - In v1.4.1, /api/auth/me automatically detects that the user is missing from DB
 --   and destroys the zombie cookie immediately with Clear-Site-Data.
 -- - To INSTANTLY invalidate all tokens across all browsers globally:
 --   Rotate SESSION_SECRET in Vercel / Cloudflare environment variables:
@@ -45,7 +45,7 @@ DROP TABLE IF EXISTS auth_tokens CASCADE;
 DROP TABLE IF EXISTS invites CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 
--- 3. Automatically recreate pristine empty schema matching src/db/schema.ts 100% (v1.4.0)
+-- 3. Automatically recreate pristine empty schema matching src/db/schema.ts 100% (v1.4.1)
 
 -- ------------------------------------------------------------------------------
 -- USERS TABLE
@@ -361,4 +361,4 @@ BEGIN
 END $$;
 
 -- Output confirmation
-SELECT 'DATABASE RESET SUCCESSFUL: Pristine v1.4.0 schema ready with zstd storage compression & AES-256-GCM field vault compatibility' AS status;
+SELECT 'DATABASE RESET SUCCESSFUL: Pristine v1.4.1 schema ready with zstd storage compression & AES-256-GCM field vault compatibility' AS status;

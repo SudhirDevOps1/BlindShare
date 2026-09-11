@@ -7,7 +7,7 @@
   <rect width="460" height="220" rx="12" fill="#0f172a" stroke="#1e293b" stroke-width="1"/>
   <rect width="460" height="36" rx="12" fill="#1e293b"/><rect y="18" width="460" height="18" fill="#1e293b"/>
   <text x="16" y="23" font-family="Inter,sans-serif" font-size="8" font-weight="800" fill="#fff">BlindShare Weekly • Sep 1–7, 2026</text>
-  <text x="444" y="23" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#f59e0b">v1.4.0</text>
+  <text x="444" y="23" text-anchor="end" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#f59e0b">v1.4.1</text>
   <g transform="translate(16,44)">
     <rect width="134" height="64" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/><text x="12" y="16" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#94a3b8">Views</text><text x="12" y="36" font-family="Inter,sans-serif" font-size="22" font-weight="800" fill="#fff">127</text><text x="12" y="50" font-family="Inter,sans-serif" font-size="6.5" fill="#10b981">▲ +18% vs last week</text>
     <rect x="146" width="134" height="64" rx="10" fill="#080e1a" stroke="#1e293b" stroke-width="1"/><text x="158" y="60" font-family="Inter,sans-serif" font-size="7" font-weight="600" fill="#94a3b8">Unique</text><text x="158" y="80" font-family="Inter,sans-serif" font-size="22" font-weight="800" fill="#fff">42</text>

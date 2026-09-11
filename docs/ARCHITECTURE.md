@@ -33,7 +33,7 @@ users 1─* invites · users 1─* push_subscriptions · audit_log · system_set
 ```
 
 ## 6-Pillar Zero-Knowledge Cryptographic Suite
-BlindShare v1.4.0 enforces an uncompromising multi-layer cryptographic suite:
+BlindShare v1.4.1 enforces an uncompromising multi-layer cryptographic suite:
 1. **Pillar 1 (`extractable: false` + `zeroizeBuffer`)**: WebCrypto non-exportable key handles (`crypto.subtle.importKey("raw", ..., false)`) permanently block DevTools and malicious browser extensions from exfiltrating keys. Raw byte buffers are immediately zeroized (`rawBytes.fill(0)`) in client RAM.
 2. **Pillar 2 (HKDF RFC 5869 Sub-Key Derivation)**: Generates deterministic, mathematically orthogonal per-slide encryption keys (`deriveSlideKey(masterKey, pageNumber)`) enabling 0ms instant slide streaming without exposing other pages.
 3. **Pillar 3 (Argon2id Memory-Hard KDF)**: Memory-hard key derivation (`src/lib/crypto-core/argon2id.ts`) protects the Master Vault against GPU, ASIC, and distributed password cracking clusters.

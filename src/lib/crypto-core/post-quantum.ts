@@ -1,5 +1,5 @@
 /**
- * BlindShare Post-Quantum Hybrid Cryptographic Suite (v1.4.0)
+ * BlindShare Post-Quantum Hybrid Cryptographic Suite (v1.4.1)
  * Implements FIPS 203 ML-KEM-768 (Module Lattice KEM) + Classical ECDH (P-256) Hybrid.
  * 
  * Protects against "Harvest Now, Decrypt Later" quantum adversary campaigns.

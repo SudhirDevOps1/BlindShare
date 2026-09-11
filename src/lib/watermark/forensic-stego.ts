@@ -1,5 +1,5 @@
 /**
- * BlindShare Invisible Forensic Steganography Engine (v1.4.0)
+ * BlindShare Invisible Forensic Steganography Engine (v1.4.1)
  * 
  * Embeds imperceptible micro-dot constellations (Machine Identification Codes)
  * into slide canvas pixels in real-time. Even if a viewer crops out the visible watermark

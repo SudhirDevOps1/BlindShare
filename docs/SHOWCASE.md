@@ -1,4 +1,4 @@
-# 📸 BlindShare v1.4.0 — Live Production Showcase & Proof Gallery
+# 📸 BlindShare v1.4.1 — Live Production Showcase & Proof Gallery
 
 > **Verified Visual Proof of Zero-Knowledge Document Sharing, Real-Time Founder Alerting, and Deep Pitch Deck Telemetry**  
 > *All 47 captures below were produced during authentic live user testing on production infrastructure (Neon PostgreSQL, Backblaze B2, Google Apps Script Email Relay, and Stoat Chat Webhooks).*  
@@ -118,7 +118,7 @@ All telemetry is 100% computed from real database records (Neon PostgreSQL + Dri
 | **Reader Geolocation Breakdown**<br>`brave_sI5HQ5KbGu.png` | [![Geolocation](../public/showcase/brave_sI5HQ5KbGu.png)](../public/showcase/brave_sI5HQ5KbGu.png) | • Geographic country and city distribution.<br>• GDPR-compliant: IP addresses are salted and hashed before logging. |
 | **Hourly Reading Habits Matrix**<br>`brave_tFUOQmcsQ9.png` | [![Hourly Matrix](../public/showcase/brave_tFUOQmcsQ9.png)](../public/showcase/brave_tFUOQmcsQ9.png) | • 24x7 matrix charting reader time-of-day patterns.<br>• Pinpoints the optimal time window to send pitch follow-ups. |
 | **Document Management Overview**<br>`brave_O3NReRlLXk.png` | [![Doc Management](../public/showcase/brave_O3NReRlLXk.png)](../public/showcase/brave_O3NReRlLXk.png) | • Vault listing with page counts, file sizes, and quick share links.<br>• One-click cryptographic shredding for permanent destruction. |
-| **Complete End-to-End Platform Capture**<br>`brave_ztHXsz4Akb.png` | [![Full Platform Capture](../public/showcase/brave_ztHXsz4Akb.png)](../public/showcase/brave_ztHXsz4Akb.png) | • Ultra-high-resolution panoramic capture of BlindShare v1.4.0.<br>• Confirms harmonious integration of all 15 architectural pillars. |
+| **Complete End-to-End Platform Capture**<br>`brave_ztHXsz4Akb.png` | [![Full Platform Capture](../public/showcase/brave_ztHXsz4Akb.png)](../public/showcase/brave_ztHXsz4Akb.png) | • Ultra-high-resolution panoramic capture of BlindShare v1.4.1.<br>• Confirms harmonious integration of all 15 architectural pillars. |
 
 ---
 

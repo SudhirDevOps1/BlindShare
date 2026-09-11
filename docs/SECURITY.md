@@ -22,7 +22,7 @@ HMAC-SHA256 signed session cookies. No hand-rolled crypto.
 - [x] X-Frame-Options: DENY / frame-ancestors 'none'
 - [x] X-Robots-Tag noindex on `/v/*` + robots.txt disallow
 
-## 6-Pillar Zero-Knowledge Cryptographic Suite (v1.4.0)
+## 6-Pillar Zero-Knowledge Cryptographic Suite (v1.4.1)
 - **Pillar 1 (In-Memory Key Isolation & RAM Zeroing)** (`src/lib/crypto-core/index.ts`):
   - Keys imported with `extractable: false` via WebCrypto Subtle API, preventing Chrome extensions and DevTools console inspection from exporting keys.
   - Raw key buffers immediately wiped (`zeroizeBuffer(rawBytes)`) with zeros in memory.

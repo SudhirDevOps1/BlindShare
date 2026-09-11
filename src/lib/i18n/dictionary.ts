@@ -201,7 +201,7 @@ export const translations = {
     forensicScanner: {
       buttonLabel: "Forensic Leak Scanner",
       title: "Forensic Leak Scanner",
-      versionBadge: "Steganography v1.4.0",
+      versionBadge: "Steganography v1.4.1",
       subtitle: "Upload a leaked photo or screenshot to extract invisible micro-dot constellations and identify the source.",
       dropTitle: "Drop leaked screenshot or document photo here",
       dropSubtitle: "Supports PNG, JPG, WebP, smartphone screenshots & camera photos",
@@ -505,8 +505,8 @@ export const translations = {
             a: "BlindShare is architected with zero-cost edge presets: Next.js on Vercel/Cloudflare, SQLite/PostgreSQL on Turso/Supabase Free Tier (500MB), Backblaze B2 Free Tier (10GB storage, 3x egress), and client-side in-memory Mozilla PDF.js rendering. There are no mandatory background daemon servers or recurring cloud costs.",
           },
           {
-            q: "What is the 6-Pillar Cryptographic Suite in v1.4.0?",
-            a: "BlindShare v1.4.0 enforces an uncompromising multi-layer defense: (1) Non-extractable WebCrypto keys (extractable: false) with instant RAM buffer zeroizing, (2) HKDF (RFC 5869) per-slide sub-key derivation, (3) Argon2id memory-hard KDF protecting the Master Vault, (4) Post-quantum hybrid ML-KEM-768 + ECDH forward resilience, (5) Invisible forensic steganography with CRC leak scanner, and (6) Forward secrecy burn ratchets.",
+            q: "What is the 6-Pillar Cryptographic Suite in v1.4.1?",
+            a: "BlindShare v1.4.1 enforces an uncompromising multi-layer defense: (1) Non-extractable WebCrypto keys (extractable: false) with instant RAM buffer zeroizing, (2) HKDF (RFC 5869) per-slide sub-key derivation, (3) Argon2id memory-hard KDF protecting the Master Vault, (4) Post-quantum hybrid ML-KEM-768 + ECDH forward resilience, (5) Invisible forensic steganography with CRC leak scanner, and (6) Forward secrecy burn ratchets.",
           },
           {
             q: "How does the DuckDB columnar engine calculate dwell analytics in sub-5ms?",
@@ -1064,7 +1064,7 @@ export const translations = {
     forensicScanner: {
       buttonLabel: "फोरेंसिक लीक स्कैनर",
       title: "फोरेंसिक लीक स्कैनर",
-      versionBadge: "स्टेनोग्राफी v1.4.0",
+      versionBadge: "स्टेनोग्राफी v1.4.1",
       subtitle: "लीक हुए स्क्रीनशॉट या फोटो से अदृश्य माइक्रो-डॉट नक्षत्र निकालें और लीक करने वाले की पहचान करें।",
       dropTitle: "लीक स्क्रीनशॉट या दस्तावेज़ की फोटो यहाँ डालें",
       dropSubtitle: "PNG, JPG, WebP, स्मार्टफोन स्क्रीनशॉट और कैमरा फोटो समर्थित",
@@ -1368,8 +1368,8 @@ export const translations = {
             a: "ब्लाइंडशेयर शून्य-लागत एज प्रीसेट के साथ बनाया गया है: Vercel/Cloudflare पर Next.js, Turso/Supabase फ्री टीयर (500MB) पर PostgreSQL/SQLite, बैकब्लेज B2 फ्री टीयर (10GB स्टोरेज, 3x इग्रेस), और क्लाइंट-साइड मेमोरी-आधारित Mozilla PDF.js रेंडरिंग। कोई आवर्ती क्लाउड लागत नहीं है।",
           },
           {
-            q: "v1.4.0 में 6-स्तंभ क्रिप्टोग्राफिक सूट क्या है?",
-            a: "ब्लाइंडशेयर v1.4.0 एक बहु-परत रक्षा लागू करता है: (1) तत्काल रैम बफर जीरोइजिंग के साथ नॉन-एक्सट्रैक्टेबल वेबक्रिप्टो कुंजी (extractable: false), (2) HKDF (RFC 5869) प्रति-स्लाइड सब-कुंजी व्युत्पत्ति, (3) मास्टर वॉल्ट की रक्षा करने वाला Argon2id मेमोरी-हार्ड KDF, (4) पोस्ट-क्वांटम हाइब्रिड ML-KEM-768 + ECDH सुरक्षा, (5) CRC लीक स्कैनर के साथ अदृश्य फोरेंसिक स्टेगैनोग्राफी, और (6) फॉरवर्ड सीक्रेसी बर्न रैचेट्स।",
+            q: "v1.4.1 में 6-स्तंभ क्रिप्टोग्राफिक सूट क्या है?",
+            a: "ब्लाइंडशेयर v1.4.1 एक बहु-परत रक्षा लागू करता है: (1) तत्काल रैम बफर जीरोइजिंग के साथ नॉन-एक्सट्रैक्टेबल वेबक्रिप्टो कुंजी (extractable: false), (2) HKDF (RFC 5869) प्रति-स्लाइड सब-कुंजी व्युत्पत्ति, (3) मास्टर वॉल्ट की रक्षा करने वाला Argon2id मेमोरी-हार्ड KDF, (4) पोस्ट-क्वांटम हाइब्रिड ML-KEM-768 + ECDH सुरक्षा, (5) CRC लीक स्कैनर के साथ अदृश्य फोरेंसिक स्टेगैनोग्राफी, और (6) फॉरवर्ड सीक्रेसी बर्न रैचेट्स।",
           },
           {
             q: "डकडीबी स्तंभकार इंजन 5ms से कम में पाठन विश्लेषण की गणना कैसे करता है?",

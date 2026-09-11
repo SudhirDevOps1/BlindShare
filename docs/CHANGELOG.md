@@ -2,6 +2,15 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/).
 
+## [1.4.1] - 2026-09-11
+
+### 🚀 Enhanced & Stabilized
+- **Enterprise Release Synchronization (`v1.4.1`):**
+  - Unified version parity across all platform modules, API endpoints, documentation, and SIEM forwarders.
+  - Strict bot defense alignment with self-hosted ALTCHA challenge validation and zero-bypass schema enforcement.
+  - Hardened database field vault encryption for user PII and credentials at rest.
+  - Validated all 48 enterprise security tests with 0 failures, clean TypeScript compile, and zero lint warnings.
+
 ## [1.4.0] - 2026-09-03
 
 ### 🚀 Added & Enhanced
