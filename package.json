@@ -24,7 +24,7 @@
     "bcryptjs": "^3.0.3",
     "better-auth": "^1.7.10",
     "dompurify": "^3.4.17",
-    "dotenv": "17.3.1",
+    "dotenv": "18.0.9",
     "drizzle-orm": "0.45.4",
     "jszip": "^3.10.2",
     "lucide-react": "^1.58.0",
