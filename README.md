@@ -50,6 +50,12 @@
 </p>
 
 <p>
+  <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FSudhirDevOps1%2FBlindShare&env=DATABASE_URL,SESSION_SECRET,DOCS_ENCRYPTION_MODE,STORE_TARGET">
+    <img src="https://vercel.com/button" alt="Deploy with Vercel" />
+  </a>
+</p>
+
+<p>
   <a href="#-live-production-showcase--proof-gallery">📸 Live Showcase</a> &nbsp;•&nbsp;
   <a href="#-why-blindshare">Why BlindShare?</a> &nbsp;•&nbsp;
   <a href="#-features">Features</a> &nbsp;•&nbsp;
@@ -63,7 +69,7 @@
 
 <br/>
 
-> **BlindShare** is a self-hosted, privacy-first alternative to **traditional centralized document sharing tools** — built for founders, lawyers, and creators who need to share sensitive documents without trusting a third-party server with their content.
+> **BlindShare** is the open-source, **Zero-Knowledge** document sharing and secure virtual data room (VDR) platform — built for founders, investors, legal teams, and creators who require mathematical privacy without trusting third-party servers.
 
 <br/>
 
@@ -95,21 +101,18 @@ Every core architectural pillar of BlindShare v0.1.0 has been verified end-to-en
 
 > The only document sharing platform where **the server is mathematically incapable of reading your files.**
 
-### 🥊 BlindShare vs. Enterprise SaaS (DocSend, Digify, Firmex)
+### 🥊 BlindShare vs. Papermark vs. DocSend
 
-| Capability / Threat Model | DocSend ($15–$250/mo) | Digify ($140–$500/mo) | Firmex ($500–$2,000/mo) | BlindShare (v0.1.0) |
-|---|:---:|:---:|:---:|:---:|
-| **Monthly Financial Cost** | 💸 $180 – $3,000 / yr | 💸 $1,680 – $6,000 / yr | 💸 $6,000 – $24,000 / yr | **🎉 $0 / month (100% Free & Open Source)** |
-| **Document Cleartext Custody** | ❌ Server Cleartext | ❌ Server Cleartext | ❌ Server Cleartext | **🔒 100% Zero-Knowledge (Server Blind)** |
-| **Decryption Key Delivery** | Centralized Auth Key | Centralized DRM Key | Server Session Token | **RFC 3986 `#k=` Fragment (Browser-Only)** |
-| **Dwell Time & Heatmap Telemetry** | ✅ Yes | ✅ Yes | ⚠️ Basic Logs | **✅ Sub-5ms In-Process Columnar DuckDB** |
-| **AI Lead Intent Conviction Scoring**| ❌ No | ❌ No | ❌ No | **✅ 0–100 Algorithm (`HOT`, `WARM`, `COLD`)** |
-| **Dynamic Watermarking** | ✅ Web Canvas | ✅ Web Canvas | ✅ Web Canvas | **✅ Dual-Layer (Canvas + Indelible PDF-Lib)** |
-| **Forensic Leak Exfiltration Scanner**| ❌ No | ❌ No | ❌ No | **✅ 64-Bit Micro-Dot Steganography** |
-| **In-Doc Slide Q&A Collaboration** | ❌ Email Only | ⚠️ Thread Comments | ✅ Formal Multi-Party | **✅ Real-Time Question Pins + Founder Inbox** |
-| **Atomic Burn-After-Reading Ratchet**| ❌ Manual Only | ⚠️ Delayed Destroy | ❌ Role Revocation | **✅ Atomic Self-Destruct On Verified Stream** |
-| **Hardware Key Biometric Master Vault**| ❌ SSO / Password | ❌ SSO / Password | ⚠️ SAML SSO | **✅ WebAuthn Level 3 PRF (Touch ID/YubiKey)** |
-| **Self-Hosting & Compliance Control** | ❌ Cloud Lock-in | ❌ Cloud Lock-in | ❌ Cloud Lock-in | **✅ Docker / Litestream / S3 Multi-Cloud** |
+| Capability / Threat Model | DocSend ($15–$250/mo) | Papermark ($29–$99/mo) | BlindShare (v0.1.0) |
+|---|:---:|:---:|:---:|
+| **Monthly Financial Cost** | 💸 $180 – $3,000 / yr | 💸 $348 – $1,188 / yr | **🎉 $0 / month (100% Free & Open Source MIT)** |
+| **Document Cleartext Custody** | ❌ Server Cleartext | ❌ Server Cleartext (S3/Blob) | **🔒 100% Zero-Knowledge (Client AES-GCM-256)** |
+| **Decryption Key Delivery** | Centralized Auth Key | Server Session Token | **RFC 3986 `#k=` Fragment (Browser-Only RAM)** |
+| **Dwell Time & Heatmap Telemetry** | ✅ Closed SaaS | ✅ Tinybird / ClickHouse Cloud | **⚡ Sub-5ms In-Process Columnar DuckDB** |
+| **Forensic Leak Exfiltration Scanner**| ❌ No | ❌ No | **🔍 64-Bit Micro-Dot Steganography + Scanner** |
+| **Biometric Master Vault Enclave** | ❌ No | ❌ No | **🔐 WebAuthn Level 3 PRF (Touch ID/YubiKey)** |
+| **Atomic Burn-After-Reading Ratchet**| ❌ Manual Only | ❌ No | **💥 Atomic Self-Destruct On Verified Stream** |
+| **Self-Hosting Complexity** | ❌ Cloud Lock-in | ⚠️ Complex Microservices | **🚀 1-Click Vercel / Single Docker Container** |
 
 <br/>
 
@@ -940,14 +943,14 @@ BlindShare/
 │   │   │   ├── auth/                      # login · logout · logout-all · me · register · 2fa · bootstrap
 │   │   │   ├── datarooms/[id]/            # Dataroom CRUD
 │   │   │   ├── docs/[id]/                 # doc CRUD · audio · download · questions · versions
-│   │   │   ├── health/                    # Health check + diagnostics (v1.4.1)
+│   │   │   ├── health/                    # Health check + diagnostics
 │   │   │   ├── links/[id]/analytics/      # Link analytics
 │   │   │   ├── push/subscribe/            # VAPID push subscription
 │   │   │   ├── questions/                 # Founder Q&A inbox (reply, filter)
 │   │   │   ├── storage/                   # local-upload · local-download
 │   │   │   ├── user/                      # profile · 2fa · delete · export
 │   │   │   ├── v/[slug]/                  # bytes · questions · room · session · sign · verify
-│   │   │   └── version/                   # Platform version endpoint (1.4.1)
+│   │   │   └── version/                   # Platform version endpoint
 │   │   ├── contact/                       # Contact form page
 │   │   ├── dashboard/
 │   │   │   ├── analytics/[id]/            # Per-link analytics view
@@ -985,7 +988,7 @@ BlindShare/
 │   │   │   ├── signature-pad-modal.tsx    # In-app NDA digital signature
 │   │   │   └── voice-note-player.tsx      # Founder audio pitch player
 │   │   ├── brand-footer.tsx               # Footer
-│   │   └── brand-header.tsx               # Scrollable nav tabs + v1.4.1 badge
+│   │   └── brand-header.tsx               # Scrollable nav tabs + dynamic version badge
 │   │
 │   ├── db/
 │   │   ├── index.ts                       # pg pool (RFC URL hostname validation)
@@ -1053,7 +1056,7 @@ BlindShare/
 │
 ├── docs/
 │   ├── ARCHITECTURE.md                    # Adapter model, data ER, crypto pipeline
-│   ├── CHANGELOG.md                       # Keep-a-Changelog (v1.4.1 current)
+│   ├── CHANGELOG.md                       # Keep-a-Changelog (Semantic Versioning)
 │   ├── CODE_OF_CONDUCT.md
 │   ├── CONTRIBUTING.md
 │   ├── DATA-RETENTION.md

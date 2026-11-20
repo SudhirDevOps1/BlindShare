@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { APP_VERSION } from "@/lib/version";
 
 export const runtime = "edge";
 
@@ -104,7 +105,7 @@ export default async function Image() {
                 letterSpacing: "0.04em",
               }}
             >
-              v1.4.0 E2EE • ₹0 FREE TIER • 100% ZK
+              v{APP_VERSION} E2EE • ₹0 FREE TIER • 100% ZK
             </span>
           </div>
         </div>

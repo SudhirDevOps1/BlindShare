@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import { getStorageAdapter } from "@/lib/storage";
 import { rateLimitDistributed } from "@/lib/security/distributed-rate-limiter";
 import { logger } from "@/lib/logger";
+import { APP_VERSION } from "@/lib/version";
 
 export async function GET(request: Request) {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -51,7 +52,7 @@ export async function GET(request: Request) {
       timestamp: new Date().toISOString(),
       uptimeSeconds: Math.floor(process.uptime ? process.uptime() : 0),
       responseTimeMs: Date.now() - startTime,
-      version: "1.4.0",
+      version: APP_VERSION,
       backend: process.env.BACKEND_TARGET || "vercel",
       db: {
         target: process.env.DB_TARGET || "neon",

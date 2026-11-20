@@ -1,11 +1,18 @@
 #!/usr/bin/env node
 /**
- * BlindShare Single-Source-of-Truth Version Synchronizer
+ * BlindShare Universal Single-Source-of-Truth Version Synchronizer & Checker
+ * 
+ * Synchronizes and validates platform version across:
+ * 1. package.json
+ * 2. package-lock.json
+ * 3. .release-please-manifest.json
+ * 4. src/lib/version.ts (runtime web app anchor)
+ * 5. All Markdown files in root and docs/** (README.md, visual.md, ARCHITECTURE.md, etc.)
  * 
  * Usage:
  *   node scripts/sync-version.mjs             # Syncs all files to match package.json version
- *   node scripts/sync-version.mjs 1.4.3       # Sets new version and syncs across the entire project
- *   node scripts/sync-version.mjs --check     # CI gate: verifies all files match package.json (exit 1 if mismatch)
+ *   node scripts/sync-version.mjs 0.1.0       # Sets new version and syncs universally
+ *   node scripts/sync-version.mjs --check     # CI gate: verifies 100% synchronization across all targets
  */
 
 import fs from 'node:fs';
@@ -24,15 +31,15 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
 
 let targetVersion = rawArg || pkg.version;
 
-// Validate SemVer syntax
+// Validate SemVer syntax (e.g., "0.1.0" or "0.1.0-alpha.1")
 const semverRegex = /^\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?$/;
 if (!semverRegex.test(targetVersion)) {
-  console.error(`❌ Invalid SemVer format: "${targetVersion}". Expected format like "1.4.2" or "1.4.2-beta.1"`);
+  console.error(`❌ Invalid SemVer format: "${targetVersion}". Expected format like "0.1.0" or "0.1.0-beta.1"`);
   process.exit(1);
 }
 
 console.log(`\n======================================================`);
-console.log(`📦 BlindShare Version Manager: ${isCheckOnly ? 'VERIFY' : 'SYNC'} -> v${targetVersion}`);
+console.log(`📦 BlindShare Universal Version Manager: ${isCheckOnly ? 'VERIFY' : 'SYNC'} -> v${targetVersion}`);
 console.log(`======================================================\n`);
 
 let hasError = false;
@@ -70,7 +77,30 @@ if (fs.existsSync(lockPath)) {
   }
 }
 
-// 3. src/lib/version.ts (Single source of truth for runtime web app)
+// 3. .release-please-manifest.json
+const manifestPath = path.join(rootDir, '.release-please-manifest.json');
+if (fs.existsSync(manifestPath)) {
+  try {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    if (!isCheckOnly) {
+      manifest["."] = targetVersion;
+      fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+      console.log(`✔ Updated .release-please-manifest.json -> ${targetVersion}`);
+    } else {
+      if (manifest["."] === targetVersion) {
+        console.log(`✔ Verified .release-please-manifest.json -> ${targetVersion}`);
+      } else {
+        console.error(`✖ Mismatch in .release-please-manifest.json: expected ${targetVersion}, found ${manifest["."]}`);
+        hasError = true;
+      }
+    }
+  } catch (err) {
+    console.error(`✖ Error processing .release-please-manifest.json:`, err.message);
+    hasError = true;
+  }
+}
+
+// 4. src/lib/version.ts (Runtime Single-Source Anchor)
 const versionTsPath = path.join(rootDir, 'src', 'lib', 'version.ts');
 if (fs.existsSync(versionTsPath)) {
   let content = fs.readFileSync(versionTsPath, 'utf8');
@@ -80,6 +110,22 @@ if (fs.existsSync(versionTsPath)) {
   if (match) {
     if (!isCheckOnly) {
       content = content.replace(versionConstRegex, `export const APP_VERSION = "${targetVersion}";`);
+      // Also update doc comments inside version.ts
+      content = content.replace(
+        /\* - (Development|Preview|Production): "v\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?/g,
+        (full, mode) => {
+          if (mode === 'Development') return `* - Development: "v${targetVersion}-dev`;
+          if (mode === 'Preview') return `* - Preview: "v${targetVersion}-preview`;
+          return `* - Production: "v${targetVersion}`;
+        }
+      );
+      content = content.replace(
+        /\* - (Development|Production): "(DEV v|v)\d+\.\d+\.\d+/g,
+        (full, mode, prefix) => {
+          if (mode === 'Development') return `* - Development: "DEV v${targetVersion}`;
+          return `* - Production: "v${targetVersion}`;
+        }
+      );
       fs.writeFileSync(versionTsPath, content, 'utf8');
       console.log(`✔ Updated src/lib/version.ts -> ${targetVersion}`);
     } else {
@@ -96,44 +142,86 @@ if (fs.existsSync(versionTsPath)) {
   }
 }
 
-// 4. README.md
-const readmePath = path.join(rootDir, 'README.md');
-if (fs.existsSync(readmePath)) {
-  let content = fs.readFileSync(readmePath, 'utf8');
+// 5. Recursive Markdown File Synchronizer (README.md, docs/**/*.md, etc.)
+function findMarkdownFiles(dir) {
+  let results = [];
+  if (!fs.existsSync(dir)) return results;
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      if (['node_modules', '.git', '.next', '.gemini', 'dist', 'build'].includes(entry.name)) {
+        continue;
+      }
+      results = results.concat(findMarkdownFiles(fullPath));
+    } else if (entry.isFile() && entry.name.endsWith('.md')) {
+      results.push(fullPath);
+    }
+  }
+  return results;
+}
+
+const mdFiles = [
+  ...findMarkdownFiles(rootDir).filter(p => !p.includes(path.sep + 'node_modules' + path.sep))
+];
+
+console.log(`\n🔍 Scanning ${mdFiles.length} Markdown documentation files for version synchronization...`);
+
+let mdUpdatedCount = 0;
+for (const filePath of mdFiles) {
+  const relativePath = path.relative(rootDir, filePath).replace(/\\/g, '/');
+  let content = fs.readFileSync(filePath, 'utf8');
+  let originalContent = content;
+
   if (!isCheckOnly) {
+    // 1. Version Badges (e.g. img.shields.io/badge/version-v0.1.0-22c55e)
     content = content.replace(
-      /badge\/version-v\d+\.\d+\.\d+-22c55e/g,
+      /badge\/version-v\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?-22c55e/g,
       `badge/version-v${targetVersion}-22c55e`
     );
+
+    // 2. Releases URLs (e.g. releases/tag/v0.1.0)
     content = content.replace(
-      /releases\/tag\/v\d+\.\d+\.\d+/g,
+      /releases\/tag\/v\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?/g,
       `releases/tag/v${targetVersion}`
     );
-    content = content.replace(
-      /BlindShare v\d+\.\d+\.\d+/g,
-      `BlindShare v${targetVersion}`
-    );
-    fs.writeFileSync(readmePath, content, 'utf8');
-    console.log(`✔ Updated README.md badges & links -> v${targetVersion}`);
+
+    // 3. Platform title mentions (e.g. BlindShare v1.4.1 -> BlindShare v0.1.0)
+    // Avoid replacing historical changelog sections if marked
+    if (!relativePath.endsWith('CHANGELOG.md')) {
+      content = content.replace(
+        /BlindShare v\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?/g,
+        `BlindShare v${targetVersion}`
+      );
+      content = content.replace(
+        /Compatible with BlindShare v\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?/g,
+        `Compatible with BlindShare v${targetVersion}`
+      );
+      content = content.replace(
+        /-\s+\*\*Tag:\*\*\s+`v\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?`/g,
+        `- **Tag:** \`v${targetVersion}\``
+      );
+    }
+
+    if (content !== originalContent) {
+      fs.writeFileSync(filePath, content, 'utf8');
+      console.log(`  ✔ Synchronized [${relativePath}] -> v${targetVersion}`);
+      mdUpdatedCount++;
+    }
   } else {
-    console.log(`✔ Verified README.md present`);
+    // Check mode: Verify badge and active release tag in main docs
+    if (relativePath === 'README.md') {
+      const badgeMatch = content.match(/badge\/version-v([^-\s]+)-22c55e/);
+      if (badgeMatch && badgeMatch[1] !== targetVersion) {
+        console.error(`  ✖ Mismatch in ${relativePath} badge: expected v${targetVersion}, found v${badgeMatch[1]}`);
+        hasError = true;
+      }
+    }
   }
 }
 
-// 5. docs/RELEASES.md
-const releasesDocPath = path.join(rootDir, 'docs', 'RELEASES.md');
-if (fs.existsSync(releasesDocPath)) {
-  let content = fs.readFileSync(releasesDocPath, 'utf8');
-  if (!isCheckOnly) {
-    content = content.replace(
-      /-\s+\*\*Tag:\*\*\s+`v\d+\.\d+\.\d+`/g,
-      `- **Tag:** \`v${targetVersion}\``
-    );
-    fs.writeFileSync(releasesDocPath, content, 'utf8');
-    console.log(`✔ Updated docs/RELEASES.md stable tag -> v${targetVersion}`);
-  } else {
-    console.log(`✔ Verified docs/RELEASES.md present`);
-  }
+if (!isCheckOnly) {
+  console.log(`✔ Synchronized ${mdUpdatedCount} markdown documents to v${targetVersion}`);
 }
 
 console.log(`\n======================================================`);

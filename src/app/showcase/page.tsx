@@ -11,6 +11,7 @@ import {
   ShowcaseCategory,
   ShowcaseItem,
 } from "@/lib/showcase-data";
+import { DISPLAY_VERSION } from "@/lib/version";
 import {
   ShieldCheck,
   Search,
@@ -165,7 +166,7 @@ export default function ShowcasePage() {
           <p className="text-slate-300 text-sm sm:text-base max-w-3xl mx-auto leading-relaxed">
             {lang === "hi"
               ? "हमारे वास्तविक एंड-टू-एंड परीक्षण से कैप्चर किए गए सभी वास्तविक स्क्रीनशॉट की गहन समीक्षा करें। देखें कि शून्य-ज्ञान सिफरटेक्स्ट, बैकब्लेज B2 स्टोरेज, स्टोट अलर्ट, और डकडीबी एनालिटिक्स वास्तव में कैसे कार्य करते हैं।"
-              : "Explore the verified visual proof of BlindShare v1.4.0 in live production. Inspect raw Backblaze B2 ciphertext, Stoat Chat webhooks, Google Apps Script transactional email delivery, and columnar DuckDB dwell analytics."}
+              : `Explore the verified visual proof of BlindShare ${DISPLAY_VERSION} in live production. Inspect raw Backblaze B2 ciphertext, Stoat Chat webhooks, Google Apps Script transactional email delivery, and columnar DuckDB dwell analytics.`}
           </p>
 
           {/* Quick Metrics Counter */}

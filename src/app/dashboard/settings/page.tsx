@@ -63,6 +63,7 @@ import {
   SocialPlatformKey,
 } from "@/lib/developer-profile";
 import { renderRealSocialIcon } from "@/components/social-icons";
+import { APP_VERSION } from "@/lib/version";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -491,7 +492,7 @@ export default function SettingsPage() {
     try {
       const manifest = {
         platform: "BlindShare",
-        version: "1.4.0",
+        version: APP_VERSION,
         exportTimestamp: new Date().toISOString(),
         user: {
           id: user?.id || "anonymous",

@@ -16,6 +16,7 @@ import {
 } from "@/lib/developer-profile";
 
 import { renderRealSocialIcon, GithubIcon } from "@/components/social-icons";
+import { DISPLAY_VERSION } from "@/lib/version";
 
 export function BrandFooter() {
   const { t, appName, lang, setLang } = useI18n();
@@ -214,7 +215,7 @@ export function BrandFooter() {
 
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-400 text-[11px]">
           <div className="flex flex-wrap items-center gap-2">
-            <span suppressHydrationWarning>© {new Date().getFullYear()} {appName} v1.4.0. 100% Free & Open Source under MIT License.</span>
+            <span suppressHydrationWarning>© {new Date().getFullYear()} {appName} {DISPLAY_VERSION}. 100% Free & Open Source under MIT License.</span>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-slate-500">Honest Note: Watermarks & Anti-Download are deterrents, not DRM.</span>

@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { decodeForensicPayload, ForensicDetectionResult } from "@/lib/watermark/forensic-stego";
 import { useI18n } from "@/lib/i18n/context";
+import { APP_VERSION } from "@/lib/version";
 
 interface ForensicLeakScannerModalProps {
   isOpen: boolean;
@@ -66,7 +67,7 @@ export function ForensicLeakScannerModal({
 
   const st = (t as any).forensicScanner || {
     title: "Forensic Leak Scanner",
-    versionBadge: "Steganography v1.4.0",
+    versionBadge: `Steganography v${APP_VERSION}`,
     subtitle: "Upload a leaked photo or screenshot to extract invisible micro-dot constellations and identify the source.",
     dropTitle: "Drop leaked screenshot or document photo here",
     dropSubtitle: "Supports PNG, JPG, WebP, smartphone screenshots & camera photos",
