@@ -2,41 +2,18 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/).
 
-## [1.4.2] - 2026-11-20
+## [0.1.0] - 2026-11-20
 
-### 🚀 Enhanced & Hardened
-- **Next.js 16 Edge Proxy Alignment (`src/proxy.ts`):**
-  - Migrated legacy `src/middleware.ts` to `src/proxy.ts` in strict adherence with Next.js 16.4.6 App Router specifications.
-  - Eliminated Vercel deployment crash (`middleware-to-proxy` collision) while maintaining enterprise security headers, CSP, nonce generation, and path protection.
-- **Atomic Burn-After-Reading Self-Destruct (`src/app/api/v/[slug]/bytes/route.ts`):**
-  - Deferred link revocation until ciphertext is successfully verified and streamed to the client.
-  - Mitigated premature revocation Denial-of-Service where network dropouts during initial handshake left legitimate recipients permanently locked out.
-- **HMAC-SHA256 Signed Storage Delivery & Subpath Regex (`src/app/api/storage/local-download/route.ts`, `src/lib/storage/local-adapter.ts`):**
-  - Hardened local disk storage downloads with cryptographically signed HMAC bearer tokens.
-  - Resolved 404 pathing errors for nested storage subpaths by allowing path separator characters in download parameter validations.
-- **Zero-Storage In-Memory Decryption Shield (`src/components/pdf-viewer/pdf-renderer.tsx`, `src/components/viewer/media-renderer.tsx`):**
-  - Completely purged unencrypted PDF buffers and cryptographic keys from browser `localStorage` and `sessionStorage`.
-  - Enforced volatile, in-memory-only document rendering to protect confidential decks against malicious browser extension exfiltration.
-- **Elimination of Request-Path DDL Locks (`src/app/api/docs/route.ts`, `src/app/api/links/route.ts`, `src/lib/auth/session.ts`):**
-  - Purged runtime `ALTER TABLE` queries from high-frequency API endpoints, eliminating table-level `ExclusiveLock` contention on Neon/PostgreSQL connection pools.
-- **Webhook Outbound SSRF Protection (`src/lib/notifications/webhook-notifier.ts`):**
-  - Enforced `redirect: "error"` on outbound notification dispatches to thwart multi-hop redirection attacks targeting internal cloud metadata endpoints (e.g., 169.254.169.254).
-- **Stream Thresholds & OOM Protection (`src/lib/storage/r2-adapter.ts`, `src/lib/storage/b2-adapter.ts`):**
-  - Enforced 100MB streaming threshold for Cloudflare R2 and Backblaze B2 adapters, preventing serverless function memory exhaustion during large encrypted file reads.
-- **Crypto-Cursor Main-Thread Performance Optimization (`src/components/cursor/crypto-cursor.tsx`):**
-  - Gated background animated canvas rendering to eliminate persistent CPU/GPU main-thread overhead on resource-constrained devices.
-
-### 🛡️ Enterprise Governance & Open Source Security
-- **Enterprise Pull Request Governance (`.github/PULL_REQUEST_TEMPLATE.md`):**
-  - Implemented cryptographic invariants checklist, memory hygiene audits, zero-knowledge verification proofs, and rollback risk assessments.
-- **Structured Issue Forms (`.github/ISSUE_TEMPLATE/`):**
-  - Added schema-validated bug reports, feature requests, and private security advisory redirection with blank issue prevention (`config.yml`).
-- **Comprehensive Security Policy (`SECURITY.md`, `docs/SECURITY.md`):**
-  - Established formal private vulnerability disclosure procedures, 24-48h response SLAs, zero-knowledge threat boundaries, and Security Hall of Fame attribution.
-- **Hardened Dependabot Automation (`.github/dependabot.yml`):**
-  - Configured weekly grouped updates for npm dependencies and GitHub Actions with semantic commit prefixes (`chore(deps)`).
-- **Pre-Release Quality & Security Gate (`.github/workflows/release.yml`):**
-  - Enforced pre-release test gates requiring 100% green status on all 48 security unit tests, zero-knowledge isolation audits, typechecking, and linting before publishing tags.
+### 🚀 Initial Development Baseline & Zero-Knowledge Architecture
+- **Fresh Development Reset (`v0.1.0`):**
+  - Reset project SemVer baseline to initial development stage (`0.1.0`) per SemVer 2.0 specification.
+  - Development environment indicator (`DEV v0.1.0`) active across all UI headers, sidebars, and status endpoints.
+- **Zero-Knowledge Core Courier Architecture:**
+  - Client-side WebCrypto AES-GCM-256 document encryption and RAM zeroing.
+  - RFC 3986 `#fragment` key transport ensuring decryption keys never touch server logs or headers.
+  - Unconditional HMAC-SHA256 presigned storage delivery with 0 CodeQL security alerts.
+  - In-process columnar DuckDB telemetry engine for real-time dwell heatmaps.
+  - Single-Source-of-Truth versioning system (`src/lib/version.ts`) with automated sync (`npm run version:sync`).
 
 ## [1.4.1] - 2026-09-11
 

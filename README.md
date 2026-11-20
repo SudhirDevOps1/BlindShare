@@ -12,8 +12,8 @@
 </p>
 
 <p>
-  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v1.4.2">
-    <img src="https://img.shields.io/badge/version-v1.4.2-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v1.4.2" />
+  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v0.1.0">
+    <img src="https://img.shields.io/badge/version-v0.1.0-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v0.1.0" />
   </a>
   <a href="./LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-3b82f6?style=for-the-badge" alt="MIT License" />
@@ -75,7 +75,7 @@
 
 > **[🚀 Explore Interactive Live Web Showcase (/showcase)](https://blindshare.vercel.app/showcase)** &nbsp;•&nbsp; **[📖 Complete Technical Verification Guide (docs/SHOWCASE.md)](./docs/SHOWCASE.md)**
 
-Every core architectural pillar of BlindShare v1.4.2 has been verified end-to-end on live production infrastructure with authentic reader telemetry. **100% computed from real database records (Neon PostgreSQL + Drizzle ORM) — Zero mock data, zero synthetic curves.**
+Every core architectural pillar of BlindShare v0.1.0 has been verified end-to-end on live production infrastructure with authentic reader telemetry. **100% computed from real database records (Neon PostgreSQL + Drizzle ORM) — Zero mock data, zero synthetic curves.**
 
 | Zero-Knowledge Ciphertext Proof | Real-Time Stoat Alerting | Forensic Steganography Leak Scanner |
 | :---: | :---: | :---: |
@@ -97,7 +97,7 @@ Every core architectural pillar of BlindShare v1.4.2 has been verified end-to-en
 
 ### 🥊 BlindShare vs. Enterprise SaaS (DocSend, Digify, Firmex)
 
-| Capability / Threat Model | DocSend ($15–$250/mo) | Digify ($140–$500/mo) | Firmex ($500–$2,000/mo) | BlindShare (v1.4.2) |
+| Capability / Threat Model | DocSend ($15–$250/mo) | Digify ($140–$500/mo) | Firmex ($500–$2,000/mo) | BlindShare (v0.1.0) |
 |---|:---:|:---:|:---:|:---:|
 | **Monthly Financial Cost** | 💸 $180 – $3,000 / yr | 💸 $1,680 – $6,000 / yr | 💸 $6,000 – $24,000 / yr | **🎉 $0 / month (100% Free & Open Source)** |
 | **Document Cleartext Custody** | ❌ Server Cleartext | ❌ Server Cleartext | ❌ Server Cleartext | **🔒 100% Zero-Knowledge (Server Blind)** |
@@ -1126,7 +1126,7 @@ BlindShare/
   - AES-256-GCM Database Field Vault encrypting all user metadata at rest.
   - AI lead conviction intent scoring (0–100 algorithm: `HOT`, `WARM`, `COLD`).
 
-- **v1.4.2 — Enterprise Governance & Edge Integrity** ✅ *Current Production Stable*
+- **v0.1.0 — Development Alpha & Enterprise Hardening** 🚀 *Current Active Development Baseline*
   - Next.js 16 Edge Proxy (`src/proxy.ts`) with tiered abuse limits.
   - Atomic burn-after-reading link self-destruction on verified byte delivery.
   - Single-Source-of-Truth versioning architecture (`src/lib/version.ts`).

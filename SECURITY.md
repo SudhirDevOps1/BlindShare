@@ -10,8 +10,7 @@ Only the current active release series receives proactive security fixes and pat
 
 | Version | Supported | Status | Notes |
 | :--- | :---: | :---: | :--- |
-| **`1.4.x`** | :white_check_mark: | **Active** | Current Enterprise Stable Release (`v1.4.2`) |
-| `< 1.4.0` | :x: | End of Life | Unsupported. Upgrade to `v1.4.2` immediately. |
+| **`0.1.x`** | :white_check_mark: | **Active Development** | Initial Development / Alpha Series (`v0.1.0`) |
 
 ---
 

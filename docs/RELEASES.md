@@ -24,9 +24,9 @@ Releases are triggered automatically when a version tag (`v*`) is pushed to GitH
 2. Commit fix, open PR to `main`.
 3. After merging, create a new patch tag `v1.1.1` and push.
 
-## Current Stable Release
-- **Tag:** `v1.4.2`
-- **Integrity:** 100% Zero-Knowledge Edge Proxy alignment, atomic burn-after-reading delivery, HMAC signed local storage tokens, zero in-browser key caching, 48/48 security tests passing, 0 CodeQL vulnerabilities.
+## Current Development Release
+- **Tag:** `v0.1.0` (Active Development / Alpha)
+- **Integrity:** 100% Zero-Knowledge Edge Proxy alignment, atomic burn-after-reading delivery, HMAC signed local storage tokens, zero in-browser key caching, 56/56 security tests passing, 0 CodeQL vulnerabilities.
 ---
 
 ## 📚 Related Documentation & Knowledge Base

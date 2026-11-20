@@ -4,7 +4,7 @@
 > The primary enterprise security policy and private disclosure guidelines are maintained at [SECURITY.md](../SECURITY.md).
 
 ## Supported versions
-The `1.4.x` release series (currently `v1.4.2`) is actively supported with security patches and critical hotfixes.
+The `0.1.x` development release series (currently `v0.1.0`) is actively supported with security patches and critical hotfixes.
 
 ## Reporting a vulnerability
 Please report vulnerabilities privately via [GitHub Security Advisories](https://github.com/SudhirDevOps1/BlindShare/security/advisories/new) or by emailing `security@blindshare.io`. Target first response SLA: 24–48 hours.
