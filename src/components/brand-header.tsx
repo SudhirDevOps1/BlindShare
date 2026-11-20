@@ -134,14 +134,23 @@ export function BrandHeader() {
           <div>
             <div className="flex items-center gap-1.5">
               <span className="font-bold tracking-tight text-white text-base sm:text-lg">{appName}</span>
-              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-bold border transition-colors ${
-                IS_DEV
-                  ? "bg-amber-500/20 border-amber-400/50 text-amber-300 shadow-sm shadow-amber-500/20"
-                  : "bg-amber-500/15 border-amber-500/30 text-amber-300"
-              }`}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.dispatchEvent(new CustomEvent("open-whats-new"));
+                }}
+                title="View What's New & Changelog"
+                className={`inline-flex items-center rounded-full px-2 py-0.5 text-[9px] font-bold border transition-all hover:scale-105 hover:border-amber-400 cursor-pointer ${
+                  IS_DEV
+                    ? "bg-amber-500/20 border-amber-400/50 text-amber-300 shadow-sm shadow-amber-500/20"
+                    : "bg-amber-500/15 border-amber-500/30 text-amber-300"
+                }`}
+              >
                 {IS_DEV && <span className="w-1.5 h-1.5 rounded-full bg-amber-400 mr-1 animate-pulse" />}
                 {VERSION_BADGE_TEXT}
-              </span>
+              </button>
             </div>
             <p className="text-[9px] text-slate-400 hidden 2xl:block">Zero-Knowledge Doc Sharing</p>
           </div>

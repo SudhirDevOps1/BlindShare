@@ -102,6 +102,16 @@ export function BrandFooter() {
             <h4 className="font-bold text-slate-200 uppercase tracking-wider text-[11px] mb-3.5">Security & Legal</h4>
             <ul className="space-y-2.5">
               <li>
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent("open-whats-new"))}
+                  className="hover:text-amber-300 text-amber-300 font-semibold transition-colors flex items-center gap-1.5 cursor-pointer text-left"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+                  <span>What's New & Changelog</span>
+                </button>
+              </li>
+              <li>
                 <Link href="/privacy" className="hover:text-amber-300 text-slate-300 transition-colors flex items-center gap-1.5">
                   <span>{t.nav.privacy} (4-Quadrant)</span>
                 </Link>

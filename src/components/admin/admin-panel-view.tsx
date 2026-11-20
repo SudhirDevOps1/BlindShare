@@ -1842,16 +1842,34 @@ export function AdminPanelView() {
             </div>
 
             {/* Broadcast Banner */}
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2">
-              <div className="text-sm font-semibold text-white">{t.admin.broadcastBanner}</div>
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-semibold text-white">{t.admin.broadcastBanner}</div>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setSettings({ ...settings, broadcast_banner: "auto" })}
+                    className="rounded-lg bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 text-[10px] font-semibold text-amber-400 hover:bg-amber-500/20 transition"
+                  >
+                    Set to Auto (What's New)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSettings({ ...settings, broadcast_banner: "" })}
+                    className="rounded-lg bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-medium text-slate-400 hover:text-white transition"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
               <p className="text-xs text-slate-400">
-                Optional announcement banner shown at top of viewer and dashboard.
+                Top announcement banner. When set to <span className="text-amber-400 font-mono text-[11px]">auto</span> or left empty, it dynamically broadcasts the latest release changelog highlights and new features. Enter custom text to override with a platform announcement.
               </p>
               <input
                 type="text"
                 value={settings.broadcast_banner || ""}
                 onChange={(e) => setSettings({ ...settings, broadcast_banner: e.target.value })}
-                placeholder="e.g. Scheduled maintenance tonight at 02:00 UTC."
+                placeholder="Leave blank or 'auto' for latest Changelog, or enter custom notice..."
                 className="w-full rounded-xl border border-slate-700 bg-slate-900 px-3.5 py-2 text-xs text-white"
               />
             </div>
