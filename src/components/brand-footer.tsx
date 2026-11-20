@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useI18n } from "@/lib/i18n/context";
 import { BrandIcon } from "./brand-icon";
-import { ShieldCheck, Heart, Lock, Code2, ServerOff, Star, Scale, Globe } from "lucide-react";
+import { ShieldCheck, Heart, Lock, Code2, ServerOff, Star, Scale, Globe, Sparkles } from "lucide-react";
 import {
   getDefaultDeveloperProfile,
   loadDeveloperProfile,
