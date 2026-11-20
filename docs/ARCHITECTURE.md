@@ -171,6 +171,32 @@ High-frequency viewer dwell events are aggregated using BlindShare's columnar an
 - **Dual-Tier Bot & Brute-Force Lockout Defense (`src/lib/security/altcha.ts` & `src/lib/auth/lockout.ts`)**:
   - Integrated ALTCHA SHA-256 Proof-of-Work challenge verification rejects automated crawlers and credential-stuffing bots without tracking cookies or third-party CAPTCHA scripts.
   - Sliding-window failure tracking locks hostile IPs and accounts with client-side countdown timer synchronization and generic authentication error messages to prevent user enumeration.
+## SemVer Architectural Evolution (v0.1.0 – v1.4.2)
+
+BlindShare's engineering progression spans four major eras of cryptographic and edge architectural hardening:
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│                        SEMVER ARCHITECTURAL EVOLUTION (v0.1.0 - v1.4.2)                │
+├─────────────────────┬─────────────────────┬─────────────────────┬──────────────────────┤
+│ STAGE 1: FOUNDATION │ STAGE 2: ANALYTICS  │ STAGE 3: HARDENING  │ STAGE 4: GOVERNANCE  │
+│  (v0.1.0 - v1.0.0)  │  (v1.1.0 - v1.2.0)  │  (v1.3.0 - v1.4.0)  │  (v1.4.1 - v1.4.2)   │
+├─────────────────────┼─────────────────────┼─────────────────────┼──────────────────────┤
+│ • AES-GCM-256 E2EE  │ • 2FA TOTP RFC 6238 │ • 6-Pillar Crypto   │ • Next.js 16 Proxy   │
+│ • WebCrypto Core    │ • In-Process DuckDB │ • Bitwarden Master  │ • Atomic Burn-After- │
+│ • RFC 3986 #fragment│ • Client-Side GZIP  │   Key Vault         │   Reading Link Logic │
+│ • Presigned S3 PUTs │ • DNS MX Filter     │ • WebAuthn PRF L3   │ • Zero-Storage RAM   │
+│ • Basic PDF.js      │ • Litestream WAL B2 │ • DB Field Vault    │ • No Request DDL     │
+│ • Link Studio Gates │ • SIEM CEF Streaming│ • Indelible PDF-Lib │ • SSRF redirect:error│
+│ • Password PBKDF2   │ • AI Conviction Eng │ • Invisible Stego   │ • 56 Security Suites │
+└─────────────────────┴─────────────────────┴─────────────────────┴──────────────────────┘
+```
+
+1. **Stage 1: Cryptographic Foundation (`v0.1.0` – `v1.0.0`)**: Established the zero-knowledge courier paradigm. WebCrypto AES-GCM-256 with CSPRNG, RFC 3986 `#fragment` key transport, S3 presigned direct PUTs, and link-level PBKDF2 250k gates.
+2. **Stage 2: Telemetry & Edge Resilience (`v1.1.0` – `v1.2.0`)**: In-process columnar DuckDB telemetry for sub-5ms slide dwell heatmaps, client-side GZIP stream compression extending free tiers by 3x, Litestream continuous SQLite WAL replication to Backblaze B2, and SIEM CEF forwarding.
+3. **Stage 3: Zero-Knowledge Hardening & Steganography (`v1.3.0` – `v1.4.0`)**: Bitwarden-style Owner Master Key Vault, WebAuthn Level 3 PRF biometric hardware enclave key derivation, AES-256-GCM DB Field Vault at rest, indelible PDF watermark stamping (`pdf-lib`), and invisible 64-bit micro-dot forensic steganography.
+4. **Stage 4: Enterprise Governance & Runtime Integrity (`v1.4.1` – `v1.4.2`)**: Canonical Next.js 16 Edge Proxy (`src/proxy.ts`), atomic burn-after-reading link self-destruct on verified byte stream, zero in-browser key caching, single-source-of-truth versioning architecture (`src/lib/version.ts`), and 56 passing automated security and invariant unit test suites with 0 Open CodeQL Alerts.
+
 ---
 
 ## 📚 Related Documentation & Knowledge Base

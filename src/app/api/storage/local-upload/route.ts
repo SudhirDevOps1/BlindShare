@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getStorageAdapter } from "@/lib/storage";
 import { requireAuth } from "@/lib/auth/rbac";
 import { logger } from "@/lib/logger";
-import crypto from "crypto";
+import { verifyStorageSignature } from "@/lib/storage/signature";
 
 export async function PUT(request: Request) {
   try {
@@ -12,21 +12,20 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: "Invalid or illegal storage key" }, { status: 400 });
     }
 
-    const expires = Number(searchParams.get("expires") || "0");
     const sig = searchParams.get("sig");
+    const expires = searchParams.get("expires");
 
-    let isAuthorized = false;
-    if (sig && expires > Date.now()) {
-      const secret = process.env.SESSION_SECRET || "blindshare_local_secret";
-      const expectedSig = crypto.createHmac("sha256", secret).update(`put:${key}:${expires}`).digest("hex");
-      if (sig.length === expectedSig.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig))) {
-        isAuthorized = true;
+    // Strict discriminated authorization paths (No mutable bypass flag)
+    if (sig) {
+      const isSignatureValid = verifyStorageSignature("put", key, expires, sig);
+      if (!isSignatureValid) {
+        return NextResponse.json({ error: "Invalid or expired signature" }, { status: 403 });
       }
-    }
-
-    if (!isAuthorized) {
+    } else {
       const auth = await requireAuth();
-      if ("errorResponse" in auth) return auth.errorResponse;
+      if ("errorResponse" in auth) {
+        return auth.errorResponse;
+      }
     }
 
     const arrayBuffer = await request.arrayBuffer();

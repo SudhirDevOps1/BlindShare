@@ -2,31 +2,30 @@ import { NextResponse } from "next/server";
 import { getStorageAdapter } from "@/lib/storage";
 import { requireAuth } from "@/lib/auth/rbac";
 import { logger } from "@/lib/logger";
-import crypto from "crypto";
+import { verifyStorageSignature } from "@/lib/storage/signature";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const key = (searchParams.get("key") || "").trim();
-    if (!key || !/^[a-zA-Z0-9_\-\.\/]+$/.test(key) || key.includes("..")) {
+    if (!key || key.length > 256 || !/^[a-zA-Z0-9_\-\.\/]+$/.test(key) || key.includes("..")) {
       return NextResponse.json({ error: "Invalid or illegal storage key" }, { status: 400 });
     }
 
-    const expires = Number(searchParams.get("expires") || "0");
     const sig = searchParams.get("sig");
+    const expires = searchParams.get("expires");
 
-    let isAuthorized = false;
-    if (sig && expires > Date.now()) {
-      const secret = process.env.SESSION_SECRET || "blindshare_local_secret";
-      const expectedSig = crypto.createHmac("sha256", secret).update(`get:${key}:${expires}`).digest("hex");
-      if (sig.length === expectedSig.length && crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expectedSig))) {
-        isAuthorized = true;
+    // Strict discriminated authorization paths (No mutable bypass flag)
+    if (sig) {
+      const isSignatureValid = verifyStorageSignature("get", key, expires, sig);
+      if (!isSignatureValid) {
+        return NextResponse.json({ error: "Invalid or expired signature" }, { status: 403 });
       }
-    }
-
-    if (!isAuthorized) {
+    } else {
       const auth = await requireAuth();
-      if ("errorResponse" in auth) return auth.errorResponse;
+      if ("errorResponse" in auth) {
+        return auth.errorResponse;
+      }
     }
 
     const storage = getStorageAdapter();
