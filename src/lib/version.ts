@@ -5,7 +5,7 @@
  * and UI Components.
  */
 
-export const APP_VERSION = "0.1.0"; // x-release-please-version
+export const APP_VERSION = "0.1.1"; // x-release-please-version
 
 // Environment detection
 export const IS_DEV = process.env.NODE_ENV !== "production";
@@ -17,9 +17,9 @@ export const APP_ENV = IS_DEV ? "development" : (IS_PREVIEW ? "preview" : "produ
 
 /**
  * Display version shown across UI:
- * - Development: "DEV v0.1.0-dev"
- * - Preview: "v0.1.0-preview"
- * - Production: "v0.1.0"
+ * - Development: "DEV v0.1.1-dev"
+ * - Preview: "v0.1.1-preview"
+ * - Production: "v0.1.1"
  */
 export const DISPLAY_VERSION = IS_DEV
   ? `v${APP_VERSION}-dev`
@@ -27,8 +27,8 @@ export const DISPLAY_VERSION = IS_DEV
 
 /**
  * Badge label text for headers, sidebars, and branding:
- * - Development: "DEV v0.1.0"
- * - Production: "v0.1.0 E2EE"
+ * - Development: "DEV v0.1.1"
+ * - Production: "v0.1.1 E2EE"
  */
 export const VERSION_BADGE_TEXT = IS_DEV
   ? `DEV v${APP_VERSION}`
