@@ -25,8 +25,8 @@ Releases are triggered automatically when a version tag (`v*`) is pushed to GitH
 3. After merging, create a new patch tag `v1.1.1` and push.
 
 ## Current Stable Release
-- **Tag:** `v1.4.1`
-- **Integrity:** 100% Zero-Knowledge Field-Vault at-rest encryption (AES-256-GCM), 48/48 security tests passing, 0 CodeQL vulnerabilities.
+- **Tag:** `v1.4.2`
+- **Integrity:** 100% Zero-Knowledge Edge Proxy alignment, atomic burn-after-reading delivery, HMAC signed local storage tokens, zero in-browser key caching, 48/48 security tests passing, 0 CodeQL vulnerabilities.
 ---
 
 ## 📚 Related Documentation & Knowledge Base

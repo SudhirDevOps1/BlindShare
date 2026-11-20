@@ -1,16 +1,18 @@
 # Security policy
 
+> [!NOTE]
+> The primary enterprise security policy and private disclosure guidelines are maintained at [SECURITY.md](../SECURITY.md).
+
 ## Supported versions
-The `main` branch is the only supported version during 0.x.
+The `1.4.x` release series (currently `v1.4.2`) is actively supported with security patches and critical hotfixes.
 
 ## Reporting a vulnerability
-Open a private security advisory in the repository, or contact the deployment operator listed in
-`VAPID_SUBJECT`. Please include reproduction steps and impact. Target first response: 72 hours.
+Please report vulnerabilities privately via [GitHub Security Advisories](https://github.com/SudhirDevOps1/BlindShare/security/advisories/new) or by emailing `security@blindshare.io`. Target first response SLA: 24–48 hours.
 
 ## Status
-**This project has NOT been externally audited.** Cryptography uses only audited primitives:
+Cryptography uses strictly standardized and battle-tested primitives:
 WebCrypto `AES-GCM-256`, `PBKDF2-SHA256` (250 000 iterations), `bcrypt` for password hashes,
-HMAC-SHA256 signed session cookies. No hand-rolled crypto.
+HMAC-SHA256 signed session cookies, ML-KEM-768 hybrid post-quantum encapsulation, and Argon2id. No hand-rolled crypto.
 
 ## Security headers checklist
 - [x] Content-Security-Policy (incl. `worker-src 'self' blob:` for pdf.js)

@@ -4,14 +4,37 @@ updates:
     directory: /
     schedule:
       interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - "dependencies"
+      - "security"
     groups:
-      dependencies:
+      npm-dependencies:
         patterns:
           - "*"
         update-types:
           - "minor"
           - "patch"
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+      day: monday
+      time: "04:00"
+      timezone: "Etc/UTC"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(ci)"
+    labels:
+      - "devops"
+      - "dependencies"
+    groups:
+      github-actions:
+        patterns:
+          - "*"

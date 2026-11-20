@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 🔒 Report a Security Vulnerability
+    url: https://github.com/SudhirDevOps1/BlindShare/security/advisories/new
+    about: Please report potential security vulnerabilities through GitHub Security Advisories or as detailed in SECURITY.md.
+  - name: 💬 Community Discussions
+    url: https://github.com/SudhirDevOps1/BlindShare/discussions
+    about: Ask questions, discuss architectures, or share ideas with the BlindShare community.

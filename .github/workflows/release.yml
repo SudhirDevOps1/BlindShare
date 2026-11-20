@@ -9,8 +9,38 @@ permissions:
   contents: write
 
 jobs:
+  validate:
+    name: Pre-Release Quality & Security Gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Enterprise Security & Cryptographic E2E Tests
+        run: npm test
+
+      - name: Zero-Knowledge Self-Check
+        run: node scripts/selfcheck-e2ee.mjs
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
   release:
-    name: Create GitHub Release
+    name: Publish GitHub Release
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -18,14 +48,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Extract Release Notes
+      - name: Extract Release Notes & Generate Checksums
         uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
+            const crypto = require('crypto');
             const tag = context.ref.replace('refs/tags/', '');
             const version = tag.replace(/^v/, '');
-            let notes = `### BlindShare ${tag}\n\nAutomated production release.`;
+            let notes = `### BlindShare ${tag}\n\nAutomated enterprise production release.`;
             
             try {
               const changelogPath = fs.existsSync('docs/CHANGELOG.md') ? 'docs/CHANGELOG.md' : (fs.existsSync('CHANGELOG.md') ? 'CHANGELOG.md' : null);

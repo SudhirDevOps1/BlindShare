@@ -12,11 +12,14 @@
 </p>
 
 <p>
-  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v1.4.1">
-    <img src="https://img.shields.io/badge/version-v1.4.1-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v1.4.1" />
+  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v1.4.2">
+    <img src="https://img.shields.io/badge/version-v1.4.2-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v1.4.2" />
   </a>
   <a href="./LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-3b82f6?style=for-the-badge" alt="MIT License" />
+  </a>
+  <a href="./SECURITY.md">
+    <img src="https://img.shields.io/badge/Security-Policy%20Active-10b981?style=for-the-badge&logo=shield&logoColor=white" alt="Security Policy" />
   </a>
   <a href="https://github.com/SudhirDevOps1/BlindShare/security/code-scanning">
     <img src="https://img.shields.io/badge/CodeQL-0%20Alerts%20(100%25%20Clean)-success?style=for-the-badge&logo=github&logoColor=white" alt="CodeQL 100% Clean" />
@@ -72,7 +75,7 @@
 
 > **[🚀 Explore Interactive Live Web Showcase (/showcase)](https://blindshare.vercel.app/showcase)** &nbsp;•&nbsp; **[📖 Complete Technical Verification Guide (docs/SHOWCASE.md)](./docs/SHOWCASE.md)**
 
-Every core architectural pillar of BlindShare v1.4.1 has been verified end-to-end on live production infrastructure with authentic reader telemetry. **100% computed from real database records (Neon PostgreSQL + Drizzle ORM) — Zero mock data, zero synthetic curves.**
+Every core architectural pillar of BlindShare v1.4.2 has been verified end-to-end on live production infrastructure with authentic reader telemetry. **100% computed from real database records (Neon PostgreSQL + Drizzle ORM) — Zero mock data, zero synthetic curves.**
 
 | Zero-Knowledge Ciphertext Proof | Real-Time Stoat Alerting | Forensic Steganography Leak Scanner |
 | :---: | :---: | :---: |
@@ -1052,7 +1055,7 @@ BlindShare/
   - Geo/time gates (restrict to country or business hours)
   - Request-access flow (viewer can ask for access)
 
-- **v1.4 — Zero-Knowledge Hardening** ✅ *Shipped · Current Release (v1.4.1)*
+- **v1.4 — Zero-Knowledge Hardening** ✅ *Shipped · Current Release (v1.4.2)*
   - Voice notes per page
   - AI lead conviction intent scoring (HOT/WARM/COLD)
   - Permanent indelible PDF watermark burning on download (`pdf-lib`)
