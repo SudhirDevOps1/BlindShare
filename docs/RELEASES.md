@@ -25,7 +25,7 @@ Releases are triggered automatically when a version tag (`v*`) is pushed to GitH
 3. After merging, create a new patch tag `v1.1.1` and push.
 
 ## Current Development Release
-- **Tag:** `v0.1.1` (Active Development / Alpha)
+- **Tag:** `v0.1.2` (Active Development / Alpha)
 - **Integrity:** 100% Zero-Knowledge Edge Proxy alignment, atomic burn-after-reading delivery, HMAC signed local storage tokens, zero in-browser key caching, 56/56 security tests passing, 0 CodeQL vulnerabilities.
 ---
 
