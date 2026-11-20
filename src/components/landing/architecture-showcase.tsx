@@ -19,6 +19,7 @@ import {
   Info,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n/context";
+import { DISPLAY_VERSION } from "@/lib/version";
 
 interface GraphItemData {
   num: number;
@@ -683,7 +684,7 @@ export function ArchitectureShowcase() {
                 </span>
                 <span className="text-slate-600">•</span>
                 <span className="text-[11px] font-mono text-amber-400/80">
-                  v1.4.1
+                  {DISPLAY_VERSION}
                 </span>
               </div>
             </div>

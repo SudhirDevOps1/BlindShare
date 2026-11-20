@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { DashboardSidebar } from "@/components/dashboard-sidebar";
 import { Menu, X } from "lucide-react";
 import { Lock } from "lucide-react";
+import { VERSION_BADGE_TEXT, IS_DEV } from "@/lib/version";
 
 interface UserProfile {
   id: string;
@@ -111,8 +112,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
               <span className="text-sm font-bold text-white tracking-tight">BlindShare</span>
             </div>
           </div>
-          <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-[9px] font-bold text-amber-300 border border-amber-500/25">
-            v1.4.1 E2EE
+          <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-bold border transition-colors ${
+            IS_DEV
+              ? "bg-amber-500/20 border-amber-400/50 text-amber-300 shadow-sm shadow-amber-500/20"
+              : "bg-amber-500/15 border-amber-500/25 text-amber-300"
+          }`}>
+            {IS_DEV && <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 mr-1 animate-pulse" />}
+            {VERSION_BADGE_TEXT}
           </span>
         </div>
 

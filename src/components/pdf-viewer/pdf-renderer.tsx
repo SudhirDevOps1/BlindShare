@@ -15,6 +15,7 @@ import {
 } from "@/lib/crypto-core";
 import { restoreOwnerVaultFromSession } from "@/lib/vault/master-vault";
 import { applyMicroDotWatermark } from "@/lib/watermark/forensic-stego";
+import { APP_VERSION } from "@/lib/version";
 import {
   ChevronLeft,
   ChevronRight,
@@ -1294,7 +1295,7 @@ export function PdfRenderer({
       });
 
       // Footer
-      page.drawText("Generated client-side by BlindShare v1.4.1 — Decryption keys never stored server-side.", {
+      page.drawText(`Generated client-side by BlindShare v${APP_VERSION} — Decryption keys never stored server-side.`, {
         x: 50,
         y: 35,
         size: 8,

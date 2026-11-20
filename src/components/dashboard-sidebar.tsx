@@ -23,6 +23,7 @@ import {
   Settings,
   Zap,
 } from "lucide-react";
+import { VERSION_BADGE_TEXT, IS_DEV } from "@/lib/version";
 import { TwoFactorModal } from "@/components/auth/two-factor-modal";
 
 function GithubIcon() {
@@ -176,12 +177,13 @@ export function DashboardSidebar({ user, onLogout }: DashboardSidebarProps) {
                   <div style={{ marginTop: 3, display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
                     <span style={{
                       display: "inline-flex", alignItems: "center", gap: 4,
-                      background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.28)",
+                      background: IS_DEV ? "rgba(245,158,11,0.22)" : "rgba(245,158,11,0.12)",
+                      border: IS_DEV ? "1px solid rgba(245,158,11,0.55)" : "1px solid rgba(245,158,11,0.28)",
                       borderRadius: 999, padding: "2px 7px",
                       fontSize: 9, fontWeight: 700, color: "#fbbf24", whiteSpace: "nowrap",
                     }}>
                       <Zap style={{ width: 8, height: 8, fill: "#fbbf24" }} />
-                      v1.4.1 E2EE
+                      {VERSION_BADGE_TEXT}
                     </span>
                     <span
                       style={{

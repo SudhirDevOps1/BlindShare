@@ -1,5 +1,6 @@
 import { logger } from "@/lib/logger";
 import { hashIp } from "@/lib/analytics";
+import { APP_VERSION } from "@/lib/version";
 
 /**
  * Enterprise SIEM & SOC Security Log Forwarder
@@ -49,7 +50,7 @@ export function formatCef(e: SiemSecurityEvent): string {
     .map(([k, v]) => `${k}=${typeof v === "object" ? JSON.stringify(v) : v}`)
     .join(" ");
 
-  return `CEF:0|BlindShare|E2EE-Platform|1.4.1|${e.event}|${e.event}|${severityNum}|rt=${ts} src=${hashIp(srcIp)} suser=${user} cs1=${e.resource?.type || "none"} cs1Label=ResourceType ${details}`;
+  return `CEF:0|BlindShare|E2EE-Platform|${APP_VERSION}|${e.event}|${e.event}|${severityNum}|rt=${ts} src=${hashIp(srcIp)} suser=${user} cs1=${e.resource?.type || "none"} cs1Label=ResourceType ${details}`;
 }
 
 /**

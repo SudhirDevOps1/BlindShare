@@ -31,6 +31,9 @@ jobs:
       - name: Lint
         run: npm run lint
         
+      - name: Verify Single Source Version Parity
+        run: node scripts/sync-version.mjs --check
+
       - name: Enterprise Security & Cryptographic E2E Tests
         run: npm test
         
