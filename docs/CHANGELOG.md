@@ -2,6 +2,13 @@
 All notable changes to this project are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) · Versioning: [SemVer](https://semver.org/).
 
+## [0.1.2](https://github.com/SudhirDevOps1/BlindShare/compare/blindshare-v0.1.1...blindshare-v0.1.2) (2026-11-20)
+
+
+### Features
+
+* **branding:** elevate brand icon and full logo to sleek cyber-gold vault aesthetic ([f447072](https://github.com/SudhirDevOps1/BlindShare/commit/f447072e0495e5e3a551c4f7c5d454f91892b19a))
+
 ## [0.1.1](https://github.com/SudhirDevOps1/BlindShare/compare/blindshare-v0.1.0...blindshare-v0.1.1) (2026-11-20)
 
 
