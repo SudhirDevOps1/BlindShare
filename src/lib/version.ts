@@ -5,7 +5,7 @@
  * and UI Components.
  */
 
-export const APP_VERSION = "0.1.2"; // x-release-please-version
+export const APP_VERSION = "0.1.3"; // x-release-please-version
 
 // Environment detection
 export const IS_DEV = process.env.NODE_ENV !== "production";
