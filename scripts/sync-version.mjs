@@ -104,12 +104,12 @@ if (fs.existsSync(manifestPath)) {
 const versionTsPath = path.join(rootDir, 'src', 'lib', 'version.ts');
 if (fs.existsSync(versionTsPath)) {
   let content = fs.readFileSync(versionTsPath, 'utf8');
-  const versionConstRegex = /export const APP_VERSION = "([^"]+)";/;
+  const versionConstRegex = /export const APP_VERSION = "([^"]+)";(?:\s*\/\/\s*x-release-please-version)?/;
   const match = content.match(versionConstRegex);
 
   if (match) {
     if (!isCheckOnly) {
-      content = content.replace(versionConstRegex, `export const APP_VERSION = "${targetVersion}";`);
+      content = content.replace(versionConstRegex, `export const APP_VERSION = "${targetVersion}"; // x-release-please-version`);
       // Also update doc comments inside version.ts
       content = content.replace(
         /\* - (Development|Preview|Production): "v\d+\.\d+\.\d+(-[a-zA-Z0-9.]+)?/g,

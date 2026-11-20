@@ -31,6 +31,10 @@ jobs:
       - name: Lint
         run: npm run lint
         
+      - name: Synchronize Workspace Version on Release PR
+        if: startsWith(github.head_ref, 'release-please')
+        run: node scripts/sync-version.mjs
+
       - name: Verify Single Source Version Parity
         run: node scripts/sync-version.mjs --check
 

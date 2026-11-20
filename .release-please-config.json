@@ -11,7 +11,10 @@
       "prerelease": false,
       "changelog-path": "docs/CHANGELOG.md",
       "extra-files": [
-        "src/lib/version.ts"
+        {
+          "type": "generic",
+          "path": "src/lib/version.ts"
+        }
       ]
     }
   }
