@@ -2,24 +2,82 @@ import { NextResponse, type NextRequest } from "next/server";
 import { rateLimitDistributed } from "@/lib/security/distributed-rate-limiter";
 
 /**
- * BLINDSHARE edge proxy (Next.js 16)
- *  - strict security headers (CSP includes worker-src blob: for local self-hosted pdf.js)
- *  - X-Robots noindex on share/viewer routes (share-links must not be indexed)
- *  - distributed edge rate limiting for abuse defence (Upstash Redis + memory fallback)
+ * BLINDSHARE Zero-Trust Edge Proxy (Next.js 16)
+ *  - strict security headers & hardened CSP without broad wildcards
+ *  - Same-Origin & Anti-CSRF verification on mutating HTTP requests
+ *  - Edge-level payload size limits against DoS & memory exhaustion
+ *  - Anti-spoofing client IP extraction and sanitization
+ *  - X-Robots noindex & no-referrer on share/viewer routes
+ *  - distributed edge rate limiting (Upstash Redis + memory fallback)
  *  - no-store caching directives on authenticated surfaces
  */
 
 const PRESIGN_PER_MIN = Number(process.env.PRESIGN_REQ_PER_MIN_PER_IP || "20");
 const VIEWS_PER_HOUR = Number(process.env.VIEWS_PER_HR_PER_LINK || "300");
 
+/**
+ * Validates and extracts a sanitized IP address to prevent header injection or spoofing.
+ */
+function sanitizeClientIp(request: NextRequest): string {
+  const rawIp =
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-real-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+
+  if (!rawIp) return "127.0.0.1";
+
+  // IPv4 standard regex: 0-255.0-255.0-255.0-255
+  const ipv4Regex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+  // IPv6 standard regex
+  const ipv6Regex = /^([0-9a-fA-F]{1,4}:){1,7}[0-9a-fA-F]{1,4}$|^::1$|^::$/;
+
+  if (ipv4Regex.test(rawIp) || ipv6Regex.test(rawIp)) {
+    return rawIp;
+  }
+  return "127.0.0.1";
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const ip =
-    request.headers.get("cf-connecting-ip") ||
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    "unknown";
+  const ip = sanitizeClientIp(request);
 
-  // --- Abuse defence (Distributed Upstash Redis + Memory Fallback) -----------
+  // --- 1. Same-Origin & Anti-CSRF Guard (Mutating Methods) --------------------
+  if (["POST", "PUT", "DELETE", "PATCH"].includes(request.method)) {
+    const origin = request.headers.get("origin");
+    const host = request.headers.get("host");
+
+    if (origin && host) {
+      try {
+        const originHost = new URL(origin).host;
+        if (originHost !== host) {
+          return NextResponse.json(
+            { error: "Cross-Origin Request Blocked. CSRF protection active." },
+            { status: 403 }
+          );
+        }
+      } catch {
+        return NextResponse.json(
+          { error: "Malformed or untrusted Origin header provided." },
+          { status: 403 }
+        );
+      }
+    }
+  }
+
+  // --- 2. Edge Payload Size Guard (Anti-DoS & Memory Exhaustion) --------------
+  const contentLength = Number(request.headers.get("content-length") || "0");
+  if (contentLength > 0) {
+    const isUploadEndpoint = pathname.startsWith("/api/docs") || pathname.startsWith("/api/storage");
+    const maxAllowedBytes = isUploadEndpoint ? 52_428_800 : 1_048_576; // 50MB uploads, 1MB standard APIs
+    if (contentLength > maxAllowedBytes) {
+      return NextResponse.json(
+        { error: `Payload too large. Maximum allowed size is ${isUploadEndpoint ? "50MB" : "1MB"}.` },
+        { status: 413 }
+      );
+    }
+  }
+
+  // --- 3. Abuse Defence (Distributed Upstash Redis + Memory Fallback) ----------
   if (pathname.startsWith("/api/docs") && request.method === "POST") {
     const check = await rateLimitDistributed(`upload:${ip}`, PRESIGN_PER_MIN, 60_000);
     if (!check.allowed) {
@@ -46,7 +104,7 @@ export async function proxy(request: NextRequest) {
     const slug = parts[3] || "unknown";
     const subRoute = parts[4] || "";
 
-    // 1) Initial link view / metadata resolution (/api/v/[slug] directly):
+    // Initial link view / metadata resolution (/api/v/[slug] directly):
     if (!subRoute) {
       const check = await rateLimitDistributed(`view:${slug}`, VIEWS_PER_HOUR, 3_600_000);
       if (!check.allowed) {
@@ -67,7 +125,6 @@ export async function proxy(request: NextRequest) {
       }
     } else {
       // In-session active reading telemetry & polling (questions, room, session, bytes):
-      // Generous quota (2,400/hr) per IP+slug so legitimate active readers never get throttled
       const pollCheck = await rateLimitDistributed(`poll:${ip}:${slug}`, 2400, 3_600_000);
       if (!pollCheck.allowed) {
         return NextResponse.json(
@@ -78,7 +135,7 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // --- Headers -------------------------------------------------------------
+  // --- 4. Security Headers ---------------------------------------------------
   const response = NextResponse.next();
 
   const isDev = process.env.NODE_ENV === "development";
@@ -92,7 +149,8 @@ export async function proxy(request: NextRequest) {
     "img-src 'self' data: blob:",
     "media-src 'self' blob:",
     "font-src 'self' data:",
-    "connect-src 'self' https: https://*.workers.dev https://cdnjs.cloudflare.com https://cdn.jsdelivr.net blob: data:",
+    // Strictly allowlisted storage and CDN origins (no wildcard https: to prevent key exfiltration)
+    "connect-src 'self' blob: data: https://*.backblazeb2.com https://*.r2.cloudflarestorage.com https://*.workers.dev https://cdnjs.cloudflare.com https://cdn.jsdelivr.net",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -114,14 +172,14 @@ export async function proxy(request: NextRequest) {
   response.headers.set("X-DNS-Prefetch-Control", "off");
   response.headers.set("Strict-Transport-Security", "max-age=63072000; includeSubDomains; preload");
 
-  // Share links & their APIs must never be indexed.
+  // Share links & their APIs must never be indexed and never leak referrers
   if (pathname.startsWith("/v/") || pathname.startsWith("/api/v/")) {
     response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive, nosnippet");
     response.headers.set("Cache-Control", "private, no-store");
+    response.headers.set("Referrer-Policy", "no-referrer");
   }
 
-  // Authenticated owner/admin surfaces must never be cached by shared caches,
-  // CDNs, or the browser's back-forward cache with stale privileged content.
+  // Authenticated owner/admin surfaces must never be cached by shared caches or CDNs
   if (
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/admin") ||

@@ -133,6 +133,13 @@ export async function POST(
       );
     }
 
+    if (questionText.length > 2000) {
+      return NextResponse.json(
+        { error: "Question text exceeds maximum allowed length of 2,000 characters." },
+        { status: 400 }
+      );
+    }
+
     const [link] = await db
       .select({
         id: links.id,
