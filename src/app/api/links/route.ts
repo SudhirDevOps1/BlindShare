@@ -140,15 +140,6 @@ export async function POST(request: Request) {
 
     const linkId = genId("lnk");
 
-    // Self-healing schema migration for links table
-    await db.execute(sql`
-      ALTER TABLE links 
-      ADD COLUMN IF NOT EXISTS anti_leak_blur_enabled BOOLEAN NOT NULL DEFAULT TRUE,
-      ADD COLUMN IF NOT EXISTS anti_spy_shield_enabled BOOLEAN NOT NULL DEFAULT TRUE,
-      ADD COLUMN IF NOT EXISTS burn_after_reading BOOLEAN NOT NULL DEFAULT FALSE,
-      ADD COLUMN IF NOT EXISTS voice_pitch_enabled BOOLEAN NOT NULL DEFAULT TRUE;
-    `).catch(() => {});
-
     await db.insert(links).values({
       id: linkId,
       docId: docId || null,

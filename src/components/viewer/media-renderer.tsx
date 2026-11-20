@@ -538,31 +538,12 @@ export function MediaRenderer({
           docKey = fragmentToDocKey(window.location.hash);
           if (docKey && typeof window !== "undefined") {
             if (linkData.burnAfterReading) {
-              // Idea 6: Forward Secrecy Ratchet - Strip hash from address bar so history cannot reopen it
+              // Forward Secrecy Ratchet - Strip hash from address bar so history cannot reopen it
               if (window.location.hash.includes("k=")) {
                 window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
               }
-            } else {
-              try {
-                const hex = bufferToHex(docKey);
-                sessionStorage.setItem(`blindshare_key_${docData.id}`, hex);
-                sessionStorage.setItem(`blindshare_key_${slug}`, hex);
-                // Tab-isolated by default: only persist to localStorage if user explicitly opted in
-                if (localStorage.getItem("blindshare_remember_keys") === "true") {
-                  localStorage.setItem(`blindshare_key_${docData.id}`, hex);
-                  localStorage.setItem(`blindshare_link_key_${slug}`, hex);
-                }
-              } catch {}
             }
           }
-        }
-        if (!docKey && typeof window !== "undefined") {
-          const stored =
-            sessionStorage.getItem(`blindshare_key_${docData.id}`) ||
-            sessionStorage.getItem(`blindshare_key_${slug}`) ||
-            localStorage.getItem(`blindshare_link_key_${slug}`) ||
-            localStorage.getItem(`blindshare_key_${docData.id}`);
-          if (stored) docKey = hexToBuffer(stored);
         }
         currentDocKey = docKey;
         if (!docKey && docData.encryptionMode === "e2ee-fragment") {
@@ -863,12 +844,6 @@ export function MediaRenderer({
           setKeyRecoveryError("Invalid decryption key or password. Please provide the complete link or #k= fragment.");
           return;
         }
-
-        const hex = bufferToHex(derivedKey);
-        sessionStorage.setItem("blindshare_key_" + slug, hex);
-        sessionStorage.setItem("blindshare_key_" + docData.id, hex);
-        localStorage.setItem("blindshare_key_" + docData.id, hex);
-        localStorage.setItem("blindshare_link_key_" + slug, hex);
 
         const { docKeyToFragment } = await import("@/lib/crypto-core");
         const frag = docKeyToFragment(derivedKey);

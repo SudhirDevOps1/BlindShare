@@ -34,8 +34,11 @@ export class LocalStorageAdapter implements StorageAdapter {
 
   async getPresignedPutUrl(key: string, contentType: string, expiresInSec = 600): Promise<StoragePresignResult> {
     const baseUrl = process.env.PUBLIC_APP_URL || "http://localhost:3000";
+    const expires = Date.now() + expiresInSec * 1000;
+    const secret = process.env.SESSION_SECRET || "blindshare_local_secret";
+    const sig = crypto.createHmac("sha256", secret).update(`put:${key}:${expires}`).digest("hex");
     return {
-      url: `${baseUrl}/api/storage/local-upload?key=${encodeURIComponent(key)}`,
+      url: `${baseUrl}/api/storage/local-upload?key=${encodeURIComponent(key)}&expires=${expires}&sig=${sig}`,
       method: "PUT",
       expiresInSeconds: expiresInSec,
     };
@@ -43,8 +46,11 @@ export class LocalStorageAdapter implements StorageAdapter {
 
   async getPresignedGetUrl(key: string, expiresInSec = 300): Promise<StoragePresignResult> {
     const baseUrl = process.env.PUBLIC_APP_URL || "http://localhost:3000";
+    const expires = Date.now() + expiresInSec * 1000;
+    const secret = process.env.SESSION_SECRET || "blindshare_local_secret";
+    const sig = crypto.createHmac("sha256", secret).update(`get:${key}:${expires}`).digest("hex");
     return {
-      url: `${baseUrl}/api/storage/local-download?key=${encodeURIComponent(key)}`,
+      url: `${baseUrl}/api/storage/local-download?key=${encodeURIComponent(key)}&expires=${expires}&sig=${sig}`,
       method: "GET",
       expiresInSeconds: expiresInSec,
     };

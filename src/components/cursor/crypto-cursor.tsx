@@ -3,6 +3,14 @@
 import React, { useEffect, useState, useRef } from "react";
 import { usePathname } from "next/navigation";
 
+export function CryptoCursor() {
+  // Disabled by default to conserve client CPU and memory on low-end and battery devices
+  if (process.env.NEXT_PUBLIC_ENABLE_CRYPTO_CURSOR !== "true") {
+    return null;
+  }
+  return <ActiveCryptoCursor />;
+}
+
 interface SonarPing {
   id: number;
   x: number;
@@ -147,7 +155,7 @@ const TuxCyberPet = React.forwardRef<HTMLDivElement, {}>(function TuxCyberPet(_,
   );
 });
 
-export function CryptoCursor() {
+function ActiveCryptoCursor() {
   const pathname = usePathname();
   const [isEnabled, setIsEnabled] = useState<boolean>(false);
   const [isTouchDevice, setIsTouchDevice] = useState<boolean>(true);

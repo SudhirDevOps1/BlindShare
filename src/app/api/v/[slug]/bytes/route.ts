@@ -35,7 +35,7 @@ export async function GET(
       return NextResponse.json({ error: "Share link is not active or has been revoked" }, { status: 410 });
     }
 
-    if (link.burnAfterReading && link.viewCount >= 1) {
+    if (link.burnAfterReading && (link.isRevoked || link.viewCount > 1)) {
       return NextResponse.json({ error: "This single-use Burn-After-Reading link has self-destructed" }, { status: 410 });
     }
 
@@ -133,6 +133,15 @@ export async function GET(
 
     if (!obj) {
       return NextResponse.json({ error: "Encrypted payload not found in storage" }, { status: 404 });
+    }
+
+    if (link.burnAfterReading) {
+      // Mark as permanently revoked so subsequent fetches or accesses cannot retrieve the file
+      await db
+        .update(links)
+        .set({ isRevoked: true, updatedAt: new Date() })
+        .where(eq(links.id, link.id))
+        .catch(() => {});
     }
 
     return new NextResponse(obj.data as any, {

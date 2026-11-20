@@ -15,7 +15,10 @@ import QRCode from "qrcode";
 import { encryptField, encryptEmail } from "@/lib/crypto/db-vault";
 import { logger } from "@/lib/logger";
 
+let didEnsure2fa = false;
 async function ensure2faColumns() {
+  if (didEnsure2fa) return;
+  didEnsure2fa = true;
   try {
     await pool.query(`
       ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled boolean NOT NULL DEFAULT false;

@@ -509,22 +509,8 @@ export function PdfRenderer({
           const hash = window.location.hash;
           docKey = fragmentToDocKey(hash);
 
-          if (!docKey) {
-            // 2. Check persistent local storage fallback
-            const storedHex =
-              sessionStorage.getItem(`blindshare_link_key_${slug}`) ||
-              localStorage.getItem(`blindshare_link_key_${slug}`) ||
-              sessionStorage.getItem(`blindshare_key_${slug}`) ||
-              sessionStorage.getItem(`blindshare_key_${docData.id}`) ||
-              localStorage.getItem(`blindshare_key_${docData.id}`) ||
-              localStorage.getItem(`blindshare_key_${slug}`);
-            if (storedHex) {
-              docKey = hexToBuffer(storedHex);
-            }
-          }
-
           if (!docKey && (docData as any).ownerEncryptedKeyHex && (docData as any).ownerEncryptedKeyIvHex) {
-            // 3. Check active session owner master vault
+            // Check active session owner master vault
             const masterKey = await restoreOwnerVaultFromSession();
             if (masterKey) {
               setLoadingStep("Restoring key from your Zero-Knowledge Master Vault...");
@@ -543,25 +529,14 @@ export function PdfRenderer({
 
           if (docKey && typeof window !== "undefined") {
             if (linkData.burnAfterReading) {
-              // Idea 6: Forward Secrecy Ratchet - Strip key fragment from address bar so history cannot reopen it
+              // Forward Secrecy Ratchet - Strip key fragment from address bar so history cannot reopen it
               if (window.location.hash.includes("k=")) {
                 window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
               }
-            } else {
-              // Standard persistent cache in local & session storage for normal links
-              try {
-                const hex = bufferToHex(docKey);
-                sessionStorage.setItem(`blindshare_key_${slug}`, hex);
-                sessionStorage.setItem(`blindshare_key_${docData.id}`, hex);
-                localStorage.setItem(`blindshare_key_${docData.id}`, hex);
-                localStorage.setItem(`blindshare_link_key_${slug}`, hex);
-
-                // Auto-fill fragment in address bar if opened without hash
-                if (!window.location.hash.includes("k=")) {
-                  const frag = docKeyToFragment(docKey);
-                  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#k=${frag}`);
-                }
-              } catch {}
+            } else if (!window.location.hash.includes("k=")) {
+              // Ensure fragment exists in address bar so F5 refresh preserves key in RAM
+              const frag = docKeyToFragment(docKey);
+              window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#k=${frag}`);
             }
           }
         }
@@ -573,15 +548,6 @@ export function PdfRenderer({
         }
 
         let pdfBytes: ArrayBuffer | null = null;
-
-        // 1. Check if decrypted PDF is already cached in this active browser tab
-        try {
-          const cachedHex = sessionStorage.getItem(`blindshare_tab_decrypted_${docData.id}`);
-          if (cachedHex && cachedHex.length > 32) {
-            setLoadingStep("Instant tab cache loaded...");
-            pdfBytes = hexToBuffer(cachedHex).buffer as ArrayBuffer;
-          }
-        } catch {}
 
         if (!pdfBytes) {
           const bytesUrl = sessionId
@@ -597,7 +563,7 @@ export function PdfRenderer({
 
           const ciphertextBuffer = await res.arrayBuffer();
 
-          // 2. Decrypt in client browser memory
+          // Decrypt in client browser memory (RAM-only)
           pdfBytes = ciphertextBuffer;
 
           if (docData.encryptionMode === "e2ee-fragment" && docKey) {
@@ -605,14 +571,6 @@ export function PdfRenderer({
             const iv = docData.ivHex ? hexToBuffer(docData.ivHex) : new Uint8Array(12);
             pdfBytes = await decryptBytes(ciphertextBuffer, docKey, iv);
           }
-
-          // Cache in active tab's sessionStorage for instant 0.01s reload on refresh
-          try {
-            if (pdfBytes.byteLength <= 25 * 1024 * 1024) {
-              const hex = bufferToHex(new Uint8Array(pdfBytes));
-              sessionStorage.setItem(`blindshare_tab_decrypted_${docData.id}`, hex);
-            }
-          } catch {}
         }
 
         if (isCancelled) return;

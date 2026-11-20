@@ -168,13 +168,14 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
       maxPageReached: 1,
     });
 
-    const shouldRevokeOnBurn = Boolean(link.burnAfterReading);
-
+    // Increment viewCount atomically upon successful gate verification.
+    // Note: Do NOT mark isRevoked here for burnAfterReading links; revocation occurs
+    // upon delivery of ciphertext bytes in /bytes (or via /ratchet-burn on exit),
+    // otherwise the legitimate recipient is locked out before bytes can be streamed.
     await db
       .update(links)
       .set({
         viewCount: sql`${links.viewCount} + 1`,
-        isRevoked: shouldRevokeOnBurn ? true : links.isRevoked,
         updatedAt: new Date(),
       })
       .where(

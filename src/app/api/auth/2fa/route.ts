@@ -8,7 +8,10 @@ import { genId } from "@/lib/ids";
 import { logger } from "@/lib/logger";
 import { decryptField, decryptEmail, encryptEmail } from "@/lib/crypto/db-vault";
 
+let didEnsure2fa = false;
 async function ensure2faColumns() {
+  if (didEnsure2fa) return;
+  didEnsure2fa = true;
   try {
     await pool.query(`
       ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled boolean NOT NULL DEFAULT false;

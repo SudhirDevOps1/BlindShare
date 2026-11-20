@@ -210,6 +210,7 @@ export async function sendWebhookNotificationDetailed(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
+      redirect: "error", // Strict SSRF Defense: Never follow redirects to internal/cloud metadata endpoints
       signal: AbortSignal.timeout(3500),
     });
 

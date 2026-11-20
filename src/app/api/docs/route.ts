@@ -76,15 +76,6 @@ export async function POST(request: Request) {
 
     const presign = await storage.getPresignedPutUrl(storageKey, "application/octet-stream", 600);
 
-    // Self-healing schema migration for documents table
-    await db.execute(sql`
-      ALTER TABLE documents 
-      ADD COLUMN IF NOT EXISTS owner_encrypted_key_hex TEXT,
-      ADD COLUMN IF NOT EXISTS owner_encrypted_key_iv_hex TEXT,
-      ADD COLUMN IF NOT EXISTS thumbnail_storage_key TEXT,
-      ADD COLUMN IF NOT EXISTS is_tombstone BOOLEAN NOT NULL DEFAULT FALSE;
-    `).catch(() => {});
-
     await db.insert(documents).values({
       id: docId,
       ownerId: auth.user.id,

@@ -70,9 +70,12 @@ export class R2StorageAdapter implements StorageAdapter {
       });
       const response = await this.client.send(command);
       if (!response.Body) return null;
-      const streamToBuffer = async (stream: any): Promise<Buffer> => {
+      const streamToBuffer = async (stream: any, maxBytes = 100 * 1024 * 1024): Promise<Buffer> => {
         const chunks: Buffer[] = [];
+        let total = 0;
         for await (const chunk of stream) {
+          total += chunk.length;
+          if (total > maxBytes) throw new Error("Payload size exceeds maximum allowed threshold");
           chunks.push(Buffer.from(chunk));
         }
         return Buffer.concat(chunks);
