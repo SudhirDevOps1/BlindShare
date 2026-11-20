@@ -31,7 +31,7 @@ Replace all contents of `Code.gs` with the following code:
 ```javascript
 /**
  * BlindShare Zero-Knowledge Email Relay (Google Apps Script)
- * Compatible with BlindShare v0.1.2
+ * Compatible with BlindShare v0.1.3
  */
 
 // Define your shared secret token (must match GAS_SECRET_TOKEN in your .env)
