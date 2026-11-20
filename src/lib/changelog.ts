@@ -24,10 +24,51 @@ export interface ReleaseNote {
 
 export const RELEASES_HISTORY: ReleaseNote[] = [
   {
+    version: "0.1.3",
+    date: "2026-11-20",
+    tag: "blindshare-v0.1.3",
+    isLatest: true,
+    titleEn: "Dynamic What's New Banner & Interactive Release Changelog",
+    titleHi: "डायनामिक व्हाट इज़ न्यू बैनर और इंटरैक्टिव चेंजलॉग",
+    bannerBadgeEn: "What's New in v0.1.3",
+    bannerBadgeHi: "v0.1.3 में नया क्या है",
+    bannerHeadlineEn: "Interactive Changelog Engine & Release Highlights Banner",
+    bannerHeadlineHi: "इंटरैक्टिव चेंजलॉग इंजन और ताज़ा फीचर्स बैनर",
+    highlightsEn: [
+      "Dynamic top announcement banner automatically showcasing latest release features",
+      "Interactive bilingual What's New modal dialog with version switcher and highlights",
+      "One-click Changelog access from Header version badge, Top banner, and Footer",
+      "Smart auto-fallback: auto mode detects empty or legacy broadcast settings",
+    ],
+    highlightsHi: [
+      "नवीनतम रिलीज़ फीचर्स को स्वचालित रूप से प्रदर्शित करने वाला डायनामिक टॉप बैनर",
+      "वर्शन स्विचर और हाइलाइट्स के साथ इंटरैक्टिव द्विभाषी 'व्हाट्स न्यू' मोडल डायलॉग",
+      "हेडर वर्शन बैज, टॉप बैनर और फुटर से वन-क्लिक चेंजलॉग एक्सेस",
+      "स्मार्ट ऑटो-फ़ॉलबैक: ऑटो मोड खाली या पुराने ब्रॉडकास्ट सेटिंग्स को पहचानता है",
+    ],
+    categories: [
+      {
+        category: "features",
+        titleEn: "Changelog Engine & User Experience",
+        titleHi: "चेंजलॉग इंजन और यूज़र एक्सपीरियंस",
+        itemsEn: [
+          "Dynamic What's New modal with full category breakdown (Security, Branding, Features)",
+          "Per-version banner dismissal tracking in browser storage with auto-resurface on new releases",
+          "Admin Panel auto-toggle helper to switch effortlessly between custom notices and changelog",
+        ],
+        itemsHi: [
+          "पूर्ण श्रेणी विवरण (सुरक्षा, ब्रांडिंग, फीचर्स) के साथ डायनामिक व्हाट्स न्यू मोडल",
+          "ब्राउज़र स्टोरेज में प्रति-वर्शन बैनर डिसमिसल ट्रैकिंग",
+          "कस्टम नोटिस और चेंजलॉग के बीच आसानी से स्विच करने हेतु एडमिन पैनल ऑटो-टॉगल",
+        ],
+      },
+    ],
+  },
+  {
     version: "0.1.2",
     date: "2026-11-20",
     tag: "blindshare-v0.1.2",
-    isLatest: true,
+    isLatest: false,
     titleEn: "Cyber-Gold Vault Brand & Zero-Trust Edge Security",
     titleHi: "साइबर-गोल्ड वॉल्ट ब्रांड और ज़ीरो-ट्रस्ट एज सुरक्षा",
     bannerBadgeEn: "What's New in v0.1.2",

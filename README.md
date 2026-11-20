@@ -12,8 +12,8 @@
 </p>
 
 <p>
-  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v0.1.2">
-    <img src="https://img.shields.io/badge/version-v0.1.2-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v0.1.0" />
+  <a href="https://github.com/SudhirDevOps1/BlindShare/releases/tag/v0.1.3">
+    <img src="https://img.shields.io/badge/version-v0.1.3-22c55e?style=for-the-badge&logo=git&logoColor=white" alt="v0.1.0" />
   </a>
   <a href="./LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-3b82f6?style=for-the-badge" alt="MIT License" />
@@ -81,7 +81,7 @@
 
 > **[🚀 Explore Interactive Live Web Showcase (/showcase)](https://blindshare.vercel.app/showcase)** &nbsp;•&nbsp; **[📖 Complete Technical Verification Guide (docs/SHOWCASE.md)](./docs/SHOWCASE.md)**
 
-Every core architectural pillar of BlindShare v0.1.2 has been verified end-to-end on live production infrastructure with authentic reader telemetry. **100% computed from real database records (Neon PostgreSQL + Drizzle ORM) — Zero mock data, zero synthetic curves.**
+Every core architectural pillar of BlindShare v0.1.3 has been verified end-to-end on live production infrastructure with authentic reader telemetry. **100% computed from real database records (Neon PostgreSQL + Drizzle ORM) — Zero mock data, zero synthetic curves.**
 
 | Zero-Knowledge Ciphertext Proof | Real-Time Stoat Alerting | Forensic Steganography Leak Scanner |
 | :---: | :---: | :---: |

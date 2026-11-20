@@ -17,9 +17,9 @@ export const APP_ENV = IS_DEV ? "development" : (IS_PREVIEW ? "preview" : "produ
 
 /**
  * Display version shown across UI:
- * - Development: "DEV v0.1.2-dev"
- * - Preview: "v0.1.2-preview"
- * - Production: "v0.1.2"
+ * - Development: "DEV v0.1.3-dev"
+ * - Preview: "v0.1.3-preview"
+ * - Production: "v0.1.3"
  */
 export const DISPLAY_VERSION = IS_DEV
   ? `v${APP_VERSION}-dev`
@@ -27,8 +27,8 @@ export const DISPLAY_VERSION = IS_DEV
 
 /**
  * Badge label text for headers, sidebars, and branding:
- * - Development: "DEV v0.1.2"
- * - Production: "v0.1.2 E2EE"
+ * - Development: "DEV v0.1.3"
+ * - Production: "v0.1.3 E2EE"
  */
 export const VERSION_BADGE_TEXT = IS_DEV
   ? `DEV v${APP_VERSION}`
